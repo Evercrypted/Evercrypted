@@ -23,7 +23,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               child: TextFormField(
                 validator: RequiredValidator(errorText: requiredField),
                 decoration: InputDecoration(hintText: 'Phone'),
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.emailAddress,
                 onSaved: (phone) {
                   // Save it
                 },
