@@ -1,10 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../screens/auth/sign_up_screen.dart';
+class AuthForm {
+  String? email;
+  String? password;
+
+  AuthForm({this.email, this.password});
+}
 
 class AuthService {
-  Future signUp(SignUpForm formValues) async {
+  Future signUp(AuthForm formValues) async {
     try {
       final credential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -22,6 +26,27 @@ class AuthService {
         return {
           'success': false,
           'message': 'The account already exists for that email.'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future singIn(AuthForm formValues) async {
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: formValues.email!,
+        password: formValues.password!,
+      );
+      return {'success': true, 'result': credential};
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        return {'success': false, 'message': 'No user found for that email.'};
+      } else if (e.code == 'wrong-password') {
+        return {
+          'success': false,
+          'message': 'Wrong password provided for that user.'
         };
       }
     } catch (e) {

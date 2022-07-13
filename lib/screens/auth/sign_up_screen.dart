@@ -11,13 +11,6 @@ import 'package:form_field_validator/form_field_validator.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
 
-class SignUpForm {
-  String? email;
-  String? password;
-
-  SignUpForm({this.email, this.password});
-}
-
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/sign-up';
 
@@ -37,11 +30,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final AuthService _authService = AuthService();
 
-  SignUpForm formValues = SignUpForm();
+  AuthForm formValues = AuthForm();
 
   void submitForm() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    formValues = SignUpForm();
+    formValues = AuthForm();
 
     if (_form.currentState!.validate()) {
       _form.currentState!.save();
@@ -190,18 +183,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: defaultPadding),
-                        child: _shouldShowLoading
-                            ? PrimaryButton(
-                                press: submitForm,
-                                child: const SpinKitThreeBounce(
-                                  color: Colors.white,
-                                  size: 17,
-                                ),
-                              )
-                            : PrimaryButton(
-                                text: 'Sign up',
-                                press: submitForm,
-                              ),
+                        child: PrimaryButton(
+                            text: 'Sign up',
+                            press: submitForm,
+                            child: _shouldShowLoading
+                                ? const SpinKitThreeBounce(
+                                    color: Colors.white,
+                                    size: 17,
+                                  )
+                                : null),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pushReplacementNamed(

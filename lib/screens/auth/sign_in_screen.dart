@@ -1,15 +1,75 @@
+import 'package:evercrypted/core/auth/auth_service.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
 import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
 import './forgot_password_screen.dart';
 import './sign_up_screen.dart';
-import '../main/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 
-class SignInScreen extends StatelessWidget {
+class SignInScreen extends StatefulWidget {
   static const routeName = '/sign-in';
-  final _formKey = GlobalKey<FormState>();
+
+  const SignInScreen({Key? key}) : super(key: key);
+
+  @override
+  State<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen> {
+  final _form = GlobalKey<FormState>();
+
+  bool _passwordVisible = false;
+  bool _shouldShowLoading = false;
+
+  AuthForm formValues = AuthForm();
+
+  final AuthService _authService = AuthService();
+
+  void submitForm() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    formValues = AuthForm();
+
+    if (_form.currentState!.validate()) {
+      _form.currentState!.save();
+
+      if (formValues.email != null && formValues.password != null) {
+        setState(() {
+          _shouldShowLoading = true;
+        });
+
+        _authService.singIn(formValues).then((result) {
+          if (result['success']) {
+            setState(() {
+              _shouldShowLoading = false;
+            });
+            Navigator.pop(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(result['message'],
+                  style: const TextStyle(color: Colors.white)),
+              backgroundColor: errorColor,
+            ));
+            setState(() {
+              _shouldShowLoading = false;
+            });
+          }
+        }).catchError((e) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text(e.toString(), style: const TextStyle(color: Colors.white)),
+            backgroundColor: errorColor,
+          ));
+          setState(() {
+            _shouldShowLoading = false;
+          });
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,45 +96,56 @@ class SignInScreen extends StatelessWidget {
                   ),
                   SizedBox(height: constraints.maxHeight * 0.05),
                   Form(
-                    key: _formKey,
+                    key: _form,
                     child: Column(
                       children: [
                         TextFormField(
-                          validator:
-                              RequiredValidator(errorText: requiredField),
-                          decoration: InputDecoration(hintText: 'Phone'),
-                          keyboardType: TextInputType.phone,
-                          onSaved: (phone) {
-                            // Save it
+                          validator: EmailValidator(errorText: requiredField),
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                          ),
+                          textInputAction: TextInputAction.next,
+                          keyboardType: TextInputType.emailAddress,
+                          onSaved: (value) {
+                            formValues.email = value;
                           },
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: defaultPadding),
                           child: TextFormField(
-                            validator: passwordValidator,
-                            obscureText: true,
-                            decoration: InputDecoration(hintText: 'Password'),
-                            onSaved: (passaword) {
-                              // Save it
+                            textInputAction: TextInputAction.next,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              errorMaxLines: 3,
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _passwordVisible = !_passwordVisible;
+                                  });
+                                },
+                                icon: Icon(_passwordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off),
+                              ),
+                            ),
+                            obscureText: !_passwordVisible,
+                            onSaved: (value) {
+                              formValues.password = value;
                             },
                           ),
                         ),
                         PrimaryButton(
-                          text: 'Sign in',
-                          press: () {
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MainScreen(),
-                                ),
-                              );
-                            }
-                          },
+                          text: 'Sign In',
+                          press: submitForm,
+                          child: _shouldShowLoading
+                              ? const SpinKitThreeBounce(
+                                  color: Colors.white,
+                                  size: 17,
+                                )
+                              : null,
                         ),
-                        SizedBox(height: defaultPadding),
+                        const SizedBox(height: defaultPadding),
                         TextButton(
                           onPressed: () => Navigator.push(
                             context,
@@ -96,12 +167,8 @@ class SignInScreen extends StatelessWidget {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SignUpScreen(),
-                              ),
-                            );
+                            Navigator.pushReplacementNamed(
+                                context, SignUpScreen.routeName);
                           },
                           child: Text.rich(
                             TextSpan(
