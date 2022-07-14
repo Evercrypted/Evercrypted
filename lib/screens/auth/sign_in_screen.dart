@@ -147,22 +147,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextButton(
-                          onPressed: () => Navigator.push(
+                          onPressed: () => Navigator.pushNamed(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => ForgotPasswordScreen(),
-                            ),
+                            ForgotPasswordScreen.routeName,
                           ),
                           child: Text(
                             'Forgot Password?',
-                            style:
-                                Theme.of(context).textTheme.bodyText2!.copyWith(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyText1!
-                                          .color!
-                                          .withOpacity(0.64),
-                                    ),
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColor),
                           ),
                         ),
                         TextButton(

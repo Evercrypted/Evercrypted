@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
 import 'package:evercrypted/screens/auth/signin_or_signup_screen.dart';
@@ -35,7 +36,8 @@ class MyApp extends StatelessWidget {
         routes: {
           SigninOrSignupScreen.routeName: (ctx) => SigninOrSignupScreen(),
           SignUpScreen.routeName: (ctx) => const SignUpScreen(),
-          SignInScreen.routeName: (ctx) => SignInScreen(),
+          SignInScreen.routeName: (ctx) => const SignInScreen(),
+          ForgotPasswordScreen.routeName: (ctx) => const ForgotPasswordScreen(),
         });
   }
 }
