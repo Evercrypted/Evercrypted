@@ -81,7 +81,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: user == null
-          ? SigninOrSignupScreen()
+          ? const SignInScreen()
           : !user!.emailVerified
               ? VerificationScreen()
               : const MainWidget(),

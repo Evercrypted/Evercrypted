@@ -45,7 +45,6 @@ class _SignInScreenState extends State<SignInScreen> {
             setState(() {
               _shouldShowLoading = false;
             });
-            Navigator.pop(context);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(result['message'],
@@ -57,6 +56,7 @@ class _SignInScreenState extends State<SignInScreen> {
             });
           }
         }).catchError((e) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content:
                 Text(e.toString(), style: const TextStyle(color: Colors.white)),
@@ -81,11 +81,7 @@ class _SignInScreenState extends State<SignInScreen> {
               child: Column(
                 children: [
                   SizedBox(height: constraints.maxHeight * 0.1),
-                  SvgPicture.asset(
-                    MediaQuery.of(context).platformBrightness == Brightness.dark
-                        ? logoDarkTheme
-                        : logoLightTheme,
-                  ),
+                  SvgPicture.asset(logoTheme, width: 150),
                   SizedBox(height: constraints.maxHeight * 0.1),
                   Text(
                     "Sign In",

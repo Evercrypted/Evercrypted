@@ -1,3 +1,4 @@
+import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -52,32 +53,26 @@ class ProfileScreen extends StatelessWidget {
               info: "demo@mail.com",
             ),
             const SizedBox(height: defaultPadding),
-            Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                width: 120,
-                child: PrimaryButton(
-                  padding: EdgeInsets.all(5),
-                  text: "Edit Profile",
-                  press: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditProfileScreen(),
-                    ),
-                  ),
+            PrimaryButton(
+              padding: const EdgeInsets.all(5),
+              text: "Edit Profile",
+              press: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfileScreen(),
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                width: 120,
-                child: PrimaryButton(
-                    padding: EdgeInsets.all(5),
-                    text: "Sign Out",
-                    press: () => _signOut()),
-              ),
+            PrimaryButton(
+              padding: const EdgeInsets.all(5),
+              text: "Forgot Password?",
+              press: () =>
+                  Navigator.pushNamed(context, ForgotPasswordScreen.routeName),
             ),
+            PrimaryButton(
+                padding: const EdgeInsets.all(5),
+                text: "Sign Out",
+                press: () => _signOut()),
           ],
         ),
       ),

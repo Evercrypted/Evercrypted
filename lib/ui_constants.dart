@@ -10,8 +10,7 @@ const errorColor = Color(0xFFF03738);
 
 const defaultPadding = 16.0;
 
-const logoDarkTheme = "assets/icons/Only_logo_dark_theme.svg";
-const logoLightTheme = "assets/icons/Only_logo_light_theme.svg";
+const logoTheme = "assets/icons/evercrypted.svg";
 
 const requiredField = "This field is required";
 const invalidEmail = "Enter a valid email address";

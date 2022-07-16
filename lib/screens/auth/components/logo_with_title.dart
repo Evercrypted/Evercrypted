@@ -23,9 +23,7 @@ class LogoWithTitle extends StatelessWidget {
             children: [
               SizedBox(height: constraints.maxHeight * 0.1),
               SvgPicture.asset(
-                MediaQuery.of(context).platformBrightness == Brightness.dark
-                    ? logoDarkTheme
-                    : logoLightTheme,
+                logoTheme,
               ),
               SizedBox(
                 height: constraints.maxHeight * 0.1,

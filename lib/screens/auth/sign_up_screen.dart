@@ -92,9 +92,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 SizedBox(height: constraints.maxHeight * 0.08),
                 SvgPicture.asset(
-                  MediaQuery.of(context).platformBrightness == Brightness.dark
-                      ? logoDarkTheme
-                      : logoLightTheme,
+                  logoTheme,
                 ),
                 SizedBox(height: constraints.maxHeight * 0.08),
                 Text(

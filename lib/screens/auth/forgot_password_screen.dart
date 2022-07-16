@@ -76,6 +76,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   )
                 : null,
           ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Go Back',
+              style: TextStyle(color: Theme.of(context).primaryColor),
+            ),
+          )
         ],
       ),
     );

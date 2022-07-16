@@ -3,30 +3,40 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_model.dart';
 
 class ProfileService {
-  var _profileCollection = FirebaseFirestore.instance.collection('profiles');
+  final _profileCollection = FirebaseFirestore.instance.collection('profiles');
 
   Future<void> createUserProfile(Profile profile) {
     return _profileCollection.add(profile.toJson()).then(
       (resp) {
         resp.get().then((doc) {
-          print('saved');
+          print('Profile Created');
           print(doc.data());
         });
       },
     );
   }
 
-  Future getUserProfile(String userId) async {
-    var _userProfile =
+  Future<void> updateUserProfile(Profile profile) {
+    return _profileCollection.doc(profile.fbUid).update(profile.toJson()).then(
+      (_) {
+        print('Profile updated');
+      },
+    );
+  }
+
+  Future<Profile?> getUserProfile(String userId) async {
+    var userProfile =
         _profileCollection.where('userId', isEqualTo: userId).limit(1);
-    return _userProfile.get().then(
+    return userProfile.get().then(
       (resp) {
-        try {
-          return resp.docs
-              .map((e) => Profile.fromJson(e.id, e.data()))
-              .toList()
-              .first;
-        } catch (e) {
+        if (resp.docs.isNotEmpty) {
+          try {
+            final doc = resp.docs.first;
+            return Profile.fromJson(doc.id, doc.data());
+          } catch (e) {
+            return null;
+          }
+        } else {
           return null;
         }
       },

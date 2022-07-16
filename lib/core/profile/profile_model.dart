@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'profile_model.g.dart';
@@ -8,15 +9,13 @@ class Profile {
 
   final String? userId;
 
-  final String? name;
+  String? name;
 
   final String? email;
 
-  final bool? emailVerified;
+  bool? emailVerified;
 
-  final String? profilePicRef;
-
-  final DateTime? subscriptionEndDate;
+  String? profilePicRef;
 
   Profile(
       {this.fbUid,
@@ -24,8 +23,7 @@ class Profile {
       this.name,
       this.email,
       this.emailVerified,
-      this.profilePicRef,
-      this.subscriptionEndDate});
+      this.profilePicRef});
 
   factory Profile.fromJson(String uid, Map<String, dynamic> json) =>
       _$ProfileFromJson(uid, json);

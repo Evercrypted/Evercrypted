@@ -72,10 +72,17 @@ class MainScreenState extends ConsumerState<MainScreen> {
             const BottomNavigationBarItem(
                 icon: Icon(Icons.call), label: "Calls"),
             BottomNavigationBarItem(
-              icon: CircleAvatar(
-                radius: 14,
-                backgroundImage: NetworkImage(
-                    ref.watch(profileProvider).profile.profilePicRef ?? ""),
+              icon: Consumer(
+                builder: (context, ref, child) {
+                  final String? profilePicRef =
+                      ref.read(profileProvider).profile.profilePicRef;
+                  return CircleAvatar(
+                    radius: 14,
+                    backgroundImage: profilePicRef != null
+                        ? NetworkImage(profilePicRef)
+                        : null,
+                  );
+                },
               ),
               label: "Profile",
             ),
