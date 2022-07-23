@@ -1,23 +1,50 @@
+import 'package:evercrypted/screens/contacts/components/pending_request_card.dart';
 import 'package:flutter/material.dart';
 
-import '../../widgets/recent_search_contacts.dart';
 import '../../ui_constants.dart';
 import '../search/components/body.dart';
-import 'components/contact_card.dart';
 
-class ContactSearchScreen extends StatelessWidget {
+class AddNewContactScreen extends StatefulWidget {
+  static const routeName = '/add-new-contact';
+
+  const AddNewContactScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AddNewContactScreen> createState() => _AddNewContactScreenState();
+}
+
+class _AddNewContactScreenState extends State<AddNewContactScreen> {
+  FocusNode _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _focus.removeListener(_onFocusChange);
+    _focus.dispose();
+  }
+
+  void _onFocusChange() {
+    debugPrint("Focus: ${_focus.hasFocus.toString()}");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("People"),
+        title: const Text("Search New Contact"),
       ),
       body: Column(
         children: [
           // Appbar search
           Container(
-            margin: EdgeInsets.only(bottom: defaultPadding),
-            padding: EdgeInsets.fromLTRB(
+            margin: const EdgeInsets.only(bottom: defaultPadding),
+            padding: const EdgeInsets.fromLTRB(
               defaultPadding,
               0,
               defaultPadding,
@@ -26,7 +53,7 @@ class ContactSearchScreen extends StatelessWidget {
             color: primaryColor,
             child: Form(
               child: TextFormField(
-                autofocus: true,
+                focusNode: _focus,
                 textInputAction: TextInputAction.search,
                 onChanged: (value) {
                   // search
@@ -50,13 +77,11 @@ class ContactSearchScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RecentSearchContacts(),
-                  SizedBox(height: defaultPadding),
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: defaultPadding),
                     child: Text(
-                      "Phone contacts",
+                      "Pending Requests",
                       style: Theme.of(context).textTheme.subtitle2!.copyWith(
                             color: Theme.of(context)
                                 .textTheme
@@ -68,13 +93,11 @@ class ContactSearchScreen extends StatelessWidget {
                   ),
                   ...List.generate(
                     demoContactsImage.length,
-                    (index) => ContactCard(
-                      name: "Jenny Wilson",
-                      number: "(239) 555-0108",
-                      image: demoContactsImage[index],
-                      isActive: index.isEven, // for demo
-                      press: () {},
-                    ),
+                    (index) => PendingRequestCard(
+                        email: "iraklikori@gmail.com",
+                        requestSent:
+                            DateTime.now().subtract(Duration(hours: 2)),
+                        press: () {}),
                   )
                 ],
               ),

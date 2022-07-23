@@ -1,26 +1,18 @@
+import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 
 import '../search/components/body.dart';
 import 'components/contact_card.dart';
-import 'contact_search_screen.dart';
+import 'add_new_contact_screen.dart';
 
 class ContactsScreen extends StatelessWidget {
+  static const routeName = '/contacts';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("People"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ContactSearchScreen(),
-              ),
-            ),
-          )
-        ],
+        actions: [IconButton(icon: Icon(Icons.search), onPressed: () => {})],
       ),
       body: ListView.builder(
         itemCount: demoContactsImage.length,
@@ -30,6 +22,16 @@ class ContactsScreen extends StatelessWidget {
           image: demoContactsImage[index],
           isActive: index.isEven, // for demo
           press: () {},
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, AddNewContactScreen.routeName);
+        },
+        backgroundColor: primaryColor,
+        child: const Icon(
+          Icons.group_add_rounded,
+          color: Colors.white,
         ),
       ),
     );

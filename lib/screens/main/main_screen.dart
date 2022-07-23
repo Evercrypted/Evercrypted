@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,9 +22,9 @@ class MainScreenState extends ConsumerState<MainScreen> {
 
   List<Widget> pageList = <Widget>[
     ChatsScreen(),
-    ContactsScreen(),
     CallsHistoryScreen(),
-    ProfileScreen(),
+    ContactsScreen(),
+    const ProfileScreen(),
   ];
 
   void checkOnPermissions() async {
@@ -68,15 +69,16 @@ class MainScreenState extends ConsumerState<MainScreen> {
             const BottomNavigationBarItem(
                 icon: Icon(Icons.messenger), label: "Chats"),
             const BottomNavigationBarItem(
-                icon: Icon(Icons.people), label: "People"),
+                icon: Icon(Icons.groups_rounded), label: "Groups"),
             const BottomNavigationBarItem(
-                icon: Icon(Icons.call), label: "Calls"),
+                icon: Icon(Icons.people), label: "People"),
             BottomNavigationBarItem(
               icon: Consumer(
                 builder: (context, ref, child) {
                   final String? profilePicRef =
                       ref.read(profileProvider).profile.profilePicRef;
                   return CircleAvatar(
+                    backgroundColor: secondaryColor,
                     radius: 14,
                     backgroundImage: profilePicRef != null
                         ? NetworkImage(profilePicRef)

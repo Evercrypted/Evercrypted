@@ -5,6 +5,8 @@ import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
 import 'package:evercrypted/screens/auth/signin_or_signup_screen.dart';
 import 'package:evercrypted/screens/auth/verification_screen.dart';
+import 'package:evercrypted/screens/contacts/add_new_contact_screen.dart';
+import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/mainpage.dart';
 import 'package:evercrypted/core/profile/profile_repository.dart';
 import 'package:evercrypted/theme.dart';
@@ -38,6 +40,8 @@ class MyApp extends StatelessWidget {
           SignUpScreen.routeName: (ctx) => const SignUpScreen(),
           SignInScreen.routeName: (ctx) => const SignInScreen(),
           ForgotPasswordScreen.routeName: (ctx) => const ForgotPasswordScreen(),
+          ContactsScreen.routeName: (ctx) => ContactsScreen(),
+          AddNewContactScreen.routeName: (ctx) => AddNewContactScreen(),
         });
   }
 }
