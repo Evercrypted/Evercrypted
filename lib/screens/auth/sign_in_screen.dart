@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/auth/auth_service.dart';
+import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../../widgets/primary_button.dart';
@@ -7,7 +8,6 @@ import './forgot_password_screen.dart';
 import './sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:form_field_validator/form_field_validator.dart';
 
 class SignInScreen extends StatefulWidget {
   static const routeName = '/sign-in';
@@ -96,7 +96,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Column(
                       children: [
                         TextFormField(
-                          validator: EmailValidator(errorText: requiredField),
+                          validator: validateEmail,
                           decoration: const InputDecoration(
                             labelText: 'Email',
                           ),

@@ -1,12 +1,11 @@
 import 'package:evercrypted/core/auth/auth_service.dart';
+import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import './sign_in_screen.dart';
-import './verification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:form_field_validator/form_field_validator.dart';
 
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
@@ -108,7 +107,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     children: [
                       TextFormField(
-                        validator: EmailValidator(errorText: requiredField),
+                        validator: validateEmail,
                         decoration: const InputDecoration(
                           labelText: 'Email',
                         ),
@@ -122,7 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         padding: const EdgeInsets.symmetric(
                             vertical: defaultPadding),
                         child: TextFormField(
-                          validator: passwordValidator,
+                          validator: validatePassword,
                           controller: _passwordController,
                           textInputAction: TextInputAction.next,
                           decoration: InputDecoration(

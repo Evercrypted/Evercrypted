@@ -1,17 +1,21 @@
+import 'package:evercrypted/core/helpers/field_validators.dart';
+
 import '../../widgets/primary_button.dart';
 import './components/logo_with_title.dart';
 import '../chats/chats_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:form_field_validator/form_field_validator.dart';
 
 import '../../ui_constants.dart';
 import 'sign_in_screen.dart';
 
 class ChangePasswordScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
+
+  ChangePasswordScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    String _password = '';
+    String password = '';
     return Scaffold(
       body: LogoWithTitle(
         title: "Change Password",
@@ -22,23 +26,28 @@ class ChangePasswordScreen extends StatelessWidget {
               children: [
                 TextFormField(
                   obscureText: true,
-                  validator: passwordValidator,
-                  decoration: InputDecoration(hintText: 'Password'),
+                  validator: validatePassword,
+                  decoration: const InputDecoration(hintText: 'Password'),
                   onSaved: (passaword) {
                     // Save it
                   },
                   onChanged: (value) {
-                    _password = value;
+                    password = value;
                   },
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: defaultPadding),
                   child: TextFormField(
-                    validator: (value) =>
-                        MatchValidator(errorText: 'passwords do not match')
-                            .validateMatch(value!, _password),
+                    validator: (value) {
+                      if (value != password) {
+                        return 'Passwords do not match';
+                      } else {
+                        return null;
+                      }
+                    },
                     obscureText: true,
-                    decoration: InputDecoration(hintText: ' Confirm Password'),
+                    decoration:
+                        const InputDecoration(hintText: 'Confirm Password'),
                     onSaved: (passaword) {
                       // Save it
                     },
@@ -62,12 +71,8 @@ class ChangePasswordScreen extends StatelessWidget {
             },
           ),
           TextButton(
-            onPressed: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SignInScreen(),
-              ),
-            ),
+            onPressed: () =>
+                Navigator.pushReplacementNamed(context, SignInScreen.routeName),
             child: Text.rich(
               TextSpan(
                 text: "Already have an account? ",

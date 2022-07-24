@@ -1,7 +1,7 @@
+import '../../../core/helpers/field_validators.dart';
 import '../../../screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:form_field_validator/form_field_validator.dart';
 
 import '../../../ui_constants.dart';
 import '../../../widgets/primary_button.dart';
@@ -142,7 +142,7 @@ class OtpTextFormField extends StatelessWidget {
       onChanged: onChanged,
       onSaved: onSaved,
       autofocus: autofocus,
-      validator: RequiredValidator(errorText: ""),
+      validator: requiredValidator,
       obscureText: true,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
@@ -151,7 +151,6 @@ class OtpTextFormField extends StatelessWidget {
       textAlign: TextAlign.center,
       keyboardType: TextInputType.number,
       style: Theme.of(context).textTheme.headline5,
-      decoration: otpInputDecoration,
     );
   }
 }

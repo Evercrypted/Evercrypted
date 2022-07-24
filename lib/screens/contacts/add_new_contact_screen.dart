@@ -37,7 +37,7 @@ class _AddNewContactScreenState extends State<AddNewContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Search New Contact"),
+        title: const Text("Add New Contact"),
       ),
       body: Column(
         children: [
@@ -54,17 +54,40 @@ class _AddNewContactScreenState extends State<AddNewContactScreen> {
             child: Form(
               child: TextFormField(
                 focusNode: _focus,
-                textInputAction: TextInputAction.search,
-                onChanged: (value) {
-                  // search
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (value) {
+                  if (value.isEmpty) return;
+                  showDialog<bool>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Confirm Contact Request'),
+                      content: Text(
+                          'Are you sure that you want to send a contact request to $value?'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Yes'),
+                        ),
+                      ],
+                    ),
+                  ).then((value) => print(value));
                 },
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   fillColor: Colors.white,
                   prefixIcon: Icon(
-                    Icons.search,
+                    Icons.email,
                     color: contentColorLightTheme.withOpacity(0.64),
                   ),
-                  hintText: "Search",
+                  suffixIcon: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.send),
+                  ),
+                  hintText: "Email",
                   hintStyle: TextStyle(
                     color: contentColorLightTheme.withOpacity(0.64),
                   ),

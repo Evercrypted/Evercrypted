@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:form_field_validator/form_field_validator.dart';
 
 const primaryColor = Color(0xFF00BF6D);
 const secondaryColor = Color(0xFFFE9901);
@@ -11,23 +10,3 @@ const errorColor = Color(0xFFF03738);
 const defaultPadding = 16.0;
 
 const logoTheme = "assets/icons/evercrypted.svg";
-
-const requiredField = "This field is required";
-const invalidEmail = "Enter a valid email address";
-
-final passwordValidator = MultiValidator(
-  [
-    RequiredValidator(errorText: requiredField),
-    MinLengthValidator(8, errorText: 'Password must be at least 8 digits long'),
-    PatternValidator(
-        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
-        errorText:
-            'Passwords must have at least one uppercase letter, one lowercase letter, one number and one special character.')
-  ],
-);
-
-const InputDecoration otpInputDecoration = InputDecoration(
-  filled: false,
-  border: UnderlineInputBorder(),
-  hintText: "0",
-);
