@@ -24,6 +24,14 @@ class ProfileService {
     );
   }
 
+  Future<void> deleteUserProfile(Profile profile) {
+    return _profileCollection.doc(profile.fbUid).delete().then(
+      (_) {
+        print('Profile deleted');
+      },
+    );
+  }
+
   Future<Profile?> getUserProfile(String userId) async {
     var userProfile =
         _profileCollection.where('userId', isEqualTo: userId).limit(1);

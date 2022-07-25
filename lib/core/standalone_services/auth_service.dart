@@ -1,4 +1,3 @@
-import 'package:evercrypted/core/profile/profile_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthForm {
@@ -9,8 +8,6 @@ class AuthForm {
 }
 
 class AuthService {
-  final ProfileService _profileService = ProfileService();
-
   Future signUp(AuthForm formValues) async {
     try {
       final credential =

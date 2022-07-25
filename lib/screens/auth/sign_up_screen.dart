@@ -1,4 +1,4 @@
-import 'package:evercrypted/core/auth/auth_service.dart';
+import 'package:evercrypted/core/standalone_services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';

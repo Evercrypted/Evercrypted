@@ -1,5 +1,5 @@
-import 'package:evercrypted/core/profile/profile_model.dart';
-import 'package:evercrypted/core/profile/profile_service.dart';
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
+import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProfileRepository {

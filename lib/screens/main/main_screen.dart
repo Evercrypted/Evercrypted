@@ -3,7 +3,7 @@ import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/profile/profile_repository.dart';
+import '../../core/entities/profile/profile_repository.dart';
 import '../calls/calls_history_screen.dart';
 import '../chats/chats_screen.dart';
 import '../contacts/contacts_screen.dart';
