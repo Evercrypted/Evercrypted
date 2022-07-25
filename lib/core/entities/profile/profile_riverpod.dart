@@ -2,7 +2,8 @@ import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProfileRepository {
+//--riverpods
+class ProfileRiverpod {
   late Profile profile;
 
   final ProfileService _profileService = ProfileService();
@@ -28,6 +29,7 @@ class ProfileRepository {
   }
 }
 
-final profileProvider = Provider<ProfileRepository>((ref) {
-  return ProfileRepository();
+//--providers
+final profileProvider = Provider<ProfileRiverpod>((ref) {
+  return ProfileRiverpod();
 });

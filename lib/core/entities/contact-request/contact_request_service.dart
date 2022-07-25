@@ -35,7 +35,7 @@ class ContactRequestService {
     );
   }
 
-  Stream<List<ContactRequest>> getRecipientContactRequests(String userId) {
+  Stream<List<ContactRequest>> getReceivedContactRequests(String userId) {
     var contactRequests = _contactRequestCollection
         .where('recipientId', isEqualTo: userId)
         .orderBy('timeSent', descending: true);
@@ -46,11 +46,11 @@ class ContactRequestService {
         );
   }
 
-  Stream<List<ContactRequest>> getAuthorContactRequests(String userId) {
+  Future<List<ContactRequest>> getSentContactRequests(String userId) async {
     var contactRequests = _contactRequestCollection
         .where('authorId', isEqualTo: userId)
         .orderBy('timeSent', descending: true);
-    return contactRequests.snapshots().map(
+    return contactRequests.get().then(
           (snapshot) => snapshot.docs.map((doc) {
             return ContactRequest.fromJson(doc.id, doc.data());
           }).toList(),

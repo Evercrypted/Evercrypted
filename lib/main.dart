@@ -8,7 +8,7 @@ import 'package:evercrypted/screens/auth/verification_screen.dart';
 import 'package:evercrypted/screens/contacts/add_new_contact_screen.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/mainpage.dart';
-import 'package:evercrypted/core/entities/profile/profile_repository.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
