@@ -18,9 +18,6 @@ ContactRequest _$ContactRequestFromJson(
       timeSent: json['timeSent'] != null
           ? json['timeSent'].toDate() as DateTime?
           : null,
-      timeRejected: json['timeRejected'] != null
-          ? json['timeRejected'].toDate() as DateTime?
-          : null,
     );
 
 Map<String, dynamic> _$ContactRequestToJson(ContactRequest instance) =>
@@ -33,7 +30,4 @@ Map<String, dynamic> _$ContactRequestToJson(ContactRequest instance) =>
       'timeSent': instance.timeSent == null
           ? DateTime.now()
           : Timestamp.fromDate(instance.timeSent!),
-      'timeRejected': instance.timeRejected == null
-          ? null
-          : Timestamp.fromDate(instance.timeRejected!)
     };

@@ -16,17 +16,16 @@ class ContactRequest {
   final String? message;
 
   final DateTime? timeSent;
-  final DateTime? timeRejected;
 
-  ContactRequest(
-      {this.fbUid,
-      this.authorId,
-      this.authorEmail,
-      this.recipientId,
-      this.recipientEmail,
-      this.message,
-      this.timeSent,
-      this.timeRejected});
+  ContactRequest({
+    this.fbUid,
+    this.authorId,
+    this.authorEmail,
+    this.recipientId,
+    this.recipientEmail,
+    this.message,
+    this.timeSent,
+  });
 
   factory ContactRequest.fromJson(String uid, Map<String, dynamic> json) =>
       _$ContactRequestFromJson(uid, json);
