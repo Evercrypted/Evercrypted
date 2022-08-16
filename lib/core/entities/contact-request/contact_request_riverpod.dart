@@ -1,5 +1,7 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 //-- riverpods
@@ -30,9 +32,9 @@ final sentRequestsProvider = Provider<SentContactRequestRiverpod>((ref) {
   return SentContactRequestRiverpod();
 });
 
-final receivedRequestsProvider =
-    StreamProvider.family<List<ContactRequest>, String>((ref, userId) {
+final receivedRequestsProvider = StreamProvider<List<ContactRequest>>((ref) {
   final riverpod = ReceivedContactRequestRiverpod();
-  riverpod.setReceivedRequests(userId);
+  final user = FirebaseAuth.instance.currentUser;
+  riverpod.setReceivedRequests(user!.uid);
   return riverpod.receivedstream;
 });

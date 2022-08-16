@@ -1,61 +1,72 @@
-import 'package:evercrypted/screens/contacts/components/pending_request_card.dart';
+import 'package:evercrypted/screens/contacts/components/received_requests_list.dart';
+import 'package:evercrypted/screens/contacts/components/sent_requests_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/entities/contact-request/contact_request_service.dart';
+import '../../core/entities/profile/profile_riverpod.dart';
 import '../../core/helpers/field_validators.dart';
 import '../../ui_constants.dart';
-import '../search/components/body.dart';
 
-class AddNewContactScreen extends StatefulWidget {
+class AddNewContactScreen extends ConsumerStatefulWidget {
   static const routeName = '/add-new-contact';
 
   const AddNewContactScreen({Key? key}) : super(key: key);
 
   @override
-  State<AddNewContactScreen> createState() => _AddNewContactScreenState();
+  AddNewContactScreenState createState() => AddNewContactScreenState();
 }
 
-class _AddNewContactScreenState extends State<AddNewContactScreen> {
+class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
   final form = GlobalKey<FormState>();
+
+  ContactRequestService _contactRequestService = ContactRequestService();
 
   String? email;
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  int _selectedIndex = 0;
 
-  @override
-  void dispose() {
-    super.dispose();
+  static const List<Widget> _widgetOptions = <Widget>[
+    ReceivedRequestsList(),
+    SentRequestsList(),
+  ];
+
+  void _onBotNavTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   submitForm() {
     FocusManager.instance.primaryFocus?.unfocus();
     if (form.currentState!.validate()) {
       form.currentState?.save();
-      showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Confirm Contact Request'),
-          content: Text(
-              'Are you sure that you want to send a contact request to $email?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Yes'),
-            ),
-          ],
-        ),
-      ).then((value) {
-        if (value == null) return;
-        if (value) {
-          form.currentState?.reset();
-        } else {}
-      });
+      // showDialog<bool>(
+      //   context: context,
+      //   builder: (BuildContext context) => AlertDialog(
+      //     title: const Text('Confirm Contact Request'),
+      //     content: Text(
+      //         'Are you sure that you want to send a contact request to $email?'),
+      //     actions: <Widget>[
+      //       TextButton(
+      //         onPressed: () => Navigator.pop(context, false),
+      //         child: const Text('Cancel'),
+      //       ),
+      //       TextButton(
+      //         onPressed: () => Navigator.pop(context, true),
+      //         child: const Text('Yes'),
+      //       ),
+      //     ],
+      //   ),
+      // ).then((value) {
+      //   if (value == null) return;
+      //   if (value) {
+      //     form.currentState?.reset();
+      //     final _profileRP = ref.read(profileProvider);
+      //     print(_profileRP.profile.email);
+      //     // _contactRequestService.createContactRequest(email);
+      //   }
+      // });
     }
   }
 
@@ -63,7 +74,7 @@ class _AddNewContactScreenState extends State<AddNewContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add New Contact"),
+        title: const Text("Contact Requests"),
       ),
       body: Column(
         children: [
@@ -107,38 +118,22 @@ class _AddNewContactScreenState extends State<AddNewContactScreen> {
               ),
             ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: defaultPadding),
-                    child: Text(
-                      "Pending Requests",
-                      style: Theme.of(context).textTheme.subtitle2!.copyWith(
-                            color: Theme.of(context)
-                                .textTheme
-                                .subtitle2!
-                                .color!
-                                .withOpacity(0.32),
-                          ),
-                    ),
-                  ),
-                  ...List.generate(
-                    demoContactsImage.length,
-                    (index) => PendingRequestCard(
-                        email: "iraklikori@gmail.com",
-                        requestSent:
-                            DateTime.now().subtract(Duration(hours: 2)),
-                        press: () {}),
-                  )
-                ],
-              ),
-            ),
+          _widgetOptions.elementAt(_selectedIndex),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.mark_as_unread),
+            label: 'Received Requests',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.outgoing_mail),
+            label: 'Sent Requests',
           ),
         ],
+        currentIndex: _selectedIndex,
+        onTap: _onBotNavTapped,
       ),
     );
   }
