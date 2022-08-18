@@ -30,6 +30,4 @@ class ProfileRiverpod {
 }
 
 //--providers
-final profileProvider = Provider<ProfileRiverpod>((ref) {
-  return ProfileRiverpod();
-});
+final profileProvider = Provider<ProfileRiverpod>((ref) => ProfileRiverpod());

@@ -1,4 +1,3 @@
-import 'package:evercrypted/screens/welcome/splash_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'main/main_screen.dart';
