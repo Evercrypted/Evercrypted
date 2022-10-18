@@ -41,32 +41,32 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
     FocusManager.instance.primaryFocus?.unfocus();
     if (form.currentState!.validate()) {
       form.currentState?.save();
-      // showDialog<bool>(
-      //   context: context,
-      //   builder: (BuildContext context) => AlertDialog(
-      //     title: const Text('Confirm Contact Request'),
-      //     content: Text(
-      //         'Are you sure that you want to send a contact request to $email?'),
-      //     actions: <Widget>[
-      //       TextButton(
-      //         onPressed: () => Navigator.pop(context, false),
-      //         child: const Text('Cancel'),
-      //       ),
-      //       TextButton(
-      //         onPressed: () => Navigator.pop(context, true),
-      //         child: const Text('Yes'),
-      //       ),
-      //     ],
-      //   ),
-      // ).then((value) {
-      //   if (value == null) return;
-      //   if (value) {
-      //     form.currentState?.reset();
-      //     final _profileRP = ref.read(profileProvider);
-      //     print(_profileRP.profile.email);
-      //     // _contactRequestService.createContactRequest(email);
-      //   }
-      // });
+      showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('Confirm Contact Request'),
+          content: Text(
+              'Are you sure that you want to send a contact request to $email?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Yes'),
+            ),
+          ],
+        ),
+      ).then((value) {
+        if (value == null) return;
+        if (value) {
+          form.currentState?.reset();
+          final _profileRP = ref.read(profileProvider);
+          print(_profileRP.profile.email);
+          // _contactRequestService.createContactRequest(email);
+        }
+      });
     }
   }
 
