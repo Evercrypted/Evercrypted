@@ -24,14 +24,18 @@ class ContactsScreen extends StatelessWidget {
           press: () {},
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, AddNewContactScreen.routeName);
-        },
-        backgroundColor: primaryColor,
-        child: const Icon(
-          Icons.group_add_rounded,
-          color: Colors.white,
+      floatingActionButton: Tooltip(
+        message: 'Check Contact Requests',
+        preferBelow: false,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.pushNamed(context, AddNewContactScreen.routeName);
+          },
+          backgroundColor: primaryColor,
+          child: const Icon(
+            Icons.group_add_rounded,
+            color: Colors.white,
+          ),
         ),
       ),
     );

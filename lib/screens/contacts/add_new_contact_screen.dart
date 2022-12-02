@@ -74,52 +74,83 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Contact Requests"),
-      ),
-      body: Column(
+          title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Appbar search
-          Container(
-            margin: const EdgeInsets.only(bottom: defaultPadding),
-            padding: const EdgeInsets.fromLTRB(
-              defaultPadding,
-              0,
-              defaultPadding,
-              defaultPadding,
-            ),
-            color: primaryColor,
-            child: Form(
-              key: form,
-              child: TextFormField(
-                validator: validateEmail,
-                textInputAction: TextInputAction.done,
-                onSaved: (value) {
-                  email = value;
-                },
-                onFieldSubmitted: (_) {
-                  submitForm();
-                },
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  prefixIcon: Icon(
-                    Icons.email,
-                    color: contentColorLightTheme.withOpacity(0.64),
-                  ),
-                  suffixIcon: IconButton(
-                    onPressed: submitForm,
-                    icon: const Icon(Icons.send),
-                  ),
-                  hintText: "Email",
-                  hintStyle: TextStyle(
-                    color: contentColorLightTheme.withOpacity(0.64),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          const Text("Contact Requests"),
+          Text(
+            _selectedIndex == 0 ? "Received Requests" : "Sent Requests",
+            style: const TextStyle(fontSize: 12),
+            textAlign: TextAlign.left,
+          )
+        ],
+      )),
+      body: ListView(
+        children: [
           _widgetOptions.elementAt(_selectedIndex),
         ],
+      ),
+      floatingActionButton: Tooltip(
+        message: 'Send Contact Request',
+        preferBelow: false,
+        child: FloatingActionButton(
+          onPressed: () {
+            showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (BuildContext context) {
+                  return Container(
+                    color: primaryColor,
+                    padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom),
+                    child: Container(
+                      margin: const EdgeInsets.all(defaultPadding),
+                      padding: const EdgeInsets.fromLTRB(
+                        defaultPadding,
+                        0,
+                        defaultPadding,
+                        defaultPadding,
+                      ),
+                      color: primaryColor,
+                      child: Form(
+                        key: form,
+                        child: TextFormField(
+                          validator: validateEmail,
+                          textInputAction: TextInputAction.done,
+                          onSaved: (value) {
+                            email = value;
+                          },
+                          onFieldSubmitted: (_) {
+                            submitForm();
+                          },
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            fillColor: Colors.white,
+                            prefixIcon: Icon(
+                              Icons.email,
+                              color: contentColorLightTheme.withOpacity(0.64),
+                            ),
+                            suffixIcon: IconButton(
+                              onPressed: submitForm,
+                              icon: const Icon(Icons.send),
+                            ),
+                            hintText: "Email",
+                            hintStyle: TextStyle(
+                              color: contentColorLightTheme.withOpacity(0.64),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                });
+          },
+          backgroundColor: primaryColor,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
