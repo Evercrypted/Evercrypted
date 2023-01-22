@@ -8,7 +8,6 @@ part of 'profile_model.dart';
 
 Profile _$ProfileFromJson(String uid, Map<String, dynamic> json) => Profile(
       fbUid: uid,
-      userId: json['userId'] as String?,
       name: json['name'] as String?,
       email: json['email'] as String?,
       emailVerified: json['emailVerified'] as bool?,
@@ -16,7 +15,6 @@ Profile _$ProfileFromJson(String uid, Map<String, dynamic> json) => Profile(
     );
 
 Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
-      'userId': instance.userId,
       'name': instance.name,
       'email': instance.email,
       'emailVerified': instance.emailVerified,

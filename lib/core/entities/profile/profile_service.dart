@@ -5,15 +5,10 @@ import 'profile_model.dart';
 class ProfileService {
   final _profileCollection = FirebaseFirestore.instance.collection('profiles');
 
-  Future<void> createUserProfile(Profile profile) {
-    return _profileCollection.add(profile.toJson()).then(
-      (resp) {
-        resp.get().then((doc) {
-          print('Profile Created');
-          print(doc.data());
-        });
-      },
-    );
+  Future<void> setProfile(Profile profile) {
+    return _profileCollection
+        .doc(profile.fbUid)
+        .set(profile.toJson(), SetOptions(merge: true));
   }
 
   Future<void> updateUserProfile(Profile profile) {

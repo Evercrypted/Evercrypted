@@ -6,8 +6,6 @@ part 'profile_model.g.dart';
 class Profile {
   final String? fbUid;
 
-  final String? userId;
-
   String? name;
 
   final String? email;
@@ -18,7 +16,6 @@ class Profile {
 
   Profile(
       {this.fbUid,
-      this.userId,
       this.name,
       this.email,
       this.emailVerified,

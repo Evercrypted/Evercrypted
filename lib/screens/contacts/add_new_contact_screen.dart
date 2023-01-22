@@ -37,6 +37,8 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
     });
   }
 
+  void sendInvite(email) {}
+
   submitForm() {
     FocusManager.instance.primaryFocus?.unfocus();
     if (form.currentState!.validate()) {

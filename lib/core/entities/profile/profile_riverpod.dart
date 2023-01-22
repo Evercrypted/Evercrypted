@@ -8,24 +8,14 @@ class ProfileRiverpod {
 
   final ProfileService _profileService = ProfileService();
 
-  updateUser(data) {
+  setProfileWhenSignIn(data) {
     profile = Profile(
-        userId: data.uid,
+        fbUid: data.uid,
         name: data.displayName,
         email: data.email,
         profilePicRef: data.photoURL,
         emailVerified: data.emailVerified);
-    checkProfile(data.uid);
-  }
-
-  checkProfile(String userId) {
-    _profileService.getUserProfile(userId).then((value) {
-      if (value == null) {
-        _profileService.createUserProfile(profile);
-      } else {
-        profile = value;
-      }
-    });
+    _profileService.setProfile(profile);
   }
 }
 

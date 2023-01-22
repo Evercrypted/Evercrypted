@@ -1,4 +1,4 @@
-import 'package:evercrypted/core/standalone_services/auth_service.dart';
+import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -155,7 +155,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushReplacementNamed(
+                            Navigator.pushNamed(
                                 context, SignUpScreen.routeName);
                           },
                           child: Text.rich(
