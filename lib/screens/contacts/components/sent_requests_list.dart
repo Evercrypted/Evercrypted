@@ -11,20 +11,18 @@ class SentRequestsList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // use ref to listen to a provider
     final receivedRequests = ref.watch(receivedRequestsProvider);
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...List.generate(
-              demoContactsImage.length,
-              (index) => PendingRequestCard(
-                  email: "iraklikori@gmail.com",
-                  requestSent: DateTime.now().subtract(Duration(hours: 2)),
-                  press: () {}),
-            )
-          ],
-        ),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...List.generate(
+            demoContactsImage.length,
+            (index) => PendingRequestCard(
+                email: "iraklikori@gmail.com",
+                requestSent: DateTime.now().subtract(Duration(hours: 2)),
+                press: () {}),
+          )
+        ],
       ),
     );
   }
