@@ -42,7 +42,7 @@ dependencies:
   cloud_firestore: ^4.3.0
   firebase_messaging: ^14.2.0
 
-  google_fonts: ^3.0.1
+  google_fonts: ^4.0.3
   animations: ^2.0.3
   flutter_sound: ^9.2.13
   image_picker: ^0.8.5+3
@@ -50,7 +50,7 @@ dependencies:
   permission_handler: ^10.0.0
   json_annotation: ^4.5.0
   flutter_riverpod: ^2.0.2
-  flutter_svg: ^1.1.1+1
+  flutter_svg: ^2.0.0+1
   flutter_spinkit: ^5.1.0
   timeago: ^3.2.2
 
