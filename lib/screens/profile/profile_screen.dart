@@ -1,6 +1,8 @@
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
@@ -8,11 +10,13 @@ import 'components/info.dart';
 import 'components/profile_pic.dart';
 import 'edit_profile_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile"),
@@ -32,25 +36,13 @@ class ProfileScreen extends StatelessWidget {
               imageUploadBtnPress: () {},
             ),
             Text(
-              "Annette Black",
-              style: Theme.of(context).textTheme.headline6,
+              profile.profile?.name ?? '',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const Divider(height: defaultPadding * 2),
             Info(
-              infoKey: "User ID",
-              info: "@annette.me",
-            ),
-            Info(
-              infoKey: "Location",
-              info: "New York, NYC",
-            ),
-            Info(
-              infoKey: "Phone",
-              info: "(239) 555-0108",
-            ),
-            Info(
               infoKey: "Email Address",
-              info: "demo@mail.com",
+              info: profile.profile?.email ?? '',
             ),
             const SizedBox(height: defaultPadding),
             PrimaryButton(

@@ -66,11 +66,11 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
         if (value) {
           form.currentState?.reset();
           final profileRP = ref.read(profileProvider);
-          print(profileRP.profile?.email);
           final cRequest = ContactRequest(
               authorEmail: profileRP.profile?.email,
               recipientEmail: email!,
-              authorId: profileRP.profile?.fbUid);
+              authorId: profileRP.profile?.fbUid,
+              message: message);
           // _contactRequestService.createContactRequest(cRequest);
         }
       });
@@ -106,27 +106,35 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                 context: context,
                 isScrollControlled: true,
                 builder: (BuildContext context) {
-                  return Container(
-                    color: primaryColor,
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom),
-                    child: Container(
-                      margin: const EdgeInsets.all(defaultPadding),
-                      padding: const EdgeInsets.fromLTRB(
-                        defaultPadding,
-                        0,
-                        defaultPadding,
-                        defaultPadding,
-                      ),
+                  return Wrap(children: [
+                    Container(
                       color: primaryColor,
-                      child: Form(
-                          key: form,
-                          child: SizedBox(
-                            height: 190,
+                      padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom),
+                      child: Container(
+                          margin: const EdgeInsets.all(defaultPadding),
+                          padding: const EdgeInsets.fromLTRB(
+                            defaultPadding,
+                            0,
+                            defaultPadding,
+                            defaultPadding,
+                          ),
+                          color: primaryColor,
+                          child: Form(
+                            key: form,
                             child: Column(
                               children: [
                                 TextFormField(
-                                  validator: validateEmail,
+                                  validator: (val) {
+                                    String? emailError = validateEmail(val);
+                                    if (emailError != null) return emailError;
+                                    final profileRP = ref.read(profileProvider);
+                                    if (val == profileRP.profile?.email) {
+                                      return "You can't send a contact request to yourself";
+                                    } else {
+                                      return null;
+                                    }
+                                  },
                                   textInputAction: TextInputAction.next,
                                   onSaved: (value) {
                                     email = value;
@@ -195,7 +203,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                             ),
                           )),
                     ),
-                  );
+                  ]);
                 });
           },
           backgroundColor: primaryColor,
