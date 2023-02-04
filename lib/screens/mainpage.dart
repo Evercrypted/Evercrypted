@@ -6,12 +6,12 @@ class MainWidget extends StatefulWidget {
   const MainWidget({Key? key}) : super(key: key);
 
   @override
-  _MainWidgetState createState() => _MainWidgetState();
+  MainWidgetState createState() => MainWidgetState();
 }
 
-class _MainWidgetState extends State<MainWidget> {
+class MainWidgetState extends State<MainWidget> {
   @override
   Widget build(BuildContext context) {
-    return MainScreen();
+    return const MainScreen();
   }
 }

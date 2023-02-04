@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/screens/contacts/components/received_requests_list.dart';
 import 'package:evercrypted/screens/contacts/components/sent_requests_list.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import '../../core/entities/contact-request/contact_request_service.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
 import '../../core/helpers/field_validators.dart';
 import '../../ui_constants.dart';
+import '../../widgets/primary_button.dart';
 
 class AddNewContactScreen extends ConsumerStatefulWidget {
   static const routeName = '/add-new-contact';
@@ -23,6 +25,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
   ContactRequestService _contactRequestService = ContactRequestService();
 
   String? email;
+  String? message;
 
   int _selectedIndex = 0;
 
@@ -36,8 +39,6 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
       _selectedIndex = index;
     });
   }
-
-  void sendInvite(email) {}
 
   submitForm() {
     FocusManager.instance.primaryFocus?.unfocus();
@@ -64,9 +65,13 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
         if (value == null) return;
         if (value) {
           form.currentState?.reset();
-          final _profileRP = ref.read(profileProvider);
-          print(_profileRP.profile.email);
-          // _contactRequestService.createContactRequest(email);
+          final profileRP = ref.read(profileProvider);
+          print(profileRP.profile?.email);
+          final cRequest = ContactRequest(
+              authorEmail: profileRP.profile?.email,
+              recipientEmail: email!,
+              authorId: profileRP.profile?.fbUid);
+          // _contactRequestService.createContactRequest(cRequest);
         }
       });
     }
@@ -115,34 +120,80 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                       ),
                       color: primaryColor,
                       child: Form(
-                        key: form,
-                        child: TextFormField(
-                          validator: validateEmail,
-                          textInputAction: TextInputAction.done,
-                          onSaved: (value) {
-                            email = value;
-                          },
-                          onFieldSubmitted: (_) {
-                            submitForm();
-                          },
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            fillColor: Colors.white,
-                            prefixIcon: Icon(
-                              Icons.email,
-                              color: contentColorLightTheme.withOpacity(0.64),
+                          key: form,
+                          child: SizedBox(
+                            height: 190,
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  validator: validateEmail,
+                                  textInputAction: TextInputAction.next,
+                                  onSaved: (value) {
+                                    email = value;
+                                  },
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide.none,
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                    ),
+                                    fillColor: Colors.white,
+                                    prefixIcon: Icon(
+                                      Icons.email,
+                                      color: contentColorLightTheme
+                                          .withOpacity(0.64),
+                                    ),
+                                    hintText: "Email",
+                                    hintStyle: TextStyle(
+                                      color: contentColorLightTheme
+                                          .withOpacity(0.64),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: defaultPadding / 2),
+                                TextFormField(
+                                  minLines: 2,
+                                  maxLines: 2,
+                                  validator: (val) {
+                                    return maxLengthValidator(val, 100);
+                                  },
+                                  textInputAction: TextInputAction.done,
+                                  onSaved: (value) {
+                                    message = value;
+                                  },
+                                  onFieldSubmitted: (_) {
+                                    submitForm();
+                                  },
+                                  keyboardType: TextInputType.text,
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide.none,
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(10)),
+                                    ),
+                                    fillColor: Colors.white,
+                                    prefixIcon: Icon(
+                                      Icons.message,
+                                      color: contentColorLightTheme
+                                          .withOpacity(0.64),
+                                    ),
+                                    hintText: "Message",
+                                    hintStyle: TextStyle(
+                                      color: contentColorLightTheme
+                                          .withOpacity(0.64),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: defaultPadding / 2),
+                                PrimaryButton(
+                                  text: 'Send Request',
+                                  press: submitForm,
+                                  color: secondaryColor,
+                                )
+                              ],
                             ),
-                            suffixIcon: IconButton(
-                              onPressed: submitForm,
-                              icon: const Icon(Icons.send),
-                            ),
-                            hintText: "Email",
-                            hintStyle: TextStyle(
-                              color: contentColorLightTheme.withOpacity(0.64),
-                            ),
-                          ),
-                        ),
-                      ),
+                          )),
                     ),
                   );
                 });

@@ -99,7 +99,9 @@ class AuthGateState extends ConsumerState<AuthGate> {
           FirebaseAuth.instance.currentUser?.reload().then((value) {
             setState(() {
               user = FirebaseAuth.instance.currentUser;
-              ref.read(profileProvider).setProfileWhenSignIn(user);
+              ref
+                  .read(profileProvider)
+                  .setProfileWhenSignIn(user, justVerified: true);
             });
             if (user!.emailVerified) {
               userReloadTimer?.cancel();
@@ -108,6 +110,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         },
       );
     } else {
+      ref.read(profileProvider).setProfileWhenSignIn(fbUser);
       userReloadTimer?.cancel();
     }
   }

@@ -28,7 +28,7 @@ class MainScreenState extends ConsumerState<MainScreen> {
   ];
 
   void checkOnPermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
+    await [
       Permission.location,
       Permission.storage,
     ].request();
@@ -76,7 +76,7 @@ class MainScreenState extends ConsumerState<MainScreen> {
               icon: Consumer(
                 builder: (context, ref, child) {
                   final String? profilePicRef =
-                      ref.read(profileProvider).profile.profilePicRef;
+                      ref.read(profileProvider).profile?.profilePicRef;
                   return CircleAvatar(
                     backgroundColor: secondaryColor,
                     radius: 14,

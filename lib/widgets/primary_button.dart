@@ -9,13 +9,15 @@ class PrimaryButton extends StatelessWidget {
     required this.press,
     this.child,
     this.color = primaryColor,
+    this.textColor = Colors.white,
     this.padding = const EdgeInsets.all(defaultPadding),
     this.disabled = false,
   }) : super(key: key);
 
   final String text;
   final VoidCallback press;
-  final color;
+  final Color color;
+  final Color textColor;
   final EdgeInsets padding;
   final Widget? child;
   final bool disabled;
@@ -41,13 +43,13 @@ class PrimaryButton extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18.0)),
                 padding: padding,
-                primary: color,
+                backgroundColor: color,
               ),
               onPressed: press,
               child: child ??
                   Text(
                     text,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: textColor),
                   ),
             ),
     );

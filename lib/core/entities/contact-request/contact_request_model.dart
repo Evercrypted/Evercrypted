@@ -10,7 +10,6 @@ class ContactRequest {
   final String? authorId;
   final String? authorEmail;
 
-  final String? recipientId;
   final String? recipientEmail;
 
   final String? message;
@@ -21,7 +20,6 @@ class ContactRequest {
     this.fbUid,
     this.authorId,
     this.authorEmail,
-    this.recipientId,
     this.recipientEmail,
     this.message,
     this.timeSent,
