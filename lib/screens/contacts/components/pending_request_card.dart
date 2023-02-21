@@ -5,21 +5,22 @@ import 'package:timeago/timeago.dart' as timeago;
 class PendingRequestCard extends StatelessWidget {
   const PendingRequestCard({
     Key? key,
+    required this.isReceived,
     required this.email,
+    required this.message,
     required this.requestSent,
     required this.press,
   }) : super(key: key);
 
   final String email;
+  final String message;
   final DateTime requestSent;
   final VoidCallback press;
+  final bool isReceived;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: defaultPadding, vertical: 0),
-      onTap: () {},
+    return ExpansionTile(
       leading: Container(
         padding: EdgeInsets.fromLTRB(5, 4, 3, 5),
         decoration: BoxDecoration(
@@ -36,11 +37,12 @@ class PendingRequestCard extends StatelessWidget {
         email,
       ),
       subtitle: Text(
-        'Request was sent ${timeago.format(requestSent)}',
+        'Request was ${isReceived ? 'received' : 'sent'} ${timeago.format(requestSent)}',
         style: TextStyle(
           color: Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.5),
         ),
       ),
+      children: [Text(message)],
     );
   }
 }

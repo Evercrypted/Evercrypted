@@ -1,9 +1,14 @@
+import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 //--riverpods
 class ProfileRiverpod {
+  ProfileRiverpod(this.ref);
+
+  final Ref ref;
+
   late Profile? profile;
 
   final ProfileService _profileService = ProfileService();
@@ -16,8 +21,14 @@ class ProfileRiverpod {
         profilePicRef: data.photoURL,
         emailVerified: data.emailVerified);
     _profileService.setProfile(profile!);
+    initOtherInfo();
+  }
+
+  initOtherInfo() {
+    ref.read(sentRequestsProvider.notifier).setSentRequests();
   }
 }
 
 //--providers
-final profileProvider = Provider<ProfileRiverpod>((ref) => ProfileRiverpod());
+final profileProvider =
+    Provider<ProfileRiverpod>((ref) => ProfileRiverpod(ref));

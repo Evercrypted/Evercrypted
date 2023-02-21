@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ContactRequestService {
   final _contactRequestCollection =
-      FirebaseFirestore.instance.collection('profiles');
+      FirebaseFirestore.instance.collection('contactRequests');
 
   Future<void> createContactRequest(ContactRequest cRequest) {
     return _contactRequestCollection.add(cRequest.toJson()).then(
@@ -35,18 +36,16 @@ class ContactRequestService {
     );
   }
 
-  Stream<List<ContactRequest>> getReceivedContactRequests(String userId) {
+  Stream<QuerySnapshot<Map<String, dynamic>>> getReceivedContactRequests() {
+    final userEmail = FirebaseAuth.instance.currentUser?.email;
     var contactRequests = _contactRequestCollection
-        .where('recipientId', isEqualTo: userId)
+        .where('recipientEmail', isEqualTo: userEmail)
         .orderBy('timeSent', descending: true);
-    return contactRequests.snapshots().map(
-          (snapshot) => snapshot.docs.map((doc) {
-            return ContactRequest.fromJson(doc.id, doc.data());
-          }).toList(),
-        );
+    return contactRequests.snapshots();
   }
 
-  Future<List<ContactRequest>> getSentContactRequests(String userId) async {
+  Future<List<ContactRequest>> getSentContactRequests() {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
     var contactRequests = _contactRequestCollection
         .where('authorId', isEqualTo: userId)
         .orderBy('timeSent', descending: true);

@@ -29,7 +29,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
 
   int _selectedIndex = 0;
 
-  static const List<Widget> _widgetOptions = <Widget>[
+  static List<Widget> _widgetOptions = <Widget>[
     ReceivedRequestsList(),
     SentRequestsList(),
   ];
@@ -71,7 +71,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
               recipientEmail: email!,
               authorId: profileRP.profile?.fbUid,
               message: message);
-          // _contactRequestService.createContactRequest(cRequest);
+          _contactRequestService.createContactRequest(cRequest);
         }
       });
     }
@@ -92,11 +92,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
           )
         ],
       )),
-      body: ListView(
-        children: [
-          _widgetOptions.elementAt(_selectedIndex),
-        ],
-      ),
+      body: _widgetOptions.elementAt(_selectedIndex),
       floatingActionButton: Tooltip(
         message: 'Send Contact Request',
         preferBelow: false,
