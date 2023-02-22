@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
+import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
 import 'package:evercrypted/screens/contacts/components/received_requests_list.dart';
 import 'package:evercrypted/screens/contacts/components/sent_requests_list.dart';
 import 'package:flutter/material.dart';
@@ -22,17 +23,13 @@ class AddNewContactScreen extends ConsumerStatefulWidget {
 class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
   final form = GlobalKey<FormState>();
 
-  ContactRequestService _contactRequestService = ContactRequestService();
+  final ContactRequestService _contactRequestService = ContactRequestService();
 
   String? email;
   String? message;
 
   int _selectedIndex = 0;
-
-  static List<Widget> _widgetOptions = <Widget>[
-    ReceivedRequestsList(),
-    SentRequestsList(),
-  ];
+  List<ContactRequest> sentRequests = [];
 
   void _onBotNavTapped(int index) {
     setState(() {
@@ -79,6 +76,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
 
   @override
   Widget build(BuildContext context) {
+    sentRequests = ref.watch(sentRequestsProvider);
     return Scaffold(
       appBar: AppBar(
           title: Column(
@@ -92,7 +90,11 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
           )
         ],
       )),
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: _selectedIndex == 0
+          ? ReceivedRequestsList()
+          : SentRequestsList(
+              sentRequests: sentRequests,
+            ),
       floatingActionButton: Tooltip(
         message: 'Send Contact Request',
         preferBelow: false,
@@ -115,7 +117,6 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                             defaultPadding,
                             defaultPadding,
                           ),
-                          color: primaryColor,
                           child: Form(
                             key: form,
                             child: Column(
@@ -127,6 +128,10 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                     final profileRP = ref.read(profileProvider);
                                     if (val == profileRP.profile?.email) {
                                       return "You can't send a contact request to yourself";
+                                    } else if (sentRequests
+                                        .map((e) => e.recipientEmail)
+                                        .contains(val)) {
+                                      return "You have already sent a contact request to this email";
                                     } else {
                                       return null;
                                     }
@@ -191,7 +196,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                 ),
                                 const SizedBox(height: defaultPadding / 2),
                                 PrimaryButton(
-                                  text: 'Send Request',
+                                  text: 'SEND REQUEST',
                                   press: submitForm,
                                   color: secondaryColor,
                                 )
