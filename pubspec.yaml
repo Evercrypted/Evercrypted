@@ -26,6 +26,8 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+isar_version: &isar_version 3.0.5 # define the version to be used
+
 dependencies:
   flutter:
     sdk: flutter
@@ -53,6 +55,9 @@ dependencies:
   flutter_svg: ^2.0.0+1
   flutter_spinkit: ^5.1.0
   timeago: ^3.2.2
+  infinite_scroll_pagination: ^3.2.0
+  isar: *isar_version
+  isar_flutter_libs: *isar_version # contains Isar Core
 
 dev_dependencies:
   flutter_test:
@@ -64,7 +69,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.1
-
+  isar_generator: *isar_version
   build_runner: ^2.1.11
   json_serializable: ^6.2.0
 
