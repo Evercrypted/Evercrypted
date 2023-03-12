@@ -22,18 +22,28 @@ const MessageSchema = CollectionSchema(
       name: r'authorId',
       type: IsarType.string,
     ),
-    r'createdAtMSE': PropertySchema(
+    r'chatId': PropertySchema(
       id: 1,
+      name: r'chatId',
+      type: IsarType.string,
+    ),
+    r'createdAtMSE': PropertySchema(
+      id: 2,
       name: r'createdAtMSE',
       type: IsarType.long,
     ),
+    r'fbUid': PropertySchema(
+      id: 3,
+      name: r'fbUid',
+      type: IsarType.string,
+    ),
     r'fileRef': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'fileRef',
       type: IsarType.string,
     ),
     r'text': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'text',
       type: IsarType.string,
     )
@@ -43,7 +53,34 @@ const MessageSchema = CollectionSchema(
   deserialize: _messageDeserialize,
   deserializeProp: _messageDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'chatId': IndexSchema(
+      id: 1909629659142158609,
+      name: r'chatId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'chatId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'createdAtMSE': IndexSchema(
+      id: 8870352781695381173,
+      name: r'createdAtMSE',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'createdAtMSE',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
   links: {},
   embeddedSchemas: {},
   getId: _messageGetId,
@@ -59,6 +96,18 @@ int _messageEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.authorId.length * 3;
+  {
+    final value = object.chatId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.fbUid;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.fileRef;
     if (value != null) {
@@ -81,9 +130,11 @@ void _messageSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.authorId);
-  writer.writeLong(offsets[1], object.createdAtMSE);
-  writer.writeString(offsets[2], object.fileRef);
-  writer.writeString(offsets[3], object.text);
+  writer.writeString(offsets[1], object.chatId);
+  writer.writeLong(offsets[2], object.createdAtMSE);
+  writer.writeString(offsets[3], object.fbUid);
+  writer.writeString(offsets[4], object.fileRef);
+  writer.writeString(offsets[5], object.text);
 }
 
 Message _messageDeserialize(
@@ -94,9 +145,11 @@ Message _messageDeserialize(
 ) {
   final object = Message(
     authorId: reader.readString(offsets[0]),
-    createdAtMSE: reader.readLong(offsets[1]),
-    fileRef: reader.readStringOrNull(offsets[2]),
-    text: reader.readStringOrNull(offsets[3]),
+    chatId: reader.readStringOrNull(offsets[1]),
+    createdAtMSE: reader.readLong(offsets[2]),
+    fbUid: reader.readStringOrNull(offsets[3]),
+    fileRef: reader.readStringOrNull(offsets[4]),
+    text: reader.readStringOrNull(offsets[5]),
   );
   object.id = id;
   return object;
@@ -112,10 +165,14 @@ P _messageDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
-    case 2:
       return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readLong(offset)) as P;
     case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -138,6 +195,14 @@ extension MessageQueryWhereSort on QueryBuilder<Message, Message, QWhere> {
   QueryBuilder<Message, Message, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhere> anyCreatedAtMSE() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'createdAtMSE'),
+      );
     });
   }
 }
@@ -203,6 +268,161 @@ extension MessageQueryWhere on QueryBuilder<Message, Message, QWhereClause> {
         lower: lowerId,
         includeLower: includeLower,
         upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> chatIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'chatId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> chatIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'chatId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> chatIdEqualTo(
+      String? chatId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'chatId',
+        value: [chatId],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> chatIdNotEqualTo(
+      String? chatId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatId',
+              lower: [],
+              upper: [chatId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatId',
+              lower: [chatId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatId',
+              lower: [chatId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'chatId',
+              lower: [],
+              upper: [chatId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> createdAtMSEEqualTo(
+      int createdAtMSE) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'createdAtMSE',
+        value: [createdAtMSE],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> createdAtMSENotEqualTo(
+      int createdAtMSE) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'createdAtMSE',
+              lower: [],
+              upper: [createdAtMSE],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'createdAtMSE',
+              lower: [createdAtMSE],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'createdAtMSE',
+              lower: [createdAtMSE],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'createdAtMSE',
+              lower: [],
+              upper: [createdAtMSE],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> createdAtMSEGreaterThan(
+    int createdAtMSE, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'createdAtMSE',
+        lower: [createdAtMSE],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> createdAtMSELessThan(
+    int createdAtMSE, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'createdAtMSE',
+        lower: [],
+        upper: [createdAtMSE],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> createdAtMSEBetween(
+    int lowerCreatedAtMSE,
+    int upperCreatedAtMSE, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'createdAtMSE',
+        lower: [lowerCreatedAtMSE],
+        includeLower: includeLower,
+        upper: [upperCreatedAtMSE],
         includeUpper: includeUpper,
       ));
     });
@@ -341,6 +561,152 @@ extension MessageQueryFilter
     });
   }
 
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'chatId',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'chatId',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'chatId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'chatId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'chatId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'chatId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'chatId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'chatId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'chatId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'chatId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'chatId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> chatIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'chatId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> createdAtMSEEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -390,6 +756,152 @@ extension MessageQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'fbUid',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'fbUid',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fbUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'fbUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'fbUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'fbUid',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'fbUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'fbUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'fbUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'fbUid',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fbUid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> fbUidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'fbUid',
+        value: '',
       ));
     });
   }
@@ -758,6 +1270,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> sortByChatId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chatId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByChatIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chatId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAtMSE', Sort.asc);
@@ -767,6 +1291,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
   QueryBuilder<Message, Message, QAfterSortBy> sortByCreatedAtMSEDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAtMSE', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByFbUid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fbUid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByFbUidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fbUid', Sort.desc);
     });
   }
 
@@ -809,6 +1345,18 @@ extension MessageQuerySortThenBy
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> thenByChatId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chatId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByChatIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'chatId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAtMSE', Sort.asc);
@@ -818,6 +1366,18 @@ extension MessageQuerySortThenBy
   QueryBuilder<Message, Message, QAfterSortBy> thenByCreatedAtMSEDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAtMSE', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByFbUid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fbUid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByFbUidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fbUid', Sort.desc);
     });
   }
 
@@ -867,9 +1427,23 @@ extension MessageQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Message, Message, QDistinct> distinctByChatId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'chatId', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Message, Message, QDistinct> distinctByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAtMSE');
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByFbUid(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'fbUid', caseSensitive: caseSensitive);
     });
   }
 
@@ -902,9 +1476,21 @@ extension MessageQueryProperty
     });
   }
 
+  QueryBuilder<Message, String?, QQueryOperations> chatIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'chatId');
+    });
+  }
+
   QueryBuilder<Message, int, QQueryOperations> createdAtMSEProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAtMSE');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> fbUidProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'fbUid');
     });
   }
 
