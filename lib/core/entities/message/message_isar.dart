@@ -11,12 +11,12 @@ class Message {
   String? text;
   String? fileRef;
 
-  DateTime createdAt;
+  int createdAtMSE;
 
   Message({
     required this.authorId,
     this.text,
     this.fileRef,
-    required this.createdAt,
+    required this.createdAtMSE,
   });
 }

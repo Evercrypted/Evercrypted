@@ -1,8 +1,10 @@
+import 'package:evercrypted/core/entities/chat-room/chat_room_model.dart';
 import 'package:flutter/material.dart';
 
 import '../../../widgets/circle_avatar_with_active_indicator.dart';
 import '../../../ui_constants.dart';
-import '../../../models/Chat.dart';
+// import '../../../models/Chat.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class ChatCard extends StatelessWidget {
   const ChatCard({
@@ -11,7 +13,7 @@ class ChatCard extends StatelessWidget {
     required this.press,
   }) : super(key: key);
 
-  final Chat chat;
+  final ChatRoom chat;
   final VoidCallback press;
 
   @override
@@ -24,8 +26,8 @@ class ChatCard extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatarWithActiveIndicator(
-              image: chat.image,
-              isActive: chat.isActive,
+              image: chat.picRef,
+              isActive: true,
             ),
             Expanded(
               child: Padding(
@@ -35,14 +37,14 @@ class ChatCard extends StatelessWidget {
                   children: [
                     Text(
                       chat.name,
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
                     ),
-                    SizedBox(height: 8),
-                    Opacity(
+                    const SizedBox(height: 8),
+                    const Opacity(
                       opacity: 0.64,
                       child: Text(
-                        chat.lastMessage,
+                        'Some Text Here',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -53,7 +55,7 @@ class ChatCard extends StatelessWidget {
             ),
             Opacity(
               opacity: 0.64,
-              child: Text(chat.time),
+              child: Text(timeago.format(chat.lastMessageTime)),
             ),
           ],
         ),

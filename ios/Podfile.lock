@@ -764,6 +764,8 @@ PODS:
   - GTMSessionFetcher/Core (3.0.0)
   - image_picker_ios (0.0.1):
     - Flutter
+  - isar_flutter_libs (1.0.0):
+    - Flutter
   - leveldb-library (1.22.1)
   - Libuv-gRPC (0.0.10):
     - Libuv-gRPC/Implementation (= 0.0.10)
@@ -792,6 +794,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_sound (from `.symlinks/plugins/flutter_sound/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - isar_flutter_libs (from `.symlinks/plugins/isar_flutter_libs/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
 
@@ -838,6 +841,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_sound/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
+  isar_flutter_libs:
+    :path: ".symlinks/plugins/isar_flutter_libs/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/ios"
   permission_handler_apple:
@@ -871,6 +876,7 @@ SPEC CHECKSUMS:
   gRPC-Core: 943e491cb0d45598b0b0eb9e910c88080369290b
   GTMSessionFetcher: c1edebe64e9fb4e8f6415d018edf1fd3eac074a1
   image_picker_ios: b786a5dcf033a8336a657191401bfdf12017dabb
+  isar_flutter_libs: b69f437aeab9c521821c3f376198c4371fa21073
   leveldb-library: 50c7b45cbd7bf543c81a468fe557a16ae3db8729
   Libuv-gRPC: 55e51798e14ef436ad9bc45d12d43b77b49df378
   nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431

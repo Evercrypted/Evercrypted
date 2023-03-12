@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../core/entities/chat-room/chat_room_model.dart';
 import '../../ui_constants.dart';
 import '../calling/audio_calling_screen.dart';
 import '../calling/video_calling_screen.dart';
 import 'components/body.dart';
 
-class MessagesScreen extends StatelessWidget {
+class MessagesScreen extends StatefulWidget {
+  MessagesScreen({Key? key, required ChatRoom chatRoom}) : super(key: key);
+  static const routeName = '/add-new-contact';
+
+  @override
+  State<MessagesScreen> createState() => _MessagesScreenState();
+}
+
+class _MessagesScreenState extends State<MessagesScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

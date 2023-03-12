@@ -20,7 +20,7 @@ class CircleAvatarWithActiveIndicator extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: radius,
-          backgroundImage: AssetImage(image!),
+          backgroundImage: image != null ? AssetImage(image!) : null,
         ),
         if (isActive!)
           Positioned(

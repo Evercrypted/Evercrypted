@@ -8,21 +8,21 @@ class ChatRoom {
   final String? fbUid;
 
   final int? messageLongevityMinutes;
-  final String? name;
+  final String name;
 
   final String? picRef;
 
   final List<String>? participants;
 
-  final DateTime? lastMessageTime;
+  final DateTime lastMessageTime;
 
   ChatRoom({
     this.fbUid,
     this.messageLongevityMinutes,
-    this.name,
+    required this.name,
     this.picRef,
-    this.participants,
-    this.lastMessageTime,
+    required this.participants,
+    required this.lastMessageTime,
   });
 
   factory ChatRoom.fromJson(String uid, Map<String, dynamic> json) =>

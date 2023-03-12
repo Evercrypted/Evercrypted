@@ -22,10 +22,10 @@ const MessageSchema = CollectionSchema(
       name: r'authorId',
       type: IsarType.string,
     ),
-    r'createdAt': PropertySchema(
+    r'createdAtMSE': PropertySchema(
       id: 1,
-      name: r'createdAt',
-      type: IsarType.dateTime,
+      name: r'createdAtMSE',
+      type: IsarType.long,
     ),
     r'fileRef': PropertySchema(
       id: 2,
@@ -81,7 +81,7 @@ void _messageSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.authorId);
-  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeLong(offsets[1], object.createdAtMSE);
   writer.writeString(offsets[2], object.fileRef);
   writer.writeString(offsets[3], object.text);
 }
@@ -94,7 +94,7 @@ Message _messageDeserialize(
 ) {
   final object = Message(
     authorId: reader.readString(offsets[0]),
-    createdAt: reader.readDateTime(offsets[1]),
+    createdAtMSE: reader.readLong(offsets[1]),
     fileRef: reader.readStringOrNull(offsets[2]),
     text: reader.readStringOrNull(offsets[3]),
   );
@@ -112,7 +112,7 @@ P _messageDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
@@ -341,51 +341,51 @@ extension MessageQueryFilter
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> createdAtEqualTo(
-      DateTime value) {
+  QueryBuilder<Message, Message, QAfterFilterCondition> createdAtMSEEqualTo(
+      int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'createdAt',
+        property: r'createdAtMSE',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> createdAtGreaterThan(
-    DateTime value, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> createdAtMSEGreaterThan(
+    int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'createdAt',
+        property: r'createdAtMSE',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> createdAtLessThan(
-    DateTime value, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> createdAtMSELessThan(
+    int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'createdAt',
+        property: r'createdAtMSE',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> createdAtBetween(
-    DateTime lower,
-    DateTime upper, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> createdAtMSEBetween(
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'createdAt',
+        property: r'createdAtMSE',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -758,15 +758,15 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
     });
   }
 
-  QueryBuilder<Message, Message, QAfterSortBy> sortByCreatedAt() {
+  QueryBuilder<Message, Message, QAfterSortBy> sortByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.asc);
+      return query.addSortBy(r'createdAtMSE', Sort.asc);
     });
   }
 
-  QueryBuilder<Message, Message, QAfterSortBy> sortByCreatedAtDesc() {
+  QueryBuilder<Message, Message, QAfterSortBy> sortByCreatedAtMSEDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.desc);
+      return query.addSortBy(r'createdAtMSE', Sort.desc);
     });
   }
 
@@ -809,15 +809,15 @@ extension MessageQuerySortThenBy
     });
   }
 
-  QueryBuilder<Message, Message, QAfterSortBy> thenByCreatedAt() {
+  QueryBuilder<Message, Message, QAfterSortBy> thenByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.asc);
+      return query.addSortBy(r'createdAtMSE', Sort.asc);
     });
   }
 
-  QueryBuilder<Message, Message, QAfterSortBy> thenByCreatedAtDesc() {
+  QueryBuilder<Message, Message, QAfterSortBy> thenByCreatedAtMSEDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.desc);
+      return query.addSortBy(r'createdAtMSE', Sort.desc);
     });
   }
 
@@ -867,9 +867,9 @@ extension MessageQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Message, Message, QDistinct> distinctByCreatedAt() {
+  QueryBuilder<Message, Message, QDistinct> distinctByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'createdAt');
+      return query.addDistinctBy(r'createdAtMSE');
     });
   }
 
@@ -902,9 +902,9 @@ extension MessageQueryProperty
     });
   }
 
-  QueryBuilder<Message, DateTime, QQueryOperations> createdAtProperty() {
+  QueryBuilder<Message, int, QQueryOperations> createdAtMSEProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'createdAt');
+      return query.addPropertyName(r'createdAtMSE');
     });
   }
 
