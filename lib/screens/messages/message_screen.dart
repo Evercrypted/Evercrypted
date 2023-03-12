@@ -1,13 +1,17 @@
+import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
 
 import '../../core/entities/chat-room/chat_room_model.dart';
+import '../../core/entities/message/message_isar.dart';
 import '../../ui_constants.dart';
 import '../calling/audio_calling_screen.dart';
 import '../calling/video_calling_screen.dart';
 import 'components/body.dart';
 
 class MessagesScreen extends StatefulWidget {
-  MessagesScreen({Key? key, required ChatRoom chatRoom}) : super(key: key);
+  final ChatRoom chatRoom;
+  const MessagesScreen({Key? key, required this.chatRoom}) : super(key: key);
   static const routeName = '/add-new-contact';
 
   @override
@@ -15,10 +19,20 @@ class MessagesScreen extends StatefulWidget {
 }
 
 class _MessagesScreenState extends State<MessagesScreen> {
+  final MessageService _messageService = MessageService();
+
   @override
-  void initState() {
-    // TODO: implement initState
+  void initState() async {
     super.initState();
+    final isar = await Isar.open([MessageSchema]);
+    final lastMessageCreatedAtMSE = isar.messages
+        .where()
+        .chatIdEqualTo(widget.chatRoom.fbUid)
+        .sortByCreatedAtMSE()
+        .findFirstSync()!
+        .createdAtMSE;
+    _messageService.startListeningAndWritingToDB(
+        widget.chatRoom.fbUid!, lastMessageCreatedAtMSE);
   }
 
   @override

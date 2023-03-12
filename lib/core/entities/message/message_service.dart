@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class MessageService {
-  Stream<QuerySnapshot<Map<String, dynamic>>> getMessages(String chatRoomId) {
+  Stream<QuerySnapshot<Map<String, dynamic>>> startListeningAndWritingToDB(
+      String chatRoomId, int lastMessageTime) {
     final messagesCollection = FirebaseFirestore.instance
         .collection('chatRooms')
         .doc(chatRoomId)
