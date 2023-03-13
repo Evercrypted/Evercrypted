@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'message_isar.dart';
+
 class MessageService {
   StreamSubscription? listener;
 
@@ -20,7 +22,7 @@ class MessageService {
     listener = messageRequests.snapshots().listen((event) {
       for (var change in event.docChanges) {
         if (change.type == DocumentChangeType.added) {
-          print(change.doc.data());
+          final message = Message.fromJson(change.doc.id, change.doc.data()!);
         }
       }
     });

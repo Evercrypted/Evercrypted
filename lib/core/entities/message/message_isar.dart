@@ -19,6 +19,10 @@ class Message {
   @Index()
   int createdAtMSE;
 
+  get createdAt {
+    return DateTime.fromMillisecondsSinceEpoch(createdAtMSE);
+  }
+
   Message({
     required this.authorId,
     required this.chatId,
@@ -28,7 +32,7 @@ class Message {
     required this.createdAtMSE,
   });
 
-  Message fromJson(String uid, Map<String, dynamic> json) => Message(
+  factory Message.fromJson(String uid, Map<String, dynamic> json) => Message(
       fbUid: json['fbUid'] as String?,
       authorId: json['authorId'] as String,
       createdAtMSE: json['createdAtMSE'] as int,
