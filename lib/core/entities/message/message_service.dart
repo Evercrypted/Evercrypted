@@ -1,17 +1,32 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class MessageService {
-  Stream<QuerySnapshot<Map<String, dynamic>>> startListeningAndWritingToDB(
-      String chatRoomId, int lastMessageTime) {
+  StreamSubscription? listener;
+
+  void startListeningAndWritingToDB(String chatRoomId, int? lastMessageTime) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
     final messagesCollection = FirebaseFirestore.instance
         .collection('chatRooms')
         .doc(chatRoomId)
         .collection('messages');
-    final uId = FirebaseAuth.instance.currentUser?.uid;
-    var contactRequests = messagesCollection
-        .where('downloadedBy', arrayContains: uId)
-        .orderBy('lastMessageTime', descending: true);
-    return contactRequests.snapshots();
+    final messageRequests = lastMessageTime != null
+        ? messagesCollection
+            .where('authorId', isNotEqualTo: userId)
+            .where('createdAtMSE', isGreaterThan: lastMessageTime)
+        : messagesCollection.where('authorId', isNotEqualTo: userId);
+    listener = messageRequests.snapshots().listen((event) {
+      for (var change in event.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          print(change.doc.data());
+        }
+      }
+    });
+  }
+
+  void stopListening() {
+    listener?.cancel();
   }
 }

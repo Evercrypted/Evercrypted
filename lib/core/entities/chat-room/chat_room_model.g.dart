@@ -7,7 +7,7 @@ part of 'chat_room_model.dart';
 // **************************************************************************
 
 ChatRoom _$ChatRoomFromJson(String uid, Map<String, dynamic> json) => ChatRoom(
-      fbUid: json['fbUid'] as String?,
+      fbUid: uid,
       messageLongevityMinutes: json['messageLongevityMinutes'] as int?,
       name: json['name'] as String,
       picRef: json['picRef'] as String?,

@@ -22,17 +22,30 @@ class _MessagesScreenState extends State<MessagesScreen> {
   final MessageService _messageService = MessageService();
 
   @override
-  void initState() async {
+  void initState() {
     super.initState();
+    getlastMessageCreatedAtMSE().then((value) {
+      _messageService.startListeningAndWritingToDB(
+          widget.chatRoom.fbUid!, value);
+    });
+  }
+
+  Future<int?> getlastMessageCreatedAtMSE() async {
     final isar = await Isar.open([MessageSchema]);
     final lastMessageCreatedAtMSE = isar.messages
         .where()
         .chatIdEqualTo(widget.chatRoom.fbUid)
         .sortByCreatedAtMSE()
-        .findFirstSync()!
-        .createdAtMSE;
-    _messageService.startListeningAndWritingToDB(
-        widget.chatRoom.fbUid!, lastMessageCreatedAtMSE);
+        .findFirstSync()
+        ?.createdAtMSE;
+    return lastMessageCreatedAtMSE;
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _messageService.stopListening();
+    super.dispose();
   }
 
   @override
