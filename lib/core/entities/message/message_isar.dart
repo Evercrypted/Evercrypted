@@ -42,11 +42,12 @@ class Message {
       fileRef: json['fileRef'] as String?,
       chatId: json['chatId'] as String?);
 
-  Map<String, dynamic> toJson(Message instance) => <String, dynamic>{
-        'fbUid': instance.fbUid,
-        'authorId': instance.authorId,
-        'createdAtMSE': instance.createdAtMSE,
-        'text': instance.text,
-        'fileRef': instance.fileRef,
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'fbUid': fbUid,
+        'authorId': authorId,
+        'createdAtMSE': createdAtMSE,
+        'text': text,
+        'fileRef': fileRef,
+        'chatId': chatId,
       };
 }

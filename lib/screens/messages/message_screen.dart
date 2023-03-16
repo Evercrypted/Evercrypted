@@ -10,7 +10,6 @@ import '../../core/entities/message/message_isar.dart';
 import '../../ui_constants.dart';
 import '../calling/audio_calling_screen.dart';
 import '../calling/video_calling_screen.dart';
-import 'components/body.dart';
 import 'components/chat_input_field.dart';
 import 'components/message.dart';
 
@@ -25,8 +24,9 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen> {
   final MessageService _messageService = MessageService();
-  Isar? isar;
+  late Isar isar;
   final userId = FirebaseAuth.instance.currentUser?.uid;
+  late int startingCreateAtMSE;
 
   static const _pageSize = 20;
 
@@ -36,11 +36,24 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   void initState() {
     super.initState();
-    getlastMessageCreatedAtMSE().then((value) {
-      _messageService.startListeningAndWritingToDB(widget.chatRoom, value);
+    startIsar().then((value) {
+      isar = value;
+      getlastMessageCreatedAtMSE().then((value) {
+        startingCreateAtMSE = value ?? 0;
+        _messageService.startListeningAndWritingToDB(widget.chatRoom, value);
+      }).then((value) async {
+        if (startingCreateAtMSE == 0) {
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        _fetchPage(0).then((value) {
+          listenToIsarChanges();
+        });
+      });
     });
     _pagingController.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey);
+      if (pageKey != 0) {
+        _fetchPage(pageKey);
+      }
     });
   }
 
@@ -48,19 +61,40 @@ class _MessagesScreenState extends State<MessagesScreen> {
   void dispose() {
     // TODO: implement dispose
     _messageService.stopListening();
-    isar?.close();
+    isar.close();
+    _pagingController.dispose();
     super.dispose();
   }
 
+  Future startIsar() async {
+    return Isar.getInstance() ?? await Isar.open([MessageSchema]);
+  }
+
   Future<int?> getlastMessageCreatedAtMSE() async {
-    isar = Isar.getInstance() ?? await Isar.open([MessageSchema]);
-    final lastMessageCreatedAtMSE = isar?.messages
+    final lastMessageCreatedAtMSE = isar.messages
         .where()
         .chatIdEqualTo(widget.chatRoom.fbUid)
-        .sortByCreatedAtMSE()
+        .sortByCreatedAtMSEDesc()
         .findFirstSync()
         ?.createdAtMSE;
     return lastMessageCreatedAtMSE;
+  }
+
+  void listenToIsarChanges() {
+    Query<Message> messagesQuery = isar.messages
+        .where()
+        .createdAtMSEGreaterThan(startingCreateAtMSE)
+        .sortByCreatedAtMSEDesc()
+        .limit(1)
+        .build();
+
+    Stream<List<Message>> queryChanged =
+        messagesQuery.watch(fireImmediately: true);
+    queryChanged.listen((messages) {
+      _pagingController.value = PagingState(
+        itemList: [...messages, ...(_pagingController.itemList ?? [])],
+      );
+    });
   }
 
   Future<void> _fetchPage(int pageKey) async {
@@ -74,15 +108,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
         final nextPageKey = pageKey + newItems.length;
         _pagingController.appendPage(newItems, nextPageKey);
       }
+      if (pageKey == 0 && newItems.isNotEmpty) {
+        startingCreateAtMSE = newItems.first.createdAtMSE;
+      }
     } catch (error) {
       _pagingController.error = error;
     }
-  }
-
-  onNewMessage(newMessage) {
-    _pagingController.value = PagingState(
-      itemList: [newMessage, ...(_pagingController.itemList ?? [])],
-    );
   }
 
   @override

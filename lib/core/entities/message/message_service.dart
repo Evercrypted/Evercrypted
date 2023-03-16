@@ -8,7 +8,7 @@ import 'package:isar/isar.dart';
 import 'message_isar.dart';
 
 class MessageService {
-  StreamSubscription? listener;
+  StreamSubscription? fbListener;
 
   void startListeningAndWritingToDB(
       ChatRoom chatRoom, int? lastMessageTime) async {
@@ -25,7 +25,7 @@ class MessageService {
             .where('createdAtMSE', isGreaterThan: lastMessageTime)
         : messagesCollection.where('authorId', isNotEqualTo: userId);
     final isar = Isar.getInstance() ?? await Isar.open([MessageSchema]);
-    listener = messageRequests.snapshots().listen((event) async {
+    fbListener = messageRequests.snapshots().listen((event) async {
       for (var change in event.docChanges) {
         if (change.type == DocumentChangeType.added) {
           final message = Message.fromJson(change.doc.id, change.doc.data()!);
@@ -57,10 +57,20 @@ class MessageService {
     final isar = Isar.getInstance() ?? await Isar.open([MessageSchema]);
     await isar.writeTxn(() async {
       await isar.messages.put(message); // insert & update
+    }).then((value) {
+      writeMessageToFB(message);
     });
   }
 
+  void writeMessageToFB(Message message) {
+    final messageCollection = FirebaseFirestore.instance
+        .collection('chatRooms')
+        .doc(message.chatId)
+        .collection('messages');
+    messageCollection.add(message.toJson());
+  }
+
   void stopListening() {
-    listener?.cancel();
+    fbListener?.cancel();
   }
 }
