@@ -6,8 +6,8 @@ import 'audio_message.dart';
 import 'text_message.dart';
 import 'video_message.dart';
 
-class Message extends StatelessWidget {
-  const Message({
+class MessageWidget extends StatelessWidget {
+  const MessageWidget({
     Key? key,
     required this.message,
   }) : super(key: key);

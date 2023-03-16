@@ -54,6 +54,19 @@ const MessageSchema = CollectionSchema(
   deserializeProp: _messageDeserializeProp,
   idName: r'id',
   indexes: {
+    r'fbUid': IndexSchema(
+      id: 1766966247540581759,
+      name: r'fbUid',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'fbUid',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
     r'chatId': IndexSchema(
       id: 1909629659142158609,
       name: r'chatId',
@@ -270,6 +283,71 @@ extension MessageQueryWhere on QueryBuilder<Message, Message, QWhereClause> {
         upper: upperId,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> fbUidIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'fbUid',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> fbUidIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'fbUid',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> fbUidEqualTo(
+      String? fbUid) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'fbUid',
+        value: [fbUid],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> fbUidNotEqualTo(
+      String? fbUid) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'fbUid',
+              lower: [],
+              upper: [fbUid],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'fbUid',
+              lower: [fbUid],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'fbUid',
+              lower: [fbUid],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'fbUid',
+              lower: [],
+              upper: [fbUid],
+              includeUpper: false,
+            ));
+      }
     });
   }
 

@@ -6,6 +6,7 @@ part 'message_isar.g.dart';
 class Message {
   Id id = Isar.autoIncrement; // you can also use id = null to auto increment
 
+  @Index()
   String? fbUid;
 
   String authorId;
@@ -19,6 +20,7 @@ class Message {
   @Index()
   int createdAtMSE;
 
+  @ignore
   get createdAt {
     return DateTime.fromMillisecondsSinceEpoch(createdAtMSE);
   }
@@ -33,7 +35,7 @@ class Message {
   });
 
   factory Message.fromJson(String uid, Map<String, dynamic> json) => Message(
-      fbUid: json['fbUid'] as String?,
+      fbUid: uid,
       authorId: json['authorId'] as String,
       createdAtMSE: json['createdAtMSE'] as int,
       text: json['text'] as String?,

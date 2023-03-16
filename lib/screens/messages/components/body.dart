@@ -16,11 +16,11 @@ class Body extends StatelessWidget {
             child: ListView.builder(
               itemCount: demeChatMessages.length,
               itemBuilder: (context, index) =>
-                  Message(message: demeChatMessages[index]),
+                  MessageWidget(message: demeChatMessages[index]),
             ),
           ),
         ),
-        ChatInputField(),
+        // ChatInputField(),
       ],
     );
   }

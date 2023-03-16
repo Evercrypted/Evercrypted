@@ -1,13 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/entities/message/message_isar.dart';
+import '../../../core/entities/message/message_service.dart';
 import '../../../ui_constants.dart';
 import 'voice_recorder_button.dart';
 import 'message_attachment.dart';
 
 class ChatInputField extends StatefulWidget {
-  const ChatInputField({
-    Key? key,
-  }) : super(key: key);
+  final String chatId;
+  const ChatInputField({Key? key, required this.chatId}) : super(key: key);
 
   @override
   _ChatInputFieldState createState() => _ChatInputFieldState();
@@ -15,11 +17,24 @@ class ChatInputField extends StatefulWidget {
 
 class _ChatInputFieldState extends State<ChatInputField> {
   bool _showAttachment = false;
+  final TextEditingController messageField = TextEditingController();
+  final MessageService _messageService = MessageService();
 
   void _updateAttachmentState() {
     setState(() {
       _showAttachment = !_showAttachment;
     });
+  }
+
+  void sendMessage(String message) {
+    final newMessage = Message(
+      chatId: widget.chatId,
+      createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+      text: message,
+      authorId: FirebaseAuth.instance.currentUser!.uid,
+    );
+    _messageService.sendMessage(newMessage);
+    messageField.clear();
   }
 
   @override
@@ -40,40 +55,47 @@ class _ChatInputFieldState extends State<ChatInputField> {
                       SizedBox(width: defaultPadding / 4),
                       Expanded(
                         child: TextField(
+                          controller: messageField,
                           decoration: InputDecoration(
-                              hintText: "Type message",
-                              suffixIcon: SizedBox(
-                                width: 65,
-                                child: Row(
-                                  children: [
-                                    InkWell(
-                                      onTap: _updateAttachmentState,
-                                      child: Icon(
-                                        Icons.attach_file,
-                                        color: _showAttachment
-                                            ? primaryColor
-                                            : Theme.of(context)
-                                                .textTheme
-                                                .bodyText1!
-                                                .color!
-                                                .withOpacity(0.64),
-                                      ),
+                            hintText: "Type message",
+                            suffixIcon: SizedBox(
+                              width: 65,
+                              child: Row(
+                                children: [
+                                  InkWell(
+                                    onTap: _updateAttachmentState,
+                                    child: Icon(
+                                      Icons.attach_file,
+                                      color: _showAttachment
+                                          ? primaryColor
+                                          : Theme.of(context)
+                                              .textTheme
+                                              .bodyText1!
+                                              .color!
+                                              .withOpacity(0.64),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: defaultPadding / 2),
-                                      child: Icon(
-                                        Icons.camera_alt_outlined,
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText1!
-                                            .color!
-                                            .withOpacity(0.64),
-                                      ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: defaultPadding / 2),
+                                    child: Icon(
+                                      Icons.camera_alt_outlined,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .color!
+                                          .withOpacity(0.64),
                                     ),
-                                  ],
-                                ),
-                              )),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          onSubmitted: (value) {
+                            if (value.isNotEmpty) {
+                              sendMessage(value);
+                            }
+                          },
                         ),
                       ),
                     ],
