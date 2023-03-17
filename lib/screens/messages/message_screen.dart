@@ -27,11 +27,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
   late Isar isar;
   final userId = FirebaseAuth.instance.currentUser?.uid;
   late int startingCreateAtMSE;
+  int nextPageKey = 1;
 
-  static const _pageSize = 20;
+  static const _pageSize = 10;
 
   final PagingController<int, Message> _pagingController =
-      PagingController(firstPageKey: 0);
+      PagingController(firstPageKey: 1);
 
   @override
   void initState() {
@@ -45,13 +46,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
         if (startingCreateAtMSE == 0) {
           await Future.delayed(const Duration(seconds: 1));
         }
-        _fetchPage(0).then((value) {
-          listenToIsarChanges();
-        });
+        _fetchPage(0).then((value) {});
       });
     });
     _pagingController.addPageRequestListener((pageKey) {
-      if (pageKey != 0) {
+      if (pageKey == 0) {
+        _fetchPage(pageKey).then((value) {
+          listenToIsarChanges();
+        });
+      } else {
         _fetchPage(pageKey);
       }
     });
@@ -59,7 +62,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _messageService.stopListening();
     isar.close();
     _pagingController.dispose();
@@ -92,8 +94,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
         messagesQuery.watch(fireImmediately: true);
     queryChanged.listen((messages) {
       _pagingController.value = PagingState(
-        itemList: [...messages, ...(_pagingController.itemList ?? [])],
-      );
+          itemList: [...messages, ...(_pagingController.itemList ?? [])],
+          nextPageKey: nextPageKey);
     });
   }
 
@@ -105,7 +107,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       if (isLastPage) {
         _pagingController.appendLastPage(newItems);
       } else {
-        final nextPageKey = pageKey + newItems.length;
+        nextPageKey = pageKey + 1;
         _pagingController.appendPage(newItems, nextPageKey);
       }
       if (pageKey == 0 && newItems.isNotEmpty) {
