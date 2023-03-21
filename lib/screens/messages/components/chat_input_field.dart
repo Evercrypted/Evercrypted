@@ -12,10 +12,10 @@ class ChatInputField extends StatefulWidget {
   const ChatInputField({Key? key, required this.chatId}) : super(key: key);
 
   @override
-  _ChatInputFieldState createState() => _ChatInputFieldState();
+  ChatInputFieldState createState() => ChatInputFieldState();
 }
 
-class _ChatInputFieldState extends State<ChatInputField> {
+class ChatInputFieldState extends State<ChatInputField> {
   bool _showAttachment = false;
   final TextEditingController messageField = TextEditingController();
   final MessageService _messageService = MessageService();
@@ -46,9 +46,9 @@ class _ChatInputFieldState extends State<ChatInputField> {
             color: Theme.of(context).scaffoldBackgroundColor,
             child: Row(
               children: [
-                const SizedBox(width: defaultPadding),
+                const SizedBox(width: defaultPadding / 2),
                 VoiceRecorderButton(),
-                const SizedBox(width: defaultPadding),
+                const SizedBox(width: defaultPadding / 4),
                 Expanded(
                   child: Row(
                     children: [
@@ -82,13 +82,9 @@ class _ChatInputFieldState extends State<ChatInputField> {
                                         onTap: () {
                                           sendMessage(messageField.text);
                                         },
-                                        child: Icon(
+                                        child: const Icon(
                                           Icons.send,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge!
-                                              .color!
-                                              .withOpacity(0.64),
+                                          color: primaryColor,
                                         ),
                                       )),
                                 ],
@@ -102,6 +98,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
                           },
                         ),
                       ),
+                      const SizedBox(width: defaultPadding / 2),
                     ],
                   ),
                 ),
