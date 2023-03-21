@@ -46,13 +46,13 @@ class _ChatInputFieldState extends State<ChatInputField> {
             color: Theme.of(context).scaffoldBackgroundColor,
             child: Row(
               children: [
-                SizedBox(width: defaultPadding),
+                const SizedBox(width: defaultPadding),
                 VoiceRecorderButton(),
-                SizedBox(width: defaultPadding),
+                const SizedBox(width: defaultPadding),
                 Expanded(
                   child: Row(
                     children: [
-                      SizedBox(width: defaultPadding / 4),
+                      const SizedBox(width: defaultPadding / 4),
                       Expanded(
                         child: TextField(
                           controller: messageField,
@@ -70,23 +70,27 @@ class _ChatInputFieldState extends State<ChatInputField> {
                                           ? primaryColor
                                           : Theme.of(context)
                                               .textTheme
-                                              .bodyText1!
+                                              .bodyLarge!
                                               .color!
                                               .withOpacity(0.64),
                                     ),
                                   ),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: defaultPadding / 2),
-                                    child: Icon(
-                                      Icons.camera_alt_outlined,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyText1!
-                                          .color!
-                                          .withOpacity(0.64),
-                                    ),
-                                  ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: defaultPadding / 2),
+                                      child: InkWell(
+                                        onTap: () {
+                                          sendMessage(messageField.text);
+                                        },
+                                        child: Icon(
+                                          Icons.send,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .color!
+                                              .withOpacity(0.64),
+                                        ),
+                                      )),
                                 ],
                               ),
                             ),

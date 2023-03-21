@@ -28,6 +28,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   final userId = FirebaseAuth.instance.currentUser?.uid;
   late int startingCreateAtMSE;
   int nextPageKey = 1;
+  bool startedListeningToIsar = false;
 
   static const _pageSize = 10;
 
@@ -46,17 +47,17 @@ class _MessagesScreenState extends State<MessagesScreen> {
         if (startingCreateAtMSE == 0) {
           await Future.delayed(const Duration(seconds: 1));
         }
+        _pagingController.addPageRequestListener((pageKey) {
+          if (!startedListeningToIsar) {
+            _fetchPage(pageKey).then((value) {
+              listenToIsarChanges();
+            });
+          } else {
+            _fetchPage(pageKey);
+          }
+        });
         _fetchPage(0).then((value) {});
       });
-    });
-    _pagingController.addPageRequestListener((pageKey) {
-      if (pageKey == 0) {
-        _fetchPage(pageKey).then((value) {
-          listenToIsarChanges();
-        });
-      } else {
-        _fetchPage(pageKey);
-      }
     });
   }
 
@@ -83,6 +84,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   void listenToIsarChanges() {
+    startedListeningToIsar = true;
     Query<Message> messagesQuery = isar.messages
         .where()
         .createdAtMSEGreaterThan(startingCreateAtMSE)
