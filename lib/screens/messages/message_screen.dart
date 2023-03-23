@@ -298,9 +298,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 ),
               ),
             ),
-            ChatInputField(
-              chatId: widget.chatRoom.fbUid!,
-            ),
+            ChatInputField(chatId: widget.chatRoom.fbUid!, pass: pass, iv: iv),
           ],
         ));
   }

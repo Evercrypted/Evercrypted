@@ -9,7 +9,10 @@ import 'message_attachment.dart';
 
 class ChatInputField extends StatefulWidget {
   final String chatId;
-  const ChatInputField({Key? key, required this.chatId}) : super(key: key);
+  final String? pass;
+  final String? iv;
+  const ChatInputField({Key? key, required this.chatId, this.pass, this.iv})
+      : super(key: key);
 
   @override
   ChatInputFieldState createState() => ChatInputFieldState();
@@ -27,6 +30,10 @@ class ChatInputFieldState extends State<ChatInputField> {
   }
 
   void sendMessage(String message) {
+    var encr = message;
+    if (widget.pass != null && widget.iv != null) {
+      encr = null;
+    }
     final newMessage = Message(
       chatId: widget.chatId,
       createdAtMSE: DateTime.now().millisecondsSinceEpoch,
