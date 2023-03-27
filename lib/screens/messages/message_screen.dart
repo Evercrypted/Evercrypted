@@ -293,7 +293,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       isSender: item.authorId == userId,
                       messageStatus: MessageStatus.viewed,
                     );
-                    return MessageWidget(message: chatMessage);
+                    return MessageWidget(
+                        message: chatMessage, pass: pass, iv: iv);
                   }),
                 ),
               ),

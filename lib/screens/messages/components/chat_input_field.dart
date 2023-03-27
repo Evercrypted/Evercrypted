@@ -6,6 +6,7 @@ import '../../../core/entities/message/message_service.dart';
 import '../../../ui_constants.dart';
 import 'voice_recorder_button.dart';
 import 'message_attachment.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class ChatInputField extends StatefulWidget {
   final String chatId;
@@ -31,13 +32,26 @@ class ChatInputFieldState extends State<ChatInputField> {
 
   void sendMessage(String message) {
     var encr = message;
-    if (widget.pass != null && widget.iv != null) {
-      encr = null;
+    if (widget.pass != null) {
+      if (widget.pass != null && widget.pass!.isNotEmpty == true) {
+        var fullKeyString = widget.pass;
+        if (fullKeyString!.length < 32) {
+          fullKeyString = fullKeyString + '0' * (32 - widget.pass!.length);
+        }
+        final key = encrypt.Key.fromUtf8(fullKeyString);
+        final encrypter = encrypt.Encrypter(encrypt.AES(key));
+        if (widget.iv != null) {
+          final iv = encrypt.IV.fromUtf8(widget.iv!);
+          encr = encrypter.encrypt(message, iv: iv).base64;
+        } else {
+          encr = encrypter.encrypt(message).base64;
+        }
+      }
     }
     final newMessage = Message(
       chatId: widget.chatId,
       createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-      text: message,
+      text: encr,
       authorId: FirebaseAuth.instance.currentUser!.uid,
     );
     _messageService.sendMessage(newMessage);
