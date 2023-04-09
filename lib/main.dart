@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
@@ -13,11 +14,29 @@ import 'package:evercrypted/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'core/http.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  dio
+    ..options.baseUrl = 'http://localhost:3000'
+    // ..interceptors.add(CertificatePinningInterceptor(
+    //     allowedSHAFingerprints: allowedSHAFingerprints))
+    ..interceptors.add(PrettyDioLogger())
+    ..interceptors.add(RetryInterceptor(
+      dio: dio,
+      logPrint: print, // specify log function (optional)
+      retries: 3, // retry count (optional)
+      retryDelays: const [
+        // set delays between retries (optional)
+        Duration(seconds: 1), // wait 1 sec before first retry
+        Duration(seconds: 2), // wait 2 sec before second retry
+        Duration(seconds: 3), // wait 3 sec before third retry
+      ],
+    ));
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -65,6 +84,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         setState(() {
           user = fbUser;
         });
+        _getTokenAndAddAuthInterceptor(fbUser);
         _checkIfUserEmailIsVerified(fbUser);
       } else {
         setState(() {
@@ -72,6 +92,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         });
       }
     });
+    dio.get('/').then((value) {});
   }
 
   @override
@@ -91,6 +112,14 @@ class AuthGateState extends ConsumerState<AuthGate> {
     );
   }
 
+  _getTokenAndAddAuthInterceptor(User user) {
+    user.getIdTokenResult().then((value) {
+      if (value.claims?['email_verified']) {
+        //add auth interceptor to dio
+      }
+    });
+  }
+
   _checkIfUserEmailIsVerified(fbUser) {
     if (!fbUser.emailVerified) {
       userReloadTimer = Timer.periodic(
@@ -103,8 +132,9 @@ class AuthGateState extends ConsumerState<AuthGate> {
                   .read(profileProvider)
                   .setProfileWhenSignIn(user, justVerified: true);
             });
-            if (user!.emailVerified) {
+            if (user?.emailVerified ?? false) {
               userReloadTimer?.cancel();
+              _getTokenAndAddAuthInterceptor(user!);
             }
           });
         },
