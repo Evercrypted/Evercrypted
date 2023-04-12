@@ -1,15 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evercrypted/core/http.dart';
 
 import 'profile_model.dart';
 
 class ProfileService {
   final _profileCollection = FirebaseFirestore.instance.collection('profiles');
 
-  Future<void> setProfile(Profile profile) {
-    return _profileCollection
-        .doc(profile.fbUid)
-        .set(profile.toJson(), SetOptions(merge: true));
+  checkProfileExists(String token) {
+    dio.post('/users/checkUserExists', data: {});
   }
+
+  // Future<void> setProfile(Profile profile) {
+  //   return _profileCollection
+  //       .doc(profile.fbUid)
+  //       .set(profile.toJson(), SetOptions(merge: true));
+  // }
 
   Future<void> updateUserProfile(Profile profile) {
     return _profileCollection.doc(profile.fbUid).update(profile.toJson()).then(

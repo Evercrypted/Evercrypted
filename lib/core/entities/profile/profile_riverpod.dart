@@ -11,16 +11,15 @@ class ProfileRiverpod {
 
   late Profile? profile;
 
-  final ProfileService _profileService = ProfileService();
+  // final ProfileService _profileService = ProfileService();
 
   setProfileWhenSignIn(data, {justVerified = false}) {
     profile = Profile(
         fbUid: data.uid,
         name: data.displayName,
         email: data.email,
-        profilePicRef: data.photoURL,
         emailVerified: data.emailVerified);
-    _profileService.setProfile(profile!);
+    // _profileService.setProfile(profile!);
     initOtherInfo();
   }
 

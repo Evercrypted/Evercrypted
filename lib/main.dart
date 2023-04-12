@@ -15,7 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
+import 'core/interceptors/auth_interceptor.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -84,7 +86,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
         setState(() {
           user = fbUser;
         });
-        _getTokenAndAddAuthInterceptor(fbUser);
         _checkIfUserEmailIsVerified(fbUser);
       } else {
         setState(() {
@@ -113,9 +114,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   _getTokenAndAddAuthInterceptor(User user) {
+    final ProfileService profileService = ProfileService();
     user.getIdTokenResult().then((value) {
       if (value.claims?['email_verified']) {
-        //add auth interceptor to dio
+        addAuthInterceptor(value.token!);
+        profileService.checkProfileExists(value.token!);
       }
     });
   }
@@ -140,6 +143,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         },
       );
     } else {
+      _getTokenAndAddAuthInterceptor(user!);
       ref.read(profileProvider).setProfileWhenSignIn(fbUser);
       userReloadTimer?.cancel();
     }
