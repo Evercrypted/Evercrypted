@@ -10,6 +10,8 @@ class ProfileService {
     dio.post('/users/checkUserExists', data: {});
   }
 
+//firebase
+
   // Future<void> setProfile(Profile profile) {
   //   return _profileCollection
   //       .doc(profile.fbUid)
