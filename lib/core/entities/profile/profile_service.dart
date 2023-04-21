@@ -1,13 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evercrypted/core/http.dart';
 
+import '../../chat_socket.dart';
 import 'profile_model.dart';
 
 class ProfileService {
   final _profileCollection = FirebaseFirestore.instance.collection('profiles');
 
   checkProfileExists(String token) {
-    dio.post('/users/checkUserExists', data: {});
+    dio.post('/users/checkUserExists', data: {}).then((value) {
+      ChatSocket.instance.connectWS(token);
+    });
   }
 
 //firebase

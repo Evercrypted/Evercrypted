@@ -93,7 +93,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
         });
       }
     });
-    dio.get('/').then((value) {});
   }
 
   @override

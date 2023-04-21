@@ -75,8 +75,9 @@ class MainScreenState extends ConsumerState<MainScreen> {
             BottomNavigationBarItem(
               icon: Consumer(
                 builder: (context, ref, child) {
-                  final String? profilePicRef =
-                      ref.read(profileProvider).profile?.profilePicRef;
+                  final String? profilePicRef = null;
+                  //todo
+                  // ref.read(profileProvider).profile?.profilePicRef;
                   return CircleAvatar(
                     backgroundColor: secondaryColor,
                     radius: 14,
