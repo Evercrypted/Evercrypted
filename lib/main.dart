@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'core/chat_socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'core/interceptors/auth_interceptor.dart';
@@ -77,6 +78,8 @@ class AuthGate extends ConsumerStatefulWidget {
 class AuthGateState extends ConsumerState<AuthGate> {
   User? user;
   Timer? userReloadTimer;
+  Timer? ioConnectionTimer;
+  final ProfileService profileService = ProfileService();
 
   @override
   void initState() {
@@ -98,6 +101,8 @@ class AuthGateState extends ConsumerState<AuthGate> {
   @override
   void dispose() {
     userReloadTimer?.cancel();
+    ioConnectionTimer?.cancel();
+    ChatSocket.instance.disconnectWS();
     super.dispose();
   }
 
@@ -113,13 +118,34 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   _getTokenAndAddAuthInterceptor(User user) {
-    final ProfileService profileService = ProfileService();
     user.getIdTokenResult().then((value) {
       if (value.claims?['email_verified']) {
         addAuthInterceptor(value.token!);
-        profileService.checkProfileExists(value.token!);
+        _checkProfileExists(value.token!);
       }
     });
+  }
+
+  _checkProfileExists(String token) {
+    profileService.checkProfileExists(token).then((_) {
+      _connectIO(token);
+    }).catchError((error) {
+      _checkProfileExists(token);
+    });
+  }
+
+  _connectIO(token) {
+    ChatSocket.instance.connectWS(token);
+    ioConnectionTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (timer) {
+        if (ChatSocket.instance.socket == null) {
+          ChatSocket.instance.connectWS(token);
+        } else if (ChatSocket.instance.socket?.connected != true) {
+          ChatSocket.instance.socket?.connect();
+        }
+      },
+    );
   }
 
   _checkIfUserEmailIsVerified(fbUser) {
