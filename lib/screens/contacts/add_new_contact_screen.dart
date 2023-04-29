@@ -62,13 +62,15 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
         if (value == null) return;
         if (value) {
           form.currentState?.reset();
-          final profileRP = ref.read(profileProvider);
-          final cRequest = ContactRequest(
-              authorEmail: profileRP.profile?.email,
-              recipientEmail: email!,
-              authorId: profileRP.profile?.fbUid,
-              message: message);
-          _contactRequestService.createContactRequest(cRequest);
+          final cRequest =
+              ContactRequest(recipientEmail: email!, message: message);
+          _contactRequestService
+              .createContactRequest(cRequest)
+              .then((createdContactRequest) {
+            ref
+                .read(sentRequestsProvider.notifier)
+                .addSentRequest(createdContactRequest);
+          });
         }
       });
     }
@@ -90,11 +92,19 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
           )
         ],
       )),
-      body: _selectedIndex == 0
-          ? ReceivedRequestsList()
-          : SentRequestsList(
-              sentRequests: sentRequests,
-            ),
+      body: Consumer(
+          builder: (BuildContext context, WidgetRef ref, Widget? child) {
+        List<ContactRequest> receivedRequests =
+            ref.watch(receivedRequestsProvider);
+        List<ContactRequest> sentRequests = ref.watch(sentRequestsProvider);
+        return _selectedIndex == 0
+            ? ReceivedRequestsList(
+                receivedRequests: receivedRequests,
+              )
+            : SentRequestsList(
+                sentRequests: sentRequests,
+              );
+      }),
       floatingActionButton: Tooltip(
         message: 'Send Contact Request',
         preferBelow: false,

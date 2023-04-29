@@ -25,8 +25,8 @@ class ContactRequest {
     this.timeSent,
   });
 
-  factory ContactRequest.fromJson(String uid, Map<String, dynamic> json) =>
-      _$ContactRequestFromJson(uid, json);
+  factory ContactRequest.fromJson(Map<String, dynamic> json) =>
+      _$ContactRequestFromJson(json);
 
   Map<String, dynamic> toJson() => _$ContactRequestToJson(this);
 }

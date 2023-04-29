@@ -6,10 +6,9 @@ part of 'contact_request_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ContactRequest _$ContactRequestFromJson(
-        String uid, Map<String, dynamic> json) =>
+ContactRequest _$ContactRequestFromJson(Map<String, dynamic> json) =>
     ContactRequest(
-      fbUid: uid,
+      fbUid: json['uid'] as String?,
       authorId: json['authorId'] as String?,
       authorEmail: json['authorEmail'] as String?,
       recipientEmail: json['recipientEmail'] as String?,

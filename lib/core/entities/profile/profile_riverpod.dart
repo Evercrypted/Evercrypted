@@ -20,11 +20,6 @@ class ProfileRiverpod {
         email: data.email,
         emailVerified: data.emailVerified);
     // _profileService.setProfile(profile!);
-    initOtherInfo();
-  }
-
-  initOtherInfo() {
-    ref.read(sentRequestsProvider.notifier).setSentRequests();
   }
 }
 
