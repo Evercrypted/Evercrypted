@@ -13,9 +13,8 @@ ContactRequest _$ContactRequestFromJson(Map<String, dynamic> json) =>
       authorEmail: json['authorEmail'] as String?,
       recipientEmail: json['recipientEmail'] as String?,
       message: json['message'] as String?,
-      timeSent: json['timeSent'] != null
-          ? json['timeSent'].toDate() as DateTime?
-          : null,
+      timeSent:
+          json['timeSent'] != null ? DateTime.parse(json['timeSent']) : null,
     );
 
 Map<String, dynamic> _$ContactRequestToJson(ContactRequest instance) =>
@@ -25,6 +24,6 @@ Map<String, dynamic> _$ContactRequestToJson(ContactRequest instance) =>
       'recipientEmail': instance.recipientEmail,
       'message': instance.message,
       'timeSent': instance.timeSent == null
-          ? DateTime.now()
-          : Timestamp.fromDate(instance.timeSent!),
+          ? DateTime.now().millisecondsSinceEpoch
+          : Timestamp.fromDate(instance.timeSent!).millisecondsSinceEpoch,
     };

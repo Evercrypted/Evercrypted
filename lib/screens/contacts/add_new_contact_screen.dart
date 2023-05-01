@@ -4,6 +4,7 @@ import 'package:evercrypted/screens/contacts/components/received_requests_list.d
 import 'package:evercrypted/screens/contacts/components/sent_requests_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 import '../../core/entities/contact-request/contact_request_service.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
@@ -64,12 +65,21 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
           form.currentState?.reset();
           final cRequest =
               ContactRequest(recipientEmail: email!, message: message);
-          _contactRequestService
-              .createContactRequest(cRequest)
-              .then((createdContactRequest) {
+          _contactRequestService.createContactRequest(cRequest).then((resp) {
+            final ContactRequest returnedContactRequest =
+                ContactRequest.fromJson(resp);
             ref
                 .read(sentRequestsProvider.notifier)
-                .addSentRequest(createdContactRequest);
+                .addSentRequest(returnedContactRequest);
+            Navigator.pop(context);
+          }).onError((error, stackTrace) {
+            Navigator.pop(context);
+            showSimpleNotification(
+                Text(
+                  error.toString(),
+                  style: const TextStyle(color: Colors.white),
+                ),
+                background: Colors.redAccent);
           });
         }
       });

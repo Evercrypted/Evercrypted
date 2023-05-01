@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,9 +71,25 @@ class ChatSocket {
 
   setListeners(ref) {
     socket?.on('contactRequest', (dynamic data) {
+      print(
+        'got emit $data:${data.toString()}',
+      );
       socketEventsService.handleEvent(
           ref, 'contactRequest', data['type'], data['payload']);
     });
+  }
+
+  Future<dynamic> emitWAck(String channel, String type, dynamic payload) {
+    final respCompleter = Completer<dynamic>();
+    socket?.emitWithAck(channel, {'type': type, 'payload': payload},
+        ack: (resp) {
+      if (resp['error'] != null) {
+        respCompleter.completeError(resp['error']);
+      } else {
+        respCompleter.complete(resp);
+      }
+    });
+    return respCompleter.future;
   }
 
   disconnectWS() {

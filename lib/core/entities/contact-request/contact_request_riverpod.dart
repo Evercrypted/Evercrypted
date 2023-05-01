@@ -7,6 +7,7 @@ class SentContactRequestsNotifier extends StateNotifier<List<ContactRequest>> {
 
   void setSentRequests(List<ContactRequest> sentRequests) {
     state = [...sentRequests];
+    print(state.map((i) => i.toJson()));
   }
 
   void addSentRequest(ContactRequest sentRequest) {
@@ -27,6 +28,7 @@ class ReceivedContactRequestsNotifier
 
   void setReceivedRequests(List<ContactRequest> receivedRequests) {
     state = [...receivedRequests];
+    print(state.map((i) => i.toJson()));
   }
 
   void addReceivedRequest(ContactRequest receivedRequest) {

@@ -19,7 +19,7 @@ class SentRequestsList extends StatelessWidget {
           isReceived: false,
           message: item.message ?? "",
           email: item.recipientEmail ?? "",
-          requestSent: item.timeSent ?? DateTime.now(),
+          requestSent: item.timeSent,
           press: () {},
         );
       },

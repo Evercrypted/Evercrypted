@@ -10,13 +10,9 @@ class ContactRequestService {
   final _contactRequestCollection =
       FirebaseFirestore.instance.collection('contactRequests');
 
-  Future<ContactRequest> createContactRequest(ContactRequest cRequest) {
-    final respCompleter = Completer<ContactRequest>();
-    ChatSocket.instance.socket?.emitWithAck(
-        'contactRequest', {'type': 'createContactRequest'}, ack: (resp) {
-      respCompleter.complete(ContactRequest.fromJson(resp));
-    });
-    return respCompleter.future;
+  Future<dynamic> createContactRequest(ContactRequest cRequest) {
+    return ChatSocket.instance
+        .emitWAck('contactRequest', 'createContactRequest', cRequest.toJson());
     // return _contactRequestCollection.add(cRequest.toJson()).then(
     //   (resp) {
     //     resp.get().then((doc) {

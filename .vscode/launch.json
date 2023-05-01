@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "evercrypted",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "evercrypted (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "evercrypted (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "iphone14",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "4625003D-2CFA-4CBB-B042-339EE8B2480F"
+        },
+        {
+            "name": "iphone14Pro",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "F554F638-8260-4725-BE7A-15C20631C873"
+        }
+    ],
+    "compounds": [
+		{
+			"name": "All Devices",
+			"configurations": ["iphone14", "iphone14Pro"],
+		}
+	]
+}

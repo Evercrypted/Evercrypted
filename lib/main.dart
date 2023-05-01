@@ -14,6 +14,7 @@ import 'package:evercrypted/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'core/chat_socket.dart';
 import 'core/entities/profile/profile_service.dart';
@@ -52,7 +53,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return OverlaySupport.global(
+      child: MaterialApp(
         title: 'EverCrypted',
         theme: lightThemeData(context),
         darkTheme: darkThemeData(context),
@@ -64,7 +66,9 @@ class MyApp extends StatelessWidget {
           ForgotPasswordScreen.routeName: (ctx) => const ForgotPasswordScreen(),
           ContactsScreen.routeName: (ctx) => ContactsScreen(),
           AddNewContactScreen.routeName: (ctx) => const AddNewContactScreen(),
-        });
+        },
+      ),
+    );
   }
 }
 

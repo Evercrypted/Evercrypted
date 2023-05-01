@@ -14,7 +14,7 @@ class PendingRequestCard extends StatelessWidget {
 
   final String email;
   final String? message;
-  final DateTime requestSent;
+  final DateTime? requestSent;
   final VoidCallback press;
   final bool isReceived;
 
@@ -37,7 +37,7 @@ class PendingRequestCard extends StatelessWidget {
         email,
       ),
       subtitle: Text(
-        'Request was ${isReceived ? 'received' : 'sent'} ${timeago.format(requestSent)}',
+        'Request was ${isReceived ? 'received' : 'sent'} ${requestSent != null ? timeago.format(requestSent!) : null}',
         style: TextStyle(
           color: Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.5),
         ),
