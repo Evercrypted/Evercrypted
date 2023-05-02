@@ -23,24 +23,24 @@ class ContactRequestService {
     // );
   }
 
-  Future<void> updateContactRequest(ContactRequest cRequest) {
-    return _contactRequestCollection
-        .doc(cRequest.fbUid)
-        .update(cRequest.toJson())
-        .then(
-      (_) {
-        print('Profile updated');
-      },
-    );
-  }
+  // Future<void> updateContactRequest(ContactRequest cRequest) {
+  //   return _contactRequestCollection
+  //       .doc(cRequest.fbUid)
+  //       .update(cRequest.toJson())
+  //       .then(
+  //     (_) {
+  //       print('Profile updated');
+  //     },
+  //   );
+  // }
 
-  Future<void> deleteContactRequest(ContactRequest cRequest) {
-    return _contactRequestCollection.doc(cRequest.fbUid).delete().then(
-      (_) {
-        print('Profile deleted');
-      },
-    );
-  }
+  // Future<void> deleteContactRequest(ContactRequest cRequest) {
+  //   return _contactRequestCollection.doc(cRequest.fbUid).delete().then(
+  //     (_) {
+  //       print('Profile deleted');
+  //     },
+  //   );
+  // }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> getReceivedContactRequests() {
     final userEmail = FirebaseAuth.instance.currentUser?.email;

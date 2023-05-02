@@ -4,8 +4,9 @@ part 'message_isar.g.dart';
 
 @collection
 class Message {
-  Id id = Isar.autoIncrement; // you can also use id = null to auto increment
+  Id id = Isar.autoIncrement;
 
+  //needs composite unique index with chatUId
   @Index()
   String? fbUid;
 

@@ -1,19 +1,18 @@
 import 'package:isar/isar.dart';
 
+part 'action_queue.g.dart';
+
 @collection
-class Queue {
+class ActionQueue {
   Id id = Isar.autoIncrement; // you can also use id = null to auto increment
+
+  @Index()
+  String channel;
 
   @Index()
   String type;
 
   String payload;
-
-  @Index()
-  String channel;
-
-  String? text;
-  String? fileRef;
 
   @Index()
   int createdAtMSE;
@@ -23,12 +22,10 @@ class Queue {
     return DateTime.fromMillisecondsSinceEpoch(createdAtMSE);
   }
 
-  Queue({
+  ActionQueue({
     required this.type,
     required this.channel,
     required this.payload,
-    this.text,
-    this.fileRef,
     required this.createdAtMSE,
   });
 }

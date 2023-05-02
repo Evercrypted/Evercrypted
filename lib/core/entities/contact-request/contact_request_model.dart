@@ -1,11 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:isar/isar.dart';
 
 part 'contact_request_model.g.dart';
 
-@JsonSerializable()
+@collection
 class ContactRequest {
-  final String? fbUid;
+  Id id = Isar.autoIncrement;
+
+  @Index(unique: true)
+  final String? uid;
 
   final String? authorId;
   final String? authorEmail;
@@ -16,17 +18,32 @@ class ContactRequest {
 
   final DateTime? timeSent;
 
-  ContactRequest({
-    this.fbUid,
-    this.authorId,
-    this.authorEmail,
-    this.recipientEmail,
-    this.message,
-    this.timeSent,
-  });
+  final int? queueId;
 
-  factory ContactRequest.fromJson(Map<String, dynamic> json) =>
-      _$ContactRequestFromJson(json);
+  ContactRequest(
+      {this.uid,
+      this.authorId,
+      this.authorEmail,
+      this.recipientEmail,
+      this.message,
+      this.timeSent,
+      this.queueId});
 
-  Map<String, dynamic> toJson() => _$ContactRequestToJson(this);
+  factory ContactRequest.fromJson(Map<String, dynamic> json) => ContactRequest(
+        uid: json['uid'] as String?,
+        authorId: json['authorId'] as String?,
+        authorEmail: json['authorEmail'] as String?,
+        recipientEmail: json['recipientEmail'] as String?,
+        message: json['message'] as String?,
+        timeSent:
+            json['timeSent'] != null ? DateTime.parse(json['timeSent']) : null,
+      );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'authorId': authorId,
+        'authorEmail': authorEmail,
+        'recipientEmail': recipientEmail,
+        'message': message,
+        'timeSent': timeSent ?? DateTime.now().millisecondsSinceEpoch,
+      };
 }

@@ -9,6 +9,7 @@ import 'package:overlay_support/overlay_support.dart';
 import '../../core/entities/contact-request/contact_request_service.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
 import '../../core/helpers/field_validators.dart';
+import '../../core/offline/action_queue/allowed_for_queue.dart';
 import '../../ui_constants.dart';
 import '../../widgets/primary_button.dart';
 
@@ -74,12 +75,16 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
             Navigator.pop(context);
           }).onError((error, stackTrace) {
             Navigator.pop(context);
-            showSimpleNotification(
-                Text(
-                  error.toString(),
-                  style: const TextStyle(color: Colors.white),
-                ),
-                background: Colors.redAccent);
+            if (error == 'queued') {
+              showQueuedNotification();
+            } else {
+              showSimpleNotification(
+                  Text(
+                    error.toString(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  background: Colors.redAccent);
+            }
           });
         }
       });

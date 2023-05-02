@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 
 import 'entities/contact-request/contact_request_model.dart';
+import 'offline/action_queue/allowed_for_queue.dart';
 
 class ChatSocket {
   ChatSocket._();
@@ -80,15 +84,38 @@ class ChatSocket {
   }
 
   Future<dynamic> emitWAck(String channel, String type, dynamic payload) {
+    saveActionForLater() async {
+      final action = ActionQueue(
+          type: type,
+          channel: channel,
+          payload: json.encode(payload),
+          createdAtMSE: DateTime.now().millisecondsSinceEpoch);
+      final Isar isar =
+          Isar.getInstance() ?? await Isar.open([ActionQueueSchema]);
+      await isar.writeTxn(() async {
+        await isar.actionQueues.put(action);
+      });
+    }
+
     final respCompleter = Completer<dynamic>();
-    socket?.emitWithAck(channel, {'type': type, 'payload': payload},
-        ack: (resp) {
-      if (resp['error'] != null) {
-        respCompleter.completeError(resp['error']);
+    if (instance.socket?.connected != true) {
+      if (allowedForQueue.contains('$channel/$type')) {
+        saveActionForLater();
+        respCompleter.completeError('queued');
       } else {
-        respCompleter.complete(resp);
+        respCompleter.completeError(
+            'Could not connect to server, please check your internet connection.');
       }
-    });
+    } else {
+      socket?.emitWithAck(channel, {'type': type, 'payload': payload},
+          ack: (resp) {
+        if (resp['error'] != null) {
+          respCompleter.completeError(resp['error']);
+        } else {
+          respCompleter.complete(resp);
+        }
+      });
+    }
     return respCompleter.future;
   }
 
