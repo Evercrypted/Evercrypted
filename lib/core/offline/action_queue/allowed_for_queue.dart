@@ -3,7 +3,7 @@ import 'package:overlay_support/overlay_support.dart';
 
 import '../../../ui_constants.dart';
 
-const allowedForQueue = ['contactRequest/createContactRequest'];
+const allowedForQueue = [];
 
 showQueuedNotification() {
   showSimpleNotification(

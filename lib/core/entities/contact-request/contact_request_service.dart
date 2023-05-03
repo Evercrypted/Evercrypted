@@ -13,14 +13,21 @@ class ContactRequestService {
   Future<dynamic> createContactRequest(ContactRequest cRequest) {
     return ChatSocket.instance
         .emitWAck('contactRequest', 'createContactRequest', cRequest.toJson());
-    // return _contactRequestCollection.add(cRequest.toJson()).then(
-    //   (resp) {
-    //     resp.get().then((doc) {
-    //       print('Contact Request Created');
-    //       print(doc.data());
-    //     });
-    //   },
-    // );
+  }
+
+  Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
+    return ChatSocket.instance
+        .emitWAck('contactRequest', 'acceptContactRequest', cRequest.uid);
+  }
+
+  Future<dynamic> cancelContactReqeuest(ContactRequest cRequest) {
+    return ChatSocket.instance
+        .emitWAck('contactRequest', 'declineContactRequest', cRequest.uid);
+  }
+
+  Future<dynamic> declineContactRequest(ContactRequest cRequest) {
+    return ChatSocket.instance
+        .emitWAck('contactRequest', 'declineContactRequest', cRequest.uid);
   }
 
   // Future<void> updateContactRequest(ContactRequest cRequest) {
@@ -59,14 +66,5 @@ class ContactRequestService {
       }));
     });
     return respCompleter.future;
-    // final userId = FirebaseAuth.instance.currentUser?.uid;
-    // var contactRequests = _contactRequestCollection
-    //     .where('authorId', isEqualTo: userId)
-    //     .orderBy('timeSent', descending: true);
-    // return contactRequests.get().then(
-    //       (snapshot) => snapshot.docs.map((doc) {
-    //         return ContactRequest.fromJson(doc.id, doc.data());
-    //       }).toList(),
-    //     );
   }
 }
