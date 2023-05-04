@@ -1,70 +1,27 @@
 import 'dart:async';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../chat_socket.dart';
+import 'contact_request_event_types.dart';
 
 class ContactRequestService {
-  final _contactRequestCollection =
-      FirebaseFirestore.instance.collection('contactRequests');
-
   Future<dynamic> createContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance
-        .emitWAck('contactRequest', 'createContactRequest', cRequest.toJson());
+    return ChatSocket.instance.emitWAck('contactRequest',
+        ContactRequestEvents.createContactRequest.name, cRequest.toJson());
   }
 
   Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance
-        .emitWAck('contactRequest', 'acceptContactRequest', cRequest.uid);
+    return ChatSocket.instance.emitWAck('contactRequest',
+        ContactRequestEvents.acceptContactRequest.name, cRequest.uid);
   }
 
   Future<dynamic> cancelContactReqeuest(ContactRequest cRequest) {
-    return ChatSocket.instance
-        .emitWAck('contactRequest', 'declineContactRequest', cRequest.uid);
+    return ChatSocket.instance.emitWAck('contactRequest',
+        ContactRequestEvents.cancelContactRequest.name, cRequest.uid);
   }
 
   Future<dynamic> declineContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance
-        .emitWAck('contactRequest', 'declineContactRequest', cRequest.uid);
-  }
-
-  // Future<void> updateContactRequest(ContactRequest cRequest) {
-  //   return _contactRequestCollection
-  //       .doc(cRequest.fbUid)
-  //       .update(cRequest.toJson())
-  //       .then(
-  //     (_) {
-  //       print('Profile updated');
-  //     },
-  //   );
-  // }
-
-  // Future<void> deleteContactRequest(ContactRequest cRequest) {
-  //   return _contactRequestCollection.doc(cRequest.fbUid).delete().then(
-  //     (_) {
-  //       print('Profile deleted');
-  //     },
-  //   );
-  // }
-
-  Stream<QuerySnapshot<Map<String, dynamic>>> getReceivedContactRequests() {
-    final userEmail = FirebaseAuth.instance.currentUser?.email;
-    var contactRequests = _contactRequestCollection
-        .where('recipientEmail', isEqualTo: userEmail)
-        .orderBy('timeSent', descending: true);
-    return contactRequests.snapshots();
-  }
-
-  Future<List<ContactRequest>> getSentContactRequests() {
-    final respCompleter = Completer<List<ContactRequest>>();
-    ChatSocket.instance.socket?.emitWithAck(
-        'contactRequest', {'type': 'geContactRequests'}, ack: (resp) {
-      respCompleter.complete(resp.map((contactRequest) {
-        return ContactRequest.fromJson(resp);
-      }));
-    });
-    return respCompleter.future;
+    return ChatSocket.instance.emitWAck('contactRequest',
+        ContactRequestEvents.declineContactRequest.name, cRequest.uid);
   }
 }
