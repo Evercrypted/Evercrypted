@@ -160,9 +160,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
           FirebaseAuth.instance.currentUser?.reload().then((value) {
             setState(() {
               user = FirebaseAuth.instance.currentUser;
-              ref
-                  .read(profileProvider)
-                  .setProfileWhenSignIn(user, justVerified: true);
             });
             if (user?.emailVerified ?? false) {
               userReloadTimer?.cancel();

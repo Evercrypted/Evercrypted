@@ -11,6 +11,7 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 
 import '../entities/contact-request/contact_request_model.dart';
+import '../entities/profile/profile_riverpod.dart';
 import '../offline/action_queue/allowed_for_queue.dart';
 
 class ChatSocket {
@@ -61,6 +62,7 @@ class ChatSocket {
                 (resp['userSentContacts'] as List<dynamic>).map((sentRequest) {
               return ContactRequest.fromJson(sentRequest);
             }).toList());
+        riverPodRef.read(profileProvider).setProfileWhenSignIn(resp['profile']);
       });
     });
 

@@ -11,14 +11,6 @@ class ProfileService {
     return dio.post('/users/checkUserExists', data: {});
   }
 
-//firebase
-
-  // Future<void> setProfile(Profile profile) {
-  //   return _profileCollection
-  //       .doc(profile.fbUid)
-  //       .set(profile.toJson(), SetOptions(merge: true));
-  // }
-
   Future<void> updateUserProfile(Profile profile) {
     return _profileCollection.doc(profile.uid).update(profile.toJson()).then(
       (_) {
@@ -34,23 +26,4 @@ class ProfileService {
       },
     );
   }
-
-  // Future<Profile?> getUserProfile(String userId) async {
-  //   var userProfile =
-  //       _profileCollection.where('userId', isEqualTo: userId).limit(1);
-  //   return userProfile.get().then(
-  //     (resp) {
-  //       if (resp.docs.isNotEmpty) {
-  //         try {
-  //           final doc = resp.docs.first;
-  //           return Profile.fromJson(doc.id, doc.data());
-  //         } catch (e) {
-  //           return null;
-  //         }
-  //       } else {
-  //         return null;
-  //       }
-  //     },
-  //   );
-  // }
 }

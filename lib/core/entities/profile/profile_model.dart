@@ -28,17 +28,14 @@ class Profile {
 
   final String? email;
 
-  bool? emailVerified;
-
   Avatar? avatar;
 
-  Profile({this.uid, this.name, this.email, this.emailVerified, this.avatar});
+  Profile({this.uid, this.name, this.email, this.avatar});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
       uid: json['uid'] as String?,
       name: json['name'] as String?,
       email: json['email'] as String?,
-      emailVerified: json['emailVerified'] as bool?,
       avatar: Avatar.fromJson(
         json['avatar'],
       ));
@@ -46,7 +43,6 @@ class Profile {
   Map<String, dynamic> toJson() => <String, dynamic>{
         'name': name,
         'email': email,
-        'emailVerified': emailVerified,
         'avatar': avatar?.toJson(),
       };
 }
