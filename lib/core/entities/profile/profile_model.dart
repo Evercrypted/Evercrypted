@@ -1,7 +1,8 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'package:isar/isar.dart';
 
 part 'profile_model.g.dart';
 
+@embedded
 class Avatar {
   final String? color;
   final String? icon;
@@ -17,9 +18,11 @@ class Avatar {
       };
 }
 
-@JsonSerializable()
+@collection
 class Profile {
-  final String? fbUid;
+  Id id = Isar.autoIncrement;
+
+  final String? uid;
 
   String? name;
 
@@ -29,10 +32,21 @@ class Profile {
 
   Avatar? avatar;
 
-  Profile({this.fbUid, this.name, this.email, this.emailVerified, this.avatar});
+  Profile({this.uid, this.name, this.email, this.emailVerified, this.avatar});
 
-  factory Profile.fromJson(String uid, Map<String, dynamic> json) =>
-      _$ProfileFromJson(uid, json);
+  factory Profile.fromJson(Map<String, dynamic> json) => Profile(
+      uid: json['uid'] as String?,
+      name: json['name'] as String?,
+      email: json['email'] as String?,
+      emailVerified: json['emailVerified'] as bool?,
+      avatar: Avatar.fromJson(
+        json['avatar'],
+      ));
 
-  Map<String, dynamic> toJson() => _$ProfileToJson(this);
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'name': name,
+        'email': email,
+        'emailVerified': emailVerified,
+        'avatar': avatar?.toJson(),
+      };
 }

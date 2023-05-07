@@ -20,7 +20,7 @@ class ProfileService {
   // }
 
   Future<void> updateUserProfile(Profile profile) {
-    return _profileCollection.doc(profile.fbUid).update(profile.toJson()).then(
+    return _profileCollection.doc(profile.uid).update(profile.toJson()).then(
       (_) {
         print('Profile updated');
       },
@@ -28,29 +28,29 @@ class ProfileService {
   }
 
   Future<void> deleteUserProfile(Profile profile) {
-    return _profileCollection.doc(profile.fbUid).delete().then(
+    return _profileCollection.doc(profile.uid).delete().then(
       (_) {
         print('Profile deleted');
       },
     );
   }
 
-  Future<Profile?> getUserProfile(String userId) async {
-    var userProfile =
-        _profileCollection.where('userId', isEqualTo: userId).limit(1);
-    return userProfile.get().then(
-      (resp) {
-        if (resp.docs.isNotEmpty) {
-          try {
-            final doc = resp.docs.first;
-            return Profile.fromJson(doc.id, doc.data());
-          } catch (e) {
-            return null;
-          }
-        } else {
-          return null;
-        }
-      },
-    );
-  }
+  // Future<Profile?> getUserProfile(String userId) async {
+  //   var userProfile =
+  //       _profileCollection.where('userId', isEqualTo: userId).limit(1);
+  //   return userProfile.get().then(
+  //     (resp) {
+  //       if (resp.docs.isNotEmpty) {
+  //         try {
+  //           final doc = resp.docs.first;
+  //           return Profile.fromJson(doc.id, doc.data());
+  //         } catch (e) {
+  //           return null;
+  //         }
+  //       } else {
+  //         return null;
+  //       }
+  //     },
+  //   );
+  // }
 }

@@ -16,7 +16,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'core/chat_socket.dart';
+import 'core/socket/chat_socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'core/interceptors/auth_interceptor.dart';

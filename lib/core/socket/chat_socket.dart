@@ -4,19 +4,25 @@ import 'dart:convert';
 import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 
-import 'entities/contact-request/contact_request_model.dart';
-import 'offline/action_queue/allowed_for_queue.dart';
+import '../entities/contact-request/contact_request_model.dart';
+import '../offline/action_queue/allowed_for_queue.dart';
 
 class ChatSocket {
   ChatSocket._();
   final wsUrl = Uri.parse('ws://localhost:1234');
   io.Socket? socket;
   String? userToken;
+
+  static const channelsToListen = [
+    SocketChannelTypes.contactRequest,
+    SocketChannelTypes.contact
+  ];
 
   final SocketEventsService socketEventsService = SocketEventsService();
 
@@ -59,7 +65,8 @@ class ChatSocket {
     });
 
     socket?.onReconnect((data) {
-      print('reconnect');
+      socket?.clearListeners();
+      setListeners(riverPodRef);
     });
 
     socket?.onDisconnect((_) {
@@ -74,13 +81,15 @@ class ChatSocket {
   }
 
   setListeners(ref) {
-    socket?.on('contactRequest', (dynamic data) {
-      print(
-        'got emit $data:${data.toString()}',
-      );
-      socketEventsService.handleEvent(
-          ref, 'contactRequest', data['type'], data['payload']);
-    });
+    for (var channel in channelsToListen) {
+      socket?.on(channel, (dynamic data) {
+        print(
+          'got emit to $channel - $data:${data.toString()}',
+        );
+        socketEventsService.handleEvent(
+            ref, channel, data['type'], data['payload']);
+      });
+    }
   }
 
   Future<dynamic> emitWAck(String channel, String type, dynamic payload) {

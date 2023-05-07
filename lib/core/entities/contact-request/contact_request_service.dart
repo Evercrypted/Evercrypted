@@ -1,27 +1,28 @@
 import 'dart:async';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 
-import '../../chat_socket.dart';
+import '../../socket/chat_socket.dart';
+import '../../socket/socket_channels.dart';
 import 'contact_request_event_types.dart';
 
 class ContactRequestService {
   Future<dynamic> createContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance.emitWAck('contactRequest',
-        ContactRequestEvents.createContactRequest.name, cRequest.toJson());
+    return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
+        ContactRequestEventTypes.createContactRequests, cRequest.toJson());
   }
 
   Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance.emitWAck('contactRequest',
-        ContactRequestEvents.acceptContactRequest.name, cRequest.uid);
+    return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
+        ContactRequestEventTypes.acceptContactRequest, cRequest.uid);
   }
 
   Future<dynamic> cancelContactReqeuest(ContactRequest cRequest) {
-    return ChatSocket.instance.emitWAck('contactRequest',
-        ContactRequestEvents.cancelContactRequest.name, cRequest.uid);
+    return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
+        ContactRequestEventTypes.cancelContactRequest, cRequest.uid);
   }
 
   Future<dynamic> declineContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance.emitWAck('contactRequest',
-        ContactRequestEvents.declineContactRequest.name, cRequest.uid);
+    return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
+        ContactRequestEventTypes.declineContactRequest, cRequest.uid);
   }
 }
