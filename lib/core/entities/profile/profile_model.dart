@@ -10,7 +10,7 @@ class Avatar {
   Avatar({this.icon, this.color});
 
   factory Avatar.fromJson(Map<String, dynamic> json) =>
-      Avatar(color: json['color'] as String, icon: json['icon'] as String);
+      Avatar(color: json['color'] as String?, icon: json['icon'] as String?);
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'color': color,

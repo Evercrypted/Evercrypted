@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -9,9 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
-
-import '../entities/contact-request/contact_request_model.dart';
-import '../entities/profile/profile_riverpod.dart';
 import '../offline/action_queue/allowed_for_queue.dart';
 
 class ChatSocket {
@@ -53,16 +49,8 @@ class ChatSocket {
       socket?.emitWithAck('general', {'type': 'getInitialData'},
           ack: (dynamic resp) {
         print(resp);
-        riverPodRef.read(receivedRequestsProvider.notifier).setReceivedRequests(
-                (resp['userReceivedContacts'] as List<dynamic>)
-                    .map((receivedRequest) {
-              return ContactRequest.fromJson(receivedRequest);
-            }).toList());
-        riverPodRef.read(sentRequestsProvider.notifier).setSentRequests(
-                (resp['userSentContacts'] as List<dynamic>).map((sentRequest) {
-              return ContactRequest.fromJson(sentRequest);
-            }).toList());
-        riverPodRef.read(profileProvider).setProfileWhenSignIn(resp['profile']);
+        socketEventsService.handleGeneralEvent(
+            riverPodRef, 'getInitialData', resp);
       });
     });
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
@@ -14,8 +15,12 @@ import 'package:evercrypted/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'core/entities/contact-request/contact_request_model.dart';
+import 'core/entities/contact-request/contact_request_riverpod.dart';
+import 'core/entities/contact/contact_model.dart';
 import 'core/socket/chat_socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
@@ -94,6 +99,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
           user = fbUser;
         });
         _checkIfUserEmailIsVerified(fbUser);
+        _setIsarWatchersAndSyncToRiverPod(fbUser);
       } else {
         setState(() {
           user = null;
@@ -119,6 +125,34 @@ class AuthGateState extends ConsumerState<AuthGate> {
               ? VerificationScreen()
               : const MainWidget(),
     );
+  }
+
+  void _setIsarWatchersAndSyncToRiverPod(User user) async {
+    final isar = Isar.getInstance() ??
+        await Isar.open([ProfileSchema, ContactRequestSchema, ContactSchema]);
+
+    isar.profiles.where().build().watch().listen((profiles) {
+      if (profiles.isNotEmpty) {
+        ref.read(profileProvider.notifier).setProfile(profiles.first);
+      }
+    });
+
+    isar.contactRequests.where().build().watch().listen((contactRequests) {
+      ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
+          contactRequests
+              .where((element) =>
+                  element.recipientEmail ==
+                  FirebaseAuth.instance.currentUser?.email)
+              .toList());
+      ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
+          .where((element) =>
+              element.authorId == FirebaseAuth.instance.currentUser?.uid)
+          .toList());
+    });
+
+    // isar.contacts.where().build().watch().listen((contacts) {
+    //   ref.read(contactsProvider.notifier).setContacts(contacts);
+    // });
   }
 
   _getTokenAndAddAuthInterceptor(User user) {
@@ -170,7 +204,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
       );
     } else {
       _getTokenAndAddAuthInterceptor(user!);
-      ref.read(profileProvider).setProfileWhenSignIn(fbUser);
       userReloadTimer?.cancel();
     }
   }

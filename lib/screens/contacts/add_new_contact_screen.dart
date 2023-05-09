@@ -150,8 +150,8 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                   validator: (val) {
                                     String? emailError = validateEmail(val);
                                     if (emailError != null) return emailError;
-                                    final profileRP = ref.read(profileProvider);
-                                    if (val == profileRP.profile?.email) {
+                                    final profile = ref.read(profileProvider);
+                                    if (val == profile?.email) {
                                       return "You can't send a contact request to yourself";
                                     } else if (sentRequests
                                         .map((e) => e.recipientEmail)

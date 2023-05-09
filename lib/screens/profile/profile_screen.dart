@@ -36,13 +36,13 @@ class ProfileScreen extends ConsumerWidget {
               imageUploadBtnPress: () {},
             ),
             Text(
-              profile.profile?.name ?? '',
+              profile?.name ?? '',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const Divider(height: defaultPadding * 2),
             Info(
               infoKey: "Email Address",
-              info: profile.profile?.email ?? '',
+              info: profile?.email ?? '',
             ),
             const SizedBox(height: defaultPadding),
             PrimaryButton(

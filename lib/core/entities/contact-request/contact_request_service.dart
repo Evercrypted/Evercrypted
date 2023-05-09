@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
+import 'package:isar/isar.dart';
 
 import '../../socket/chat_socket.dart';
 import '../../socket/socket_channels.dart';
@@ -24,5 +26,22 @@ class ContactRequestService {
   Future<dynamic> declineContactRequest(ContactRequest cRequest) {
     return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
         ContactRequestEventTypes.declineContactRequest, cRequest.uid);
+  }
+
+  void syncContactRequests(List<ContactRequest> contactRequests) async {
+    final isar = Isar.getInstance() ?? await Isar.open([ContactRequestSchema]);
+
+    final List<ContactRequest> contactRequestsInDb =
+        await isar.contactRequests.where().findAll();
+
+    final List<ContactRequest> contactRequestsToPut = contactRequests
+        .where((element) => contactRequestsInDb
+            .where((dbEl) => dbEl.uid == element.uid)
+            .isEmpty)
+        .toList();
+
+    await isar.writeTxn(() async {
+      await isar.contactRequests.putAll(contactRequestsToPut);
+    });
   }
 }

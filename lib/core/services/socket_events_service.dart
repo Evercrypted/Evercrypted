@@ -1,5 +1,8 @@
+import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_event_types.dart';
+import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/ui_constants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -7,9 +10,14 @@ import 'package:overlay_support/overlay_support.dart';
 import '../entities/contact-request/contact_request_event_types.dart';
 import '../entities/contact-request/contact_request_model.dart';
 import '../entities/contact-request/contact_request_riverpod.dart';
+import '../entities/profile/profile_model.dart';
+import '../entities/profile/profile_riverpod.dart';
 import '../socket/socket_channels.dart';
 
 class SocketEventsService {
+  ProfileService profileService = ProfileService();
+  ContactRequestService contactRequestService = ContactRequestService();
+
   handleEvent(WidgetRef ref, String channel, String type, dynamic payload) {
     switch (channel) {
       case SocketChannelTypes.contactRequest:
@@ -20,6 +28,26 @@ class SocketEventsService {
         break;
       default:
         print('Unknown Event');
+        print(payload);
+    }
+  }
+
+  handleGeneralEvent(WidgetRef ref, String type, dynamic payload) {
+    switch (type) {
+      case 'getInitialData':
+        contactRequestService.syncContactRequests(
+            (payload['contactRequests'] as List<Map<String, dynamic>>)
+                .map(
+                  (contactRequestData) =>
+                      ContactRequest.fromJson(contactRequestData),
+                )
+                .toList());
+        profileService.syncProfile(
+          Profile.fromJson(payload['profile']),
+        );
+        break;
+      default:
+        print('Unknown General Event');
         print(payload);
     }
   }
