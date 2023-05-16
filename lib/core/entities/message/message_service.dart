@@ -24,7 +24,8 @@ class MessageService {
             .where('authorId', whereIn: participantsToListenTo)
             .where('createdAtMSE', isGreaterThan: lastMessageTime)
         : messagesCollection.where('authorId', isNotEqualTo: userId);
-    final isar = Isar.getInstance() ?? await Isar.open([MessageSchema]);
+    final isar =
+        Isar.getInstance() ?? await Isar.open([MessageSchema], directory: '');
     fbListener = messageRequests.snapshots().listen((event) async {
       for (var change in event.docChanges) {
         if (change.type == DocumentChangeType.added) {
@@ -43,7 +44,8 @@ class MessageService {
   }
 
   Future<List<Message>> getMessagesFromDB(int pageKey, int pageSize) async {
-    final isar = Isar.getInstance() ?? await Isar.open([MessageSchema]);
+    final isar =
+        Isar.getInstance() ?? await Isar.open([MessageSchema], directory: '');
     return isar.messages
         .where()
         .sortByCreatedAtMSEDesc()
@@ -54,7 +56,8 @@ class MessageService {
   }
 
   void sendMessage(Message message) async {
-    final isar = Isar.getInstance() ?? await Isar.open([MessageSchema]);
+    final isar =
+        Isar.getInstance() ?? await Isar.open([MessageSchema], directory: '');
     await isar.writeTxn(() async {
       await isar.messages.put(message); // insert & update
     }).then((value) {

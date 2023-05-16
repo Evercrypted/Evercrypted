@@ -10,7 +10,8 @@ class ProfileService {
   }
 
   void syncProfile(Profile profile) async {
-    final isar = Isar.getInstance() ?? await Isar.open([ProfileSchema]);
+    final isar =
+        Isar.getInstance() ?? await Isar.open([ProfileSchema], directory: '');
     return isar.profiles.clear().then((value) async {
       await isar.writeTxn(() async {
         await isar.profiles.put(profile);

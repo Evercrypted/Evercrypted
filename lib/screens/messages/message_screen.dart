@@ -81,7 +81,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Future startIsar() async {
-    return Isar.getInstance() ?? await Isar.open([MessageSchema]);
+    return Isar.getInstance() ??
+        await Isar.open([MessageSchema], directory: '');
   }
 
   Future openPasswordDialog(BuildContext context) {

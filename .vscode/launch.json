@@ -22,22 +22,22 @@
             "flutterMode": "release"
         },
         {
-            "name": "iphone14",
+            "name": "iPhone 14",
             "request": "launch",
             "type": "dart",
-            "deviceId": "4625003D-2CFA-4CBB-B042-339EE8B2480F"
+            "deviceId": "DE2C86B0-67D8-405A-8590-46E7E3CE39F5"
         },
         {
-            "name": "iphone14Pro",
+            "name": "iPhone 14 Pro",
             "request": "launch",
             "type": "dart",
-            "deviceId": "F554F638-8260-4725-BE7A-15C20631C873"
+            "deviceId": "082B24AC-21CF-45C2-845F-7E347F23895B"
         }
     ],
     "compounds": [
 		{
 			"name": "All Devices",
-			"configurations": ["iphone14", "iphone14Pro"],
+			"configurations": ["iPhone 14", "iPhone 14 Pro"],
 		}
 	]
 }

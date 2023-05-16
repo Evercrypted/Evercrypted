@@ -28,7 +28,11 @@ class ContactRequestService {
   }
 
   void syncContactRequests(List<ContactRequest> contactRequests) async {
-    final isar = Isar.getInstance() ?? await Isar.open([ContactRequestSchema]);
+    final isar = Isar.getInstance() ??
+        await Isar.open(
+          [ContactRequestSchema],
+          directory: '',
+        );
 
     final List<ContactRequest> contactRequestsInDb =
         await isar.contactRequests.where().findAll();

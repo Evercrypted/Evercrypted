@@ -128,6 +128,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   void _setIsarWatchersAndSyncToRiverPod(User user) async {
+    final dir = await getApplicationDocumentsDirectory();
     final isar = Isar.getInstance() ??
         await Isar.open([ProfileSchema, ContactRequestSchema, ContactSchema]);
 
