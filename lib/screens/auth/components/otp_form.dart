@@ -7,6 +7,8 @@ import '../../../ui_constants.dart';
 import '../../../widgets/primary_button.dart';
 
 class OtpForm extends StatefulWidget {
+  const OtpForm({Key? key}) : super(key: key);
+
   @override
   _OtpFormState createState() => _OtpFormState();
 }
@@ -60,7 +62,7 @@ class _OtpFormState extends State<OtpForm> {
                   autofocus: true,
                 ),
               ),
-              SizedBox(width: defaultPadding),
+              const SizedBox(width: defaultPadding),
               Expanded(
                 child: OtpTextFormField(
                   focusNode: _pin2Node,
@@ -72,7 +74,7 @@ class _OtpFormState extends State<OtpForm> {
                   },
                 ),
               ),
-              SizedBox(width: defaultPadding),
+              const SizedBox(width: defaultPadding),
               Expanded(
                 child: OtpTextFormField(
                   focusNode: _pin3Node,
@@ -84,7 +86,7 @@ class _OtpFormState extends State<OtpForm> {
                   },
                 ),
               ),
-              SizedBox(width: defaultPadding),
+              const SizedBox(width: defaultPadding),
               Expanded(
                 child: OtpTextFormField(
                   focusNode: _pin4Node,
@@ -98,7 +100,7 @@ class _OtpFormState extends State<OtpForm> {
               ),
             ],
           ),
-          SizedBox(height: defaultPadding * 1.5),
+          const SizedBox(height: defaultPadding * 1.5),
           PrimaryButton(
             text: "Next",
             press: () {
@@ -108,7 +110,7 @@ class _OtpFormState extends State<OtpForm> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MainScreen(),
+                    builder: (context) => const MainScreen(),
                   ),
                 );
               }
@@ -150,7 +152,7 @@ class OtpTextFormField extends StatelessWidget {
       ],
       textAlign: TextAlign.center,
       keyboardType: TextInputType.number,
-      style: Theme.of(context).textTheme.headline5,
+      style: Theme.of(context).textTheme.headlineSmall,
     );
   }
 }

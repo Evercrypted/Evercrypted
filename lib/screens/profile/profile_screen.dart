@@ -51,7 +51,7 @@ class ProfileScreen extends ConsumerWidget {
               press: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => EditProfileScreen(),
+                  builder: (context) => const EditProfileScreen(),
                 ),
               ),
             ),

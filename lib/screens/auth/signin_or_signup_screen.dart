@@ -6,6 +6,8 @@ import '../../screens/auth/sign_up_screen.dart';
 
 class SigninOrSignupScreen extends StatelessWidget {
   static const routeName = '/signin-or-signup';
+
+  const SigninOrSignupScreen({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(

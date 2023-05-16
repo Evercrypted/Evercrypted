@@ -8,6 +8,8 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'components/logo_with_title.dart';
 
 class VerificationScreen extends StatefulWidget {
+  const VerificationScreen({Key? key}) : super(key: key);
+
   @override
   _VerificationScreenState createState() => _VerificationScreenState();
 }
@@ -47,7 +49,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               style: TextStyle(
                 color: Theme.of(context)
                     .textTheme
-                    .bodyText1!
+                    .bodyLarge!
                     .color!
                     .withOpacity(0.64),
               ),

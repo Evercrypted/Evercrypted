@@ -3,7 +3,6 @@ import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/entities/profile/profile_riverpod.dart';
 import '../calls/calls_history_screen.dart';
 import '../chats/chats_screen.dart';
 import '../contacts/contacts_screen.dart';
@@ -21,9 +20,9 @@ class MainScreenState extends ConsumerState<MainScreen> {
   int pageIndex = 0;
 
   List<Widget> pageList = <Widget>[
-    ChatsScreen(),
-    CallsHistoryScreen(),
-    ContactsScreen(),
+    const ChatsScreen(),
+    const CallsHistoryScreen(),
+    const ContactsScreen(),
     const ProfileScreen(),
   ];
 
@@ -75,7 +74,7 @@ class MainScreenState extends ConsumerState<MainScreen> {
             BottomNavigationBarItem(
               icon: Consumer(
                 builder: (context, ref, child) {
-                  final String? profilePicRef = null;
+                  const String? profilePicRef = null;
                   //todo
                   // ref.read(profileProvider).profile?.profilePicRef;
                   return CircleAvatar(

@@ -11,7 +11,7 @@ class MessageAttachment extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.08),
+      color: Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.08),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -62,8 +62,8 @@ class MessageAttachmentCard extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              padding: EdgeInsets.all(defaultPadding * 0.75),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.all(defaultPadding * 0.75),
+              decoration: const BoxDecoration(
                 color: primaryColor,
                 shape: BoxShape.circle,
               ),
@@ -72,13 +72,13 @@ class MessageAttachmentCard extends StatelessWidget {
                 size: 20,
               ),
             ),
-            SizedBox(height: defaultPadding / 2),
+            const SizedBox(height: defaultPadding / 2),
             Text(
               title,
-              style: Theme.of(context).textTheme.caption!.copyWith(
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     color: Theme.of(context)
                         .textTheme
-                        .bodyText1!
+                        .bodyLarge!
                         .color!
                         .withOpacity(0.8),
                   ),

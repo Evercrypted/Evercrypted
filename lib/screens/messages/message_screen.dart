@@ -12,7 +12,6 @@ import '../../ui_constants.dart';
 import '../../widgets/primary_button.dart';
 import 'components/chat_input_field.dart';
 import 'components/message.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 
 class MessagesScreen extends StatefulWidget {
   final ChatRoom chatRoom;
@@ -307,19 +306,19 @@ class _MessagesScreenState extends State<MessagesScreen> {
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
-      title: Row(
+      title: const Row(
         children: [
-          const BackButton(),
+          BackButton(),
           CircleAvatar(
             backgroundImage: AssetImage("assets/images/user_2.png"),
           ),
-          const SizedBox(width: defaultPadding * 0.75),
+          SizedBox(width: defaultPadding * 0.75),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 "Kristin Watson",
-                style: const TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 16),
               ),
             ],
           )

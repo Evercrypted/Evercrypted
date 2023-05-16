@@ -4,17 +4,19 @@ import '../../ui_constants.dart';
 import 'components/body.dart';
 
 class SearchScreen extends StatelessWidget {
+  const SearchScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Chats"),
+        title: const Text("Chats"),
       ),
       body: Column(
         children: [
           // Appbar search
           Container(
-            padding: EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               defaultPadding,
               0,
               defaultPadding,
@@ -42,7 +44,7 @@ class SearchScreen extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(child: Body()),
+          const Expanded(child: Body()),
         ],
       ),
     );

@@ -68,7 +68,7 @@ class ChatInputFieldState extends State<ChatInputField> {
             child: Row(
               children: [
                 const SizedBox(width: defaultPadding / 2),
-                VoiceRecorderButton(),
+                const VoiceRecorderButton(),
                 const SizedBox(width: defaultPadding / 4),
                 Expanded(
                   child: Row(
@@ -126,7 +126,7 @@ class ChatInputFieldState extends State<ChatInputField> {
               ],
             ),
           ),
-          if (_showAttachment) MessageAttachment(),
+          if (_showAttachment) const MessageAttachment(),
         ],
       ),
     );

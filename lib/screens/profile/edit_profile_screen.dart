@@ -7,21 +7,23 @@ import 'components/profile_pic.dart';
 import 'components/user_info_edit_field.dart';
 
 class EditProfileScreen extends StatelessWidget {
+  const EditProfileScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit Profile"),
+        title: const Text("Edit Profile"),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: defaultPadding),
+        padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
         child: Column(
           children: [
             ProfilePic(
               image: demoContactsImage[0],
               imageUploadBtnPress: () {},
             ),
-            Divider(),
+            const Divider(),
             Form(
               child: Column(
                 children: [
@@ -54,7 +56,7 @@ class EditProfileScreen extends StatelessWidget {
                     child: TextFormField(
                       obscureText: true,
                       initialValue: "demopass",
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         suffixIcon: Icon(
                           Icons.visibility_off,
                           size: 20,
@@ -65,34 +67,34 @@ class EditProfileScreen extends StatelessWidget {
                   UserInfoEditField(
                     text: "New Password",
                     child: TextFormField(
-                      decoration: InputDecoration(hintText: "New Password"),
+                      decoration: const InputDecoration(hintText: "New Password"),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: defaultPadding),
+            const SizedBox(height: defaultPadding),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 SizedBox(
                   width: 100,
                   child: PrimaryButton(
-                    padding: EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(5),
                     color: Theme.of(context)
                         .textTheme
-                        .bodyText1!
+                        .bodyLarge!
                         .color!
                         .withOpacity(0.08),
                     text: "Cancel",
                     press: () {},
                   ),
                 ),
-                SizedBox(width: defaultPadding),
+                const SizedBox(width: defaultPadding),
                 SizedBox(
                   width: 130,
                   child: PrimaryButton(
-                    padding: EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(5),
                     text: "Save Update",
                     press: () {},
                   ),

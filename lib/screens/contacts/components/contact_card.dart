@@ -35,7 +35,7 @@ class ContactCard extends StatelessWidget {
           number,
           style: TextStyle(
             color:
-                Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.64),
+                Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.64),
           ),
         ),
       ),

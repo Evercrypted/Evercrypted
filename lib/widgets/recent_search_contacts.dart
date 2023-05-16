@@ -17,15 +17,15 @@ class RecentSearchContacts extends StatelessWidget {
         children: [
           Text(
             "Recent search",
-            style: Theme.of(context).textTheme.subtitle2!.copyWith(
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
                   color: Theme.of(context)
                       .textTheme
-                      .subtitle2!
+                      .titleSmall!
                       .color!
                       .withOpacity(0.32),
                 ),
           ),
-          SizedBox(height: defaultPadding),
+          const SizedBox(height: defaultPadding),
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -48,7 +48,7 @@ class RecentSearchContacts extends StatelessWidget {
                               backgroundImage:
                                   AssetImage(demoContactsImage[index]),
                             )
-                          : RoundedCounter(total: 35),
+                          : const RoundedCounter(total: 35),
                     ),
                   ),
                 ),
@@ -73,14 +73,14 @@ class RoundedCounter extends StatelessWidget {
       width: 52,
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? Color(0xFF2E2F45)
-            : Color(0xFFEBFAF3),
+            ? const Color(0xFF2E2F45)
+            : const Color(0xFFEBFAF3),
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Text(
           "$total+",
-          style: Theme.of(context).textTheme.subtitle1,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
     );

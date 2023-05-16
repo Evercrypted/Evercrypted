@@ -18,7 +18,7 @@ class LogoWithTitle extends StatelessWidget {
     return SafeArea(
       child: LayoutBuilder(builder: (context, constraints) {
         return SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: defaultPadding),
+          padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
           child: Column(
             children: [
               SizedBox(height: constraints.maxHeight * 0.1),
@@ -33,7 +33,7 @@ class LogoWithTitle extends StatelessWidget {
                 title,
                 style: Theme.of(context)
                     .textTheme
-                    .headline5!
+                    .headlineSmall!
                     .copyWith(fontWeight: FontWeight.bold),
               ),
               Padding(
@@ -45,7 +45,7 @@ class LogoWithTitle extends StatelessWidget {
                     height: 1.5,
                     color: Theme.of(context)
                         .textTheme
-                        .bodyText1!
+                        .bodyLarge!
                         .color!
                         .withOpacity(0.64),
                   ),

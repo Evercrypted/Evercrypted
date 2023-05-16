@@ -37,7 +37,7 @@ class TextMessage extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: defaultPadding * 0.75,
         vertical: defaultPadding / 2,
       ),
@@ -50,7 +50,7 @@ class TextMessage extends StatelessWidget {
         style: TextStyle(
           color: message!.isSender
               ? Colors.white
-              : Theme.of(context).textTheme.bodyText1!.color,
+              : Theme.of(context).textTheme.bodyLarge!.color,
         ),
       ),
     );

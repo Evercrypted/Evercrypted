@@ -5,18 +5,20 @@ import 'calls_search_screen.dart';
 import 'components/call_history_card.dart';
 
 class CallsHistoryScreen extends StatelessWidget {
+  const CallsHistoryScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Calls"),
+        title: const Text("Calls"),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
+            icon: const Icon(Icons.search),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CallsSearchScreen(),
+                builder: (context) => const CallsSearchScreen(),
               ),
             ),
           ),

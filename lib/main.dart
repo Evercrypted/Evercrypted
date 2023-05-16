@@ -65,11 +65,11 @@ class MyApp extends StatelessWidget {
         darkTheme: darkThemeData(context),
         home: const AuthGate(),
         routes: {
-          SigninOrSignupScreen.routeName: (ctx) => SigninOrSignupScreen(),
+          SigninOrSignupScreen.routeName: (ctx) => const SigninOrSignupScreen(),
           SignUpScreen.routeName: (ctx) => const SignUpScreen(),
           SignInScreen.routeName: (ctx) => const SignInScreen(),
           ForgotPasswordScreen.routeName: (ctx) => const ForgotPasswordScreen(),
-          ContactsScreen.routeName: (ctx) => ContactsScreen(),
+          ContactsScreen.routeName: (ctx) => const ContactsScreen(),
           AddNewContactScreen.routeName: (ctx) => const AddNewContactScreen(),
         },
       ),
@@ -122,7 +122,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
       body: user == null
           ? const SignInScreen()
           : !user!.emailVerified
-              ? VerificationScreen()
+              ? const VerificationScreen()
               : const MainWidget(),
     );
   }

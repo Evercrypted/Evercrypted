@@ -4,6 +4,8 @@ import 'package:flutter_sound/flutter_sound.dart';
 import '../../../ui_constants.dart';
 
 class VoiceRecorderButton extends StatefulWidget {
+  const VoiceRecorderButton({Key? key}) : super(key: key);
+
   @override
   VoiceRecorderButtonState createState() => VoiceRecorderButtonState();
 }
@@ -64,7 +66,7 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
           ),
           CircularProgressIndicator(
             value: controller.value,
-            valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+            valueColor: const AlwaysStoppedAnimation<Color>(primaryColor),
           ),
           if (controller.status == AnimationStatus.forward)
             Text(
@@ -72,10 +74,10 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
                   .round()
                   .toString(),
               style:
-                  TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+                  const TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
             )
           else
-            Icon(Icons.mic, color: primaryColor)
+            const Icon(Icons.mic, color: primaryColor)
         ],
       ),
     );

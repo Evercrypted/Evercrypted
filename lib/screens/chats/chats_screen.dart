@@ -5,6 +5,8 @@ import '../search/search_screen.dart';
 import 'components/chat_list.dart';
 
 class ChatsScreen extends StatelessWidget {
+  const ChatsScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,15 +26,15 @@ class ChatsScreen extends StatelessWidget {
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
-      title: Text("Chats"),
+      title: const Text("Chats"),
       actions: [
         IconButton(
-          icon: Icon(Icons.search),
+          icon: const Icon(Icons.search),
           onPressed: () {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SearchScreen(),
+                  builder: (context) => const SearchScreen(),
                 ));
           },
         ),

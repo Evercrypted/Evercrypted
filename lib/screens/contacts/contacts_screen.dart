@@ -7,12 +7,14 @@ import 'add_new_contact_screen.dart';
 
 class ContactsScreen extends StatelessWidget {
   static const routeName = '/contacts';
+
+  const ContactsScreen({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("People"),
-        actions: [IconButton(icon: Icon(Icons.search), onPressed: () => {})],
+        title: const Text("People"),
+        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () => {})],
       ),
       body: ListView.builder(
         itemCount: demoContactsImage.length,

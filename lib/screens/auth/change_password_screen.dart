@@ -64,7 +64,7 @@ class ChangePasswordScreen extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChatsScreen(),
+                    builder: (context) => const ChatsScreen(),
                   ),
                 );
               }
@@ -83,10 +83,10 @@ class ChangePasswordScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              style: Theme.of(context).textTheme.bodyText2!.copyWith(
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                     color: Theme.of(context)
                         .textTheme
-                        .bodyText1!
+                        .bodyLarge!
                         .color!
                         .withOpacity(0.64),
                   ),

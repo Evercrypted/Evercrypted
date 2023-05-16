@@ -22,7 +22,7 @@ class CallHistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(
+      contentPadding: const EdgeInsets.symmetric(
         horizontal: defaultPadding,
         vertical: defaultPadding / 2,
       ),
@@ -43,13 +43,13 @@ class CallHistoryCard extends StatelessWidget {
               color:
                   isOutgoingCall ? Theme.of(context).primaryColor : errorColor,
             ),
-            SizedBox(width: defaultPadding / 2),
+            const SizedBox(width: defaultPadding / 2),
             Text(
               time,
               style: TextStyle(
                 color: Theme.of(context)
                     .textTheme
-                    .bodyText1!
+                    .bodyLarge!
                     .color!
                     .withOpacity(0.64),
               ),

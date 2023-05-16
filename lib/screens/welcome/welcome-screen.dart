@@ -12,25 +12,25 @@ class WelcomeScreen extends StatelessWidget {
       body: SafeArea(
           child: Column(
         children: [
-          Spacer(flex: 2),
+          const Spacer(flex: 2),
           Image.asset("assets/images/welcome_image.png"),
-          Spacer(flex: 3),
+          const Spacer(flex: 3),
           Text(
             "Welcome to our freedom \nMessaging App",
             textAlign: TextAlign.center,
             style: Theme.of(context)
                 .textTheme
-                .headline5
+                .headlineSmall
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
-          Spacer(),
+          const Spacer(),
           Text(
             "Freedom talk any person of your \nmother language",
             textAlign: TextAlign.center,
             style: TextStyle(
                 color: Theme.of(context)
                     .textTheme
-                    .bodyText1
+                    .bodyLarge
                     ?.color
                     ?.withOpacity(0.64)),
           ),
@@ -49,19 +49,19 @@ class WelcomeScreen extends StatelessWidget {
                   children: [
                     Text(
                       "Skip",
-                      style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Theme.of(context)
                               .textTheme
-                              .bodyText1
+                              .bodyLarge
                               ?.color
                               ?.withOpacity(0.8)),
                     ),
-                    SizedBox(width: defaultPadding / 4),
+                    const SizedBox(width: defaultPadding / 4),
                     Icon(Icons.arrow_forward_ios,
                         size: 16,
                         color: Theme.of(context)
                             .textTheme
-                            .bodyText1
+                            .bodyLarge
                             ?.color
                             ?.withOpacity(0.8))
                   ],

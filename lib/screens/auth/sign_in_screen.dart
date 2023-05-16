@@ -87,7 +87,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     "Sign In",
                     style: Theme.of(context)
                         .textTheme
-                        .headline5!
+                        .headlineSmall!
                         .copyWith(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: constraints.maxHeight * 0.05),
@@ -170,10 +170,10 @@ class _SignInScreenState extends State<SignInScreen> {
                               ],
                             ),
                             style:
-                                Theme.of(context).textTheme.bodyText2!.copyWith(
+                                Theme.of(context).textTheme.bodyMedium!.copyWith(
                                       color: Theme.of(context)
                                           .textTheme
-                                          .bodyText1!
+                                          .bodyLarge!
                                           .color!
                                           .withOpacity(0.64),
                                     ),

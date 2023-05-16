@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -13,11 +15,11 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     // demo time it required to load inital data
     Future.delayed(
-      Duration(seconds: 1),
+      const Duration(seconds: 1),
       () => Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => WelcomeScreen(),
+            builder: (context) => const WelcomeScreen(),
           )),
     );
   }

@@ -5,18 +5,20 @@ import '../search/components/body.dart';
 import 'components/call_history_card.dart';
 
 class CallsSearchScreen extends StatelessWidget {
+  const CallsSearchScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Calls"),
+        title: const Text("Calls"),
       ),
       body: Column(
         children: [
           // Appbar search
           Container(
-            margin: EdgeInsets.only(bottom: defaultPadding),
-            padding: EdgeInsets.fromLTRB(
+            margin: const EdgeInsets.only(bottom: defaultPadding),
+            padding: const EdgeInsets.fromLTRB(
               defaultPadding,
               0,
               defaultPadding,

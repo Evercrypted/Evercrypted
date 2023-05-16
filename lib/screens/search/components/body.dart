@@ -4,9 +4,11 @@ import '../../../widgets/recent_search_contacts.dart';
 import '../../../ui_constants.dart';
 
 class Body extends StatelessWidget {
+  const Body({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return const SingleChildScrollView(
       padding: EdgeInsets.symmetric(vertical: defaultPadding),
       child: Column(
         children: [
@@ -34,26 +36,26 @@ class SuggestedContacts extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
           child: Text(
             "Suggested",
-            style: Theme.of(context).textTheme.subtitle2!.copyWith(
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
                   color: Theme.of(context)
                       .textTheme
-                      .subtitle2!
+                      .titleSmall!
                       .color!
                       .withOpacity(0.32),
                 ),
           ),
         ),
-        SizedBox(height: defaultPadding),
+        const SizedBox(height: defaultPadding),
         ...List.generate(
           demoContactsImage.length,
           (index) => ListTile(
-            contentPadding: EdgeInsets.symmetric(
+            contentPadding: const EdgeInsets.symmetric(
                 horizontal: defaultPadding, vertical: defaultPadding / 2),
             leading: CircleAvatar(
               radius: 24,
               backgroundImage: AssetImage(demoContactsImage[index]),
             ),
-            title: Text("Jenny Wilson"),
+            title: const Text("Jenny Wilson"),
             onTap: () {},
           ),
         ),

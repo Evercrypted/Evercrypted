@@ -17,13 +17,13 @@ class ProfilePic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
-      margin: EdgeInsets.symmetric(vertical: defaultPadding),
+      padding: const EdgeInsets.all(defaultPadding),
+      margin: const EdgeInsets.symmetric(vertical: defaultPadding),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
           color:
-              Theme.of(context).textTheme.bodyText1!.color!.withOpacity(0.08),
+              Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.08),
         ),
       ),
       child: Stack(
@@ -38,7 +38,7 @@ class ProfilePic extends StatelessWidget {
             child: CircleAvatar(
               radius: 13,
               backgroundColor: Theme.of(context).primaryColor,
-              child: Icon(
+              child: const Icon(
                 Icons.upgrade,
                 color: Colors.white,
                 size: 20,

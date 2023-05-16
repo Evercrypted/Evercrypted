@@ -5,6 +5,8 @@ import 'components/call_bg.dart';
 import 'components/call_option.dart';
 
 class AudioCallingScreen extends StatelessWidget {
+  const AudioCallingScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,25 +22,25 @@ class AudioCallingScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              Spacer(),
-              CircleAvatar(
+              const Spacer(),
+              const CircleAvatar(
                 radius: 50,
                 backgroundImage: AssetImage("assets/images/user_2.png"),
               ),
-              SizedBox(height: defaultPadding),
+              const SizedBox(height: defaultPadding),
               Text(
                 "Ralph Edwards",
                 style: Theme.of(context)
                     .textTheme
-                    .subtitle1!
+                    .titleMedium!
                     .copyWith(color: Colors.white),
               ),
-              SizedBox(height: defaultPadding / 2),
-              Text(
+              const SizedBox(height: defaultPadding / 2),
+              const Text(
                 "Ringing",
                 style: TextStyle(color: Colors.white70),
               ),
-              Spacer(),
+              const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: defaultPadding * 2, vertical: defaultPadding),
@@ -46,19 +48,19 @@ class AudioCallingScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     CallOption(
-                      icon: Icon(Icons.volume_down),
+                      icon: const Icon(Icons.volume_down),
                       press: () {},
                     ),
                     CallOption(
-                      icon: Icon(Icons.mic),
+                      icon: const Icon(Icons.mic),
                       press: () {},
                     ),
                     CallOption(
-                      icon: Icon(Icons.videocam_off),
+                      icon: const Icon(Icons.videocam_off),
                       press: () {},
                     ),
                     CallOption(
-                      icon: Icon(Icons.call_end),
+                      icon: const Icon(Icons.call_end),
                       color: errorColor,
                       press: () {},
                     ),
