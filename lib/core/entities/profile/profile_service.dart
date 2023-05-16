@@ -11,8 +11,8 @@ class ProfileService {
 
   void syncProfile(Profile profile) async {
     final isar = Isar.getInstance();
-    return isar?.profiles.clear().then((value) async {
-      await isar.writeTxn(() async {
+    return await isar?.writeTxn(() async {
+      return isar.profiles.clear().then((value) async {
         await isar.profiles.put(profile);
       });
     });

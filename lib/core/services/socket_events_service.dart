@@ -33,8 +33,8 @@ class SocketEventsService {
   handleGeneralEvent(WidgetRef ref, String type, dynamic payload) {
     switch (type) {
       case 'getInitialData':
-        contactRequestService.syncContactRequests(
-            (payload['contactRequests'] as List<Map<String, dynamic>>)
+        contactRequestService
+            .syncContactRequests((payload['contactRequests'] as List<dynamic>)
                 .map(
                   (contactRequestData) =>
                       ContactRequest.fromJson(contactRequestData),

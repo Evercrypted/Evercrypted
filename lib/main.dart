@@ -32,14 +32,6 @@ import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
-  final dir = await getApplicationDocumentsDirectory();
-  await Isar.open([
-    ProfileSchema,
-    ContactRequestSchema,
-    ContactSchema,
-    MessageSchema,
-    ActionQueueSchema
-  ], directory: dir.path);
   WidgetsFlutterBinding.ensureInitialized();
   dio
     ..options.baseUrl = 'http://localhost:3000'
@@ -60,6 +52,16 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  final dir = await getApplicationDocumentsDirectory();
+  await Isar.open([
+    ProfileSchema,
+    ContactRequestSchema,
+    ContactSchema,
+    MessageSchema,
+    ActionQueueSchema
+  ], directory: dir.path);
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
