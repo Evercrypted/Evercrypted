@@ -24,15 +24,15 @@ class MessageService {
             .where('authorId', whereIn: participantsToListenTo)
             .where('createdAtMSE', isGreaterThan: lastMessageTime)
         : messagesCollection.where('authorId', isNotEqualTo: userId);
-    final isar =
-        Isar.getInstance() ?? await Isar.open([MessageSchema], directory: '');
+    final isar = Isar.getInstance();
     fbListener = messageRequests.snapshots().listen((event) async {
       for (var change in event.docChanges) {
         if (change.type == DocumentChangeType.added) {
           final message = Message.fromJson(change.doc.id, change.doc.data()!);
           message.chatId = chatRoom.fbUid;
           final isInDb =
-              isar.messages.where().fbUidEqualTo(message.fbUid).countSync() > 0;
+              isar!.messages.where().fbUidEqualTo(message.fbUid).countSync() >
+                  0;
           if (!isInDb) {
             await isar.writeTxn(() async {
               await isar.messages.put(message);
@@ -44,9 +44,8 @@ class MessageService {
   }
 
   Future<List<Message>> getMessagesFromDB(int pageKey, int pageSize) async {
-    final isar =
-        Isar.getInstance() ?? await Isar.open([MessageSchema], directory: '');
-    return isar.messages
+    final isar = Isar.getInstance();
+    return isar!.messages
         .where()
         .sortByCreatedAtMSEDesc()
         .offset(pageKey * pageSize)
@@ -56,9 +55,8 @@ class MessageService {
   }
 
   void sendMessage(Message message) async {
-    final isar =
-        Isar.getInstance() ?? await Isar.open([MessageSchema], directory: '');
-    await isar.writeTxn(() async {
+    final isar = Isar.getInstance();
+    await isar?.writeTxn(() async {
       await isar.messages.put(message); // insert & update
     }).then((value) {
       writeMessageToFB(message);

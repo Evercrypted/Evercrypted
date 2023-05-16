@@ -46,27 +46,23 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       openPasswordDialog(context).then((value) {
-        startIsar().then((value) {
-          isar = value;
-          getlastMessageCreatedAtMSE().then((value) {
-            startingCreateAtMSE = value ?? 0;
-            _messageService.startListeningAndWritingToDB(
-                widget.chatRoom, value);
-          }).then((value) async {
-            if (startingCreateAtMSE == 0) {
-              await Future.delayed(const Duration(seconds: 1));
+        getlastMessageCreatedAtMSE().then((value) {
+          startingCreateAtMSE = value ?? 0;
+          _messageService.startListeningAndWritingToDB(widget.chatRoom, value);
+        }).then((value) async {
+          if (startingCreateAtMSE == 0) {
+            await Future.delayed(const Duration(seconds: 1));
+          }
+          _pagingController.addPageRequestListener((pageKey) {
+            if (!startedListeningToIsar) {
+              _fetchPage(pageKey).then((value) {
+                listenToIsarChanges();
+              });
+            } else {
+              _fetchPage(pageKey);
             }
-            _pagingController.addPageRequestListener((pageKey) {
-              if (!startedListeningToIsar) {
-                _fetchPage(pageKey).then((value) {
-                  listenToIsarChanges();
-                });
-              } else {
-                _fetchPage(pageKey);
-              }
-            });
-            _fetchPage(0).then((value) {});
           });
+          _fetchPage(0).then((value) {});
         });
       });
     });
@@ -78,11 +74,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
     isar.close();
     _pagingController.dispose();
     super.dispose();
-  }
-
-  Future startIsar() async {
-    return Isar.getInstance() ??
-        await Isar.open([MessageSchema], directory: '');
   }
 
   Future openPasswordDialog(BuildContext context) {

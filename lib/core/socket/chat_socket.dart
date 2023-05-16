@@ -89,9 +89,8 @@ class ChatSocket {
           channel: channel,
           payload: json.encode(payload),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch);
-      final Isar isar = Isar.getInstance() ??
-          await Isar.open([ActionQueueSchema], directory: '');
-      await isar.writeTxn(() async {
+      final isar = Isar.getInstance();
+      await isar?.writeTxn(() async {
         await isar.actionQueues.put(action);
       });
     }
