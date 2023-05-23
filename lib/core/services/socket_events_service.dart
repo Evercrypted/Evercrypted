@@ -54,9 +54,7 @@ class SocketEventsService {
     switch (type) {
       case ContactRequestEventTypes.contactRequestCreated:
         final contactRequest = ContactRequest.fromJson(payload);
-        ref
-            .read(receivedRequestsProvider.notifier)
-            .addReceivedRequest(contactRequest);
+        contactRequestService.syncContactRequests([contactRequest]);
         showSimpleNotification(
             Text(
               'You have got a contact request from ${contactRequest.authorEmail}',

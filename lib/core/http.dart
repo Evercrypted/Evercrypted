@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 // import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 // import 'package:http_certificate_pinning/http_certificate_pinning.dart';
 
@@ -11,6 +13,25 @@ final dio = Dio(
     connectTimeout: const Duration(seconds: 3),
   ),
 );
+
+initializeDio() {
+  dio
+    ..options.baseUrl = 'http://localhost:3000'
+    // ..interceptors.add(CertificatePinningInterceptor(
+    //     allowedSHAFingerprints: allowedSHAFingerprints))
+    ..interceptors.add(PrettyDioLogger())
+    ..interceptors.add(RetryInterceptor(
+      dio: dio,
+      logPrint: print, // specify log function (optional)
+      retries: 3, // retry count (optional)
+      retryDelays: const [
+        // set delays between retries (optional)
+        Duration(seconds: 1), // wait 1 sec before first retry
+        Duration(seconds: 2), // wait 2 sec before second retry
+        Duration(seconds: 3), // wait 3 sec before third retry
+      ],
+    ));
+}
 
 // Dio dio() {
 //   final dio = Dio();

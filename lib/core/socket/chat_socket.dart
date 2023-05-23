@@ -109,8 +109,8 @@ class ChatSocket {
           ack: (resp) {
         if (resp['error'] != null) {
           respCompleter.completeError(resp['error']);
-        } else {
-          respCompleter.complete(resp);
+        } else if (resp['status'] == 'ok') {
+          respCompleter.complete(resp['payload']);
         }
       });
     }

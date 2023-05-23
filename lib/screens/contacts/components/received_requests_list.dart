@@ -16,10 +16,7 @@ class ReceivedRequestsList extends StatelessWidget {
         final item = receivedRequests[index];
         return PendingRequestCard(
           isReceived: true,
-          message: item.message ?? "",
-          email: item.authorEmail ?? "",
-          requestSent: item.timeSent,
-          press: () {},
+          contactRequest: item,
         );
       },
     );

@@ -8,8 +8,14 @@ import 'contact_request_event_types.dart';
 
 class ContactRequestService {
   Future<dynamic> createContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
-        ContactRequestEventTypes.createContactRequests, cRequest.toJson());
+    return ChatSocket.instance
+        .emitWAck(SocketChannelTypes.contactRequest,
+            ContactRequestEventTypes.createContactRequests, cRequest.toJson())
+        .then((resp) {
+      final ContactRequest returnedContactRequest =
+          ContactRequest.fromJson(resp);
+      syncContactRequests([returnedContactRequest]);
+    });
   }
 
   Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
@@ -18,13 +24,39 @@ class ContactRequestService {
   }
 
   Future<dynamic> cancelContactReqeuest(ContactRequest cRequest) {
-    return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
-        ContactRequestEventTypes.cancelContactRequest, cRequest.uid);
+    final isar = Isar.getInstance();
+    return ChatSocket.instance
+        .emitWAck(SocketChannelTypes.contactRequest,
+            ContactRequestEventTypes.cancelContactRequest, cRequest.uid)
+        .then((value) {
+      isar?.writeTxn(() async {
+        isar.contactRequests.deleteByUid(cRequest.uid);
+      });
+    }).onError((error, stackTrace) {
+      if (error == 'No such contact request found') {
+        isar?.writeTxn(() async {
+          isar.contactRequests.deleteByUid(cRequest.uid);
+        });
+      }
+    });
   }
 
   Future<dynamic> declineContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
-        ContactRequestEventTypes.declineContactRequest, cRequest.uid);
+    final isar = Isar.getInstance();
+    return ChatSocket.instance
+        .emitWAck(SocketChannelTypes.contactRequest,
+            ContactRequestEventTypes.declineContactRequest, cRequest.uid)
+        .then((value) {
+      isar?.writeTxn(() async {
+        isar.contactRequests.deleteByUid(cRequest.uid);
+      });
+    }).onError((error, stackTrace) {
+      if (error == 'No such contact request found') {
+        isar?.writeTxn(() async {
+          isar.contactRequests.deleteByUid(cRequest.uid);
+        });
+      }
+    });
   }
 
   void syncContactRequests(List<ContactRequest> contactRequests) async {

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
@@ -20,7 +19,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'core/entities/contact-request/contact_request_model.dart';
 import 'core/entities/contact-request/contact_request_riverpod.dart';
 import 'core/entities/contact/contact_model.dart';
@@ -33,22 +31,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  dio
-    ..options.baseUrl = 'http://localhost:3000'
-    // ..interceptors.add(CertificatePinningInterceptor(
-    //     allowedSHAFingerprints: allowedSHAFingerprints))
-    ..interceptors.add(PrettyDioLogger())
-    ..interceptors.add(RetryInterceptor(
-      dio: dio,
-      logPrint: print, // specify log function (optional)
-      retries: 3, // retry count (optional)
-      retryDelays: const [
-        // set delays between retries (optional)
-        Duration(seconds: 1), // wait 1 sec before first retry
-        Duration(seconds: 2), // wait 2 sec before second retry
-        Duration(seconds: 3), // wait 3 sec before third retry
-      ],
-    ));
+  initializeDio();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -112,7 +95,8 @@ class AuthGateState extends ConsumerState<AuthGate> {
           user = fbUser;
         });
         _checkIfUserEmailIsVerified(fbUser);
-        _setIsarWatchersAndSyncToRiverPod(fbUser);
+        _syncIsarToRiverpod();
+        _setIsarWatchers(fbUser);
       } else {
         setState(() {
           user = null;
@@ -140,7 +124,28 @@ class AuthGateState extends ConsumerState<AuthGate> {
     );
   }
 
-  void _setIsarWatchersAndSyncToRiverPod(User user) async {
+  void _syncIsarToRiverpod() {
+    final isar = Isar.getInstance();
+    final profile = isar?.profiles.where().build().findFirstSync();
+    if (profile != null) ref.read(profileProvider.notifier).setProfile(profile);
+
+    final contactRequests = isar?.contactRequests.where().build().findAllSync();
+    if (contactRequests != null) {
+      print(contactRequests.map((ContactRequest e) => e.toJson()));
+      ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
+          contactRequests
+              .where((element) =>
+                  element.recipientEmail ==
+                  FirebaseAuth.instance.currentUser?.email)
+              .toList());
+      ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
+          .where((element) =>
+              element.authorId == FirebaseAuth.instance.currentUser?.uid)
+          .toList());
+    }
+  }
+
+  void _setIsarWatchers(User user) {
     final isar = Isar.getInstance();
 
     isar?.profiles.where().build().watch().listen((profiles) {

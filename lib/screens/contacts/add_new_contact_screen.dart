@@ -67,12 +67,9 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
           final cRequest =
               ContactRequest(recipientEmail: email!, message: message);
           _contactRequestService.createContactRequest(cRequest).then((resp) {
-            print(resp);
-            final ContactRequest returnedContactRequest =
-                ContactRequest.fromJson(resp);
-            ref
-                .read(sentRequestsProvider.notifier)
-                .addSentRequest(returnedContactRequest);
+            setState(() {
+              _selectedIndex = 1;
+            });
             Navigator.pop(context);
           }).onError((error, stackTrace) {
             Navigator.pop(context);
