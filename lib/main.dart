@@ -22,6 +22,7 @@ import 'package:path_provider/path_provider.dart';
 import 'core/entities/contact-request/contact_request_model.dart';
 import 'core/entities/contact-request/contact_request_riverpod.dart';
 import 'core/entities/contact/contact_model.dart';
+import 'core/entities/contact/contact_riverpod.dart';
 import 'core/socket/chat_socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
@@ -95,7 +96,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
           user = fbUser;
         });
         _checkIfUserEmailIsVerified(fbUser);
-        _syncIsarToRiverpod();
+        _syncIsarToRiverpod(fbUser);
         _setIsarWatchers(fbUser);
       } else {
         setState(() {
@@ -124,24 +125,26 @@ class AuthGateState extends ConsumerState<AuthGate> {
     );
   }
 
-  void _syncIsarToRiverpod() {
+  void _syncIsarToRiverpod(User user) {
     final isar = Isar.getInstance();
+
     final profile = isar?.profiles.where().build().findFirstSync();
     if (profile != null) ref.read(profileProvider.notifier).setProfile(profile);
 
     final contactRequests = isar?.contactRequests.where().build().findAllSync();
     if (contactRequests != null) {
-      print(contactRequests.map((ContactRequest e) => e.toJson()));
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
           contactRequests
-              .where((element) =>
-                  element.recipientEmail ==
-                  FirebaseAuth.instance.currentUser?.email)
+              .where((element) => element.recipientEmail == user.email)
               .toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-          .where((element) =>
-              element.authorId == FirebaseAuth.instance.currentUser?.uid)
+          .where((element) => element.authorId == user.uid)
           .toList());
+    }
+
+    final contacts = isar?.contacts.where().build().findAllSync();
+    if (contacts != null) {
+      ref.read(contactsProvider.notifier).setContacts(contacts);
     }
   }
 
@@ -157,19 +160,16 @@ class AuthGateState extends ConsumerState<AuthGate> {
     isar?.contactRequests.where().build().watch().listen((contactRequests) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
           contactRequests
-              .where((element) =>
-                  element.recipientEmail ==
-                  FirebaseAuth.instance.currentUser?.email)
+              .where((element) => element.recipientEmail == user.email)
               .toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-          .where((element) =>
-              element.authorId == FirebaseAuth.instance.currentUser?.uid)
+          .where((element) => element.authorId == user.uid)
           .toList());
     });
 
-    // isar.contacts.where().build().watch().listen((contacts) {
-    //   ref.read(contactsProvider.notifier).setContacts(contacts);
-    // });
+    isar?.contacts.where().build().watch().listen((contacts) {
+      ref.read(contactsProvider.notifier).setContacts(contacts);
+    });
   }
 
   _getTokenAndAddAuthInterceptor(User user) {

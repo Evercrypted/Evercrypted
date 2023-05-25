@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
+import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:isar/isar.dart';
 
 import '../../socket/chat_socket.dart';
 import '../../socket/socket_channels.dart';
+import '../contact/contact_service.dart';
 import 'contact_request_event_types.dart';
 
 class ContactRequestService {
+  final ContactService contactService = ContactService();
+
   Future<dynamic> createContactRequest(ContactRequest cRequest) {
     return ChatSocket.instance
         .emitWAck(SocketChannelTypes.contactRequest,
@@ -19,8 +23,22 @@ class ContactRequestService {
   }
 
   Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance.emitWAck(SocketChannelTypes.contactRequest,
-        ContactRequestEventTypes.acceptContactRequest, cRequest.uid);
+    final isar = Isar.getInstance();
+    return ChatSocket.instance
+        .emitWAck(SocketChannelTypes.contactRequest,
+            ContactRequestEventTypes.acceptContactRequest, cRequest.uid)
+        .then((value) {
+      isar?.writeTxn(() async {
+        isar.contactRequests.deleteByUid(cRequest.uid);
+        isar.contacts.put(Contact.fromJson(value));
+      });
+    }).onError((error, stackTrace) {
+      if (error == 'No such contact request found') {
+        isar?.writeTxn(() async {
+          isar.contactRequests.deleteByUid(cRequest.uid);
+        });
+      }
+    });
   }
 
   Future<dynamic> cancelContactReqeuest(ContactRequest cRequest) {
@@ -56,6 +74,13 @@ class ContactRequestService {
           isar.contactRequests.deleteByUid(cRequest.uid);
         });
       }
+    });
+  }
+
+  deleteContactRequest(String uid) {
+    final isar = Isar.getInstance();
+    isar?.writeTxn(() async {
+      isar.contactRequests.deleteByUid(uid);
     });
   }
 

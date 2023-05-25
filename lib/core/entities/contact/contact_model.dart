@@ -20,8 +20,8 @@ class Contact {
 
   factory Contact.fromJson(Map<String, dynamic> json) => Contact(
         uid: json['uid'] as String?,
-        email: json['contactEmail'] as String?,
-        avatar: Avatar.fromJson(json['authorEmail']),
+        email: json['email'] as String?,
+        avatar: Avatar.fromJson(json['avatar']),
         name: json['name'] as String?,
       );
 

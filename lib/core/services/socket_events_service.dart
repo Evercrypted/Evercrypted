@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_event_types.dart';
+import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
@@ -8,13 +9,14 @@ import 'package:overlay_support/overlay_support.dart';
 
 import '../entities/contact-request/contact_request_event_types.dart';
 import '../entities/contact-request/contact_request_model.dart';
-import '../entities/contact-request/contact_request_riverpod.dart';
+import '../entities/contact/contact_model.dart';
 import '../entities/profile/profile_model.dart';
 import '../socket/socket_channels.dart';
 
 class SocketEventsService {
   ProfileService profileService = ProfileService();
   ContactRequestService contactRequestService = ContactRequestService();
+  ContactService contactService = ContactService();
 
   handleEvent(WidgetRef ref, String channel, String type, dynamic payload) {
     switch (channel) {
@@ -63,8 +65,25 @@ class SocketEventsService {
             background: secondaryColor);
         break;
       case ContactRequestEventTypes.contactRequestAccepted:
+        final contact = Contact.fromJson(payload['contact']);
+        contactService.createContactAndRemoveContactRequest(
+            contact, payload['contactRequestUid']);
+        showSimpleNotification(
+            Text(
+              'A Contact Request was accepted by ${contact.email}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            background: secondaryColor);
         break;
       case ContactRequestEventTypes.contactRequestCanceled:
+        contactRequestService
+            .deleteContactRequest(payload['contactRequestUid']);
+        showSimpleNotification(
+            Text(
+              'A Contact Request was canceled by ${payload['authorEmail']}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            background: secondaryColor);
         break;
       default:
         print('Unknown Contact Request Event');
