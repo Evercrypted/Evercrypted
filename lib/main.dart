@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
+import 'package:evercrypted/core/notifications/notification.dart';
+import 'package:evercrypted/core/notifications/notification_events_service.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
@@ -13,8 +17,10 @@ import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/mainpage.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/theme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -86,10 +92,15 @@ class AuthGateState extends ConsumerState<AuthGate> {
   Timer? userReloadTimer;
   Timer? ioConnectionTimer;
   final ProfileService profileService = ProfileService();
+  final NotifiacationEventsService notifiacationEventsService =
+      NotifiacationEventsService();
 
   @override
   void initState() {
     super.initState();
+
+    _checkAndroidNotifications();
+
     FirebaseAuth.instance.authStateChanges().listen((User? fbUser) {
       if (fbUser != null) {
         setState(() {
@@ -123,6 +134,81 @@ class AuthGateState extends ConsumerState<AuthGate> {
               ? const VerificationScreen()
               : const MainWidget(),
     );
+  }
+
+  void _checkAndroidNotifications() async {
+    void onDidReceiveNotificationResponse(
+        NotificationResponse notificationResponse) async {
+      final String? payload = notificationResponse.payload;
+      if (payload != null) {
+        notifiacationEventsService.handleNotification(
+            context, json.decode(payload));
+      }
+    }
+
+    // void onDidReceiveLocalNotification(
+    //     int id, String? title, String? body, String? payload) async {
+    //   // display a dialog with the notification details, tap ok to go to another page
+    //   showDialog(
+    //     context: context,
+    //     builder: (BuildContext context) => CupertinoAlertDialog(
+    //       title: Text(title!),
+    //       content: Text(body!),
+    //       actions: [
+    //         CupertinoDialogAction(
+    //           isDefaultAction: true,
+    //           child: const Text('Ok'),
+    //           onPressed: () async {},
+    //         )
+    //       ],
+    //     ),
+    //   );
+    // }
+
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        LocalNotification.instance.plugin;
+
+    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    if (Platform.isAndroid) {
+      const AndroidInitializationSettings initializationSettingsAndroid =
+          AndroidInitializationSettings('app_icon');
+
+      const InitializationSettings initializationSettings =
+          InitializationSettings(android: initializationSettingsAndroid);
+
+      flutterLocalNotificationsPlugin.initialize(initializationSettings,
+          onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
+
+      bool? areNotifsEnabled = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.areNotificationsEnabled();
+      if (areNotifsEnabled != true) {
+        flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.requestPermission();
+      }
+    }
+
+    if (Platform.isIOS) {
+      const DarwinInitializationSettings initializationSettingsDarwin =
+          DarwinInitializationSettings(
+              requestSoundPermission: true,
+              requestBadgePermission: true,
+              requestAlertPermission: true);
+
+      const InitializationSettings initializationSettings =
+          InitializationSettings(iOS: initializationSettingsDarwin);
+
+      flutterLocalNotificationsPlugin.initialize(initializationSettings,
+          onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
+    }
+
+    final NotificationAppLaunchDetails? notificationAppLaunchDetails =
+        await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    debugPrint(
+        'afterlaunch payload: ${notificationAppLaunchDetails.toString()}');
   }
 
   void _syncIsarToRiverpod(User user) {

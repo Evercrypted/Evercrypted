@@ -18,6 +18,7 @@ class ContactRequestService {
         .then((resp) {
       final ContactRequest returnedContactRequest =
           ContactRequest.fromJson(resp);
+      returnedContactRequest.unread = false;
       syncContactRequests([returnedContactRequest]);
     });
   }
@@ -81,6 +82,13 @@ class ContactRequestService {
     final isar = Isar.getInstance();
     isar?.writeTxn(() async {
       isar.contactRequests.deleteByUid(uid);
+    });
+  }
+
+  updateUnread(ContactRequest cRequest) {
+    final isar = Isar.getInstance();
+    isar?.writeTxn(() async {
+      isar.contactRequests.putByUid(cRequest);
     });
   }
 

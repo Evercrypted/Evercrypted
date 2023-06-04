@@ -1,16 +1,17 @@
+import 'dart:convert';
+
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
-import 'package:evercrypted/ui_constants.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
 
 import '../entities/contact-request/contact_request_event_types.dart';
 import '../entities/contact-request/contact_request_model.dart';
 import '../entities/contact/contact_model.dart';
 import '../entities/profile/profile_model.dart';
+import '../notifications/notification.dart';
+import '../notifications/notification_event_types.dart';
 import '../socket/socket_channels.dart';
 
 class SocketEventsService {
@@ -57,33 +58,35 @@ class SocketEventsService {
       case ContactRequestEventTypes.contactRequestCreated:
         final contactRequest = ContactRequest.fromJson(payload);
         contactRequestService.syncContactRequests([contactRequest]);
-        showSimpleNotification(
-            Text(
-              'You have got a contact request from ${contactRequest.authorEmail}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            background: secondaryColor);
+        LocalNotification.instance.displayNotification(
+            'Contact Request',
+            'You have got a contact request from ${contactRequest.authorEmail}',
+            json.encode({
+              'type': NotificationEventTypes.goToReceivedContactRequestPage,
+            }));
         break;
       case ContactRequestEventTypes.contactRequestAccepted:
         final contact = Contact.fromJson(payload['contact']);
         contactService.createContactAndRemoveContactRequest(
             contact, payload['contactRequestUid']);
-        showSimpleNotification(
-            Text(
-              'A Contact Request was accepted by ${contact.email}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            background: secondaryColor);
+        LocalNotification.instance.displayNotification(
+          'Contact Request',
+          'Your contact request was accepted by ${contact.email}',
+          json.encode({
+            'type': NotificationEventTypes.goToContactsPage,
+          }),
+        );
         break;
       case ContactRequestEventTypes.contactRequestCanceled:
         contactRequestService
             .deleteContactRequest(payload['contactRequestUid']);
-        showSimpleNotification(
-            Text(
-              'A Contact Request was canceled by ${payload['authorEmail']}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            background: secondaryColor);
+        LocalNotification.instance.displayNotification(
+          'Contact Request',
+          'A contact request was canceled by ${payload['authorEmail']}',
+          json.encode({
+            'type': NotificationEventTypes.goToReceivedContactRequestPage,
+          }),
+        );
         break;
       default:
         print('Unknown Contact Request Event');

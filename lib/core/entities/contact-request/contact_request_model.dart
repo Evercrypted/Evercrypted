@@ -20,6 +20,8 @@ class ContactRequest {
 
   final int? queueId;
 
+  bool? unread;
+
   ContactRequest(
       {this.uid,
       this.authorId,
@@ -27,7 +29,8 @@ class ContactRequest {
       this.recipientEmail,
       this.message,
       this.timeSent,
-      this.queueId});
+      this.queueId,
+      this.unread});
 
   factory ContactRequest.fromJson(Map<String, dynamic> json) => ContactRequest(
         uid: json['uid'] as String?,
@@ -37,6 +40,7 @@ class ContactRequest {
         message: json['message'] as String?,
         timeSent:
             json['timeSent'] != null ? DateTime.parse(json['timeSent']) : null,
+        unread: true,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{

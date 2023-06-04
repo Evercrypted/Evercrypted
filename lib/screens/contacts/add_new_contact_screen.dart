@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
+import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/screens/contacts/components/received_requests_list.dart';
 import 'package:evercrypted/screens/contacts/components/sent_requests_list.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 import '../../core/entities/contact-request/contact_request_service.dart';
+import '../../core/entities/contact/contact_model.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
 import '../../core/helpers/field_validators.dart';
 import '../../core/offline/action_queue/allowed_for_queue.dart';
@@ -15,8 +17,9 @@ import '../../widgets/primary_button.dart';
 
 class AddNewContactScreen extends ConsumerStatefulWidget {
   static const routeName = '/add-new-contact';
+  final String? initialTab;
 
-  const AddNewContactScreen({Key? key}) : super(key: key);
+  const AddNewContactScreen({Key? key, this.initialTab}) : super(key: key);
 
   @override
   AddNewContactScreenState createState() => AddNewContactScreenState();
@@ -33,6 +36,18 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
   int _selectedIndex = 0;
   List<ContactRequest> sentRequests = [];
 
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      if (widget.initialTab == 'sent') {
+        _selectedIndex = 1;
+      } else {
+        _selectedIndex = 0;
+      }
+    });
+  }
+
   void _onBotNavTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -40,6 +55,16 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
   }
 
   submitForm() {
+    final List<Contact> contacts = ref.watch(contactsProvider);
+    if (contacts.any((Contact element) => element.email == email)) {
+      showSimpleNotification(
+          const Text(
+            "You already have a contact with this email",
+            style: TextStyle(color: Colors.white),
+          ),
+          background: Colors.redAccent);
+      return;
+    }
     FocusManager.instance.primaryFocus?.unfocus();
     if (form.currentState!.validate()) {
       form.currentState?.save();

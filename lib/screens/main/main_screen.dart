@@ -3,6 +3,8 @@ import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/entities/profile/profile_model.dart';
+import '../../core/entities/profile/profile_riverpod.dart';
 import '../calls/calls_history_screen.dart';
 import '../chats/chats_screen.dart';
 import '../contacts/contacts_screen.dart';
@@ -74,16 +76,30 @@ class MainScreenState extends ConsumerState<MainScreen> {
             BottomNavigationBarItem(
               icon: Consumer(
                 builder: (context, ref, child) {
-                  const String? profilePicRef = null;
-                  //todo
-                  // ref.read(profileProvider).profile?.profilePicRef;
-                  return CircleAvatar(
-                    backgroundColor: secondaryColor,
-                    radius: 14,
-                    backgroundImage: profilePicRef != null
-                        ? NetworkImage(profilePicRef)
-                        : null,
-                  );
+                  final Profile? profile = ref.read(profileProvider);
+                  if (profile?.avatar?.pic != null) {
+                    return CircleAvatar(
+                        backgroundColor: secondaryColor,
+                        radius: 14,
+                        backgroundImage: NetworkImage(profile!.avatar!.pic!));
+                  } else {
+                    return Container(
+                      height: 46,
+                      width: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.green,
+                      ),
+                      alignment: Alignment.center,
+                      child: profile?.avatar?.icon != null
+                          ? Text(
+                              profile!.avatar!.icon!,
+                              style:
+                                  const TextStyle(fontFamily: 'MaterialIcons'),
+                            )
+                          : null,
+                    );
+                  }
                 },
               ),
               label: "Profile",

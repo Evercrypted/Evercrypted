@@ -51,6 +51,11 @@ const ContactRequestSchema = CollectionSchema(
       id: 6,
       name: r'uid',
       type: IsarType.string,
+    ),
+    r'unread': PropertySchema(
+      id: 7,
+      name: r'unread',
+      type: IsarType.bool,
     )
   },
   estimateSize: _contactRequestEstimateSize,
@@ -133,6 +138,7 @@ void _contactRequestSerialize(
   writer.writeString(offsets[4], object.recipientEmail);
   writer.writeDateTime(offsets[5], object.timeSent);
   writer.writeString(offsets[6], object.uid);
+  writer.writeBool(offsets[7], object.unread);
 }
 
 ContactRequest _contactRequestDeserialize(
@@ -149,6 +155,7 @@ ContactRequest _contactRequestDeserialize(
     recipientEmail: reader.readStringOrNull(offsets[4]),
     timeSent: reader.readDateTimeOrNull(offsets[5]),
     uid: reader.readStringOrNull(offsets[6]),
+    unread: reader.readBoolOrNull(offsets[7]),
   );
   object.id = id;
   return object;
@@ -175,6 +182,8 @@ P _contactRequestDeserializeProp<P>(
       return (reader.readDateTimeOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readBoolOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1369,6 +1378,34 @@ extension ContactRequestQueryFilter
       ));
     });
   }
+
+  QueryBuilder<ContactRequest, ContactRequest, QAfterFilterCondition>
+      unreadIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'unread',
+      ));
+    });
+  }
+
+  QueryBuilder<ContactRequest, ContactRequest, QAfterFilterCondition>
+      unreadIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'unread',
+      ));
+    });
+  }
+
+  QueryBuilder<ContactRequest, ContactRequest, QAfterFilterCondition>
+      unreadEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'unread',
+        value: value,
+      ));
+    });
+  }
 }
 
 extension ContactRequestQueryObject
@@ -1468,6 +1505,19 @@ extension ContactRequestQuerySortBy
   QueryBuilder<ContactRequest, ContactRequest, QAfterSortBy> sortByUidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ContactRequest, ContactRequest, QAfterSortBy> sortByUnread() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unread', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ContactRequest, ContactRequest, QAfterSortBy>
+      sortByUnreadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unread', Sort.desc);
     });
   }
 }
@@ -1577,6 +1627,19 @@ extension ContactRequestQuerySortThenBy
       return query.addSortBy(r'uid', Sort.desc);
     });
   }
+
+  QueryBuilder<ContactRequest, ContactRequest, QAfterSortBy> thenByUnread() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unread', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ContactRequest, ContactRequest, QAfterSortBy>
+      thenByUnreadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unread', Sort.desc);
+    });
+  }
 }
 
 extension ContactRequestQueryWhereDistinct
@@ -1626,6 +1689,12 @@ extension ContactRequestQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'uid', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ContactRequest, ContactRequest, QDistinct> distinctByUnread() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'unread');
     });
   }
 }
@@ -1679,6 +1748,12 @@ extension ContactRequestQueryProperty
   QueryBuilder<ContactRequest, String?, QQueryOperations> uidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'uid');
+    });
+  }
+
+  QueryBuilder<ContactRequest, bool?, QQueryOperations> unreadProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'unread');
     });
   }
 }

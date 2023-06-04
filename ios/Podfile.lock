@@ -687,6 +687,8 @@ PODS:
     - FirebaseCoreExtension (~> 10.0)
     - GTMSessionFetcher/Core (< 4.0, >= 2.1)
   - Flutter (1.0.0)
+  - flutter_local_notifications (0.0.1):
+    - Flutter
   - flutter_sound (9.2.13):
     - Flutter
     - flutter_sound_core (= 9.2.13)
@@ -798,6 +800,7 @@ DEPENDENCIES:
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - Flutter (from `Flutter`)
+  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_sound (from `.symlinks/plugins/flutter_sound/ios`)
   - http_certificate_pinning (from `.symlinks/plugins/http_certificate_pinning/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
@@ -846,6 +849,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_storage/ios"
   Flutter:
     :path: Flutter
+  flutter_local_notifications:
+    :path: ".symlinks/plugins/flutter_local_notifications/ios"
   flutter_sound:
     :path: ".symlinks/plugins/flutter_sound/ios"
   http_certificate_pinning:
@@ -881,6 +886,7 @@ SPEC CHECKSUMS:
   FirebaseMessaging: ac9062bcc35ed56e15a0241d8fd317022499baf8
   FirebaseStorage: 4841efa304543e1f9e4ca116c559c7a1ea2a9d0f
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
   flutter_sound: c60effa2a350fb977885f0db2fbc4c1ad5160900
   flutter_sound_core: 26c10e5832e76aaacfae252d8925232281c486ae
   GoogleDataTransport: f0308f5905a745f94fb91fea9c6cbaf3831cb1bd

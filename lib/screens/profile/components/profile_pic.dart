@@ -5,12 +5,16 @@ import '../../../ui_constants.dart';
 class ProfilePic extends StatelessWidget {
   const ProfilePic({
     Key? key,
-    required this.image,
+    this.name,
+    this.image,
+    this.color,
     this.isShowPhotoUpload = false,
     this.imageUploadBtnPress,
   }) : super(key: key);
 
-  final String image;
+  final String? image;
+  final Color? color;
+  final String? name;
   final bool isShowPhotoUpload;
   final VoidCallback? imageUploadBtnPress;
 
@@ -31,7 +35,7 @@ class ProfilePic extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: AssetImage(image),
+            backgroundImage: AssetImage(image!),
           ),
           InkWell(
             onTap: imageUploadBtnPress,
@@ -39,7 +43,7 @@ class ProfilePic extends StatelessWidget {
               radius: 13,
               backgroundColor: Theme.of(context).primaryColor,
               child: const Icon(
-                Icons.upgrade,
+                Icons.settings,
                 color: Colors.white,
                 size: 20,
               ),

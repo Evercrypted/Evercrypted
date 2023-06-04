@@ -1,30 +1,44 @@
+import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../search/components/body.dart';
 import 'components/contact_card.dart';
 import 'add_new_contact_screen.dart';
 
-class ContactsScreen extends StatelessWidget {
+class ContactsScreen extends ConsumerStatefulWidget {
   static const routeName = '/contacts';
 
   const ContactsScreen({Key? key}) : super(key: key);
+
+  @override
+  @override
+  ContactsScreenState createState() => ContactsScreenState();
+}
+
+class ContactsScreenState extends ConsumerState<ContactsScreen> {
   @override
   Widget build(BuildContext context) {
+    final contacts = ref.watch(contactsProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("People"),
-        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () => {})],
+        actions: [
+          IconButton(icon: const Icon(Icons.search), onPressed: () => {})
+        ],
       ),
       body: ListView.builder(
-        itemCount: demoContactsImage.length,
-        itemBuilder: (context, index) => ContactCard(
-          name: "Jenny Wilson",
-          number: "(239) 555-0108",
-          image: demoContactsImage[index],
-          isActive: index.isEven, // for demo
-          press: () {},
-        ),
+        itemCount: contacts.length,
+        itemBuilder: (context, index) {
+          final contact = contacts[index];
+          return ContactCard(
+            contact: contact,
+            isActive: false, // for demo
+            press: () {},
+          );
+        },
       ),
       floatingActionButton: Tooltip(
         message: 'Check Contact Requests',

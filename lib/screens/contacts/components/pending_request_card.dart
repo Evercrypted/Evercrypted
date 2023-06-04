@@ -36,7 +36,17 @@ class PendingRequestCard extends StatelessWidget {
         isReceived
             ? contactRequest!.authorEmail!
             : contactRequest!.recipientEmail!,
+        style: TextStyle(
+            fontWeight: isReceived && contactRequest!.unread == true
+                ? FontWeight.bold
+                : FontWeight.normal),
       ),
+      onExpansionChanged: (value) {
+        if (isReceived && contactRequest!.unread == true) {
+          contactRequest!.unread = false;
+          contactRequestService.updateUnread(contactRequest!);
+        }
+      },
       subtitle: Text(
         'Request was ${isReceived ? 'received' : 'sent'} ${contactRequest!.timeSent != null ? timeago.format(contactRequest!.timeSent!) : null}',
         style: TextStyle(
