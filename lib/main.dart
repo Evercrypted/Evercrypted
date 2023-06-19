@@ -17,7 +17,6 @@ import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/mainpage.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/theme.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -281,9 +280,8 @@ class AuthGateState extends ConsumerState<AuthGate> {
       const Duration(seconds: 5),
       (timer) {
         if (ChatSocket.instance.socket == null) {
+          print('new ws');
           ChatSocket.instance.connectWS(token, ref);
-        } else if (ChatSocket.instance.socket?.connected != true) {
-          ChatSocket.instance.socket?.connect();
         }
       },
     );
