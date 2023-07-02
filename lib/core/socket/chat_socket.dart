@@ -16,6 +16,7 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 import '../cryptography/payload.dart';
 import '../offline/action_queue/allowed_for_queue.dart';
+import '../services/settings_service.dart';
 
 List<int> getNewNonce(byteLength, random) {
   final bytes = Uint8List(byteLength);
@@ -33,10 +34,13 @@ class ChatSocket {
   String? userToken;
   SimpleKeyPair? keyPair;
   String? key;
+  SettingsService settingsService = SettingsService();
 
   static const channelsToListen = [
+    SocketChannelTypes.error,
     SocketChannelTypes.contactRequest,
-    SocketChannelTypes.contact
+    SocketChannelTypes.contact,
+    SocketChannelTypes.settings,
   ];
 
   final SocketEventsService socketEventsService = SocketEventsService();
@@ -89,13 +93,19 @@ class ChatSocket {
       socket = null;
     }
 
-    socket = io.io(
-        'http://localhost:4000',
+    dynamic options =
         OptionBuilder().setTransports(['websocket']) // for Flutter or Dart VM
             .setExtraHeaders({
-          'authorization': 'Bearer ${token ?? userToken}',
-        }) // optional
-            .build());
+      'authorization': 'Bearer ${token ?? userToken}',
+    });
+
+    String? otpToken = await settingsService.getOtpToken();
+
+    if (otpToken != null) {
+      options = options.setExtraHeaders({'otpToken': otpToken});
+    }
+
+    socket = io.io('http://localhost:4000', options.build());
 
     if (socket?.connected != true) {
       socket?.connect();
@@ -173,11 +183,15 @@ class ChatSocket {
     } else {
       final crypted =
           await encodePayload({'type': type, 'payload': payload}, key);
-      socket?.emitWithAck(channel, crypted, ack: (resp) {
-        if (resp['error'] != null) {
-          respCompleter.completeError(resp['error']);
-        } else if (resp['status'] == 'ok') {
-          respCompleter.complete(resp['payload']);
+      socket?.emitWithAck(channel, crypted, ack: (resp) async {
+        payload = await decodePayload(
+          resp,
+          key,
+        );
+        if (payload['error'] != null) {
+          respCompleter.completeError(payload['error']);
+        } else if (payload['status'] == 'ok') {
+          respCompleter.complete(payload['payload']);
         }
       });
     }

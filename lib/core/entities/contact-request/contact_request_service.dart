@@ -6,7 +6,7 @@ import 'package:isar/isar.dart';
 import '../../socket/chat_socket.dart';
 import '../../socket/socket_channels.dart';
 import '../contact/contact_service.dart';
-import 'contact_request_event_types.dart';
+import '../../socket/event_types/contact_request_event_types.dart';
 
 class ContactRequestService {
   final ContactService contactService = ContactService();

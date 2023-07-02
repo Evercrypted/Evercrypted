@@ -34,7 +34,10 @@ class Profile {
 
   Avatar? avatar;
 
-  Profile({this.uid, this.name, this.email, this.avatar});
+  bool otpActive;
+
+  Profile(
+      {this.uid, this.name, this.email, this.avatar, this.otpActive = false});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
       uid: json['uid'] as String?,
@@ -42,11 +45,13 @@ class Profile {
       email: json['email'] as String?,
       avatar: Avatar.fromJson(
         json['avatar'],
-      ));
+      ),
+      otpActive: json['otpActive'] as bool? ?? false);
 
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'name': name,
-        'email': email,
-        'avatar': avatar?.toJson(),
-      };
+  // Map<String, dynamic> toJson() => <String, dynamic>{
+  //       'name': name,
+  //       'email': email,
+  //       'avatar': avatar?.toJson(),
+  //       'otpActive': otpActive,
+  //     };
 }

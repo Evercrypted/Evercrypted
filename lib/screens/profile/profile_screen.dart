@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
+import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,6 +61,13 @@ class ProfileScreen extends ConsumerWidget {
               text: "Forgot Password?",
               press: () =>
                   Navigator.pushNamed(context, ForgotPasswordScreen.routeName),
+            ),
+            PrimaryButton(
+              padding: const EdgeInsets.all(5),
+              text: profile?.otpActive == false
+                  ? "Activate 2FA"
+                  : "Deactivate 2FA",
+              press: () => Navigator.pushNamed(context, OtpScreen.routeName),
             ),
             PrimaryButton(
                 padding: const EdgeInsets.all(5),
