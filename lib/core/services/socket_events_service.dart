@@ -27,6 +27,9 @@ class SocketEventsService {
       case SocketChannelTypes.contact:
         handleContactEvent(ref, type, payload);
         break;
+      case SocketChannelTypes.error:
+        print(payload);
+        break;
       default:
         print('Unknown Event');
         print(payload);

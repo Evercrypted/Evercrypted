@@ -239,6 +239,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
     final isar = Isar.getInstance();
 
     isar?.profiles.where().build().watch().listen((profiles) {
+      print('profiles: ${profiles.first.otpActive}');
       if (profiles.isNotEmpty) {
         ref.read(profileProvider.notifier).setProfile(profiles.first);
       }
@@ -279,7 +280,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   _connectIO(token) {
     ChatSocket.instance.connectWS(token, ref);
     ioConnectionTimer = Timer.periodic(
-      const Duration(seconds: 5),
+      const Duration(seconds: 10),
       (timer) {
         if (ChatSocket.instance.socket == null) {
           print('new ws');

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:pinput/pinput.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/entities/profile/profile_model.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
@@ -28,11 +29,19 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   final pinController = TextEditingController();
   String? errorMessage;
 
+  Future<void> _launchUrl() async {
+    final Uri url = Uri.parse(gAuthURI!);
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.getActivate2FA, {}).then((resp) {
+      print('resp $resp');
       setState(() {
         gAuthURI = resp['URI'];
         gAuthCode = resp['code'];
@@ -110,6 +119,11 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
               gAuthCode ?? '',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => _launchUrl(),
+              child: const Text('Open with Google Authenticator'),
             ),
             const SizedBox(height: 10),
             const Divider(

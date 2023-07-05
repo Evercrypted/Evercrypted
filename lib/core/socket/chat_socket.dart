@@ -93,17 +93,18 @@ class ChatSocket {
       socket = null;
     }
 
-    dynamic options =
-        OptionBuilder().setTransports(['websocket']) // for Flutter or Dart VM
-            .setExtraHeaders({
+    dynamic options = OptionBuilder().setTransports(['websocket']);
+
+    var headers = {
       'authorization': 'Bearer ${token ?? userToken}',
-    });
+    };
 
     String? otpToken = await settingsService.getOtpToken();
-
     if (otpToken != null) {
-      options = options.setExtraHeaders({'otpToken': otpToken});
+      headers['otpToken'] = otpToken;
     }
+
+    options = options.setExtraHeaders(headers);
 
     socket = io.io('http://localhost:4000', options.build());
 

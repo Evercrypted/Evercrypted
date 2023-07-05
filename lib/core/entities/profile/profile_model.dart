@@ -46,7 +46,7 @@ class Profile {
       avatar: Avatar.fromJson(
         json['avatar'],
       ),
-      otpActive: json['otpActive'] as bool? ?? false);
+      otpActive: json['otpActive'] ?? false);
 
   // Map<String, dynamic> toJson() => <String, dynamic>{
   //       'name': name,
