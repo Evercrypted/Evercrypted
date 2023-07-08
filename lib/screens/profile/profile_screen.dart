@@ -17,7 +17,6 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
-    print(profile?.otpActive);
 
     return Scaffold(
       appBar: AppBar(

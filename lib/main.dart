@@ -239,7 +239,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
     final isar = Isar.getInstance();
 
     isar?.profiles.where().build().watch().listen((profiles) {
-      print('profiles: ${profiles.first.otpActive}');
       if (profiles.isNotEmpty) {
         ref.read(profileProvider.notifier).setProfile(profiles.first);
       }
