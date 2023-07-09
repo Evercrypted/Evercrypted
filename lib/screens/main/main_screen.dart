@@ -25,7 +25,7 @@ class MainScreenState extends ConsumerState<MainScreen> {
     const ChatsScreen(),
     const CallsHistoryScreen(),
     const ContactsScreen(),
-    const ProfileScreen(),
+    ProfileScreen(),
   ];
 
   void checkOnPermissions() async {

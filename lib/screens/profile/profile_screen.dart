@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/settings_service.dart';
 import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
 import 'components/info.dart';
@@ -12,7 +13,13 @@ import 'components/profile_pic.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  ProfileScreen({Key? key}) : super(key: key);
+  final SettingsService settingsService = SettingsService();
+
+  Future<void> _signOut() async {
+    await settingsService.deleteOtpToken();
+    FirebaseAuth.instance.signOut();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -77,9 +84,5 @@ class ProfileScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _signOut() async {
-    await FirebaseAuth.instance.signOut();
   }
 }

@@ -4,6 +4,7 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_servic
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
+import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../socket/event_types/contact_request_event_types.dart';
@@ -28,11 +29,23 @@ class SocketEventsService {
         handleContactEvent(ref, type, payload);
         break;
       case SocketChannelTypes.error:
-        print(payload);
+        handleErrorEvent(ref, type, payload);
         break;
       default:
         print('Unknown Event');
         print(payload);
+    }
+  }
+
+  handleErrorEvent(WidgetRef ref, String type, dynamic payload) {
+    if (type == ErrorEventTypes.accessDenied) {
+    } else if (type == ErrorEventTypes.noOTPToken ||
+        type == ErrorEventTypes.invalidOTPToken) {
+    } else if (type == ErrorEventTypes.userLoggedInElsewhere) {
+    } else if (type == ErrorEventTypes.couldNotLogin) {
+    } else {
+      print('Unknown Error Event');
+      print(payload);
     }
   }
 

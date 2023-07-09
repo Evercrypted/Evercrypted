@@ -13,7 +13,6 @@ decodePayload(
     nonce: base64.decode(resp['iv']),
     mac: Mac(base64.decode(resp['mac'])),
   );
-  print(key);
   final clearText =
       await algorithm.decrypt(secretBox, secretKey: SecretKey(hex.decode(key)));
   return json.decode(utf8.decode(clearText));

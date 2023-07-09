@@ -145,16 +145,21 @@ class ChatSocket {
 
   setListeners(ref) {
     for (var channel in channelsToListen) {
-      socket?.on(channel, (dynamic data) {
-        final decrypted = decodePayload(
-          data,
-          key,
-        );
+      socket?.on(channel, (dynamic data) async {
+        dynamic payload;
+        if (key != null) {
+          payload = await decodePayload(
+            data,
+            key,
+          );
+        } else {
+          payload = data;
+        }
         print(
-          'got emit to $channel - $data:${decrypted.toString()}',
+          'got emit to $channel - ${payload.toString()}',
         );
         socketEventsService.handleEvent(
-            ref, channel, decrypted['type'], decrypted['payload']);
+            ref, channel, payload['type'], payload['payload']);
       });
     }
   }

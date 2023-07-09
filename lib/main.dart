@@ -269,7 +269,8 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   _checkProfileExists(String token) {
-    profileService.checkProfileExists(token).then((_) {
+    profileService.checkProfileExists(token).then((resp) {
+      print(resp);
       _connectIO(token);
     }).catchError((error) {
       // _checkProfileExists(token);
