@@ -29,6 +29,7 @@ import 'core/entities/contact-request/contact_request_model.dart';
 import 'core/entities/contact-request/contact_request_riverpod.dart';
 import 'core/entities/contact/contact_model.dart';
 import 'core/entities/contact/contact_riverpod.dart';
+import 'core/services/app_state_riverpod.dart';
 import 'core/socket/chat_socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
@@ -128,12 +129,19 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
+    final shouldOtpLogin = ref
+        .watch(appStateProvider.select((appState) => appState.shouldOtpLogin));
+
     return Scaffold(
       body: user == null
           ? const SignInScreen()
-          : !user!.emailVerified
-              ? const VerificationScreen()
-              : const MainWidget(),
+          : shouldOtpLogin
+              ? const OtpScreen(
+                  isLogin: true,
+                )
+              : !user!.emailVerified
+                  ? const VerificationScreen()
+                  : const MainWidget(),
     );
   }
 
@@ -270,7 +278,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   _checkProfileExists(String token) {
     profileService.checkProfileExists(token).then((resp) {
-      print(resp);
       _connectIO(token);
     }).catchError((error) {
       // _checkProfileExists(token);
@@ -283,8 +290,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
       const Duration(seconds: 10),
       (timer) {
         if (ChatSocket.instance.socket == null) {
-          print('new ws');
-          ChatSocket.instance.connectWS(token, ref);
+          bool isOtpLogin = ref.read(
+              appStateProvider.select((appState) => appState.shouldOtpLogin));
+          if (!isOtpLogin) {
+            ChatSocket.instance.connectWS(token, ref);
+          }
         }
       },
     );

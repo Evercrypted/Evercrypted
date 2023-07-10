@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
+import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
@@ -41,6 +42,7 @@ class SocketEventsService {
     if (type == ErrorEventTypes.accessDenied) {
     } else if (type == ErrorEventTypes.noOTPToken ||
         type == ErrorEventTypes.invalidOTPToken) {
+      ref.read(appStateProvider.notifier).setShouldOtpLogin(true);
     } else if (type == ErrorEventTypes.userLoggedInElsewhere) {
     } else if (type == ErrorEventTypes.couldNotLogin) {
     } else {

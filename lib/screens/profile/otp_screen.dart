@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
@@ -9,13 +10,15 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/entities/profile/profile_model.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
+import '../../core/services/app_state_riverpod.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/socket/chat_socket.dart';
 import '../../core/socket/event_types/settings_event_types.dart';
 import '../../core/socket/socket_channels.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
-  const OtpScreen({Key? key}) : super(key: key);
+  final bool isLogin;
+  const OtpScreen({Key? key, this.isLogin = false}) : super(key: key);
   static const String routeName = "/2FA";
 
   @override
@@ -44,7 +47,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     if (gAuthURI == null || gAuthCode == null) {
       ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
           SettingsEventTypes.getActivate2FA, {}).then((resp) {
-        print('t');
         setState(() {
           gAuthURI = resp['URI'];
           gAuthCode = resp['code'];
@@ -185,9 +187,9 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   activate2FA(String code) {
+    pinController.clear();
     ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
-      print(resp);
       if (resp['activated'] == true && resp['otpToken'] != null) {
         Profile? profile = ref.read(profileProvider);
         profile?.otpActive = true;
@@ -201,7 +203,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
             ),
             background: Colors.blue);
       } else {
-        pinController.clear();
         setState(() {
           errorMessage = 'Incorrect code';
         });
@@ -210,6 +211,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   deactivate2FA(String code) {
+    pinController.clear();
     ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.deactivate2FA, {'code': code}).then((resp) async {
       if (resp['deactivated'] == true) {
@@ -225,9 +227,22 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
             ),
             background: secondaryColor);
       } else {
-        pinController.clear();
         setState(() {
           errorMessage = 'Incorrect code';
+        });
+      }
+    });
+  }
+
+  loginWith2Fa(String code) {
+    pinController.clear();
+    settingsService.otpLogin(code).then((Response<dynamic> resp) async {
+      if (resp.data['status'] == 'ok') {
+        await settingsService.updateOtpToken(resp.data['payload']['otpToken']);
+        ref.read(appStateProvider.notifier).setShouldOtpLogin(false);
+      } else {
+        setState(() {
+          errorMessage = resp.data['error'];
         });
       }
     });
@@ -239,9 +254,27 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
     bool otpActive = profile?.otpActive == true;
 
-    if (!otpActive) {
-      getActivationParams();
-    } else {
+    if (widget.isLogin) {
+      activateWidgets = [
+        const Text(
+          'Enter 2FA code from your 2FA app below',
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 30),
+        Pinput(
+          length: 6,
+          controller: pinController,
+          onCompleted: (pin) => loginWith2Fa(pin),
+        ),
+        const SizedBox(height: 10),
+        if (errorMessage != null)
+          Text(
+            errorMessage!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red),
+          ),
+      ];
+    } else if (otpActive) {
       activateWidgets = [
         const Text(
           'To deactivate 2FA, enter the 6-digit code from your 2FA app below',
@@ -261,12 +294,17 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
             style: const TextStyle(color: Colors.red),
           ),
       ];
+    } else {
+      getActivationParams();
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            profile?.otpActive == true ? "Deactivate 2FA" : "Activate 2FA"),
+        title: Text(widget.isLogin
+            ? '2FA Login'
+            : profile?.otpActive == true
+                ? "Deactivate 2FA"
+                : "Activate 2FA"),
       ),
       body: Center(
         child: ListView(
