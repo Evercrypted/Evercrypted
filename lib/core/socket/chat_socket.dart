@@ -36,6 +36,8 @@ class ChatSocket {
   String? key;
   SettingsService settingsService = SettingsService();
 
+  num tries = 0;
+
   static const channelsToListen = [
     SocketChannelTypes.error,
     SocketChannelTypes.contactRequest,
@@ -66,7 +68,6 @@ class ChatSocket {
     // We need the private key pair of Alice.
     keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair!.extractPublicKey();
-    print('connected');
     socket?.emitWithAck('general', {
       'type': 'getInitialData',
       'publicKey': Jwk.fromPublicKey(localPublicKey).toJson()
@@ -86,9 +87,11 @@ class ChatSocket {
   }
 
   connectWS(String? token, WidgetRef riverPodRef) async {
+    tries = tries + 1;
     userToken = token;
 
     if (socket != null) {
+      socket?.destroy();
       socket?.dispose();
       socket = null;
     }
@@ -100,12 +103,14 @@ class ChatSocket {
     };
 
     String? otpToken = await settingsService.getOtpToken();
+    print('connecting with $otpToken');
     if (otpToken != null) {
       headers['otpToken'] = otpToken;
     }
 
     options = options.setExtraHeaders(headers);
 
+    io.cache.clear();
     socket = io.io('http://localhost:4000', options.build());
 
     if (socket?.connected != true) {
@@ -113,13 +118,19 @@ class ChatSocket {
     }
 
     socket?.onConnect((_) async {
-      await getGeneralInfoAndExchangeKey(riverPodRef);
+      print('connected');
     });
 
     socket?.onReconnect((data) async {
       socket?.clearListeners();
+      print('reconnecting');
       await getGeneralInfoAndExchangeKey(riverPodRef);
       setListeners(riverPodRef);
+    });
+
+    socket?.on('connected', (data) async {
+      print('passed connectionHandler');
+      await getGeneralInfoAndExchangeKey(riverPodRef);
     });
 
     socket?.onDisconnect((_) {
@@ -146,6 +157,7 @@ class ChatSocket {
   setListeners(ref) {
     for (var channel in channelsToListen) {
       socket?.on(channel, (dynamic data) async {
+        print('raw data: $data');
         dynamic payload;
         if (key != null) {
           payload = await decodePayload(
@@ -205,7 +217,10 @@ class ChatSocket {
   }
 
   disconnectWS() {
+    socket?.clearListeners();
+    socket?.destroy();
     socket?.dispose();
+    key = null;
     socket = null;
   }
 }

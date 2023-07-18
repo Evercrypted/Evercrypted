@@ -287,7 +287,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   _connectIO(token) {
     ChatSocket.instance.connectWS(token, ref);
     ioConnectionTimer = Timer.periodic(
-      const Duration(seconds: 10),
+      const Duration(seconds: 5),
       (timer) {
         if (ChatSocket.instance.socket == null) {
           bool isOtpLogin = ref.read(
