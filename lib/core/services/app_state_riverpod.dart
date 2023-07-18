@@ -2,14 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AppState {
   bool shouldOtpLogin;
+  String? httpEncryptionKey;
 
-  AppState({this.shouldOtpLogin = false});
+  AppState({this.shouldOtpLogin = false, this.httpEncryptionKey});
 
   AppState copyWith({
     bool? shouldOtpLogin,
+    String? httpEncryptionKey,
   }) {
     return AppState(
       shouldOtpLogin: shouldOtpLogin ?? this.shouldOtpLogin,
+      httpEncryptionKey: httpEncryptionKey ?? this.httpEncryptionKey,
     );
   }
 }
@@ -22,6 +25,10 @@ class AppStateNotifier extends StateNotifier<AppState> {
     if (shouldOtpLogin != state.shouldOtpLogin) {
       state = state.copyWith(shouldOtpLogin: shouldOtpLogin);
     }
+  }
+
+  void setHttpEncryptionKey(String key) {
+    state = state.copyWith(httpEncryptionKey: key);
   }
 }
 

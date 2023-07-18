@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:convert/convert.dart';
 import 'package:cryptography/helpers.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
@@ -14,6 +13,7 @@ import 'package:isar/isar.dart';
 import 'package:jwk/jwk.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
+import '../cryptography/combine_keys.dart';
 import '../cryptography/payload.dart';
 import '../offline/action_queue/allowed_for_queue.dart';
 import '../services/settings_service.dart';
@@ -49,19 +49,6 @@ class ChatSocket {
 
   static final ChatSocket instance = ChatSocket._();
 
-  Future<bool> setKey(algo, publicKey) async {
-    final respCompleter = Completer<bool>();
-    final sharedSecretKey = await algo.sharedSecretKey(
-      keyPair: keyPair!,
-      remotePublicKey: Jwk.fromJson(publicKey).toPublicKey()!,
-    );
-    final keyBytes = await sharedSecretKey.extract();
-
-    key = hex.encode(keyBytes.bytes);
-    respCompleter.complete(true);
-    return respCompleter.future;
-  }
-
   getGeneralInfoAndExchangeKey(riverPodRef) async {
     final algo = X25519();
 
@@ -73,7 +60,7 @@ class ChatSocket {
       'publicKey': Jwk.fromPublicKey(localPublicKey).toJson()
     }, ack: (dynamic resp) async {
       print(resp);
-      await setKey(algo, resp['publicKey']);
+      key = await combineKeys(algo, keyPair, resp['publicKey']);
       if (key != null) {
         final payload = await decodePayload(
           resp,

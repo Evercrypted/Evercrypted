@@ -5,7 +5,7 @@ import 'package:isar/isar.dart';
 import 'profile_model.dart';
 
 class ProfileService {
-  Future<Response> checkProfileExists(String token) {
+  Future<Response> checkProfileExists(String token) async {
     return dio.post('/users/checkUserExists', data: {});
   }
 

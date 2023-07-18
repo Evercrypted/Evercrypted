@@ -1,12 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:evercrypted/core/services/app_state_riverpod.dart';
+import 'package:evercrypted/core/services/settings_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-// import 'package:dio_http2_adapter/dio_http2_adapter.dart';
-// import 'package:http_certificate_pinning/http_certificate_pinning.dart';
-
-// List<String> allowedSHAFingerprints = [
-//   '5E:F0:3C:83:8E:66:AA:8D:51:7D:A9:CA:0A:9C:12:5A:3A:0D:15:BD:14:17:88:D2:7D:FD:13:44:90:BB:55:25'
-// ];
 
 final dio = Dio(
   BaseOptions(
@@ -17,8 +14,6 @@ final dio = Dio(
 initializeDio() {
   dio
     ..options.baseUrl = 'http://localhost:3000'
-    // ..interceptors.add(CertificatePinningInterceptor(
-    //     allowedSHAFingerprints: allowedSHAFingerprints))
     ..interceptors.add(PrettyDioLogger())
     ..interceptors.add(RetryInterceptor(
       dio: dio,
@@ -33,14 +28,15 @@ initializeDio() {
     ));
 }
 
-// Dio dio() {
-//   final dio = Dio();
-  
-//   // ..httpClientAdapter = Http2Adapter(
-//   //   ConnectionManager(
-//   //     idleTimeout: const Duration(seconds: 10),
-//   //     onClientCreate: (_, config) => config.onBadCertificate = (_) => true,
-//   //   ),
-//   // );
-//   return dio;
-// }
+Future<String> getHttpEncKey(Ref ref) async {
+  final SettingsService settingsService = SettingsService();
+  String? key = ref.read(appStateProvider).httpEncryptionKey;
+  if (key == null) {
+    return settingsService.httpHandshake().then((key) {
+      ref.read(appStateProvider).httpEncryptionKey = key;
+      return key;
+    });
+  } else {
+    return key;
+  }
+}
