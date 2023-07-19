@@ -29,15 +29,16 @@ class SettingsService {
     return combineKeys(algo, keyPair, resp.data['publicKey']);
   }
 
-  Future<Response<dynamic>> otpLogin(Ref ref, String otpCode) async {
+  Future<Map<String, dynamic>> otpLogin(WidgetRef ref, String otpCode) async {
     final String key = await getHttpEncKey(ref);
-    return dio.post('/settings', data: {
+    final crypted = await encodePayload({
       'type': SettingsEventTypes.login2FA,
       'payload': {'code': otpCode}
-    }).then(
+    }, key);
+    return dio.post('/settings', data: crypted).then(
       (value) async {
         final payload = await decodePayload(
-          value,
+          value.data,
           key,
         );
         return payload;

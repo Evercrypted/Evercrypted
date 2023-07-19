@@ -28,7 +28,7 @@ initializeDio() {
     ));
 }
 
-Future<String> getHttpEncKey(Ref ref) async {
+Future<String> getHttpEncKey(WidgetRef ref) async {
   final SettingsService settingsService = SettingsService();
   String? key = ref.read(appStateProvider).httpEncryptionKey;
   if (key == null) {

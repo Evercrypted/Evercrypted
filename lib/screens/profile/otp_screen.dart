@@ -234,15 +234,15 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     });
   }
 
-  loginWith2Fa(String code) {
+  loginWith2Fa(WidgetRef ref, String code) {
     pinController.clear();
-    settingsService.otpLogin(code).then((Response<dynamic> resp) async {
-      if (resp.data['status'] == 'ok') {
-        await settingsService.updateOtpToken(resp.data['payload']['otpToken']);
+    settingsService.otpLogin(ref, code).then((Map<String, dynamic> resp) async {
+      if (resp['status'] == 'ok') {
+        await settingsService.updateOtpToken(resp['payload']['otpToken']);
         ref.read(appStateProvider.notifier).setShouldOtpLogin(false);
       } else {
         setState(() {
-          errorMessage = resp.data['error'];
+          errorMessage = resp['error'];
         });
       }
     });
@@ -264,7 +264,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
         Pinput(
           length: 6,
           controller: pinController,
-          onCompleted: (pin) => loginWith2Fa(pin),
+          onCompleted: (pin) => loginWith2Fa(ref, pin),
         ),
         const SizedBox(height: 10),
         if (errorMessage != null)
