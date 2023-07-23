@@ -33,7 +33,6 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
         itemCount: contacts.length,
         itemBuilder: (context, index) {
           final contact = contacts[index];
-          print(contacts);
           return ContactCard(
             contact: contact,
             isActive: false, // for demo
