@@ -41,7 +41,7 @@ class SettingsService {
           value.data,
           key,
         );
-        return payload;
+        return payload['needOtp'];
       },
     );
   }

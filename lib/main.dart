@@ -271,14 +271,18 @@ class AuthGateState extends ConsumerState<AuthGate> {
     user.getIdTokenResult().then((value) {
       if (value.claims?['email_verified']) {
         addAuthInterceptor(value.token!);
-        _checkProfileExists(value.token!);
+        _checkIfOtpIsNeeded(value.token!);
       }
     });
   }
 
-  _checkProfileExists(String token) {
-    profileService.checkProfileExists(token).then((resp) {
-      _connectIO(token);
+  _checkIfOtpIsNeeded(String token) {
+    profileService.checkIfOtpIsNeeded(ref, token).then((resp) {
+      if (resp == true) {
+        ref.read(appStateProvider.notifier).setShouldOtpLogin(true);
+      } else {
+        _connectIO(token);
+      }
     }).catchError((error) {
       // _checkProfileExists(token);
     });
