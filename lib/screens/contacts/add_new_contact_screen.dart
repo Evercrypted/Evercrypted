@@ -55,7 +55,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
   }
 
   submitForm() {
-    final List<Contact> contacts = ref.watch(contactsProvider);
+    final List<Contact> contacts = ref.read(contactsProvider);
     if (contacts.any((Contact element) => element.email == email)) {
       showSimpleNotification(
           const Text(

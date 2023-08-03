@@ -8,7 +8,7 @@ class NotifiacationEventsService {
   handleNotification(context, payload) {
     switch (payload['type']) {
       case NotificationEventTypes.goToReceivedContactRequestPage:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => const AddNewContactScreen(
@@ -18,7 +18,7 @@ class NotifiacationEventsService {
         );
         break;
       case NotificationEventTypes.goToContactsPage:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => const ContactsScreen(),
