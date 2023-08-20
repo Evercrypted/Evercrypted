@@ -59,14 +59,12 @@ class ChatSocket {
       'type': 'getInitialData',
       'publicKey': Jwk.fromPublicKey(localPublicKey).toJson()
     }, ack: (dynamic resp) async {
-      print(resp);
       key = await combineKeys(algo, keyPair, resp['publicKey']);
       if (key != null) {
         final payload = await decodePayload(
           resp,
           key,
         );
-        print(payload);
         socketEventsService.handleGeneralEvent(
             riverPodRef, 'getInitialData', payload);
       }
