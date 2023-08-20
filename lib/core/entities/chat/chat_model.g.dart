@@ -9,13 +9,13 @@ part of 'chat_model.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetChatRoomCollection on Isar {
-  IsarCollection<ChatRoom> get chatRooms => this.collection();
+extension GetChatCollection on Isar {
+  IsarCollection<Chat> get chats => this.collection();
 }
 
-const ChatRoomSchema = CollectionSchema(
-  name: r'ChatRoom',
-  id: 3645375135519982771,
+const ChatSchema = CollectionSchema(
+  name: r'Chat',
+  id: -4292359458225261721,
   properties: {
     r'avatar': PropertySchema(
       id: 0,
@@ -49,10 +49,10 @@ const ChatRoomSchema = CollectionSchema(
       type: IsarType.string,
     )
   },
-  estimateSize: _chatRoomEstimateSize,
-  serialize: _chatRoomSerialize,
-  deserialize: _chatRoomDeserialize,
-  deserializeProp: _chatRoomDeserializeProp,
+  estimateSize: _chatEstimateSize,
+  serialize: _chatSerialize,
+  deserialize: _chatDeserialize,
+  deserializeProp: _chatDeserializeProp,
   idName: r'id',
   indexes: {
     r'uid': IndexSchema(
@@ -71,14 +71,14 @@ const ChatRoomSchema = CollectionSchema(
   },
   links: {},
   embeddedSchemas: {r'Avatar': AvatarSchema},
-  getId: _chatRoomGetId,
-  getLinks: _chatRoomGetLinks,
-  attach: _chatRoomAttach,
+  getId: _chatGetId,
+  getLinks: _chatGetLinks,
+  attach: _chatAttach,
   version: '3.1.0+1',
 );
 
-int _chatRoomEstimateSize(
-  ChatRoom object,
+int _chatEstimateSize(
+  Chat object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -112,8 +112,8 @@ int _chatRoomEstimateSize(
   return bytesCount;
 }
 
-void _chatRoomSerialize(
-  ChatRoom object,
+void _chatSerialize(
+  Chat object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -131,13 +131,13 @@ void _chatRoomSerialize(
   writer.writeString(offsets[5], object.uid);
 }
 
-ChatRoom _chatRoomDeserialize(
+Chat _chatDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = ChatRoom(
+  final object = Chat(
     avatar: reader.readObjectOrNull<Avatar>(
       offsets[0],
       AvatarSchema.deserialize,
@@ -153,7 +153,7 @@ ChatRoom _chatRoomDeserialize(
   return object;
 }
 
-P _chatRoomDeserializeProp<P>(
+P _chatDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -181,24 +181,24 @@ P _chatRoomDeserializeProp<P>(
   }
 }
 
-Id _chatRoomGetId(ChatRoom object) {
+Id _chatGetId(Chat object) {
   return object.id;
 }
 
-List<IsarLinkBase<dynamic>> _chatRoomGetLinks(ChatRoom object) {
+List<IsarLinkBase<dynamic>> _chatGetLinks(Chat object) {
   return [];
 }
 
-void _chatRoomAttach(IsarCollection<dynamic> col, Id id, ChatRoom object) {
+void _chatAttach(IsarCollection<dynamic> col, Id id, Chat object) {
   object.id = id;
 }
 
-extension ChatRoomByIndex on IsarCollection<ChatRoom> {
-  Future<ChatRoom?> getByUid(String? uid) {
+extension ChatByIndex on IsarCollection<Chat> {
+  Future<Chat?> getByUid(String? uid) {
     return getByIndex(r'uid', [uid]);
   }
 
-  ChatRoom? getByUidSync(String? uid) {
+  Chat? getByUidSync(String? uid) {
     return getByIndexSync(r'uid', [uid]);
   }
 
@@ -210,12 +210,12 @@ extension ChatRoomByIndex on IsarCollection<ChatRoom> {
     return deleteByIndexSync(r'uid', [uid]);
   }
 
-  Future<List<ChatRoom?>> getAllByUid(List<String?> uidValues) {
+  Future<List<Chat?>> getAllByUid(List<String?> uidValues) {
     final values = uidValues.map((e) => [e]).toList();
     return getAllByIndex(r'uid', values);
   }
 
-  List<ChatRoom?> getAllByUidSync(List<String?> uidValues) {
+  List<Chat?> getAllByUidSync(List<String?> uidValues) {
     final values = uidValues.map((e) => [e]).toList();
     return getAllByIndexSync(r'uid', values);
   }
@@ -230,33 +230,33 @@ extension ChatRoomByIndex on IsarCollection<ChatRoom> {
     return deleteAllByIndexSync(r'uid', values);
   }
 
-  Future<Id> putByUid(ChatRoom object) {
+  Future<Id> putByUid(Chat object) {
     return putByIndex(r'uid', object);
   }
 
-  Id putByUidSync(ChatRoom object, {bool saveLinks = true}) {
+  Id putByUidSync(Chat object, {bool saveLinks = true}) {
     return putByIndexSync(r'uid', object, saveLinks: saveLinks);
   }
 
-  Future<List<Id>> putAllByUid(List<ChatRoom> objects) {
+  Future<List<Id>> putAllByUid(List<Chat> objects) {
     return putAllByIndex(r'uid', objects);
   }
 
-  List<Id> putAllByUidSync(List<ChatRoom> objects, {bool saveLinks = true}) {
+  List<Id> putAllByUidSync(List<Chat> objects, {bool saveLinks = true}) {
     return putAllByIndexSync(r'uid', objects, saveLinks: saveLinks);
   }
 }
 
-extension ChatRoomQueryWhereSort on QueryBuilder<ChatRoom, ChatRoom, QWhere> {
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhere> anyId() {
+extension ChatQueryWhereSort on QueryBuilder<Chat, Chat, QWhere> {
+  QueryBuilder<Chat, Chat, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> idEqualTo(Id id) {
+extension ChatQueryWhere on QueryBuilder<Chat, Chat, QWhereClause> {
+  QueryBuilder<Chat, Chat, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -265,7 +265,7 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<Chat, Chat, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -287,7 +287,7 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> idGreaterThan(Id id,
+  QueryBuilder<Chat, Chat, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -296,7 +296,7 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> idLessThan(Id id,
+  QueryBuilder<Chat, Chat, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -305,7 +305,7 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> idBetween(
+  QueryBuilder<Chat, Chat, QAfterWhereClause> idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
@@ -321,7 +321,7 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> uidIsNull() {
+  QueryBuilder<Chat, Chat, QAfterWhereClause> uidIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'uid',
@@ -330,7 +330,7 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> uidIsNotNull() {
+  QueryBuilder<Chat, Chat, QAfterWhereClause> uidIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
         indexName: r'uid',
@@ -341,7 +341,7 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> uidEqualTo(String? uid) {
+  QueryBuilder<Chat, Chat, QAfterWhereClause> uidEqualTo(String? uid) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'uid',
@@ -350,8 +350,7 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterWhereClause> uidNotEqualTo(
-      String? uid) {
+  QueryBuilder<Chat, Chat, QAfterWhereClause> uidNotEqualTo(String? uid) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -386,9 +385,8 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
   }
 }
 
-extension ChatRoomQueryFilter
-    on QueryBuilder<ChatRoom, ChatRoom, QFilterCondition> {
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> avatarIsNull() {
+extension ChatQueryFilter on QueryBuilder<Chat, Chat, QFilterCondition> {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> avatarIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'avatar',
@@ -396,7 +394,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> avatarIsNotNull() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> avatarIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'avatar',
@@ -404,7 +402,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> idEqualTo(Id value) {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -413,7 +411,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> idGreaterThan(
     Id value, {
     bool include = false,
   }) {
@@ -426,7 +424,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> idLessThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> idLessThan(
     Id value, {
     bool include = false,
   }) {
@@ -439,7 +437,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> idBetween(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
@@ -456,8 +454,8 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      lastMessageTimeEqualTo(DateTime value) {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> lastMessageTimeEqualTo(
+      DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastMessageTime',
@@ -466,8 +464,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      lastMessageTimeGreaterThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> lastMessageTimeGreaterThan(
     DateTime value, {
     bool include = false,
   }) {
@@ -480,8 +477,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      lastMessageTimeLessThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> lastMessageTimeLessThan(
     DateTime value, {
     bool include = false,
   }) {
@@ -494,8 +490,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      lastMessageTimeBetween(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> lastMessageTimeBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
@@ -512,7 +507,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
+  QueryBuilder<Chat, Chat, QAfterFilterCondition>
       messageLongevitySecondsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -521,7 +516,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
+  QueryBuilder<Chat, Chat, QAfterFilterCondition>
       messageLongevitySecondsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -530,7 +525,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
+  QueryBuilder<Chat, Chat, QAfterFilterCondition>
       messageLongevitySecondsEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -540,7 +535,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
+  QueryBuilder<Chat, Chat, QAfterFilterCondition>
       messageLongevitySecondsGreaterThan(
     int? value, {
     bool include = false,
@@ -554,7 +549,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
+  QueryBuilder<Chat, Chat, QAfterFilterCondition>
       messageLongevitySecondsLessThan(
     int? value, {
     bool include = false,
@@ -568,7 +563,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
+  QueryBuilder<Chat, Chat, QAfterFilterCondition>
       messageLongevitySecondsBetween(
     int? lower,
     int? upper, {
@@ -586,7 +581,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameEqualTo(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -599,7 +594,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameGreaterThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -614,7 +609,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameLessThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -629,7 +624,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameBetween(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -648,7 +643,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameStartsWith(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -661,7 +656,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameEndsWith(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -674,8 +669,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameContains(
-      String value,
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -686,8 +680,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameMatches(
-      String pattern,
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -698,7 +691,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameIsEmpty() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'name',
@@ -707,7 +700,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> nameIsNotEmpty() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'name',
@@ -716,7 +709,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> participantsIsNull() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'participants',
@@ -724,8 +717,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsIsNotNull() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'participants',
@@ -733,8 +725,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsElementEqualTo(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsElementEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -747,7 +738,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
+  QueryBuilder<Chat, Chat, QAfterFilterCondition>
       participantsElementGreaterThan(
     String value, {
     bool include = false,
@@ -763,8 +754,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsElementLessThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsElementLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -779,8 +769,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsElementBetween(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsElementBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -799,8 +788,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsElementStartsWith(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsElementStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -813,8 +801,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsElementEndsWith(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsElementEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -827,8 +814,9 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsElementContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsElementContains(
+      String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'participants',
@@ -838,8 +826,9 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsElementMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsElementMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'participants',
@@ -849,8 +838,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsElementIsEmpty() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsElementIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'participants',
@@ -859,7 +847,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
+  QueryBuilder<Chat, Chat, QAfterFilterCondition>
       participantsElementIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -869,8 +857,8 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsLengthEqualTo(int length) {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsLengthEqualTo(
+      int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'participants',
@@ -882,8 +870,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsIsEmpty() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'participants',
@@ -895,8 +882,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsIsNotEmpty() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'participants',
@@ -908,8 +894,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsLengthLessThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsLengthLessThan(
     int length, {
     bool include = false,
   }) {
@@ -924,8 +909,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsLengthGreaterThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsLengthGreaterThan(
     int length, {
     bool include = false,
   }) {
@@ -940,8 +924,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition>
-      participantsLengthBetween(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -958,7 +941,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidIsNull() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'uid',
@@ -966,7 +949,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidIsNotNull() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'uid',
@@ -974,7 +957,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidEqualTo(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -987,7 +970,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidGreaterThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1002,7 +985,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidLessThan(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1017,7 +1000,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidBetween(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1036,7 +1019,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidStartsWith(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1049,7 +1032,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidEndsWith(
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1062,8 +1045,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidContains(
-      String value,
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -1074,8 +1056,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidMatches(
-      String pattern,
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -1086,7 +1067,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidIsEmpty() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'uid',
@@ -1095,7 +1076,7 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidIsNotEmpty() {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'uid',
@@ -1105,9 +1086,8 @@ extension ChatRoomQueryFilter
   }
 }
 
-extension ChatRoomQueryObject
-    on QueryBuilder<ChatRoom, ChatRoom, QFilterCondition> {
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> avatar(
+extension ChatQueryObject on QueryBuilder<Chat, Chat, QFilterCondition> {
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> avatar(
       FilterQuery<Avatar> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'avatar');
@@ -1115,155 +1095,147 @@ extension ChatRoomQueryObject
   }
 }
 
-extension ChatRoomQueryLinks
-    on QueryBuilder<ChatRoom, ChatRoom, QFilterCondition> {}
+extension ChatQueryLinks on QueryBuilder<Chat, Chat, QFilterCondition> {}
 
-extension ChatRoomQuerySortBy on QueryBuilder<ChatRoom, ChatRoom, QSortBy> {
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByLastMessageTime() {
+extension ChatQuerySortBy on QueryBuilder<Chat, Chat, QSortBy> {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByLastMessageTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastMessageTime', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByLastMessageTimeDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByLastMessageTimeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastMessageTime', Sort.desc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy>
-      sortByMessageLongevitySeconds() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByMessageLongevitySeconds() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageLongevitySeconds', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy>
-      sortByMessageLongevitySecondsDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByMessageLongevitySecondsDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageLongevitySeconds', Sort.desc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByName() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByNameDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByUid() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByUid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByUidDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByUidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.desc);
     });
   }
 }
 
-extension ChatRoomQuerySortThenBy
-    on QueryBuilder<ChatRoom, ChatRoom, QSortThenBy> {
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenById() {
+extension ChatQuerySortThenBy on QueryBuilder<Chat, Chat, QSortThenBy> {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByLastMessageTime() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByLastMessageTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastMessageTime', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByLastMessageTimeDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByLastMessageTimeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastMessageTime', Sort.desc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy>
-      thenByMessageLongevitySeconds() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByMessageLongevitySeconds() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageLongevitySeconds', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy>
-      thenByMessageLongevitySecondsDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByMessageLongevitySecondsDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageLongevitySeconds', Sort.desc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByName() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByNameDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByUid() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByUid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.asc);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByUidDesc() {
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByUidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.desc);
     });
   }
 }
 
-extension ChatRoomQueryWhereDistinct
-    on QueryBuilder<ChatRoom, ChatRoom, QDistinct> {
-  QueryBuilder<ChatRoom, ChatRoom, QDistinct> distinctByLastMessageTime() {
+extension ChatQueryWhereDistinct on QueryBuilder<Chat, Chat, QDistinct> {
+  QueryBuilder<Chat, Chat, QDistinct> distinctByLastMessageTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastMessageTime');
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QDistinct>
-      distinctByMessageLongevitySeconds() {
+  QueryBuilder<Chat, Chat, QDistinct> distinctByMessageLongevitySeconds() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'messageLongevitySeconds');
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QDistinct> distinctByName(
+  QueryBuilder<Chat, Chat, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QDistinct> distinctByParticipants() {
+  QueryBuilder<Chat, Chat, QDistinct> distinctByParticipants() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'participants');
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QDistinct> distinctByUid(
+  QueryBuilder<Chat, Chat, QDistinct> distinctByUid(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'uid', caseSensitive: caseSensitive);
@@ -1271,47 +1243,44 @@ extension ChatRoomQueryWhereDistinct
   }
 }
 
-extension ChatRoomQueryProperty
-    on QueryBuilder<ChatRoom, ChatRoom, QQueryProperty> {
-  QueryBuilder<ChatRoom, int, QQueryOperations> idProperty() {
+extension ChatQueryProperty on QueryBuilder<Chat, Chat, QQueryProperty> {
+  QueryBuilder<Chat, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<ChatRoom, Avatar?, QQueryOperations> avatarProperty() {
+  QueryBuilder<Chat, Avatar?, QQueryOperations> avatarProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'avatar');
     });
   }
 
-  QueryBuilder<ChatRoom, DateTime, QQueryOperations> lastMessageTimeProperty() {
+  QueryBuilder<Chat, DateTime, QQueryOperations> lastMessageTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastMessageTime');
     });
   }
 
-  QueryBuilder<ChatRoom, int?, QQueryOperations>
-      messageLongevitySecondsProperty() {
+  QueryBuilder<Chat, int?, QQueryOperations> messageLongevitySecondsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'messageLongevitySeconds');
     });
   }
 
-  QueryBuilder<ChatRoom, String, QQueryOperations> nameProperty() {
+  QueryBuilder<Chat, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
     });
   }
 
-  QueryBuilder<ChatRoom, List<String>?, QQueryOperations>
-      participantsProperty() {
+  QueryBuilder<Chat, List<String>?, QQueryOperations> participantsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'participants');
     });
   }
 
-  QueryBuilder<ChatRoom, String?, QQueryOperations> uidProperty() {
+  QueryBuilder<Chat, String?, QQueryOperations> uidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'uid');
     });
