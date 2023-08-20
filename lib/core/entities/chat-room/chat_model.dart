@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
 
-import '../../../models/Avatar.dart';
+import '../profile/profile_model.dart';
 
 part 'chat_model.g.dart';
 

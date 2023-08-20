@@ -219,8 +219,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Future<int?> getlastMessageCreatedAtMSE() async {
     final lastMessageCreatedAtMSE = isar.messages
         .where()
-        .chatIdEqualTo(widget.chatRoom.uid)
-        .sortByCreatedAtMSEDesc()
+        .uidEqualTo(widget.chatRoom.uid)
+        .sortByTimestamp()
         .findFirstSync()
         ?.timestamp;
     return lastMessageCreatedAtMSE;
@@ -230,8 +230,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
     startedListeningToIsar = true;
     Query<Message> messagesQuery = isar.messages
         .where()
-        .createdAtMSEGreaterThan(startingCreateAtMSE)
-        .sortByCreatedAtMSEDesc()
+        .timestampGreaterThan(startingCreateAtMSE)
+        .sortByTimestamp()
         .limit(1)
         .build();
 

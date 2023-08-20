@@ -17,30 +17,31 @@ const ChatRoomSchema = CollectionSchema(
   name: r'ChatRoom',
   id: 3645375135519982771,
   properties: {
-    r'lastMessageTime': PropertySchema(
+    r'avatar': PropertySchema(
       id: 0,
+      name: r'avatar',
+      type: IsarType.object,
+      target: r'Avatar',
+    ),
+    r'lastMessageTime': PropertySchema(
+      id: 1,
       name: r'lastMessageTime',
       type: IsarType.dateTime,
     ),
     r'messageLongevitySeconds': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'messageLongevitySeconds',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'name',
       type: IsarType.string,
     ),
     r'participants': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'participants',
       type: IsarType.stringList,
-    ),
-    r'picRef': PropertySchema(
-      id: 4,
-      name: r'picRef',
-      type: IsarType.string,
     ),
     r'uid': PropertySchema(
       id: 5,
@@ -69,7 +70,7 @@ const ChatRoomSchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {},
+  embeddedSchemas: {r'Avatar': AvatarSchema},
   getId: _chatRoomGetId,
   getLinks: _chatRoomGetLinks,
   attach: _chatRoomAttach,
@@ -82,6 +83,13 @@ int _chatRoomEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.avatar;
+    if (value != null) {
+      bytesCount +=
+          3 + AvatarSchema.estimateSize(value, allOffsets[Avatar]!, allOffsets);
+    }
+  }
   bytesCount += 3 + object.name.length * 3;
   {
     final list = object.participants;
@@ -93,12 +101,6 @@ int _chatRoomEstimateSize(
           bytesCount += value.length * 3;
         }
       }
-    }
-  }
-  {
-    final value = object.picRef;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
     }
   }
   {
@@ -116,11 +118,16 @@ void _chatRoomSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.lastMessageTime);
-  writer.writeLong(offsets[1], object.messageLongevitySeconds);
-  writer.writeString(offsets[2], object.name);
-  writer.writeStringList(offsets[3], object.participants);
-  writer.writeString(offsets[4], object.picRef);
+  writer.writeObject<Avatar>(
+    offsets[0],
+    allOffsets,
+    AvatarSchema.serialize,
+    object.avatar,
+  );
+  writer.writeDateTime(offsets[1], object.lastMessageTime);
+  writer.writeLong(offsets[2], object.messageLongevitySeconds);
+  writer.writeString(offsets[3], object.name);
+  writer.writeStringList(offsets[4], object.participants);
   writer.writeString(offsets[5], object.uid);
 }
 
@@ -131,11 +138,15 @@ ChatRoom _chatRoomDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = ChatRoom(
-    lastMessageTime: reader.readDateTime(offsets[0]),
-    messageLongevitySeconds: reader.readLongOrNull(offsets[1]),
-    name: reader.readString(offsets[2]),
-    participants: reader.readStringList(offsets[3]),
-    picRef: reader.readStringOrNull(offsets[4]),
+    avatar: reader.readObjectOrNull<Avatar>(
+      offsets[0],
+      AvatarSchema.deserialize,
+      allOffsets,
+    ),
+    lastMessageTime: reader.readDateTime(offsets[1]),
+    messageLongevitySeconds: reader.readLongOrNull(offsets[2]),
+    name: reader.readString(offsets[3]),
+    participants: reader.readStringList(offsets[4]),
     uid: reader.readStringOrNull(offsets[5]),
   );
   object.id = id;
@@ -150,15 +161,19 @@ P _chatRoomDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readObjectOrNull<Avatar>(
+        offset,
+        AvatarSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 1:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readStringList(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readStringList(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     default:
@@ -373,6 +388,22 @@ extension ChatRoomQueryWhere on QueryBuilder<ChatRoom, ChatRoom, QWhereClause> {
 
 extension ChatRoomQueryFilter
     on QueryBuilder<ChatRoom, ChatRoom, QFilterCondition> {
+  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> avatarIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'avatar',
+      ));
+    });
+  }
+
+  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> avatarIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'avatar',
+      ));
+    });
+  }
+
   QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -927,152 +958,6 @@ extension ChatRoomQueryFilter
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'picRef',
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'picRef',
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'picRef',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'picRef',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'picRef',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'picRef',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'picRef',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'picRef',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'picRef',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'picRef',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'picRef',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> picRefIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'picRef',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> uidIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1221,7 +1106,14 @@ extension ChatRoomQueryFilter
 }
 
 extension ChatRoomQueryObject
-    on QueryBuilder<ChatRoom, ChatRoom, QFilterCondition> {}
+    on QueryBuilder<ChatRoom, ChatRoom, QFilterCondition> {
+  QueryBuilder<ChatRoom, ChatRoom, QAfterFilterCondition> avatar(
+      FilterQuery<Avatar> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'avatar');
+    });
+  }
+}
 
 extension ChatRoomQueryLinks
     on QueryBuilder<ChatRoom, ChatRoom, QFilterCondition> {}
@@ -1262,18 +1154,6 @@ extension ChatRoomQuerySortBy on QueryBuilder<ChatRoom, ChatRoom, QSortBy> {
   QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByPicRef() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'picRef', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> sortByPicRefDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'picRef', Sort.desc);
     });
   }
 
@@ -1342,18 +1222,6 @@ extension ChatRoomQuerySortThenBy
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByPicRef() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'picRef', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByPicRefDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'picRef', Sort.desc);
-    });
-  }
-
   QueryBuilder<ChatRoom, ChatRoom, QAfterSortBy> thenByUid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.asc);
@@ -1395,13 +1263,6 @@ extension ChatRoomQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ChatRoom, ChatRoom, QDistinct> distinctByPicRef(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'picRef', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<ChatRoom, ChatRoom, QDistinct> distinctByUid(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1415,6 +1276,12 @@ extension ChatRoomQueryProperty
   QueryBuilder<ChatRoom, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<ChatRoom, Avatar?, QQueryOperations> avatarProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'avatar');
     });
   }
 
@@ -1441,12 +1308,6 @@ extension ChatRoomQueryProperty
       participantsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'participants');
-    });
-  }
-
-  QueryBuilder<ChatRoom, String?, QQueryOperations> picRefProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'picRef');
     });
   }
 

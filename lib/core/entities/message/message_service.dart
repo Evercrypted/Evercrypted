@@ -31,8 +31,7 @@ class MessageService {
           final message = null;
           message.chatId = chatRoom.uid;
           final isInDb =
-              isar!.messages.where().fbUidEqualTo(message.fbUid).countSync() >
-                  0;
+              isar!.messages.where().uidEqualTo(message.fbUid).countSync() > 0;
           if (!isInDb) {
             await isar.writeTxn(() async {
               await isar.messages.put(message);
@@ -47,7 +46,7 @@ class MessageService {
     final isar = Isar.getInstance();
     return isar!.messages
         .where()
-        .sortByCreatedAtMSEDesc()
+        .sortByTimestamp()
         .offset(pageKey * pageSize)
         .limit(pageSize)
         .findAllSync()
