@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:evercrypted/core/entities/chat-room/chat_room_model.dart';
+import 'package:evercrypted/core/entities/chat-room/chat_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:isar/isar.dart';
 
@@ -17,7 +17,7 @@ class MessageService {
         chatRoom.participants!.where((element) => element != userId).toList();
     final messagesCollection = FirebaseFirestore.instance
         .collection('chatRooms')
-        .doc(chatRoom.fbUid)
+        .doc(chatRoom.uid)
         .collection('messages');
     final messageRequests = lastMessageTime != null
         ? messagesCollection
@@ -28,8 +28,8 @@ class MessageService {
     fbListener = messageRequests.snapshots().listen((event) async {
       for (var change in event.docChanges) {
         if (change.type == DocumentChangeType.added) {
-          final message = Message.fromJson(change.doc.id, change.doc.data()!);
-          message.chatId = chatRoom.fbUid;
+          final message = null;
+          message.chatId = chatRoom.uid;
           final isInDb =
               isar!.messages.where().fbUidEqualTo(message.fbUid).countSync() >
                   0;
@@ -59,16 +59,8 @@ class MessageService {
     await isar?.writeTxn(() async {
       await isar.messages.put(message); // insert & update
     }).then((value) {
-      writeMessageToFB(message);
+      // writeMessageToFB(message);
     });
-  }
-
-  void writeMessageToFB(Message message) {
-    final messageCollection = FirebaseFirestore.instance
-        .collection('chatRooms')
-        .doc(message.chatId)
-        .collection('messages');
-    messageCollection.add(message.toJson());
   }
 
   void stopListening() {

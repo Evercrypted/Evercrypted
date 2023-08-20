@@ -6,7 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:isar/isar.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
-import '../../core/entities/chat-room/chat_room_model.dart';
+import '../../core/entities/chat-room/chat_model.dart';
 import '../../core/entities/message/message_isar.dart';
 import '../../ui_constants.dart';
 import '../../widgets/primary_button.dart';
@@ -70,7 +70,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   @override
   void dispose() {
-    _messageService.stopListening();
     isar.close();
     _pagingController.dispose();
     super.dispose();
@@ -220,10 +219,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Future<int?> getlastMessageCreatedAtMSE() async {
     final lastMessageCreatedAtMSE = isar.messages
         .where()
-        .chatIdEqualTo(widget.chatRoom.fbUid)
+        .chatIdEqualTo(widget.chatRoom.uid)
         .sortByCreatedAtMSEDesc()
         .findFirstSync()
-        ?.createdAtMSE;
+        ?.timestamp;
     return lastMessageCreatedAtMSE;
   }
 
@@ -257,7 +256,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         _pagingController.appendPage(newItems, nextPageKey);
       }
       if (pageKey == 0 && newItems.isNotEmpty) {
-        startingCreateAtMSE = newItems.first.createdAtMSE;
+        startingCreateAtMSE = newItems.first.timestamp;
       }
     } catch (error) {
       _pagingController.error = error;
@@ -281,7 +280,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     final chatMessage = ChatMessage(
                       text: item.text!,
                       messageType: ChatMessageType.text,
-                      isSender: item.authorId == userId,
+                      isSender: item.authorEmail == userId,
                       messageStatus: MessageStatus.viewed,
                     );
                     return MessageWidget(
@@ -290,7 +289,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 ),
               ),
             ),
-            ChatInputField(chatId: widget.chatRoom.fbUid!, pass: pass, iv: iv),
+            ChatInputField(chatId: widget.chatRoom.uid!, pass: pass, iv: iv),
           ],
         ));
   }

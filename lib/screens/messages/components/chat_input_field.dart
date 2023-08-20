@@ -1,7 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/entities/message/message_isar.dart';
 import '../../../core/entities/message/message_service.dart';
 import '../../../ui_constants.dart';
 import 'voice_recorder_button.dart';
@@ -48,12 +46,7 @@ class ChatInputFieldState extends State<ChatInputField> {
         }
       }
     }
-    final newMessage = Message(
-      chatId: widget.chatId,
-      createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-      text: encr,
-      authorId: FirebaseAuth.instance.currentUser!.uid,
-    );
+    final newMessage = null;
     _messageService.sendMessage(newMessage);
     messageField.clear();
   }

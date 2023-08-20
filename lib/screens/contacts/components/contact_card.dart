@@ -18,7 +18,11 @@ class ContactCard extends ConsumerWidget {
   final VoidCallback press;
 
   openChat(WidgetRef ref) {
-    // ref.read()
+    print(contact.uid);
+  }
+
+  checkIfChatIsOpenWithContact(WidgetRef ref) {
+    print(contact.uid);
   }
 
   @override

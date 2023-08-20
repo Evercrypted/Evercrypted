@@ -8,47 +8,34 @@ class Message {
 
   //needs composite unique index with chatUId
   @Index()
-  String? fbUid;
+  String? uid;
 
-  String authorId;
-
-  @Index()
-  String? chatId;
+  String authorEmail;
 
   String? text;
-  String? fileRef;
+  List<String>? fileIds;
 
   @Index()
-  int createdAtMSE;
+  int timestamp;
+
+  int messageType;
 
   @ignore
   get createdAt {
-    return DateTime.fromMillisecondsSinceEpoch(createdAtMSE);
+    return DateTime.fromMillisecondsSinceEpoch(timestamp);
   }
 
   Message({
-    required this.authorId,
-    required this.chatId,
-    this.fbUid,
+    this.uid,
+    required this.authorEmail,
     this.text,
-    this.fileRef,
-    required this.createdAtMSE,
+    this.fileIds,
+    required this.timestamp,
+    required this.messageType,
   });
+}
 
-  factory Message.fromJson(String uid, Map<String, dynamic> json) => Message(
-      fbUid: uid,
-      authorId: json['authorId'] as String,
-      createdAtMSE: json['createdAtMSE'] as int,
-      text: json['text'] as String?,
-      fileRef: json['fileRef'] as String?,
-      chatId: json['chatId'] as String?);
-
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'fbUid': fbUid,
-        'authorId': authorId,
-        'createdAtMSE': createdAtMSE,
-        'text': text,
-        'fileRef': fileRef,
-        'chatId': chatId,
-      };
+class MessageTypes {
+  MessageTypes._();
+  static const v1 = 1;
 }

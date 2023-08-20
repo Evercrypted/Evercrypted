@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:evercrypted/core/entities/chat-room/chat_room_model.dart';
+import 'package:evercrypted/core/entities/chat-room/chat_model.dart';
 import 'package:flutter/material.dart';
-import '../../../core/entities/chat-room/chat_room_service.dart';
+import '../../../core/entities/chat-room/chat_service.dart';
 import '../../messages/message_screen.dart';
 import 'chat_card.dart';
 
@@ -22,11 +22,7 @@ class ChatList extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Text("Loading");
           }
-          List<ChatRoom> chatRooms =
-              snapshot.data!.docs.map((DocumentSnapshot doc) {
-            return ChatRoom.fromJson(
-                doc.id, doc.data() as Map<String, dynamic>);
-          }).toList();
+          List<ChatRoom> chatRooms = [];
           return ListView.builder(
             itemCount: chatRooms.length,
             itemBuilder: (context, index) {

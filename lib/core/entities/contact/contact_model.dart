@@ -1,5 +1,6 @@
-import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:isar/isar.dart';
+
+import '../../../models/Avatar.dart';
 
 part 'contact_model.g.dart';
 

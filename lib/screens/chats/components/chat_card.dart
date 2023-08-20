@@ -1,4 +1,4 @@
-import 'package:evercrypted/core/entities/chat-room/chat_room_model.dart';
+import 'package:evercrypted/core/entities/chat-room/chat_model.dart';
 import 'package:flutter/material.dart';
 
 import '../../../widgets/circle_avatar_with_active_indicator.dart';
@@ -26,7 +26,7 @@ class ChatCard extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatarWithActiveIndicator(
-              image: chat.picRef,
+              image: chat.avatar?.pic,
               isActive: true,
             ),
             Expanded(
