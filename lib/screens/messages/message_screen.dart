@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/models/ChatMessage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +7,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:isar/isar.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
-import '../../core/entities/chat-room/chat_model.dart';
 import '../../core/entities/message/message_isar.dart';
 import '../../ui_constants.dart';
 import '../../widgets/primary_button.dart';
@@ -14,7 +14,7 @@ import 'components/chat_input_field.dart';
 import 'components/message.dart';
 
 class MessagesScreen extends StatefulWidget {
-  final ChatRoom chatRoom;
+  final Chat chatRoom;
   const MessagesScreen({Key? key, required this.chatRoom}) : super(key: key);
   static const routeName = '/add-new-contact';
 

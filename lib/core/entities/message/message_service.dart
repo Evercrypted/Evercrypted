@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:evercrypted/core/entities/chat-room/chat_model.dart';
+import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:isar/isar.dart';
 
@@ -10,8 +10,7 @@ import 'message_isar.dart';
 class MessageService {
   StreamSubscription? fbListener;
 
-  void startListeningAndWritingToDB(
-      ChatRoom chatRoom, int? lastMessageTime) async {
+  void startListeningAndWritingToDB(Chat chatRoom, int? lastMessageTime) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     final participantsToListenTo =
         chatRoom.participants!.where((element) => element != userId).toList();

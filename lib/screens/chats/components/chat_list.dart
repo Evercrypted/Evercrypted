@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:evercrypted/core/entities/chat-room/chat_model.dart';
+import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:flutter/material.dart';
-import '../../../core/entities/chat-room/chat_service.dart';
+import '../../../core/entities/chat/chat_model.dart';
 import '../../messages/message_screen.dart';
 import 'chat_card.dart';
 
 class ChatList extends StatelessWidget {
   ChatList({Key? key}) : super(key: key);
 
-  final ChatRoomService _chatRoomService = ChatRoomService();
+  final ChatService _chatRoomService = ChatService();
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class ChatList extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Text("Loading");
           }
-          List<ChatRoom> chatRooms = [];
+          List<Chat> chatRooms = [];
           return ListView.builder(
             itemCount: chatRooms.length,
             itemBuilder: (context, index) {

@@ -1,6 +1,6 @@
-import 'package:evercrypted/core/entities/chat-room/chat_model.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/entities/chat/chat_model.dart';
 import '../../../widgets/circle_avatar_with_active_indicator.dart';
 import '../../../ui_constants.dart';
 // import '../../../models/Chat.dart';
@@ -13,7 +13,7 @@ class ChatCard extends StatelessWidget {
     required this.press,
   }) : super(key: key);
 
-  final ChatRoom chat;
+  final Chat chat;
   final VoidCallback press;
 
   @override

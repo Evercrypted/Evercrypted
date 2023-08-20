@@ -5,7 +5,7 @@ import '../profile/profile_model.dart';
 part 'chat_model.g.dart';
 
 @collection
-class ChatRoom {
+class Chat {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
@@ -20,7 +20,7 @@ class ChatRoom {
 
   Avatar? avatar;
 
-  ChatRoom({
+  Chat({
     this.uid,
     this.messageLongevitySeconds,
     required this.name,
