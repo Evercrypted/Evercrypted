@@ -1,15 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:isar/isar.dart';
+
+import 'chat_model.dart';
 
 class ChatService {
-  final _chatRoomsCollection =
-      FirebaseFirestore.instance.collection('chatRooms');
+  void syncChats(List<Chat> chats) async {
+    final isar = Isar.getInstance();
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> getChatRooms() {
-    final uId = FirebaseAuth.instance.currentUser?.uid;
-    var contactRequests = _chatRoomsCollection
-        .where('participants', arrayContains: uId)
-        .orderBy('lastMessageTime', descending: true);
-    return contactRequests.snapshots();
+    final List<Chat> chatsInDb = await isar!.chats.where().findAll();
+
+    final List<Chat> contactRequestsToPut = chats
+        .where((element) =>
+            chatsInDb.where((dbEl) => dbEl.uid == element.uid).isEmpty)
+        .toList();
+
+    await isar.writeTxn(() async {
+      await isar.chats.putAll(contactRequestsToPut);
+    });
   }
 }
