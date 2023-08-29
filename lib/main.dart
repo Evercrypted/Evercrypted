@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
+import 'package:evercrypted/core/entities/chat/chat_model.dart';
+import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/notifications/notification.dart';
@@ -50,7 +52,8 @@ void main() async {
     ContactRequestSchema,
     ContactSchema,
     MessageSchema,
-    ActionQueueSchema
+    ActionQueueSchema,
+    ChatSchema
   ], directory: dir.path);
 
   runApp(const ProviderScope(child: MyApp()));
@@ -241,6 +244,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
     if (contacts != null) {
       ref.read(contactsProvider.notifier).setContacts(contacts);
     }
+
+    final chats = isar?.chats.where().build().findAllSync();
+    if (chats != null) {
+      ref.read(chatsProvider.notifier).setChats(chats);
+    }
   }
 
   void _setIsarWatchers(User user) {
@@ -264,6 +272,10 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
     isar?.contacts.where().build().watch().listen((contacts) {
       ref.read(contactsProvider.notifier).setContacts(contacts);
+    });
+
+    isar?.chats.where().build().watch().listen((chats) {
+      ref.read(chatsProvider.notifier).setChats(chats);
     });
   }
 

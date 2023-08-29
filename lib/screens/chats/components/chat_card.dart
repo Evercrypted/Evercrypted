@@ -36,7 +36,7 @@ class ChatCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      chat.name,
+                      chat.name!,
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w500),
                     ),
@@ -55,7 +55,7 @@ class ChatCard extends StatelessWidget {
             ),
             Opacity(
               opacity: 0.64,
-              child: Text(timeago.format(chat.lastMessageTime)),
+              child: Text(timeago.format(chat.lastMessageTime!)),
             ),
           ],
         ),

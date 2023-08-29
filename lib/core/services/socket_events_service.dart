@@ -8,6 +8,8 @@ import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../entities/chat/chat_model.dart';
+import '../entities/chat/chat_service.dart';
 import '../socket/event_types/contact_request_event_types.dart';
 import '../entities/contact-request/contact_request_model.dart';
 import '../entities/contact/contact_model.dart';
@@ -20,6 +22,7 @@ class SocketEventsService {
   ProfileService profileService = ProfileService();
   ContactRequestService contactRequestService = ContactRequestService();
   ContactService contactService = ContactService();
+  ChatService chatService = ChatService();
 
   handleEvent(WidgetRef ref, String channel, String type, dynamic payload) {
     switch (channel) {
@@ -64,6 +67,9 @@ class SocketEventsService {
         profileService.syncProfile(
           Profile.fromJson(payload['profile']),
         );
+        chatService.syncChats((payload['chats'] as List<dynamic>)
+            .map((chatData) => Chat.fromJson(chatData))
+            .toList());
         break;
       default:
         print('Unknown General Event');
