@@ -121,8 +121,8 @@ class ChatSocket {
     socket?.onDisconnect((_) {
       print('disconnect');
       socket?.clearListeners();
-      socket?.destroy();
       socket?.dispose();
+      socket?.destroy();
       key = null;
       socket = null;
     });
@@ -130,8 +130,8 @@ class ChatSocket {
     socket?.onConnectError((data) {
       print('connect error');
       socket?.clearListeners();
-      socket?.destroy();
       socket?.dispose();
+      socket?.destroy();
       key = null;
       socket = null;
     });
