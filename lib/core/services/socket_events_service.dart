@@ -64,6 +64,9 @@ class SocketEventsService {
                       ContactRequest.fromJson(contactRequestData),
                 )
                 .toList());
+        contactService.syncContacts((payload['contacts'] as List<dynamic>)
+            .map((contactData) => Contact.fromJson(contactData))
+            .toList());
         profileService.syncProfile(
           Profile.fromJson(payload['profile']),
         );

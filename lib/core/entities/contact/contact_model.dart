@@ -13,23 +13,28 @@ class Contact {
 
   final String? email;
 
+  final String? contactPersonUid;
+
   final Avatar? avatar;
 
   final String? name;
 
-  Contact({this.uid, this.email, this.avatar, this.name});
+  Contact(
+      {this.uid, this.email, this.avatar, this.name, this.contactPersonUid});
 
   factory Contact.fromJson(Map<String, dynamic> json) => Contact(
         uid: json['uid'] as String?,
         email: json['email'] as String?,
         avatar: Avatar.fromJson(json['avatar']),
         name: json['name'] as String?,
+        contactPersonUid: json['contactPersonUid'] as String?,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'uid': uid,
         'email': email,
         'name': name,
+        'contactPersonUid': contactPersonUid,
         'avatar': avatar?.toJson(),
       };
 }

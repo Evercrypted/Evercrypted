@@ -65,6 +65,7 @@ class ChatSocket {
           resp,
           key,
         );
+        print(payload);
         socketEventsService.handleGeneralEvent(
             riverPodRef, 'getInitialData', payload);
       }

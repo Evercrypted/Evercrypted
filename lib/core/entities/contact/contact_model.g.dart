@@ -23,18 +23,23 @@ const ContactSchema = CollectionSchema(
       type: IsarType.object,
       target: r'Avatar',
     ),
-    r'email': PropertySchema(
+    r'contactPersonUid': PropertySchema(
       id: 1,
+      name: r'contactPersonUid',
+      type: IsarType.string,
+    ),
+    r'email': PropertySchema(
+      id: 2,
       name: r'email',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'name',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'uid',
       type: IsarType.string,
     )
@@ -81,6 +86,12 @@ int _contactEstimateSize(
     }
   }
   {
+    final value = object.contactPersonUid;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.email;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -113,9 +124,10 @@ void _contactSerialize(
     AvatarSchema.serialize,
     object.avatar,
   );
-  writer.writeString(offsets[1], object.email);
-  writer.writeString(offsets[2], object.name);
-  writer.writeString(offsets[3], object.uid);
+  writer.writeString(offsets[1], object.contactPersonUid);
+  writer.writeString(offsets[2], object.email);
+  writer.writeString(offsets[3], object.name);
+  writer.writeString(offsets[4], object.uid);
 }
 
 Contact _contactDeserialize(
@@ -130,9 +142,10 @@ Contact _contactDeserialize(
       AvatarSchema.deserialize,
       allOffsets,
     ),
-    email: reader.readStringOrNull(offsets[1]),
-    name: reader.readStringOrNull(offsets[2]),
-    uid: reader.readStringOrNull(offsets[3]),
+    contactPersonUid: reader.readStringOrNull(offsets[1]),
+    email: reader.readStringOrNull(offsets[2]),
+    name: reader.readStringOrNull(offsets[3]),
+    uid: reader.readStringOrNull(offsets[4]),
   );
   object.id = id;
   return object;
@@ -156,6 +169,8 @@ P _contactDeserializeProp<P>(
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -380,6 +395,159 @@ extension ContactQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'avatar',
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'contactPersonUid',
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'contactPersonUid',
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition> contactPersonUidEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'contactPersonUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'contactPersonUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'contactPersonUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition> contactPersonUidBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'contactPersonUid',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'contactPersonUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'contactPersonUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'contactPersonUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition> contactPersonUidMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'contactPersonUid',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'contactPersonUid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterFilterCondition>
+      contactPersonUidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'contactPersonUid',
+        value: '',
       ));
     });
   }
@@ -889,6 +1057,18 @@ extension ContactQueryLinks
     on QueryBuilder<Contact, Contact, QFilterCondition> {}
 
 extension ContactQuerySortBy on QueryBuilder<Contact, Contact, QSortBy> {
+  QueryBuilder<Contact, Contact, QAfterSortBy> sortByContactPersonUid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contactPersonUid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterSortBy> sortByContactPersonUidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contactPersonUid', Sort.desc);
+    });
+  }
+
   QueryBuilder<Contact, Contact, QAfterSortBy> sortByEmail() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'email', Sort.asc);
@@ -928,6 +1108,18 @@ extension ContactQuerySortBy on QueryBuilder<Contact, Contact, QSortBy> {
 
 extension ContactQuerySortThenBy
     on QueryBuilder<Contact, Contact, QSortThenBy> {
+  QueryBuilder<Contact, Contact, QAfterSortBy> thenByContactPersonUid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contactPersonUid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterSortBy> thenByContactPersonUidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contactPersonUid', Sort.desc);
+    });
+  }
+
   QueryBuilder<Contact, Contact, QAfterSortBy> thenByEmail() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'email', Sort.asc);
@@ -979,6 +1171,14 @@ extension ContactQuerySortThenBy
 
 extension ContactQueryWhereDistinct
     on QueryBuilder<Contact, Contact, QDistinct> {
+  QueryBuilder<Contact, Contact, QDistinct> distinctByContactPersonUid(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'contactPersonUid',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Contact, Contact, QDistinct> distinctByEmail(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1012,6 +1212,12 @@ extension ContactQueryProperty
   QueryBuilder<Contact, Avatar?, QQueryOperations> avatarProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'avatar');
+    });
+  }
+
+  QueryBuilder<Contact, String?, QQueryOperations> contactPersonUidProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'contactPersonUid');
     });
   }
 
