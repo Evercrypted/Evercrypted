@@ -13,7 +13,7 @@ final dio = Dio(
 
 initializeDio() {
   dio
-    ..options.baseUrl = 'http://localhost:3000'
+    ..options.baseUrl = 'http://localhost:3001'
     ..interceptors.add(PrettyDioLogger())
     ..interceptors.add(RetryInterceptor(
       dio: dio,

@@ -123,8 +123,6 @@ class SocketEventsService {
 
   handleContactEvent(WidgetRef ref, String type, dynamic payload) {
     switch (type) {
-      case ContactEventTypes.contactCreated:
-        break;
       case ContactEventTypes.contactDeleted:
         break;
       default:

@@ -1,3 +1,8 @@
+import 'package:evercrypted/core/entities/chat/chat_model.dart';
+import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/screens/chats/chats_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,8 +22,26 @@ class ContactCard extends ConsumerWidget {
   final bool isActive;
   final VoidCallback press;
 
-  openChat(WidgetRef ref) {
-    print(contact.uid);
+  openChat(BuildContext context, WidgetRef ref) {
+    List<Chat> chats = ref.read(chatsProvider);
+    if (chats.any((element) =>
+        element.participants?.length == 2 &&
+        element.participants?.contains(contact.contactPersonUid) == true)) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ChatsScreen(),
+        ),
+      );
+    } else {
+      Profile userProfile = ref.read(profileProvider)!;
+      NewChatDTO newChat = NewChatDTO(
+        participants: [
+          contact.contactPersonUid!,
+          userProfile.uid!,
+        ],
+      );
+    }
   }
 
   checkIfChatIsOpenWithContact(WidgetRef ref) {
@@ -53,7 +76,7 @@ class ContactCard extends ConsumerWidget {
           color: primaryColor,
         ),
         onPressed: () {
-          openChat(ref);
+          openChat(context, ref);
         },
       ),
       onTap: () {},

@@ -8,8 +8,6 @@ part 'chat_model.g.dart';
 class Chat {
   Id id = Isar.autoIncrement;
 
-  static const messageLongevitySecondsDefault = 60 * 60 * 24 * 30;
-
   @Index(unique: true)
   final String? uid;
 
@@ -44,10 +42,27 @@ class Chat {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'name': name,
-        'messageLongevitySeconds':
-            messageLongevitySeconds ?? Chat.messageLongevitySecondsDefault,
+        'messageLongevitySeconds': messageLongevitySeconds,
         'participants': participants,
         'lastMessageTime': lastMessageTime,
+        'avatar': avatar?.toJson(),
+      };
+}
+
+class NewChatDTO {
+  String? name;
+  List<String> participants;
+  Avatar? avatar;
+
+  NewChatDTO({
+    this.name,
+    required this.participants,
+    this.avatar,
+  });
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'name': name,
+        'participants': participants,
         'avatar': avatar?.toJson(),
       };
 }
