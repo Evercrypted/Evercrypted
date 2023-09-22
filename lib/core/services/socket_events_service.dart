@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
+import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
@@ -124,6 +125,21 @@ class SocketEventsService {
   handleContactEvent(WidgetRef ref, String type, dynamic payload) {
     switch (type) {
       case ContactEventTypes.contactDeleted:
+        List<Contact> contacts = ref.read(contactsProvider);
+        String? contactEmail = contacts
+            .firstWhere(
+              (element) => element.uid == payload['contactUid'],
+            )
+            .email;
+        contactService.handleDeletedContact(payload['contactUid']);
+        //TODO need to delete chats along with contact
+        LocalNotification.instance.displayNotification(
+          'Contact',
+          'Your contact $contactEmail has deleted chat with you and removed you from their contacts',
+          json.encode({
+            'type': null,
+          }),
+        );
         break;
       default:
         print('Unknown Contact Event');

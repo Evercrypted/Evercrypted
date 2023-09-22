@@ -19,10 +19,10 @@ class ContactService {
 
   void deleteContact(String contactUid) async {
     final isar = Isar.getInstance();
-    return ChatSocket.instance
-        .emitWAck(SocketChannelTypes.contact, ContactEventTypes.deleteContact,
-            contactUid)
-        .then((value) {
+    return ChatSocket.instance.emitWAck(
+        SocketChannelTypes.contact,
+        ContactEventTypes.deleteContact,
+        {'contactUid': contactUid}).then((value) {
       isar?.writeTxn(() async {
         isar.contacts.deleteByUid(contactUid);
       });
@@ -32,6 +32,13 @@ class ContactService {
           isar.contacts.deleteByUid(contactUid);
         });
       }
+    });
+  }
+
+  void handleDeletedContact(String contactUid) {
+    final isar = Isar.getInstance();
+    isar?.writeTxn(() async {
+      isar.contacts.deleteByUid(contactUid);
     });
   }
 

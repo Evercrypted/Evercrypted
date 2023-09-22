@@ -25,6 +25,8 @@ class NotifiacationEventsService {
           ),
         );
         break;
+      case null:
+        break;
       default:
         print('Unknown notification event');
         print(payload);
