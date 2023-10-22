@@ -86,7 +86,7 @@ class MainScreenState extends ConsumerState<MainScreen> {
                     return Container(
                       height: 46,
                       width: 46,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.green,
                       ),

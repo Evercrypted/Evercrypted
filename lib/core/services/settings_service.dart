@@ -1,5 +1,4 @@
 import 'package:cryptography/cryptography.dart';
-import 'package:dio/dio.dart';
 import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

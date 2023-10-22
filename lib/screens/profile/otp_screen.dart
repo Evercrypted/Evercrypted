@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';

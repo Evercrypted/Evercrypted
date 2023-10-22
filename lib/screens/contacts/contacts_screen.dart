@@ -3,7 +3,6 @@ import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../search/components/body.dart';
 import 'components/contact_card.dart';
 import 'add_new_contact_screen.dart';
 

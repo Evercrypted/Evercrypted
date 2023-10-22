@@ -46,7 +46,7 @@ class ChatInputFieldState extends State<ChatInputField> {
         }
       }
     }
-    final newMessage = null;
+    const newMessage = null;
     _messageService.sendMessage(newMessage);
     messageField.clear();
   }

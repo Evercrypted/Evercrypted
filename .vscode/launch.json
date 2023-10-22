@@ -22,16 +22,16 @@
             "flutterMode": "release"
         },
         {
-            "name": "iPhone 14",
+            "name": "iPhone 15",
             "request": "launch",
             "type": "dart",
-            "deviceId": "DE2C86B0-67D8-405A-8590-46E7E3CE39F5"
+            "deviceId": "5D2611C3-6D49-43E8-91F5-B1F1696301FA"
         },
         {
-            "name": "iPhone 14 Pro",
+            "name": "iPhone 15 Pro",
             "request": "launch",
             "type": "dart",
-            "deviceId": "082B24AC-21CF-45C2-845F-7E347F23895B"
+            "deviceId": "092E4912-BD55-479C-A4DF-702ED956497A"
         }
     ],
     "compounds": [

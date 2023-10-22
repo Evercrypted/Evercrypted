@@ -1,8 +1,5 @@
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:flutter/material.dart';
-import '../../../core/entities/chat/chat_model.dart';
-import '../../messages/message_screen.dart';
-import 'chat_card.dart';
 
 class ChatList extends StatelessWidget {
   ChatList({Key? key}) : super(key: key);

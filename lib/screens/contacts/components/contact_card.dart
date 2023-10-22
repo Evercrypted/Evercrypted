@@ -71,7 +71,7 @@ class ContactCard extends ConsumerWidget {
         ),
       ),
       trailing: IconButton(
-        icon: Icon(
+        icon: const Icon(
           Icons.chat,
           color: primaryColor,
         ),
