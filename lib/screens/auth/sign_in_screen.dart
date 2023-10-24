@@ -41,13 +41,14 @@ class _SignInScreenState extends State<SignInScreen> {
         });
 
         _authService.singIn(formValues).then((result) {
-          if (result['success']) {
+          if (result != null && result['success']) {
             setState(() {
               _shouldShowLoading = false;
             });
           } else {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(result['message'],
+              content: Text(
+                  result == null ? 'Could not login' : result['message'],
                   style: const TextStyle(color: Colors.white)),
               backgroundColor: errorColor,
             ));
