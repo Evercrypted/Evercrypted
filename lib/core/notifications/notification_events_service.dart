@@ -18,7 +18,7 @@ class NotifiacationEventsService {
         );
         break;
       case NotificationEventTypes.goToContactsPage:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => const ContactsScreen(),
