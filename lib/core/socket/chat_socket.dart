@@ -185,10 +185,10 @@ class ChatSocket {
             'Could not connect to server, please check your internet connection.');
       }
     } else {
-      print(key);
       final crypted =
           await encodePayload({'type': type, 'payload': payload}, key);
       socket?.emitWithAck(channel, crypted, ack: (resp) async {
+        print(resp);
         payload = await decodePayload(
           resp,
           key,

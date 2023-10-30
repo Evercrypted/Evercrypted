@@ -35,9 +35,11 @@ class Chat {
         name: json['name'] as String?,
         participants: json['participants'] as List<String>?,
         lastMessageTime: json['lastMessageTime'] as DateTime?,
-        avatar: Avatar.fromJson(
-          json['avatar'],
-        ),
+        avatar: json['avatar'] != null
+            ? Avatar.fromJson(
+                json['avatar'],
+              )
+            : null,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -50,19 +52,11 @@ class Chat {
 }
 
 class NewChatDTO {
-  String? name;
-  List<String> participants;
-  Avatar? avatar;
+  String contact;
 
-  NewChatDTO({
-    this.name,
-    required this.participants,
-    this.avatar,
-  });
+  NewChatDTO({required this.contact});
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'name': name,
-        'participants': participants,
-        'avatar': avatar?.toJson(),
+        'contact': contact,
       };
 }

@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/chats/chats_screen.dart';
@@ -11,13 +12,14 @@ import '../../../widgets/circle_avatar_with_active_indicator.dart';
 import '../../../ui_constants.dart';
 
 class ContactCard extends ConsumerWidget {
-  const ContactCard({
+  ContactCard({
     Key? key,
     required this.contact,
     required this.isActive,
     required this.press,
   }) : super(key: key);
 
+  final ChatService chatService = ChatService();
   final Contact contact;
   final bool isActive;
   final VoidCallback press;
@@ -34,13 +36,16 @@ class ContactCard extends ConsumerWidget {
         ),
       );
     } else {
-      Profile userProfile = ref.read(profileProvider)!;
-      NewChatDTO newChat = NewChatDTO(
-        participants: [
-          contact.contactPersonUid!,
-          userProfile.uid!,
-        ],
-      );
+      NewChatDTO newChat = NewChatDTO(contact: contact.contactPersonUid!);
+      chatService.createNewChat(newChat).then((value) {
+        print(value);
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => const ChatsScreen(),
+        //   ),
+        // );
+      });
     }
   }
 
