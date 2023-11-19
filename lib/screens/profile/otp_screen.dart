@@ -11,7 +11,7 @@ import '../../core/entities/profile/profile_model.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
 import '../../core/services/app_state_riverpod.dart';
 import '../../core/services/settings_service.dart';
-import '../../core/socket/chat_socket.dart';
+import '../../core/socket/socket.dart';
 import '../../core/socket/event_types/settings_event_types.dart';
 import '../../core/socket/socket_channels.dart';
 

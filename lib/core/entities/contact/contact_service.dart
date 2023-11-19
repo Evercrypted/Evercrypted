@@ -1,5 +1,5 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
-import 'package:evercrypted/core/socket/chat_socket.dart';
+import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:isar/isar.dart';

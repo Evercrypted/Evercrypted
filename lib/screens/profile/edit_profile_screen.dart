@@ -106,7 +106,6 @@ class EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 colorPickerDialog().then((value) => print(dialogPickerColor));
               },
             ),
-            const Divider(),
             Form(
               child: Column(
                 children: [

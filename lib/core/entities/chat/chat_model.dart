@@ -14,7 +14,7 @@ class Chat {
   final int? messageLongevitySeconds;
   final String? name;
 
-  final List<String>? participants;
+  final List<Participant>? participants;
 
   final DateTime? lastMessageTime;
 
@@ -23,7 +23,7 @@ class Chat {
   Chat({
     this.uid,
     this.messageLongevitySeconds,
-    required this.name,
+    this.name,
     required this.participants,
     required this.lastMessageTime,
     this.avatar,
@@ -33,7 +33,11 @@ class Chat {
         uid: json['uid'] as String?,
         messageLongevitySeconds: json['messageLongevitySeconds'] as int?,
         name: json['name'] as String?,
-        participants: json['participants'] as List<String>?,
+        participants: json['participants'] != null
+            ? (json['participants'] as List<dynamic>)
+                .map((e) => Participant.fromJson(e))
+                .toList()
+            : null,
         lastMessageTime: json['lastMessageTime'] as DateTime?,
         avatar: json['avatar'] != null
             ? Avatar.fromJson(
@@ -43,10 +47,42 @@ class Chat {
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
+        'uid': uid,
         'name': name,
         'messageLongevitySeconds': messageLongevitySeconds,
         'participants': participants,
         'lastMessageTime': lastMessageTime,
+        'avatar': avatar?.toJson(),
+      };
+}
+
+@embedded
+class Participant {
+  final String? uid;
+  final String? email;
+  final String? name;
+  final DateTime? lastSawChat;
+  final Avatar? avatar;
+
+  Participant({this.uid, this.email, this.name, this.lastSawChat, this.avatar});
+
+  factory Participant.fromJson(Map<String, dynamic> json) => Participant(
+        uid: json['uid'] as String?,
+        email: json['email'] as String?,
+        name: json['name'] as String?,
+        lastSawChat: json['lastSawChat'] as DateTime?,
+        avatar: json['avatar'] != null
+            ? Avatar.fromJson(
+                json['avatar'],
+              )
+            : null,
+      );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'uid': uid,
+        'email': email,
+        'name': name,
+        'lastSawChat': lastSawChat,
         'avatar': avatar?.toJson(),
       };
 }

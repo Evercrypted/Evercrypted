@@ -14,9 +14,9 @@ import 'components/chat_input_field.dart';
 import 'components/message.dart';
 
 class MessagesScreen extends StatefulWidget {
-  final Chat chatRoom;
-  const MessagesScreen({Key? key, required this.chatRoom}) : super(key: key);
-  static const routeName = '/add-new-contact';
+  final Chat chat;
+  const MessagesScreen({Key? key, required this.chat}) : super(key: key);
+  static const routeName = '/messages-screen';
 
   @override
   State<MessagesScreen> createState() => _MessagesScreenState();
@@ -48,7 +48,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       openPasswordDialog(context).then((value) {
         getlastMessageCreatedAtMSE().then((value) {
           startingCreateAtMSE = value ?? 0;
-          _messageService.startListeningAndWritingToDB(widget.chatRoom, value);
+          _messageService.startListeningAndWritingToDB(widget.chat, value);
         }).then((value) async {
           if (startingCreateAtMSE == 0) {
             await Future.delayed(const Duration(seconds: 1));
@@ -219,7 +219,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Future<int?> getlastMessageCreatedAtMSE() async {
     final lastMessageCreatedAtMSE = isar.messages
         .where()
-        .uidEqualTo(widget.chatRoom.uid)
+        .uidEqualTo(widget.chat.uid)
         .sortByTimestamp()
         .findFirstSync()
         ?.timestamp;
@@ -289,7 +289,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 ),
               ),
             ),
-            ChatInputField(chatId: widget.chatRoom.uid!, pass: pass, iv: iv),
+            ChatInputField(chatId: widget.chat.uid!, pass: pass, iv: iv),
           ],
         ));
   }

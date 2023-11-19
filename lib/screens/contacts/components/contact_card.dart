@@ -1,9 +1,7 @@
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
-import 'package:evercrypted/core/entities/profile/profile_model.dart';
-import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
-import 'package:evercrypted/screens/chats/chats_screen.dart';
+import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,31 +24,30 @@ class ContactCard extends ConsumerWidget {
 
   openChat(BuildContext context, WidgetRef ref) {
     List<Chat> chats = ref.read(chatsProvider);
-    if (chats.any((element) =>
-        element.participants?.length == 2 &&
-        element.participants?.contains(contact.contactPersonUid) == true)) {
+    Chat? foundChat = chats
+        .where((element) => (element.participants?.length == 2 &&
+            element.participants!.any((element) => element.uid == contact.uid)))
+        .firstOrNull;
+    if (foundChat != null) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const ChatsScreen(),
+          builder: (context) => MessagesScreen(
+            chat: foundChat,
+          ),
         ),
       );
     } else {
       NewChatDTO newChat = NewChatDTO(contact: contact.contactPersonUid!);
-      chatService.createNewChat(newChat).then((value) {
-        print(value);
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => const ChatsScreen(),
-        //   ),
-        // );
+      chatService.createNewChat(newChat).then((Chat returnedChat) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MessagesScreen(chat: returnedChat),
+          ),
+        );
       });
     }
-  }
-
-  checkIfChatIsOpenWithContact(WidgetRef ref) {
-    print(contact.uid);
   }
 
   @override

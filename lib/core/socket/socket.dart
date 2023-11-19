@@ -39,6 +39,7 @@ class ChatSocket {
   num tries = 0;
 
   static const channelsToListen = [
+    SocketChannelTypes.chat,
     SocketChannelTypes.error,
     SocketChannelTypes.contactRequest,
     SocketChannelTypes.contact,

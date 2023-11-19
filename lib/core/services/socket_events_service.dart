@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
+import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
@@ -35,6 +38,9 @@ class SocketEventsService {
         break;
       case SocketChannelTypes.error:
         handleErrorEvent(ref, type, payload);
+        break;
+      case SocketChannelTypes.chat:
+        handleChatEvent(ref, type, payload);
         break;
       default:
         print('Unknown Event');
@@ -136,6 +142,29 @@ class SocketEventsService {
         LocalNotification.instance.displayNotification(
           'Contact',
           'Your contact $contactEmail has deleted chat with you and removed you from their contacts',
+          json.encode({
+            'type': null,
+          }),
+        );
+        break;
+      default:
+        print('Unknown Contact Event');
+        print(payload);
+    }
+  }
+
+  handleChatEvent(WidgetRef ref, String type, dynamic payload) {
+    switch (type) {
+      case ChatEventTypes.chatCreated:
+        Chat chat = Chat.fromJson(payload);
+        chatService.syncChats([chat]);
+        String creatorEmail = chat.participants!
+            .firstWhere(
+                (element) => element.uid != ref.read(profileProvider)?.uid)
+            .email!;
+        LocalNotification.instance.displayNotification(
+          'Contact',
+          'Your contact $creatorEmail has created a chat with you',
           json.encode({
             'type': null,
           }),

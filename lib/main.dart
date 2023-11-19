@@ -32,7 +32,7 @@ import 'core/entities/contact-request/contact_request_riverpod.dart';
 import 'core/entities/contact/contact_model.dart';
 import 'core/entities/contact/contact_riverpod.dart';
 import 'core/services/app_state_riverpod.dart';
-import 'core/socket/chat_socket.dart';
+import 'core/socket/socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'core/interceptors/auth_interceptor.dart';
@@ -199,7 +199,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         flutterLocalNotificationsPlugin
             .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestPermission();
+            ?.requestNotificationsPermission();
       }
     }
 

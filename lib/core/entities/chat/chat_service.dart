@@ -1,4 +1,6 @@
-import 'package:evercrypted/core/socket/chat_socket.dart';
+import 'dart:async';
+
+import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:isar/isar.dart';
@@ -6,7 +8,9 @@ import 'package:isar/isar.dart';
 import 'chat_model.dart';
 
 class ChatService {
-  void syncChats(List<Chat> chats) async {
+  Future<void> syncChats(List<Chat> chats) async {
+    Completer<void> complete = Completer();
+
     final isar = Isar.getInstance();
 
     final List<Chat> chatsInDb = await isar!.chats.where().findAll();
@@ -18,17 +22,22 @@ class ChatService {
 
     await isar.writeTxn(() async {
       await isar.chats.putAll(contactRequestsToPut);
+      complete.complete();
     });
+    return complete.future;
   }
 
-  createNewChat(NewChatDTO newChatDTO) async {
-    return ChatSocket.instance
+  Future<Chat> createNewChat(NewChatDTO newChatDTO) async {
+    Completer<Chat> complete = Completer();
+    ChatSocket.instance
         .emitWAck(SocketChannelTypes.chat, ChatEventTypes.createChat,
             newChatDTO.toJson())
         .then((resp) {
       final Chat returnedChat = Chat.fromJson(resp);
-      syncChats([returnedChat]);
+      syncChats([returnedChat])
+          .then((value) => complete.complete(returnedChat));
     });
+    return complete.future;
   }
 
   deleteChat(String chatUid) async {

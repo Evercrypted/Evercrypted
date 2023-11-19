@@ -3,7 +3,7 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_model.
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:isar/isar.dart';
 
-import '../../socket/chat_socket.dart';
+import '../../socket/socket.dart';
 import '../../socket/socket_channels.dart';
 import '../contact/contact_service.dart';
 import '../../socket/event_types/contact_request_event_types.dart';
