@@ -62,6 +62,19 @@ const ContactSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'contactPersonUid': IndexSchema(
+      id: 3100243367718636021,
+      name: r'contactPersonUid',
+      unique: true,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'contactPersonUid',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -241,6 +254,63 @@ extension ContactByIndex on IsarCollection<Contact> {
   List<Id> putAllByUidSync(List<Contact> objects, {bool saveLinks = true}) {
     return putAllByIndexSync(r'uid', objects, saveLinks: saveLinks);
   }
+
+  Future<Contact?> getByContactPersonUid(String? contactPersonUid) {
+    return getByIndex(r'contactPersonUid', [contactPersonUid]);
+  }
+
+  Contact? getByContactPersonUidSync(String? contactPersonUid) {
+    return getByIndexSync(r'contactPersonUid', [contactPersonUid]);
+  }
+
+  Future<bool> deleteByContactPersonUid(String? contactPersonUid) {
+    return deleteByIndex(r'contactPersonUid', [contactPersonUid]);
+  }
+
+  bool deleteByContactPersonUidSync(String? contactPersonUid) {
+    return deleteByIndexSync(r'contactPersonUid', [contactPersonUid]);
+  }
+
+  Future<List<Contact?>> getAllByContactPersonUid(
+      List<String?> contactPersonUidValues) {
+    final values = contactPersonUidValues.map((e) => [e]).toList();
+    return getAllByIndex(r'contactPersonUid', values);
+  }
+
+  List<Contact?> getAllByContactPersonUidSync(
+      List<String?> contactPersonUidValues) {
+    final values = contactPersonUidValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'contactPersonUid', values);
+  }
+
+  Future<int> deleteAllByContactPersonUid(
+      List<String?> contactPersonUidValues) {
+    final values = contactPersonUidValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'contactPersonUid', values);
+  }
+
+  int deleteAllByContactPersonUidSync(List<String?> contactPersonUidValues) {
+    final values = contactPersonUidValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'contactPersonUid', values);
+  }
+
+  Future<Id> putByContactPersonUid(Contact object) {
+    return putByIndex(r'contactPersonUid', object);
+  }
+
+  Id putByContactPersonUidSync(Contact object, {bool saveLinks = true}) {
+    return putByIndexSync(r'contactPersonUid', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByContactPersonUid(List<Contact> objects) {
+    return putAllByIndex(r'contactPersonUid', objects);
+  }
+
+  List<Id> putAllByContactPersonUidSync(List<Contact> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'contactPersonUid', objects,
+        saveLinks: saveLinks);
+  }
 }
 
 extension ContactQueryWhereSort on QueryBuilder<Contact, Contact, QWhere> {
@@ -374,6 +444,72 @@ extension ContactQueryWhere on QueryBuilder<Contact, Contact, QWhereClause> {
               indexName: r'uid',
               lower: [],
               upper: [uid],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterWhereClause> contactPersonUidIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'contactPersonUid',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterWhereClause>
+      contactPersonUidIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'contactPersonUid',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterWhereClause> contactPersonUidEqualTo(
+      String? contactPersonUid) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'contactPersonUid',
+        value: [contactPersonUid],
+      ));
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterWhereClause> contactPersonUidNotEqualTo(
+      String? contactPersonUid) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'contactPersonUid',
+              lower: [],
+              upper: [contactPersonUid],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'contactPersonUid',
+              lower: [contactPersonUid],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'contactPersonUid',
+              lower: [contactPersonUid],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'contactPersonUid',
+              lower: [],
+              upper: [contactPersonUid],
               includeUpper: false,
             ));
       }

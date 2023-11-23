@@ -8,7 +8,8 @@ import 'message_isar.dart';
 class MessageService {
   StreamSubscription? fbListener;
 
-  void startListeningAndWritingToDB(Chat chatRoom, int? lastMessageTime) async {
+  void startListeningAndWritingToDB(
+      Chat chatRoom, DateTime? lastMessageTime) async {
     // final userId = FirebaseAuth.instance.currentUser?.uid;
     // final participantsToListenTo =
     //     chatRoom.participants!.where((element) => element != userId).toList();
@@ -43,7 +44,7 @@ class MessageService {
     final isar = Isar.getInstance();
     return isar!.messages
         .where()
-        .sortByTimestamp()
+        .sortByCreatedAtMSE()
         .offset(pageKey * pageSize)
         .limit(pageSize)
         .findAllSync()

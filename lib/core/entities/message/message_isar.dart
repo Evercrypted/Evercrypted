@@ -10,32 +10,22 @@ class Message {
   @Index()
   String? uid;
 
-  String authorEmail;
+  String authorId;
 
   String? text;
   List<String>? fileIds;
 
   @Index()
-  int timestamp;
+  int createdAtMSE;
 
-  int messageType;
-
-  @ignore
-  get createdAt {
-    return DateTime.fromMillisecondsSinceEpoch(timestamp);
-  }
+  @Index(unique: true)
+  String? chatUid;
 
   Message({
     this.uid,
-    required this.authorEmail,
+    required this.authorId,
     this.text,
     this.fileIds,
-    required this.timestamp,
-    required this.messageType,
+    required this.createdAtMSE,
   });
-}
-
-class MessageTypes {
-  MessageTypes._();
-  static const v1 = 1;
 }

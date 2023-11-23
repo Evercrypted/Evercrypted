@@ -13,6 +13,7 @@ class Contact {
 
   final String? email;
 
+  @Index(unique: true)
   final String? contactPersonUid;
 
   final Avatar? avatar;

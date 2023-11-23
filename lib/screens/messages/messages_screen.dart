@@ -15,7 +15,7 @@ import 'components/message.dart';
 
 class MessagesScreen extends StatefulWidget {
   final Chat chat;
-  const MessagesScreen({Key? key, required this.chat}) : super(key: key);
+  const MessagesScreen({super.key, required this.chat});
   static const routeName = '/messages-screen';
 
   @override
@@ -48,7 +48,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
       openPasswordDialog(context).then((value) {
         getlastMessageCreatedAtMSE().then((value) {
           startingCreateAtMSE = value ?? 0;
-          _messageService.startListeningAndWritingToDB(widget.chat, value);
         }).then((value) async {
           if (startingCreateAtMSE == 0) {
             await Future.delayed(const Duration(seconds: 1));
@@ -220,9 +219,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
     final lastMessageCreatedAtMSE = isar.messages
         .where()
         .uidEqualTo(widget.chat.uid)
-        .sortByTimestamp()
+        .sortByCreatedAtMSE()
         .findFirstSync()
-        ?.timestamp;
+        ?.createdAtMSE;
     return lastMessageCreatedAtMSE;
   }
 
@@ -230,8 +229,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
     startedListeningToIsar = true;
     Query<Message> messagesQuery = isar.messages
         .where()
-        .timestampGreaterThan(startingCreateAtMSE)
-        .sortByTimestamp()
+        .chatUidEqualTo(widget.chat.uid)
+        .filter()
+        .createdAtMSEGreaterThan(startingCreateAtMSE)
+        .sortByCreatedAtMSE()
         .limit(1)
         .build();
 
@@ -256,7 +257,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         _pagingController.appendPage(newItems, nextPageKey);
       }
       if (pageKey == 0 && newItems.isNotEmpty) {
-        startingCreateAtMSE = newItems.first.timestamp;
+        startingCreateAtMSE = newItems.first.createdAtMSE;
       }
     } catch (error) {
       _pagingController.error = error;
@@ -280,7 +281,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     final chatMessage = ChatMessage(
                       text: item.text!,
                       messageType: ChatMessageType.text,
-                      isSender: item.authorEmail == userId,
+                      isSender: item.authorId == userId,
                       messageStatus: MessageStatus.viewed,
                     );
                     return MessageWidget(

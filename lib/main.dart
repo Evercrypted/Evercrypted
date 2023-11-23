@@ -226,9 +226,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
   void _syncIsarToRiverpod(User user) {
     final isar = Isar.getInstance();
 
+    //profile
     final profile = isar?.profiles.where().build().findFirstSync();
     if (profile != null) ref.read(profileProvider.notifier).setProfile(profile);
 
+    //contactRequests
     final contactRequests = isar?.contactRequests.where().build().findAllSync();
     if (contactRequests != null) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
@@ -240,11 +242,13 @@ class AuthGateState extends ConsumerState<AuthGate> {
           .toList());
     }
 
+    //contacts
     final contacts = isar?.contacts.where().build().findAllSync();
     if (contacts != null) {
       ref.read(contactsProvider.notifier).setContacts(contacts);
     }
 
+    //chats
     final chats = isar?.chats.where().build().findAllSync();
     if (chats != null) {
       ref.read(chatsProvider.notifier).setChats(chats);
@@ -254,12 +258,13 @@ class AuthGateState extends ConsumerState<AuthGate> {
   void _setIsarWatchers(User user) {
     final isar = Isar.getInstance();
 
+    //profile
     isar?.profiles.where().build().watch().listen((profiles) {
       if (profiles.isNotEmpty) {
         ref.read(profileProvider.notifier).setProfile(profiles.first);
       }
     });
-
+    //contactRequests
     isar?.contactRequests.where().build().watch().listen((contactRequests) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
           contactRequests
@@ -269,14 +274,15 @@ class AuthGateState extends ConsumerState<AuthGate> {
           .where((element) => element.authorId == user.uid)
           .toList());
     });
-
+    //contacts
     isar?.contacts.where().build().watch().listen((contacts) {
       ref.read(contactsProvider.notifier).setContacts(contacts);
     });
-
+    //chats
     isar?.chats.where().build().watch().listen((chats) {
       ref.read(chatsProvider.notifier).setChats(chats);
     });
+    //messages
   }
 
   _getTokenAndAddAuthInterceptor(User user) {
