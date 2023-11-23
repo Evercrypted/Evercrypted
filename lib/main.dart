@@ -60,7 +60,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -86,7 +86,7 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthGate extends ConsumerStatefulWidget {
-  const AuthGate({Key? key}) : super(key: key);
+  const AuthGate({super.key});
 
   @override
   AuthGateState createState() => AuthGateState();

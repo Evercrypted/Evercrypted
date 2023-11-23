@@ -68,6 +68,19 @@ const ChatSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'lastMessageTime': IndexSchema(
+      id: -209683041052770976,
+      name: r'lastMessageTime',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastMessageTime',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -97,18 +110,12 @@ int _chatEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.participants.length * 3;
   {
-    final list = object.participants;
-    if (list != null) {
-      bytesCount += 3 + list.length * 3;
-      {
-        final offsets = allOffsets[Participant]!;
-        for (var i = 0; i < list.length; i++) {
-          final value = list[i];
-          bytesCount +=
-              ParticipantSchema.estimateSize(value, offsets, allOffsets);
-        }
-      }
+    final offsets = allOffsets[Participant]!;
+    for (var i = 0; i < object.participants.length; i++) {
+      final value = object.participants[i];
+      bytesCount += ParticipantSchema.estimateSize(value, offsets, allOffsets);
     }
   }
   {
@@ -160,11 +167,12 @@ Chat _chatDeserialize(
     messageLongevitySeconds: reader.readLongOrNull(offsets[2]),
     name: reader.readStringOrNull(offsets[3]),
     participants: reader.readObjectList<Participant>(
-      offsets[4],
-      ParticipantSchema.deserialize,
-      allOffsets,
-      Participant(),
-    ),
+          offsets[4],
+          ParticipantSchema.deserialize,
+          allOffsets,
+          Participant(),
+        ) ??
+        [],
     uid: reader.readStringOrNull(offsets[5]),
   );
   object.id = id;
@@ -192,11 +200,12 @@ P _chatDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readObjectList<Participant>(
-        offset,
-        ParticipantSchema.deserialize,
-        allOffsets,
-        Participant(),
-      )) as P;
+            offset,
+            ParticipantSchema.deserialize,
+            allOffsets,
+            Participant(),
+          ) ??
+          []) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     default:
@@ -274,6 +283,14 @@ extension ChatQueryWhereSort on QueryBuilder<Chat, Chat, QWhere> {
   QueryBuilder<Chat, Chat, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterWhere> anyLastMessageTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'lastMessageTime'),
+      );
     });
   }
 }
@@ -404,6 +421,116 @@ extension ChatQueryWhere on QueryBuilder<Chat, Chat, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterWhereClause> lastMessageTimeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastMessageTime',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterWhereClause> lastMessageTimeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastMessageTime',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterWhereClause> lastMessageTimeEqualTo(
+      DateTime? lastMessageTime) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastMessageTime',
+        value: [lastMessageTime],
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterWhereClause> lastMessageTimeNotEqualTo(
+      DateTime? lastMessageTime) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastMessageTime',
+              lower: [],
+              upper: [lastMessageTime],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastMessageTime',
+              lower: [lastMessageTime],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastMessageTime',
+              lower: [lastMessageTime],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastMessageTime',
+              lower: [],
+              upper: [lastMessageTime],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterWhereClause> lastMessageTimeGreaterThan(
+    DateTime? lastMessageTime, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastMessageTime',
+        lower: [lastMessageTime],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterWhereClause> lastMessageTimeLessThan(
+    DateTime? lastMessageTime, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastMessageTime',
+        lower: [],
+        upper: [lastMessageTime],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterWhereClause> lastMessageTimeBetween(
+    DateTime? lowerLastMessageTime,
+    DateTime? upperLastMessageTime, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastMessageTime',
+        lower: [lowerLastMessageTime],
+        includeLower: includeLower,
+        upper: [upperLastMessageTime],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -760,22 +887,6 @@ extension ChatQueryFilter on QueryBuilder<Chat, Chat, QFilterCondition> {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'name',
         value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'participants',
-      ));
-    });
-  }
-
-  QueryBuilder<Chat, Chat, QAfterFilterCondition> participantsIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'participants',
       ));
     });
   }
@@ -1198,7 +1309,7 @@ extension ChatQueryProperty on QueryBuilder<Chat, Chat, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Chat, List<Participant>?, QQueryOperations>
+  QueryBuilder<Chat, List<Participant>, QQueryOperations>
       participantsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'participants');

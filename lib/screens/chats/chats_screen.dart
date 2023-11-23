@@ -1,5 +1,3 @@
-import 'package:evercrypted/core/entities/chat/chat_model.dart';
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,9 +15,6 @@ class ChatsScreen extends ConsumerStatefulWidget {
 class ChatsScreenState extends ConsumerState<ChatsScreen> {
   @override
   Widget build(BuildContext context) {
-    final chats = ref.watch(chatsProvider);
-    print(chats.map((x) => x.toJson()).toList());
-
     return Scaffold(
       appBar: buildAppBar(context),
       body: ChatList(),

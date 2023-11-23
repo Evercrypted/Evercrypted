@@ -25,11 +25,12 @@ class ContactCard extends ConsumerWidget {
   openChat(BuildContext context, WidgetRef ref) {
     List<Chat> chats = ref.read(chatsProvider);
     Chat? foundChat = chats
-        .where((element) => (element.participants?.length == 2 &&
-            element.participants!.any((element) => element.uid == contact.uid)))
+        .where((element) => (element.participants.length == 2 &&
+            element.participants
+                .any((element) => element.uid == contact.contactPersonUid)))
         .firstOrNull;
     if (foundChat != null) {
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => MessagesScreen(
@@ -54,14 +55,22 @@ class ContactCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
       leading: CircleAvatarWithActiveIndicator(
-        image: contact.avatar!.pic,
+        image: contact.avatar?.pic,
         isActive: isActive,
         radius: 28,
         name: contact.name ?? contact.email!.split('@')[0],
       ),
       title: contact.name != null
-          ? Text(contact.name!)
-          : Text(contact.email!.split('@')[0]),
+          ? Text(
+              contact.name!,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            )
+          : Text(
+              contact.email!.split('@')[0],
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: defaultPadding / 2),
         child: Text(

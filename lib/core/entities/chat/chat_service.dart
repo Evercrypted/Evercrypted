@@ -33,7 +33,7 @@ class ChatService {
         .emitWAck(SocketChannelTypes.chat, ChatEventTypes.createChat,
             newChatDTO.toJson())
         .then((resp) {
-      final Chat returnedChat = Chat.fromJson(resp);
+      final Chat returnedChat = Chat.fromJson(resp['chat']);
       syncChats([returnedChat])
           .then((value) => complete.complete(returnedChat));
     });

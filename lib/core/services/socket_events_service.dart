@@ -1,15 +1,14 @@
 import 'dart:convert';
 
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
-import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../entities/chat/chat_model.dart';
@@ -154,13 +153,13 @@ class SocketEventsService {
   }
 
   handleChatEvent(WidgetRef ref, String type, dynamic payload) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
     switch (type) {
       case ChatEventTypes.chatCreated:
-        Chat chat = Chat.fromJson(payload);
+        Chat chat = Chat.fromJson(payload['chat']);
         chatService.syncChats([chat]);
-        String creatorEmail = chat.participants!
-            .firstWhere(
-                (element) => element.uid != ref.read(profileProvider)?.uid)
+        String creatorEmail = chat.participants
+            .firstWhere((element) => element.uid != userId)
             .email!;
         LocalNotification.instance.displayNotification(
           'Contact',
