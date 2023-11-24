@@ -16,6 +16,7 @@ import 'package:evercrypted/screens/auth/signin_or_signup_screen.dart';
 import 'package:evercrypted/screens/auth/verification_screen.dart';
 import 'package:evercrypted/screens/contacts/add_new_contact_screen.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
+import 'package:evercrypted/screens/main/main_screen.dart';
 import 'package:evercrypted/screens/mainpage.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
@@ -79,6 +80,7 @@ class MyApp extends StatelessWidget {
           ContactsScreen.routeName: (ctx) => const ContactsScreen(),
           AddNewContactScreen.routeName: (ctx) => const AddNewContactScreen(),
           OtpScreen.routeName: (ctx) => const OtpScreen(),
+          MainScreen.routeName: (ctx) => const MainScreen(),
         },
       ),
     );

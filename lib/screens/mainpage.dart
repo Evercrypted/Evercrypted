@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'main/main_screen.dart';
 
 class MainWidget extends StatefulWidget {
-  const MainWidget({Key? key}) : super(key: key);
+  const MainWidget({super.key});
 
   @override
   MainWidgetState createState() => MainWidgetState();

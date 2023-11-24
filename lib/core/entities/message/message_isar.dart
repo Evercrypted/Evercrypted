@@ -13,6 +13,10 @@ class Message {
   String authorId;
 
   String? text;
+  String? iv;
+  String? mac;
+  bool isEncrypted;
+
   List<String>? fileIds;
 
   @Index()
@@ -27,5 +31,7 @@ class Message {
     this.text,
     this.fileIds,
     required this.createdAtMSE,
+    this.iv,
+    this.isEncrypted = false,
   });
 }

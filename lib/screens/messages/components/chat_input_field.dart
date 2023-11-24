@@ -1,17 +1,15 @@
+import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/entities/message/message_service.dart';
 import '../../../ui_constants.dart';
 import 'voice_recorder_button.dart';
 import 'message_attachment.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 
 class ChatInputField extends StatefulWidget {
   final String chatId;
   final String? pass;
-  final String? iv;
-  const ChatInputField({Key? key, required this.chatId, this.pass, this.iv})
-      : super(key: key);
+  const ChatInputField({super.key, required this.chatId, this.pass});
 
   @override
   ChatInputFieldState createState() => ChatInputFieldState();
@@ -28,26 +26,18 @@ class ChatInputFieldState extends State<ChatInputField> {
     });
   }
 
-  void sendMessage(String message) {
-    var encr = message;
+  void sendMessage(String message) async {
+    dynamic encr = message;
     if (widget.pass != null) {
       if (widget.pass != null && widget.pass!.isNotEmpty == true) {
         var fullKeyString = widget.pass;
         if (fullKeyString!.length < 32) {
           fullKeyString = fullKeyString + '0' * (32 - widget.pass!.length);
         }
-        final key = encrypt.Key.fromUtf8(fullKeyString);
-        final encrypter = encrypt.Encrypter(encrypt.AES(key));
-        if (widget.iv != null) {
-          final iv = encrypt.IV.fromUtf8(widget.iv!);
-          encr = encrypter.encrypt(message, iv: iv).base64;
-        } else {
-          encr = encrypter.encrypt(message).base64;
-        }
+        encr = await encodePayload(message, fullKeyString, true);
       }
     }
-    const newMessage = null;
-    _messageService.sendMessage(newMessage);
+    _messageService.sendMessage(encr);
     messageField.clear();
   }
 

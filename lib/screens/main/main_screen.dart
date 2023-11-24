@@ -12,7 +12,8 @@ import '../profile/profile_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key});
+  static const routeName = '/main';
 
   @override
   MainScreenState createState() => MainScreenState();

@@ -51,13 +51,14 @@ class MessageService {
         .toList();
   }
 
-  void sendMessage(Message message) async {
-    final isar = Isar.getInstance();
-    await isar?.writeTxn(() async {
-      await isar.messages.put(message); // insert & update
-    }).then((value) {
-      // writeMessageToFB(message);
-    });
+  void sendMessage(dynamic message) async {
+    print(message is String ? message : message.toString());
+    // final isar = Isar.getInstance();
+    // await isar?.writeTxn(() async {
+    //   await isar.messages.put(message); // insert & update
+    // }).then((value) {
+
+    // });
   }
 
   void stopListening() {

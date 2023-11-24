@@ -18,11 +18,12 @@ decodePayload(
   return json.decode(utf8.decode(clearText));
 }
 
-encodePayload(message, key) async {
+encodePayload(message, key, [bool notHex = false]) async {
   final algorithm = Chacha20.poly1305Aead();
   final secretBox = await algorithm.encrypt(
       utf8.encode(json.encode(message).toString()),
-      secretKey: SecretKey(hex.decode(key)));
+      secretKey:
+          SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
   return {
     'crypted': base64.encode(secretBox.cipherText),
     'iv': base64.encode(secretBox.nonce),
