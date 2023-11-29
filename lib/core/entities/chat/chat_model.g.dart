@@ -118,12 +118,7 @@ int _chatEstimateSize(
       bytesCount += ParticipantSchema.estimateSize(value, offsets, allOffsets);
     }
   }
-  {
-    final value = object.uid;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.uid.length * 3;
   return bytesCount;
 }
 
@@ -173,7 +168,7 @@ Chat _chatDeserialize(
           Participant(),
         ) ??
         [],
-    uid: reader.readStringOrNull(offsets[5]),
+    uid: reader.readString(offsets[5]),
   );
   object.id = id;
   return object;
@@ -207,7 +202,7 @@ P _chatDeserializeProp<P>(
           ) ??
           []) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -226,38 +221,38 @@ void _chatAttach(IsarCollection<dynamic> col, Id id, Chat object) {
 }
 
 extension ChatByIndex on IsarCollection<Chat> {
-  Future<Chat?> getByUid(String? uid) {
+  Future<Chat?> getByUid(String uid) {
     return getByIndex(r'uid', [uid]);
   }
 
-  Chat? getByUidSync(String? uid) {
+  Chat? getByUidSync(String uid) {
     return getByIndexSync(r'uid', [uid]);
   }
 
-  Future<bool> deleteByUid(String? uid) {
+  Future<bool> deleteByUid(String uid) {
     return deleteByIndex(r'uid', [uid]);
   }
 
-  bool deleteByUidSync(String? uid) {
+  bool deleteByUidSync(String uid) {
     return deleteByIndexSync(r'uid', [uid]);
   }
 
-  Future<List<Chat?>> getAllByUid(List<String?> uidValues) {
+  Future<List<Chat?>> getAllByUid(List<String> uidValues) {
     final values = uidValues.map((e) => [e]).toList();
     return getAllByIndex(r'uid', values);
   }
 
-  List<Chat?> getAllByUidSync(List<String?> uidValues) {
+  List<Chat?> getAllByUidSync(List<String> uidValues) {
     final values = uidValues.map((e) => [e]).toList();
     return getAllByIndexSync(r'uid', values);
   }
 
-  Future<int> deleteAllByUid(List<String?> uidValues) {
+  Future<int> deleteAllByUid(List<String> uidValues) {
     final values = uidValues.map((e) => [e]).toList();
     return deleteAllByIndex(r'uid', values);
   }
 
-  int deleteAllByUidSync(List<String?> uidValues) {
+  int deleteAllByUidSync(List<String> uidValues) {
     final values = uidValues.map((e) => [e]).toList();
     return deleteAllByIndexSync(r'uid', values);
   }
@@ -361,27 +356,7 @@ extension ChatQueryWhere on QueryBuilder<Chat, Chat, QWhereClause> {
     });
   }
 
-  QueryBuilder<Chat, Chat, QAfterWhereClause> uidIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'uid',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<Chat, Chat, QAfterWhereClause> uidIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'uid',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Chat, Chat, QAfterWhereClause> uidEqualTo(String? uid) {
+  QueryBuilder<Chat, Chat, QAfterWhereClause> uidEqualTo(String uid) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'uid',
@@ -390,7 +365,7 @@ extension ChatQueryWhere on QueryBuilder<Chat, Chat, QWhereClause> {
     });
   }
 
-  QueryBuilder<Chat, Chat, QAfterWhereClause> uidNotEqualTo(String? uid) {
+  QueryBuilder<Chat, Chat, QAfterWhereClause> uidNotEqualTo(String uid) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -975,24 +950,8 @@ extension ChatQueryFilter on QueryBuilder<Chat, Chat, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'uid',
-      ));
-    });
-  }
-
-  QueryBuilder<Chat, Chat, QAfterFilterCondition> uidIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'uid',
-      ));
-    });
-  }
-
   QueryBuilder<Chat, Chat, QAfterFilterCondition> uidEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1005,7 +964,7 @@ extension ChatQueryFilter on QueryBuilder<Chat, Chat, QFilterCondition> {
   }
 
   QueryBuilder<Chat, Chat, QAfterFilterCondition> uidGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1020,7 +979,7 @@ extension ChatQueryFilter on QueryBuilder<Chat, Chat, QFilterCondition> {
   }
 
   QueryBuilder<Chat, Chat, QAfterFilterCondition> uidLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1035,8 +994,8 @@ extension ChatQueryFilter on QueryBuilder<Chat, Chat, QFilterCondition> {
   }
 
   QueryBuilder<Chat, Chat, QAfterFilterCondition> uidBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1316,7 +1275,7 @@ extension ChatQueryProperty on QueryBuilder<Chat, Chat, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Chat, String?, QQueryOperations> uidProperty() {
+  QueryBuilder<Chat, String, QQueryOperations> uidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'uid');
     });

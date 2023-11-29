@@ -9,7 +9,7 @@ class Chat {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  final String? uid;
+  final String uid;
 
   final int? messageLongevitySeconds;
   final String? name;
@@ -22,7 +22,7 @@ class Chat {
   Avatar? avatar;
 
   Chat({
-    this.uid,
+    required this.uid,
     this.messageLongevitySeconds,
     this.name,
     required this.participants,
@@ -31,7 +31,7 @@ class Chat {
   });
 
   factory Chat.fromJson(Map<String, dynamic> json) => Chat(
-        uid: json['uid'] as String?,
+        uid: json['uid'] as String,
         messageLongevitySeconds: json['messageLongevitySeconds'] as int?,
         name: json['name'] as String?,
         participants: (json['participants'] as List<dynamic>)

@@ -37,7 +37,7 @@ class ChatInputFieldState extends State<ChatInputField> {
         encr = await encodePayload(message, fullKeyString, true);
       }
     }
-    _messageService.sendMessage(encr);
+    _messageService.sendMessage(encr, widget.chatId);
     messageField.clear();
   }
 
