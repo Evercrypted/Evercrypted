@@ -22,7 +22,7 @@ class Message {
   @Index()
   int createdAtMSE;
 
-  @Index(unique: true)
+  @Index()
   String chatUid;
 
   Message({

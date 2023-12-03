@@ -98,7 +98,7 @@ const MessageSchema = CollectionSchema(
     r'chatUid': IndexSchema(
       id: -3147060526817715915,
       name: r'chatUid',
-      unique: true,
+      unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
@@ -242,60 +242,6 @@ List<IsarLinkBase<dynamic>> _messageGetLinks(Message object) {
 
 void _messageAttach(IsarCollection<dynamic> col, Id id, Message object) {
   object.id = id;
-}
-
-extension MessageByIndex on IsarCollection<Message> {
-  Future<Message?> getByChatUid(String chatUid) {
-    return getByIndex(r'chatUid', [chatUid]);
-  }
-
-  Message? getByChatUidSync(String chatUid) {
-    return getByIndexSync(r'chatUid', [chatUid]);
-  }
-
-  Future<bool> deleteByChatUid(String chatUid) {
-    return deleteByIndex(r'chatUid', [chatUid]);
-  }
-
-  bool deleteByChatUidSync(String chatUid) {
-    return deleteByIndexSync(r'chatUid', [chatUid]);
-  }
-
-  Future<List<Message?>> getAllByChatUid(List<String> chatUidValues) {
-    final values = chatUidValues.map((e) => [e]).toList();
-    return getAllByIndex(r'chatUid', values);
-  }
-
-  List<Message?> getAllByChatUidSync(List<String> chatUidValues) {
-    final values = chatUidValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'chatUid', values);
-  }
-
-  Future<int> deleteAllByChatUid(List<String> chatUidValues) {
-    final values = chatUidValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'chatUid', values);
-  }
-
-  int deleteAllByChatUidSync(List<String> chatUidValues) {
-    final values = chatUidValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'chatUid', values);
-  }
-
-  Future<Id> putByChatUid(Message object) {
-    return putByIndex(r'chatUid', object);
-  }
-
-  Id putByChatUidSync(Message object, {bool saveLinks = true}) {
-    return putByIndexSync(r'chatUid', object, saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByChatUid(List<Message> objects) {
-    return putAllByIndex(r'chatUid', objects);
-  }
-
-  List<Id> putAllByChatUidSync(List<Message> objects, {bool saveLinks = true}) {
-    return putAllByIndexSync(r'chatUid', objects, saveLinks: saveLinks);
-  }
 }
 
 extension MessageQueryWhereSort on QueryBuilder<Message, Message, QWhere> {

@@ -189,7 +189,6 @@ class ChatSocket {
       final crypted =
           await encodePayload({'type': type, 'payload': payload}, key);
       socket?.emitWithAck(channel, crypted, ack: (resp) async {
-        print(resp);
         payload = await decodePayload(
           resp,
           key,

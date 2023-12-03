@@ -27,7 +27,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   final MessageService _messageService = MessageService();
   late Isar? isar = Isar.getInstance();
   final userId = FirebaseAuth.instance.currentUser?.uid;
-  late int startingCreateAtMSE;
+  late int startingCreatedAtMSE;
   int nextPageKey = 1;
   bool startedListeningToIsar = false;
   bool _passwordVisible = false;
@@ -45,21 +45,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       openPasswordDialog(context).then((value) {
         getlastMessageCreatedAtMSE().then((value) {
-          startingCreateAtMSE = value ?? 0;
+          startingCreatedAtMSE = value ?? 0;
         }).then((value) async {
-          if (startingCreateAtMSE == 0) {
+          if (startingCreatedAtMSE == 0) {
             await Future.delayed(const Duration(seconds: 1));
           }
-          _pagingController.addPageRequestListener((pageKey) {
-            if (!startedListeningToIsar) {
-              _fetchPage(pageKey).then((value) {
-                listenToIsarChanges();
-              });
-            } else {
-              _fetchPage(pageKey);
-            }
+          _fetchPage(0).then((value) {
+            listenToIsarChanges();
           });
-          _fetchPage(0).then((value) {});
         });
       });
     });
@@ -179,8 +172,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
         .where()
         .chatUidEqualTo(widget.chat.uid)
         .filter()
-        .createdAtMSEGreaterThan(startingCreateAtMSE)
-        .sortByCreatedAtMSE()
+        .createdAtMSEGreaterThan(startingCreatedAtMSE)
+        .sortByCreatedAtMSEDesc()
         .limit(1)
         .build();
 
@@ -205,7 +198,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         _pagingController.appendPage(newItems, nextPageKey);
       }
       if (pageKey == 0 && newItems.isNotEmpty) {
-        startingCreateAtMSE = newItems.first.createdAtMSE;
+        startingCreatedAtMSE = newItems.last.createdAtMSE;
       }
     } catch (error) {
       _pagingController.error = error;
@@ -225,20 +218,21 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   reverse: true,
                   pagingController: _pagingController,
                   builderDelegate: PagedChildBuilderDelegate<Message>(
+                      newPageProgressIndicatorBuilder: (context) => Container(),
                       itemBuilder: (context, item, index) {
-                    final chatMessage = ChatMessage(
-                      text: item.text!,
-                      messageType: ChatMessageType.text,
-                      isSender: item.authorId == userId,
-                      messageStatus: MessageStatus.viewed,
-                    );
-                    return MessageWidget(message: chatMessage, pass: pass);
-                  }),
+                        final chatMessage = ChatMessage(
+                          text: item.text!,
+                          messageType: ChatMessageType.text,
+                          isSender: item.authorId == userId,
+                          messageStatus: MessageStatus.viewed,
+                        );
+                        return MessageWidget(message: chatMessage, pass: pass);
+                      }),
                 ),
               ),
             ),
             ChatInputField(
-              chatId: widget.chat.uid!,
+              chatId: widget.chat.uid,
               pass: pass,
             ),
           ],

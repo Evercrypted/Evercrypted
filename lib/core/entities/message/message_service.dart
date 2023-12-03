@@ -50,7 +50,7 @@ class MessageService {
     final isar = Isar.getInstance();
     return isar!.messages
         .where()
-        .sortByCreatedAtMSE()
+        .sortByCreatedAtMSEDesc()
         .offset(pageKey * pageSize)
         .limit(pageSize)
         .findAllSync()
@@ -59,7 +59,6 @@ class MessageService {
 
   Future<Message> sendMessage(dynamic message, String chatUid) async {
     Message messageToSend;
-    print(message);
     if (message is String) {
       messageToSend = Message(
         authorId: firebaseuserId!,
@@ -83,11 +82,10 @@ class MessageService {
         .emitWAck(SocketChannelTypes.message, MessageEventTypes.sendMessage,
             messageToSend.toJson())
         .then((resp) {
-      // messageToSend.uid = resp['uid'];
-      // writeNewMessageToIsar(messageToSend).then((value) {
-      //   complete.complete(messageToSend);
-      // });
-      complete.complete(messageToSend);
+      messageToSend.uid = resp['messageUid'];
+      writeNewMessageToIsar(messageToSend).then((value) {
+        complete.complete(messageToSend);
+      });
     });
     return complete.future;
   }

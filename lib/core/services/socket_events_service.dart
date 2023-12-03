@@ -8,6 +8,7 @@ import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
+import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -168,6 +169,18 @@ class SocketEventsService {
             'type': null,
           }),
         );
+        break;
+      default:
+        print('Unknown Contact Event');
+        print(payload);
+    }
+  }
+
+  handleMessageEvent(WidgetRef ref, String type, dynamic payload) {
+    switch (type) {
+      case MessageEventTypes.messageReceived:
+        Chat chat = Chat.fromJson(payload['chat']);
+        chatService.syncChats([chat]);
         break;
       default:
         print('Unknown Contact Event');
