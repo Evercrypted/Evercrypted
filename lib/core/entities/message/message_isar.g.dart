@@ -61,6 +61,11 @@ const MessageSchema = CollectionSchema(
       id: 8,
       name: r'uid',
       type: IsarType.string,
+    ),
+    r'uniqueId': PropertySchema(
+      id: 9,
+      name: r'uniqueId',
+      type: IsarType.string,
     )
   },
   estimateSize: _messageEstimateSize,
@@ -103,6 +108,19 @@ const MessageSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'chatUid',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'uniqueId': IndexSchema(
+      id: -6275468996282682414,
+      name: r'uniqueId',
+      unique: true,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'uniqueId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -161,6 +179,12 @@ int _messageEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.uniqueId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -179,6 +203,7 @@ void _messageSerialize(
   writer.writeString(offsets[6], object.mac);
   writer.writeString(offsets[7], object.text);
   writer.writeString(offsets[8], object.uid);
+  writer.writeString(offsets[9], object.uniqueId);
 }
 
 Message _messageDeserialize(
@@ -199,6 +224,7 @@ Message _messageDeserialize(
     uid: reader.readStringOrNull(offsets[8]),
   );
   object.id = id;
+  object.uniqueId = reader.readStringOrNull(offsets[9]);
   return object;
 }
 
@@ -227,6 +253,8 @@ P _messageDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 8:
       return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -242,6 +270,61 @@ List<IsarLinkBase<dynamic>> _messageGetLinks(Message object) {
 
 void _messageAttach(IsarCollection<dynamic> col, Id id, Message object) {
   object.id = id;
+}
+
+extension MessageByIndex on IsarCollection<Message> {
+  Future<Message?> getByUniqueId(String? uniqueId) {
+    return getByIndex(r'uniqueId', [uniqueId]);
+  }
+
+  Message? getByUniqueIdSync(String? uniqueId) {
+    return getByIndexSync(r'uniqueId', [uniqueId]);
+  }
+
+  Future<bool> deleteByUniqueId(String? uniqueId) {
+    return deleteByIndex(r'uniqueId', [uniqueId]);
+  }
+
+  bool deleteByUniqueIdSync(String? uniqueId) {
+    return deleteByIndexSync(r'uniqueId', [uniqueId]);
+  }
+
+  Future<List<Message?>> getAllByUniqueId(List<String?> uniqueIdValues) {
+    final values = uniqueIdValues.map((e) => [e]).toList();
+    return getAllByIndex(r'uniqueId', values);
+  }
+
+  List<Message?> getAllByUniqueIdSync(List<String?> uniqueIdValues) {
+    final values = uniqueIdValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'uniqueId', values);
+  }
+
+  Future<int> deleteAllByUniqueId(List<String?> uniqueIdValues) {
+    final values = uniqueIdValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'uniqueId', values);
+  }
+
+  int deleteAllByUniqueIdSync(List<String?> uniqueIdValues) {
+    final values = uniqueIdValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'uniqueId', values);
+  }
+
+  Future<Id> putByUniqueId(Message object) {
+    return putByIndex(r'uniqueId', object);
+  }
+
+  Id putByUniqueIdSync(Message object, {bool saveLinks = true}) {
+    return putByIndexSync(r'uniqueId', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByUniqueId(List<Message> objects) {
+    return putAllByIndex(r'uniqueId', objects);
+  }
+
+  List<Id> putAllByUniqueIdSync(List<Message> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'uniqueId', objects, saveLinks: saveLinks);
+  }
 }
 
 extension MessageQueryWhereSort on QueryBuilder<Message, Message, QWhere> {
@@ -518,6 +601,71 @@ extension MessageQueryWhere on QueryBuilder<Message, Message, QWhereClause> {
               indexName: r'chatUid',
               lower: [],
               upper: [chatUid],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> uniqueIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'uniqueId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> uniqueIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'uniqueId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> uniqueIdEqualTo(
+      String? uniqueId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'uniqueId',
+        value: [uniqueId],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> uniqueIdNotEqualTo(
+      String? uniqueId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uniqueId',
+              lower: [],
+              upper: [uniqueId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uniqueId',
+              lower: [uniqueId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uniqueId',
+              lower: [uniqueId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'uniqueId',
+              lower: [],
+              upper: [uniqueId],
               includeUpper: false,
             ));
       }
@@ -1719,6 +1867,152 @@ extension MessageQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'uniqueId',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'uniqueId',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'uniqueId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'uniqueId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'uniqueId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'uniqueId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'uniqueId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'uniqueId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'uniqueId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'uniqueId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'uniqueId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> uniqueIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'uniqueId',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension MessageQueryObject
@@ -1821,6 +2115,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
   QueryBuilder<Message, Message, QAfterSortBy> sortByUidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByUniqueId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uniqueId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByUniqueIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uniqueId', Sort.desc);
     });
   }
 }
@@ -1934,6 +2240,18 @@ extension MessageQuerySortThenBy
       return query.addSortBy(r'uid', Sort.desc);
     });
   }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByUniqueId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uniqueId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByUniqueIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'uniqueId', Sort.desc);
+    });
+  }
 }
 
 extension MessageQueryWhereDistinct
@@ -1997,6 +2315,13 @@ extension MessageQueryWhereDistinct
       return query.addDistinctBy(r'uid', caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByUniqueId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'uniqueId', caseSensitive: caseSensitive);
+    });
+  }
 }
 
 extension MessageQueryProperty
@@ -2058,6 +2383,12 @@ extension MessageQueryProperty
   QueryBuilder<Message, String?, QQueryOperations> uidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'uid');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> uniqueIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'uniqueId');
     });
   }
 }

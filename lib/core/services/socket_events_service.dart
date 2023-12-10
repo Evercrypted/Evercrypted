@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
@@ -27,8 +29,10 @@ class SocketEventsService {
   ContactRequestService contactRequestService = ContactRequestService();
   ContactService contactService = ContactService();
   ChatService chatService = ChatService();
+  MessageService messageService = MessageService();
 
   handleEvent(WidgetRef ref, String channel, String type, dynamic payload) {
+    print('Channel: $channel');
     switch (channel) {
       case SocketChannelTypes.contactRequest:
         handleContactRequestEvent(ref, type, payload);
@@ -41,6 +45,9 @@ class SocketEventsService {
         break;
       case SocketChannelTypes.chat:
         handleChatEvent(ref, type, payload);
+        break;
+      case SocketChannelTypes.message:
+        handleMessageEvent(ref, type, payload);
         break;
       default:
         print('Unknown Event');
@@ -79,6 +86,9 @@ class SocketEventsService {
         );
         chatService.syncChats((payload['chats'] as List<dynamic>)
             .map((chatData) => Chat.fromJson(chatData))
+            .toList());
+        messageService.syncMessages((payload['unreadMessages'] as List<dynamic>)
+            .map((messageData) => Message.fromJson(messageData))
             .toList());
         break;
       default:
@@ -177,10 +187,11 @@ class SocketEventsService {
   }
 
   handleMessageEvent(WidgetRef ref, String type, dynamic payload) {
+    print(type);
     switch (type) {
       case MessageEventTypes.messageReceived:
-        Chat chat = Chat.fromJson(payload['chat']);
-        chatService.syncChats([chat]);
+        Message message = Message.fromJson(payload['message']);
+        messageService.writeNewMessageToIsar(message);
         break;
       default:
         print('Unknown Contact Event');

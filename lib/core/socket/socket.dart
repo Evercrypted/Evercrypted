@@ -44,6 +44,7 @@ class ChatSocket {
     SocketChannelTypes.contactRequest,
     SocketChannelTypes.contact,
     SocketChannelTypes.settings,
+    SocketChannelTypes.message
   ];
 
   final SocketEventsService socketEventsService = SocketEventsService();
@@ -90,7 +91,6 @@ class ChatSocket {
     };
 
     String? otpToken = await settingsService.getOtpToken();
-    print('connecting with $otpToken');
     if (otpToken != null) {
       headers['otpToken'] = otpToken;
     }

@@ -6,7 +6,6 @@ part 'message_isar.g.dart';
 class Message {
   Id id = Isar.autoIncrement;
 
-  //needs composite unique index with chatUId
   @Index()
   String? uid;
 
@@ -25,6 +24,9 @@ class Message {
   @Index()
   String chatUid;
 
+  @Index(unique: true)
+  String? uniqueId;
+
   Message({
     this.uid,
     required this.authorId,
@@ -35,6 +37,7 @@ class Message {
     this.mac,
     this.isEncrypted = false,
     required this.chatUid,
+    this.uniqueId,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -43,8 +46,9 @@ class Message {
         text: json['text'] as String?,
         fileIds:
             (json['fileIds'] as List<dynamic>).map((e) => e as String).toList(),
-        createdAtMSE: json['createdAt'] as int,
+        createdAtMSE: DateTime.parse(json['createdAt']).millisecondsSinceEpoch,
         chatUid: json['chatUid'] as String,
+        uniqueId: json['chatUid'] + json['uid'],
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{

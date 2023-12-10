@@ -159,7 +159,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Future<int?> getlastMessageCreatedAtMSE() async {
     final lastMessageCreatedAtMSE = isar?.messages
         .where()
-        .uidEqualTo(widget.chat.uid)
+        .chatUidEqualTo(widget.chat.uid)
         .sortByCreatedAtMSE()
         .findFirstSync()
         ?.createdAtMSE;

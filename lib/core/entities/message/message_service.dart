@@ -14,36 +14,26 @@ class MessageService {
 
   String? firebaseuserId = FirebaseAuth.instance.currentUser?.uid;
 
-  void startListeningAndWritingToDB(
-      Chat chatRoom, DateTime? lastMessageTime) async {
-    // final userId = FirebaseAuth.instance.currentUser?.uid;
-    // final participantsToListenTo =
-    //     chatRoom.participants!.where((element) => element != userId).toList();
-    // final messagesCollection = FirebaseFirestore.instance
-    //     .collection('chatRooms')
-    //     .doc(chatRoom.uid)
-    //     .collection('messages');
-    // final messageRequests = lastMessageTime != null
-    //     ? messagesCollection
-    //         .where('authorId', whereIn: participantsToListenTo)
-    //         .where('createdAtMSE', isGreaterThan: lastMessageTime)
-    //     : messagesCollection.where('authorId', isNotEqualTo: userId);
-    // final isar = Isar.getInstance();
-    // fbListener = messageRequests.snapshots().listen((event) async {
-    //   for (var change in event.docChanges) {
-    //     if (change.type == DocumentChangeType.added) {
-    //       final message = null;
-    //       message.chatId = chatRoom.uid;
-    //       final isInDb =
-    //           isar!.messages.where().uidEqualTo(message.fbUid).countSync() > 0;
-    //       if (!isInDb) {
-    //         await isar.writeTxn(() async {
-    //           await isar.messages.put(message);
-    //         });
-    //       }
-    //     }
-    //   }
-    // });
+  void syncMessages(List<Message> messages) async {
+    final isar = Isar.getInstance();
+
+    try {
+      await isar?.writeTxn(() async {
+        await isar.messages.putAll(messages);
+      });
+    } catch (e) {
+      //couldn't batch put, put one by one
+    }
+
+    for (var element in messages) {
+      try {
+        await isar?.writeTxn(() async {
+          await isar.messages.put(element);
+        });
+      } catch (e) {
+        //there is already a message with this uniqueid
+      }
+    }
   }
 
   Future<List<Message>> getMessagesFromDB(int pageKey, int pageSize) async {
@@ -83,6 +73,7 @@ class MessageService {
             messageToSend.toJson())
         .then((resp) {
       messageToSend.uid = resp['messageUid'];
+      messageToSend.uniqueId = chatUid + resp['messageUid'];
       writeNewMessageToIsar(messageToSend).then((value) {
         complete.complete(messageToSend);
       });
