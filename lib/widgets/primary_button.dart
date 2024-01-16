@@ -4,7 +4,7 @@ import '../ui_constants.dart';
 
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
-    Key? key,
+    super.key,
     this.text = '',
     required this.press,
     this.child,
@@ -12,7 +12,7 @@ class PrimaryButton extends StatelessWidget {
     this.textColor = Colors.white,
     this.padding = const EdgeInsets.all(defaultPadding),
     this.disabled = false,
-  }) : super(key: key);
+  });
 
   final String text;
   final VoidCallback press;

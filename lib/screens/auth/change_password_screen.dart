@@ -11,7 +11,7 @@ import 'sign_in_screen.dart';
 class ChangePasswordScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
 
-  ChangePasswordScreen({Key? key}) : super(key: key);
+  ChangePasswordScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

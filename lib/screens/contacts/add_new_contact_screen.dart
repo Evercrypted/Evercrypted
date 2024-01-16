@@ -19,7 +19,7 @@ class AddNewContactScreen extends ConsumerStatefulWidget {
   static const routeName = '/add-new-contact';
   final String? initialTab;
 
-  const AddNewContactScreen({Key? key, this.initialTab}) : super(key: key);
+  const AddNewContactScreen({super.key, this.initialTab});
 
   @override
   AddNewContactScreenState createState() => AddNewContactScreenState();

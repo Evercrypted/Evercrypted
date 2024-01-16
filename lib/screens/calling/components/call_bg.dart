@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class CallBg extends StatelessWidget {
   const CallBg({
-    Key? key,
+    super.key,
     required this.image,
     required this.child,
-  }) : super(key: key);
+  });
 
   final Widget image;
   final Widget child;

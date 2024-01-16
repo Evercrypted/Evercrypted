@@ -4,10 +4,10 @@ import '../../../ui_constants.dart';
 
 class UserInfoEditField extends StatelessWidget {
   const UserInfoEditField({
-    Key? key,
+    super.key,
     required this.text,
     required this.child,
-  }) : super(key: key);
+  });
 
   final String text;
   final Widget child;

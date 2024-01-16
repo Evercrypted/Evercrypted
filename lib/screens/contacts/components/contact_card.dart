@@ -11,11 +11,11 @@ import '../../../ui_constants.dart';
 
 class ContactCard extends ConsumerWidget {
   ContactCard({
-    Key? key,
+    super.key,
     required this.contact,
     required this.isActive,
     required this.press,
-  }) : super(key: key);
+  });
 
   final ChatService chatService = ChatService();
   final Contact contact;

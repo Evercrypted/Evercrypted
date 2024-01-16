@@ -5,7 +5,7 @@ import '../../../ui_constants.dart';
 
 class CallHistoryCard extends StatelessWidget {
   const CallHistoryCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.time,
     required this.isActive,
@@ -13,7 +13,7 @@ class CallHistoryCard extends StatelessWidget {
     required this.isOutgoingCall,
     required this.image,
     required this.press,
-  }) : super(key: key);
+  });
 
   final String name, time, image;
   final bool isActive, isVideoCall, isOutgoingCall;

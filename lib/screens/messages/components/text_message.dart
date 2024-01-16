@@ -5,8 +5,7 @@ import '../../../models/ChatMessage.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 
 class TextMessage extends StatelessWidget {
-  const TextMessage({Key? key, this.message, this.pass, this.iv})
-      : super(key: key);
+  const TextMessage({super.key, this.message, this.pass, this.iv});
 
   final ChatMessage? message;
   final String? pass;

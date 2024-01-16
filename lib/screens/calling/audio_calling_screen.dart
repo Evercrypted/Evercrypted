@@ -5,7 +5,7 @@ import 'components/call_bg.dart';
 import 'components/call_option.dart';
 
 class AudioCallingScreen extends StatelessWidget {
-  const AudioCallingScreen({Key? key}) : super(key: key);
+  const AudioCallingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

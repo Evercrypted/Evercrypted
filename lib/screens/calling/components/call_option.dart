@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 class CallOption extends StatelessWidget {
   const CallOption({
-    Key? key,
+    super.key,
     required this.icon,
     required this.press,
     this.color = Colors.white10,
-  }) : super(key: key);
+  });
 
   final Icon icon;
   final VoidCallback press;

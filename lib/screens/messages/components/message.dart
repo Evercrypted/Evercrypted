@@ -52,7 +52,7 @@ class MessageWidget extends StatelessWidget {
 class MessageStatusDot extends StatelessWidget {
   final MessageStatus? status;
 
-  const MessageStatusDot({Key? key, this.status}) : super(key: key);
+  const MessageStatusDot({super.key, this.status});
   @override
   Widget build(BuildContext context) {
     Color dotColor(MessageStatus status) {

@@ -4,7 +4,7 @@ import 'package:flutter_sound/flutter_sound.dart';
 import '../../../ui_constants.dart';
 
 class VoiceRecorderButton extends StatefulWidget {
-  const VoiceRecorderButton({Key? key}) : super(key: key);
+  const VoiceRecorderButton({super.key});
 
   @override
   VoiceRecorderButtonState createState() => VoiceRecorderButtonState();

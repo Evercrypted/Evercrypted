@@ -3,8 +3,7 @@ import 'package:evercrypted/screens/contacts/components/pending_request_card.dar
 import 'package:flutter/material.dart';
 
 class ReceivedRequestsList extends StatelessWidget {
-  const ReceivedRequestsList({Key? key, this.receivedRequests = const []})
-      : super(key: key);
+  const ReceivedRequestsList({super.key, this.receivedRequests = const []});
 
   final List<ContactRequest> receivedRequests;
 

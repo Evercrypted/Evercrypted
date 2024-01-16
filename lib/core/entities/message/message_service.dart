@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';

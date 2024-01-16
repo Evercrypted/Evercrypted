@@ -13,7 +13,7 @@ import 'package:evercrypted/widgets/primary_button.dart';
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/sign-up';
 
-  const SignUpScreen({Key? key}) : super(key: key);
+  const SignUpScreen({super.key});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();

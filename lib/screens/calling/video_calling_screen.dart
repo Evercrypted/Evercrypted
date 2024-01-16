@@ -5,7 +5,7 @@ import 'components/call_bg.dart';
 import 'components/call_option.dart';
 
 class VideoCallingScreen extends StatelessWidget {
-  const VideoCallingScreen({Key? key}) : super(key: key);
+  const VideoCallingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

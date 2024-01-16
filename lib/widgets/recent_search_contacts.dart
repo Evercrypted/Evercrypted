@@ -5,8 +5,8 @@ import '../screens/search/components/body.dart' show demoContactsImage;
 
 class RecentSearchContacts extends StatelessWidget {
   const RecentSearchContacts({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +64,7 @@ class RecentSearchContacts extends StatelessWidget {
 class RoundedCounter extends StatelessWidget {
   final int total;
 
-  const RoundedCounter({Key? key, required this.total}) : super(key: key);
+  const RoundedCounter({super.key, required this.total});
 
   @override
   Widget build(BuildContext context) {

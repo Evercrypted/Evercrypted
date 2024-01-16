@@ -6,7 +6,7 @@ import '../search/search_screen.dart';
 import 'components/chat_list.dart';
 
 class ChatsScreen extends ConsumerStatefulWidget {
-  const ChatsScreen({Key? key}) : super(key: key);
+  const ChatsScreen({super.key});
 
   @override
   ChatsScreenState createState() => ChatsScreenState();
@@ -17,7 +17,7 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: buildAppBar(context),
-      body: ChatList(),
+      body: const ChatList(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
         backgroundColor: primaryColor,

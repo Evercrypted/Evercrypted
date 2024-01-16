@@ -7,10 +7,10 @@ import '../../../core/entities/contact-request/contact_request_service.dart';
 
 class PendingRequestCard extends StatelessWidget {
   PendingRequestCard({
-    Key? key,
+    super.key,
     this.contactRequest,
     this.isReceived = false,
-  }) : super(key: key);
+  });
 
   final ContactRequest? contactRequest;
   final bool isReceived;

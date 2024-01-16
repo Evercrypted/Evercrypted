@@ -4,7 +4,7 @@ import '../../../widgets/recent_search_contacts.dart';
 import '../../../ui_constants.dart';
 
 class Body extends StatelessWidget {
-  const Body({Key? key}) : super(key: key);
+  const Body({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +24,8 @@ class Body extends StatelessWidget {
 
 class SuggestedContacts extends StatelessWidget {
   const SuggestedContacts({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

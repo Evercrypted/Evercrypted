@@ -4,8 +4,7 @@ import '../ui_constants.dart';
 
 class CircleAvatarWithActiveIndicator extends StatelessWidget {
   const CircleAvatarWithActiveIndicator(
-      {Key? key, this.image, this.radius = 24, this.isActive, this.name})
-      : super(key: key);
+      {super.key, this.image, this.radius = 24, this.isActive, this.name});
 
   final String? image;
   final double? radius;

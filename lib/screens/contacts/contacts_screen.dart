@@ -9,7 +9,7 @@ import 'add_new_contact_screen.dart';
 class ContactsScreen extends ConsumerStatefulWidget {
   static const routeName = '/contacts';
 
-  const ContactsScreen({Key? key}) : super(key: key);
+  const ContactsScreen({super.key});
 
   @override
   ContactsScreenState createState() => ContactsScreenState();

@@ -5,7 +5,7 @@ import 'calls_search_screen.dart';
 import 'components/call_history_card.dart';
 
 class CallsHistoryScreen extends StatelessWidget {
-  const CallsHistoryScreen({Key? key}) : super(key: key);
+  const CallsHistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

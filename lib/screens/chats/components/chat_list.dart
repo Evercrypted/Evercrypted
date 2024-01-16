@@ -1,7 +1,5 @@
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
-import 'package:evercrypted/core/entities/profile/profile_model.dart';
-import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:flutter/material.dart';

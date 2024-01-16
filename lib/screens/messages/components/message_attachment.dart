@@ -4,8 +4,8 @@ import '../../../ui_constants.dart';
 
 class MessageAttachment extends StatelessWidget {
   const MessageAttachment({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +47,10 @@ class MessageAttachmentCard extends StatelessWidget {
   final String title;
 
   const MessageAttachmentCard(
-      {Key? key,
+      {super.key,
       required this.press,
       required this.iconData,
-      required this.title})
-      : super(key: key);
+      required this.title});
 
   @override
   Widget build(BuildContext context) {

@@ -4,10 +4,10 @@ import '../../../ui_constants.dart';
 
 class Info extends StatelessWidget {
   const Info({
-    Key? key,
+    super.key,
     required this.infoKey,
     required this.info,
-  }) : super(key: key);
+  });
 
   final String infoKey, info;
 

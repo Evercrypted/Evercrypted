@@ -11,7 +11,7 @@ import 'components/profile_pic.dart';
 import 'components/user_info_edit_field.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
   EditProfileScreenState createState() => EditProfileScreenState();

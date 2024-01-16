@@ -7,7 +7,7 @@ import '../../../ui_constants.dart';
 import '../../../widgets/primary_button.dart';
 
 class OtpForm extends StatefulWidget {
-  const OtpForm({Key? key}) : super(key: key);
+  const OtpForm({super.key});
 
   @override
   _OtpFormState createState() => _OtpFormState();
@@ -129,12 +129,11 @@ class OtpTextFormField extends StatelessWidget {
   final bool autofocus;
 
   const OtpTextFormField(
-      {Key? key,
+      {super.key,
       this.focusNode,
       this.onChanged,
       this.onSaved,
-      this.autofocus = false})
-      : super(key: key);
+      this.autofocus = false});
 
   @override
   Widget build(BuildContext context) {

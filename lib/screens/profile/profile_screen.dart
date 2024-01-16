@@ -14,7 +14,7 @@ import 'components/profile_pic.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
-  ProfileScreen({Key? key}) : super(key: key);
+  ProfileScreen({super.key});
   final SettingsService settingsService = SettingsService();
 
   Future<void> _signOut() async {

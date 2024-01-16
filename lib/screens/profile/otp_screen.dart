@@ -17,7 +17,7 @@ import '../../core/socket/socket_channels.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
   final bool isLogin;
-  const OtpScreen({Key? key, this.isLogin = false}) : super(key: key);
+  const OtpScreen({super.key, this.isLogin = false});
   static const String routeName = "/2FA";
 
   @override

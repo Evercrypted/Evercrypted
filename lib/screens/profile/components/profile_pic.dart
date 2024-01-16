@@ -4,13 +4,13 @@ import '../../../ui_constants.dart';
 
 class ProfilePic extends StatelessWidget {
   const ProfilePic({
-    Key? key,
+    super.key,
     this.name,
     this.image,
     this.color,
     this.isShowPhotoUpload = false,
     this.imageUploadBtnPress,
-  }) : super(key: key);
+  });
 
   final String? image;
   final Color? color;
