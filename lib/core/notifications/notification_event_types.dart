@@ -3,4 +3,5 @@ class NotificationEventTypes {
   static const goToReceivedContactRequestPage =
       'goToReceivedContactRequestPage';
   static const goToContactsPage = 'goToContactsPage';
+  static const goToChatPage = 'goToChatPage';
 }

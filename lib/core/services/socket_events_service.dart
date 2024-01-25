@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
@@ -13,6 +14,7 @@ import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 
 import '../entities/chat/chat_model.dart';
 import '../entities/chat/chat_service.dart';
@@ -192,6 +194,26 @@ class SocketEventsService {
       case MessageEventTypes.messageReceived:
         Message message = Message.fromJson(payload['message']);
         messageService.writeNewMessageToIsar(message);
+
+        final String? chatId = ref.read(appStateProvider).openedChatId;
+        print(chatId);
+        Chat? chat = ref
+            .read(chatsProvider)
+            .firstWhereOrNull((element) => element.uid == message.chatUid);
+        if (chat != null && chatId != message.chatUid) {
+          final userId = FirebaseAuth.instance.currentUser?.uid;
+          final chatname = chat.name ??
+              chat.participants
+                  .firstWhere((element) => element.uid != userId)
+                  .email;
+          LocalNotification.instance.displayNotification(
+            'Message',
+            'New message from $chatname',
+            json.encode({
+              'type': NotificationEventTypes.goToChatPage,
+            }),
+          );
+        }
         break;
       default:
         print('Unknown Contact Event');

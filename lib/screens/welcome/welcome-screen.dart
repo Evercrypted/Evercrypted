@@ -1,7 +1,7 @@
+import 'package:evercrypted/screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../ui_constants.dart';
-import '../mainpage.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -41,7 +41,7 @@ class WelcomeScreen extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MainWidget(),
+                      builder: (context) => const MainScreen(),
                     ),
                   );
                 },

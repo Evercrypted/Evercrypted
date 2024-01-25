@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:evercrypted/core/services/appbar_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,13 +38,9 @@ class MainScreenState extends ConsumerState<MainScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppbarService.getAppbar(ref, null, null),
       body: PageTransitionSwitcher(
         transitionBuilder: (
           Widget child,

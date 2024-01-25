@@ -25,13 +25,13 @@
             "name": "iPhone 15",
             "request": "launch",
             "type": "dart",
-            "deviceId": "5D2611C3-6D49-43E8-91F5-B1F1696301FA"
+            "deviceId": "8635018F-C9BB-4BC8-A89E-D9CCA5151ABF",
         },
         {
             "name": "iPhone 15 Pro",
             "request": "launch",
             "type": "dart",
-            "deviceId": "092E4912-BD55-479C-A4DF-702ED956497A"
+            "deviceId": "07E9C4F8-4949-4400-8343-28A05357796F"
         }
     ],
     "compounds": [

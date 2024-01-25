@@ -1,10 +1,12 @@
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
+import 'package:evercrypted/core/services/app_state_riverpod.dart';
+import 'package:evercrypted/core/services/appbar_service.dart';
 import 'package:evercrypted/models/ChatMessage.dart';
-import 'package:evercrypted/screens/main/main_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -14,15 +16,15 @@ import '../../widgets/primary_button.dart';
 import 'components/chat_input_field.dart';
 import 'components/message.dart';
 
-class MessagesScreen extends StatefulWidget {
+class MessagesScreen extends ConsumerStatefulWidget {
   final Chat chat;
   const MessagesScreen({super.key, required this.chat});
 
   @override
-  State<MessagesScreen> createState() => _MessagesScreenState();
+  MessagesScreenState createState() => MessagesScreenState();
 }
 
-class _MessagesScreenState extends State<MessagesScreen> {
+class MessagesScreenState extends ConsumerState<MessagesScreen> {
   final settingsForm = GlobalKey<FormState>();
   final MessageService _messageService = MessageService();
   late Isar? isar = Isar.getInstance();
@@ -41,6 +43,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   void initState() {
     super.initState();
+    print('init');
+
+    Future.delayed(Duration.zero, () {
+      ref.read(appStateProvider.notifier).setOpenedChatId(widget.chat.uid);
+    });
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       openPasswordDialog(context).then((value) {
@@ -59,7 +66,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   @override
-  void dispose() {
+  void deactivate() {
+    print('deact');
+    ref.read(appStateProvider.notifier).setOpenedChatId(null);
+    super.deactivate();
+  }
+
+  @override
+  void dispose() async {
     isar?.close();
     _pagingController.dispose();
     super.dispose();
@@ -208,7 +222,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: buildAppBar(context),
+        appBar: buildAppBar(context, ref),
         body: Column(
           children: [
             Expanded(
@@ -239,14 +253,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
         ));
   }
 
-  AppBar buildAppBar(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      title: Row(
+  AppBar buildAppBar(BuildContext context, WidgetRef ref) {
+    return AppbarService.getAppbar(
+      ref,
+      Row(
         children: [
-          BackButton(
-            onPressed: () => Navigator.pushNamed(context, MainScreen.routeName),
-          ),
           const CircleAvatar(
             backgroundImage: AssetImage("assets/images/user_2.png"),
           ),
@@ -262,7 +273,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           )
         ],
       ),
-      actions: [
+      [
         IconButton(
             icon: Icon(Icons.security,
                 color: pass == null ? Colors.redAccent : primaryColor),

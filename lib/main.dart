@@ -17,7 +17,6 @@ import 'package:evercrypted/screens/auth/verification_screen.dart';
 import 'package:evercrypted/screens/contacts/add_new_contact_screen.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/main/main_screen.dart';
-import 'package:evercrypted/screens/mainpage.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/theme.dart';
@@ -146,7 +145,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
                 )
               : !user!.emailVerified
                   ? const VerificationScreen()
-                  : const MainWidget(),
+                  : const MainScreen(),
     );
   }
 
@@ -304,6 +303,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         _connectIO(token);
       }
     }).catchError((error) {
+      print(error);
       // _checkProfileExists(token);
     });
   }
