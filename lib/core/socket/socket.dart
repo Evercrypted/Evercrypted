@@ -6,6 +6,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
+import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,7 +75,7 @@ class ChatSocket {
     });
   }
 
-  connectWS(String? token, WidgetRef riverPodRef) async {
+  connectWS(String? token, WidgetRef ref) async {
     tries = tries + 1;
     userToken = token;
 
@@ -105,23 +106,23 @@ class ChatSocket {
     }
 
     socket?.onConnect((_) async {
-      print('connected');
+      ref.read(appStateProvider.notifier).setIsConnected(true);
     });
 
     socket?.onReconnect((data) async {
       socket?.clearListeners();
-      print('reconnecting');
-      await getGeneralInfoAndExchangeKey(riverPodRef);
-      setListeners(riverPodRef);
+      ref.read(appStateProvider.notifier).setIsConnected(true);
+      await getGeneralInfoAndExchangeKey(ref);
+      setListeners(ref);
     });
 
     socket?.on('connected', (data) async {
-      print('passed connectionHandler');
-      await getGeneralInfoAndExchangeKey(riverPodRef);
+      ref.read(appStateProvider.notifier).setIsConnected(true);
+      await getGeneralInfoAndExchangeKey(ref);
     });
 
     socket?.onDisconnect((_) {
-      print('disconnect');
+      ref.read(appStateProvider.notifier).setIsConnected(false);
       socket?.clearListeners();
       socket?.dispose();
       socket?.destroy();
@@ -130,7 +131,7 @@ class ChatSocket {
     });
 
     socket?.onConnectError((data) {
-      print('connect error');
+      ref.read(appStateProvider.notifier).setIsConnected(false);
       socket?.clearListeners();
       socket?.dispose();
       socket?.destroy();
@@ -138,7 +139,7 @@ class ChatSocket {
       socket = null;
     });
 
-    setListeners(riverPodRef);
+    setListeners(ref);
   }
 
   setListeners(ref) {

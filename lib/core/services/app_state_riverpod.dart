@@ -7,7 +7,7 @@ class AppState {
   String? openedChatId;
 
   AppState(
-      {this.isConnected = false,
+      {this.isConnected = true,
       this.shouldOtpLogin = false,
       this.httpEncryptionKey,
       this.openedChatId});

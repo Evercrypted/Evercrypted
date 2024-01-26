@@ -253,7 +253,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         ));
   }
 
-  AppBar buildAppBar(BuildContext context, WidgetRef ref) {
+  AppBar? buildAppBar(BuildContext context, WidgetRef ref) {
     return AppbarService.getAppbar(
       ref,
       Row(

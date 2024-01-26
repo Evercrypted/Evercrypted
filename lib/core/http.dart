@@ -44,10 +44,10 @@ Future<String> getHttpEncKey(WidgetRef ref) async {
         // Retry on SocketException or TimeoutException
         delayFactor: const Duration(seconds: 2),
         maxAttempts: 10000, onRetry: (e) {
-      ref.read(appStateProvider).isConnected = false;
+      ref.read(appStateProvider.notifier).setIsConnected(false);
     });
     ref.read(appStateProvider).httpEncryptionKey = response;
-    ref.read(appStateProvider).isConnected = true;
+    ref.read(appStateProvider.notifier).setIsConnected(true);
     return response;
   } else {
     return key;

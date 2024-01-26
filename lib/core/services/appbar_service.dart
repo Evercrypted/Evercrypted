@@ -2,13 +2,15 @@ import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:flutter/material.dart';
 
 class AppbarService {
-  static AppBar getAppbar(ref, Widget? title, List<Widget>? actions) {
+  static AppBar? getAppbar(ref, Widget? title, List<Widget>? actions) {
     final isConnected = ref.watch(appStateProvider).isConnected;
     if (isConnected) {
-      return AppBar(
-        title: title,
-        actions: actions,
-      );
+      return title != null && actions != null
+          ? AppBar(
+              title: title,
+              actions: actions,
+            )
+          : null;
     } else {
       return AppBar(
         title: title != null
