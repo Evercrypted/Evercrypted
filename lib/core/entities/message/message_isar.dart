@@ -27,6 +27,8 @@ class Message {
   @Index(unique: true)
   String? uniqueId;
 
+  bool successfullySent;
+
   Message({
     this.uid,
     required this.authorId,
@@ -38,6 +40,7 @@ class Message {
     this.isEncrypted = false,
     required this.chatUid,
     this.uniqueId,
+    this.successfullySent = false,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -49,6 +52,7 @@ class Message {
         createdAtMSE: DateTime.parse(json['createdAt']).millisecondsSinceEpoch,
         chatUid: json['chatUid'] as String,
         uniqueId: json['chatUid'] + json['uid'],
+        successfullySent: true,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{

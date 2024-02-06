@@ -43,7 +43,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   @override
   void initState() {
     super.initState();
-    print('init');
 
     Future.delayed(Duration.zero, () {
       ref.read(appStateProvider.notifier).setOpenedChatId(widget.chat.uid);
@@ -67,7 +66,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   void deactivate() {
-    print('deact');
     ref.read(appStateProvider.notifier).setOpenedChatId(null);
     super.deactivate();
   }

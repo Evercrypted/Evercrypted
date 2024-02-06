@@ -73,9 +73,18 @@ class MessageService {
         .then((resp) {
       messageToSend.uid = resp['messageUid'];
       messageToSend.uniqueId = chatUid + resp['messageUid'];
+      messageToSend.successfullySent = true;
       writeNewMessageToIsar(messageToSend).then((value) {
         complete.complete(messageToSend);
       });
+    }).onError((error, stackTrace) {
+      if (error == 'queued') {
+        writeNewMessageToIsar(messageToSend).then((value) {
+          complete.complete(messageToSend);
+        });
+      } else {
+        complete.completeError(error!);
+      }
     });
     return complete.future;
   }

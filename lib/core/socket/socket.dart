@@ -167,8 +167,8 @@ class ChatSocket {
   Future<dynamic> emitWAck(String channel, String type, dynamic payload) async {
     saveActionForLater() async {
       final action = ActionQueue(
-          type: type,
           channel: channel,
+          type: type,
           payload: json.encode(payload),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch);
       final isar = Isar.getInstance();
