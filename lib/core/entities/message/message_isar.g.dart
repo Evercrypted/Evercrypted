@@ -52,18 +52,28 @@ const MessageSchema = CollectionSchema(
       name: r'mac',
       type: IsarType.string,
     ),
-    r'text': PropertySchema(
+    r'queueId': PropertySchema(
       id: 7,
+      name: r'queueId',
+      type: IsarType.long,
+    ),
+    r'successfullySent': PropertySchema(
+      id: 8,
+      name: r'successfullySent',
+      type: IsarType.bool,
+    ),
+    r'text': PropertySchema(
+      id: 9,
       name: r'text',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'uid',
       type: IsarType.string,
     ),
     r'uniqueId': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'uniqueId',
       type: IsarType.string,
     )
@@ -123,6 +133,19 @@ const MessageSchema = CollectionSchema(
           name: r'uniqueId',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'queueId': IndexSchema(
+      id: -3743451411909378321,
+      name: r'queueId',
+      unique: true,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'queueId',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     )
@@ -201,9 +224,11 @@ void _messageSerialize(
   writer.writeBool(offsets[4], object.isEncrypted);
   writer.writeString(offsets[5], object.iv);
   writer.writeString(offsets[6], object.mac);
-  writer.writeString(offsets[7], object.text);
-  writer.writeString(offsets[8], object.uid);
-  writer.writeString(offsets[9], object.uniqueId);
+  writer.writeLong(offsets[7], object.queueId);
+  writer.writeBool(offsets[8], object.successfullySent);
+  writer.writeString(offsets[9], object.text);
+  writer.writeString(offsets[10], object.uid);
+  writer.writeString(offsets[11], object.uniqueId);
 }
 
 Message _messageDeserialize(
@@ -220,11 +245,13 @@ Message _messageDeserialize(
     isEncrypted: reader.readBoolOrNull(offsets[4]) ?? false,
     iv: reader.readStringOrNull(offsets[5]),
     mac: reader.readStringOrNull(offsets[6]),
-    text: reader.readStringOrNull(offsets[7]),
-    uid: reader.readStringOrNull(offsets[8]),
+    queueId: reader.readLongOrNull(offsets[7]),
+    successfullySent: reader.readBoolOrNull(offsets[8]) ?? true,
+    text: reader.readStringOrNull(offsets[9]),
+    uid: reader.readStringOrNull(offsets[10]),
+    uniqueId: reader.readStringOrNull(offsets[11]),
   );
   object.id = id;
-  object.uniqueId = reader.readStringOrNull(offsets[9]);
   return object;
 }
 
@@ -250,10 +277,14 @@ P _messageDeserializeProp<P>(
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -325,6 +356,58 @@ extension MessageByIndex on IsarCollection<Message> {
       {bool saveLinks = true}) {
     return putAllByIndexSync(r'uniqueId', objects, saveLinks: saveLinks);
   }
+
+  Future<Message?> getByQueueId(int? queueId) {
+    return getByIndex(r'queueId', [queueId]);
+  }
+
+  Message? getByQueueIdSync(int? queueId) {
+    return getByIndexSync(r'queueId', [queueId]);
+  }
+
+  Future<bool> deleteByQueueId(int? queueId) {
+    return deleteByIndex(r'queueId', [queueId]);
+  }
+
+  bool deleteByQueueIdSync(int? queueId) {
+    return deleteByIndexSync(r'queueId', [queueId]);
+  }
+
+  Future<List<Message?>> getAllByQueueId(List<int?> queueIdValues) {
+    final values = queueIdValues.map((e) => [e]).toList();
+    return getAllByIndex(r'queueId', values);
+  }
+
+  List<Message?> getAllByQueueIdSync(List<int?> queueIdValues) {
+    final values = queueIdValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'queueId', values);
+  }
+
+  Future<int> deleteAllByQueueId(List<int?> queueIdValues) {
+    final values = queueIdValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'queueId', values);
+  }
+
+  int deleteAllByQueueIdSync(List<int?> queueIdValues) {
+    final values = queueIdValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'queueId', values);
+  }
+
+  Future<Id> putByQueueId(Message object) {
+    return putByIndex(r'queueId', object);
+  }
+
+  Id putByQueueIdSync(Message object, {bool saveLinks = true}) {
+    return putByIndexSync(r'queueId', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByQueueId(List<Message> objects) {
+    return putAllByIndex(r'queueId', objects);
+  }
+
+  List<Id> putAllByQueueIdSync(List<Message> objects, {bool saveLinks = true}) {
+    return putAllByIndexSync(r'queueId', objects, saveLinks: saveLinks);
+  }
 }
 
 extension MessageQueryWhereSort on QueryBuilder<Message, Message, QWhere> {
@@ -338,6 +421,14 @@ extension MessageQueryWhereSort on QueryBuilder<Message, Message, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'createdAtMSE'),
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhere> anyQueueId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'queueId'),
       );
     });
   }
@@ -669,6 +760,116 @@ extension MessageQueryWhere on QueryBuilder<Message, Message, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> queueIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'queueId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> queueIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'queueId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> queueIdEqualTo(
+      int? queueId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'queueId',
+        value: [queueId],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> queueIdNotEqualTo(
+      int? queueId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'queueId',
+              lower: [],
+              upper: [queueId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'queueId',
+              lower: [queueId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'queueId',
+              lower: [queueId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'queueId',
+              lower: [],
+              upper: [queueId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> queueIdGreaterThan(
+    int? queueId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'queueId',
+        lower: [queueId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> queueIdLessThan(
+    int? queueId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'queueId',
+        lower: [],
+        upper: [queueId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterWhereClause> queueIdBetween(
+    int? lowerQueueId,
+    int? upperQueueId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'queueId',
+        lower: [lowerQueueId],
+        includeLower: includeLower,
+        upper: [upperQueueId],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -1576,6 +1777,85 @@ extension MessageQueryFilter
     });
   }
 
+  QueryBuilder<Message, Message, QAfterFilterCondition> queueIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'queueId',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> queueIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'queueId',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> queueIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'queueId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> queueIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'queueId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> queueIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'queueId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> queueIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'queueId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> successfullySentEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'successfullySent',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> textIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2094,6 +2374,30 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> sortByQueueId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'queueId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByQueueIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'queueId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortBySuccessfullySent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'successfullySent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortBySuccessfullySentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'successfullySent', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortByText() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'text', Sort.asc);
@@ -2217,6 +2521,30 @@ extension MessageQuerySortThenBy
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> thenByQueueId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'queueId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByQueueIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'queueId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenBySuccessfullySent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'successfullySent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenBySuccessfullySentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'successfullySent', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenByText() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'text', Sort.asc);
@@ -2302,6 +2630,18 @@ extension MessageQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Message, Message, QDistinct> distinctByQueueId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'queueId');
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctBySuccessfullySent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'successfullySent');
+    });
+  }
+
   QueryBuilder<Message, Message, QDistinct> distinctByText(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2371,6 +2711,18 @@ extension MessageQueryProperty
   QueryBuilder<Message, String?, QQueryOperations> macProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'mac');
+    });
+  }
+
+  QueryBuilder<Message, int?, QQueryOperations> queueIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'queueId');
+    });
+  }
+
+  QueryBuilder<Message, bool, QQueryOperations> successfullySentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'successfullySent');
     });
   }
 

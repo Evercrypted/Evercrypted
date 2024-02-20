@@ -71,20 +71,22 @@ class MessageService {
         .emitWAck(SocketChannelTypes.message, MessageEventTypes.sendMessage,
             messageToSend.toJson())
         .then((resp) {
-      messageToSend.uid = resp['messageUid'];
-      messageToSend.uniqueId = chatUid + resp['messageUid'];
-      messageToSend.successfullySent = true;
-      writeNewMessageToIsar(messageToSend).then((value) {
-        complete.complete(messageToSend);
-      });
-    }).onError((error, stackTrace) {
-      if (error == 'queued') {
+      if (resp['status'] == 'queued') {
         writeNewMessageToIsar(messageToSend).then((value) {
+          messageToSend.successfullySent = false;
+          messageToSend.queueId = resp['queuedItemId'];
           complete.complete(messageToSend);
         });
       } else {
-        complete.completeError(error!);
+        messageToSend.uid = resp['messageUid'];
+        messageToSend.uniqueId = chatUid + resp['messageUid'];
+        messageToSend.successfullySent = true;
+        writeNewMessageToIsar(messageToSend).then((value) {
+          complete.complete(messageToSend);
+        });
       }
+    }).onError((error, stackTrace) {
+      complete.completeError(error!);
     });
     return complete.future;
   }

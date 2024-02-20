@@ -1,9 +1,13 @@
+import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 import '../../../ui_constants.dart';
 
-const allowedForQueue = [];
+const allowedForQueue = [
+  '${SocketChannelTypes.message}/${MessageEventTypes.sendMessage}'
+];
 
 showQueuedNotification() {
   showSimpleNotification(

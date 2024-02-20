@@ -164,24 +164,29 @@ class ChatSocket {
     }
   }
 
-  Future<dynamic> emitWAck(String channel, String type, dynamic payload) async {
-    saveActionForLater() async {
+  Future<dynamic> emitWAck(String channel, String type, dynamic payload,
+      {bool isFromQueue = false}) async {
+    Future<int> saveActionForLater() async {
+      final writingToQueueCompleter = Completer<int>();
       final action = ActionQueue(
           channel: channel,
           type: type,
           payload: json.encode(payload),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch);
       final isar = Isar.getInstance();
-      await isar?.writeTxn(() async {
-        await isar.actionQueues.put(action);
+      isar?.writeTxn(() async {
+        final int queuedItemId = await isar.actionQueues.put(action);
+        writingToQueueCompleter.complete(queuedItemId);
       });
+      return writingToQueueCompleter.future;
     }
 
     final respCompleter = Completer<dynamic>();
     if (instance.socket?.connected != true) {
-      if (allowedForQueue.contains('$channel/$type')) {
-        saveActionForLater();
-        respCompleter.completeError('queued');
+      if (isFromQueue == false && allowedForQueue.contains('$channel/$type')) {
+        final int queuedItemId = await saveActionForLater();
+        respCompleter
+            .complete({'status': 'queued', 'queuedItemId': queuedItemId});
       } else {
         respCompleter.completeError(
             'Could not connect to server, please check your internet connection.');

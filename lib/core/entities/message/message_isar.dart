@@ -27,21 +27,24 @@ class Message {
   @Index(unique: true)
   String? uniqueId;
 
+  @Index(unique: true)
+  int? queueId;
+
   bool successfullySent;
 
-  Message({
-    this.uid,
-    required this.authorId,
-    this.text,
-    this.fileIds,
-    required this.createdAtMSE,
-    this.iv,
-    this.mac,
-    this.isEncrypted = false,
-    required this.chatUid,
-    this.uniqueId,
-    this.successfullySent = false,
-  });
+  Message(
+      {this.uid,
+      required this.authorId,
+      this.text,
+      this.fileIds,
+      required this.createdAtMSE,
+      this.iv,
+      this.mac,
+      this.isEncrypted = false,
+      required this.chatUid,
+      this.uniqueId,
+      this.successfullySent = true,
+      this.queueId});
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         uid: json['uid'] as String,
