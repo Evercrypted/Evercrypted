@@ -254,13 +254,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   AppBar? buildAppBar(BuildContext context, WidgetRef ref) {
     return AppbarService.getAppbar(
       ref,
-      Row(
+      const Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             backgroundImage: AssetImage("assets/images/user_2.png"),
           ),
-          const SizedBox(width: defaultPadding * 0.75),
-          const Column(
+          SizedBox(width: defaultPadding * 0.75),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(

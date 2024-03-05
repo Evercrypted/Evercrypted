@@ -6,6 +6,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -36,6 +37,8 @@ class ChatSocket {
   SimpleKeyPair? keyPair;
   String? key;
   SettingsService settingsService = SettingsService();
+  ActionQueueService actionQueueService = ActionQueueService();
+  bool disconnected = false;
 
   num tries = 0;
 
@@ -53,6 +56,7 @@ class ChatSocket {
   static final ChatSocket instance = ChatSocket._();
 
   getGeneralInfoAndExchangeKey(riverPodRef) async {
+    final keyCompleter = Completer<bool>();
     final algo = X25519();
 
     // We need the private key pair of Alice.
@@ -63,16 +67,17 @@ class ChatSocket {
       'publicKey': Jwk.fromPublicKey(localPublicKey).toJson()
     }, ack: (dynamic resp) async {
       key = await combineKeys(algo, keyPair, resp['publicKey']);
+      keyCompleter.complete(true);
       if (key != null) {
         final payload = await decodePayload(
           resp,
           key,
         );
-        print(payload);
         socketEventsService.handleGeneralEvent(
             riverPodRef, 'getInitialData', payload);
       }
     });
+    return keyCompleter.future;
   }
 
   connectWS(String? token, WidgetRef ref) async {
@@ -106,19 +111,47 @@ class ChatSocket {
     }
 
     socket?.onConnect((_) async {
+      socket?.clearListeners();
       ref.read(appStateProvider.notifier).setIsConnected(true);
+      await getGeneralInfoAndExchangeKey(ref);
+      actionQueueService.processQueue();
+      setListeners(ref);
+      disconnected = false;
     });
 
     socket?.onReconnect((data) async {
       socket?.clearListeners();
       ref.read(appStateProvider.notifier).setIsConnected(true);
       await getGeneralInfoAndExchangeKey(ref);
+      actionQueueService.processQueue();
       setListeners(ref);
+      disconnected = false;
     });
 
-    socket?.on('connected', (data) async {
-      ref.read(appStateProvider.notifier).setIsConnected(true);
-      await getGeneralInfoAndExchangeKey(ref);
+    socket?.on('disconnect', (data) {
+      print('disconnected');
+      ref.read(appStateProvider.notifier).setIsConnected(false);
+      socket?.clearListeners();
+      socket?.dispose();
+      socket?.destroy();
+      key = null;
+      socket = null;
+    });
+
+    socket?.onError((data) {
+      if (data.message == 'Connection refused') {
+        ref.read(appStateProvider.notifier).setIsConnected(false);
+        socket?.clearListeners();
+        socket?.dispose();
+        socket?.destroy();
+        key = null;
+        socket = null;
+        disconnected = true;
+      }
+    });
+
+    socket?.onAny((event, data) {
+      print(event);
     });
 
     socket?.onDisconnect((_) {
@@ -182,8 +215,8 @@ class ChatSocket {
     }
 
     final respCompleter = Completer<dynamic>();
-    if (instance.socket?.connected != true) {
-      if (isFromQueue == false && allowedForQueue.contains('$channel/$type')) {
+    if (instance.socket?.connected != true || disconnected) {
+      if (!isFromQueue && allowedForQueue.contains('$channel/$type')) {
         final int queuedItemId = await saveActionForLater();
         respCompleter
             .complete({'status': 'queued', 'queuedItemId': queuedItemId});

@@ -20,6 +20,7 @@ import 'package:evercrypted/screens/main/main_screen.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/theme.dart';
+import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -137,16 +138,20 @@ class AuthGateState extends ConsumerState<AuthGate> {
         .watch(appStateProvider.select((appState) => appState.shouldOtpLogin));
 
     return Scaffold(
-      body: user == null
-          ? const SignInScreen()
-          : shouldOtpLogin
-              ? const OtpScreen(
-                  isLogin: true,
-                )
-              : !user!.emailVerified
-                  ? const VerificationScreen()
-                  : const MainScreen(),
-    );
+        body: Stack(
+      children: [
+        user == null
+            ? const SignInScreen()
+            : shouldOtpLogin
+                ? const OtpScreen(
+                    isLogin: true,
+                  )
+                : !user!.emailVerified
+                    ? const VerificationScreen()
+                    : const MainScreen(),
+        const SecretInput()
+      ],
+    ));
   }
 
   void _checkAndroidNotifications() async {

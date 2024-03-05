@@ -72,19 +72,22 @@ class MessageService {
             messageToSend.toJson())
         .then((resp) {
       if (resp['status'] == 'queued') {
-        writeNewMessageToIsar(messageToSend).then((value) {
-          messageToSend.successfullySent = false;
-          messageToSend.queueId = resp['queuedItemId'];
-          complete.complete(messageToSend);
-        });
+        messageToSend.successfullySent = false;
+        messageToSend.queueId = resp['queuedItemId'];
+        messageToSend.uid = DateTime.now().millisecondsSinceEpoch.toString() +
+            resp['queuedItemId'].toString();
+        messageToSend.uniqueId =
+            DateTime.now().millisecondsSinceEpoch.toString() +
+                chatUid +
+                resp['queuedItemId'].toString();
       } else {
         messageToSend.uid = resp['messageUid'];
         messageToSend.uniqueId = chatUid + resp['messageUid'];
         messageToSend.successfullySent = true;
-        writeNewMessageToIsar(messageToSend).then((value) {
-          complete.complete(messageToSend);
-        });
       }
+      writeNewMessageToIsar(messageToSend).then((value) {
+        complete.complete(messageToSend);
+      });
     }).onError((error, stackTrace) {
       complete.completeError(error!);
     });

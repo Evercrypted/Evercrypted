@@ -139,7 +139,7 @@ const MessageSchema = CollectionSchema(
     r'queueId': IndexSchema(
       id: -3743451411909378321,
       name: r'queueId',
-      unique: true,
+      unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
@@ -355,58 +355,6 @@ extension MessageByIndex on IsarCollection<Message> {
   List<Id> putAllByUniqueIdSync(List<Message> objects,
       {bool saveLinks = true}) {
     return putAllByIndexSync(r'uniqueId', objects, saveLinks: saveLinks);
-  }
-
-  Future<Message?> getByQueueId(int? queueId) {
-    return getByIndex(r'queueId', [queueId]);
-  }
-
-  Message? getByQueueIdSync(int? queueId) {
-    return getByIndexSync(r'queueId', [queueId]);
-  }
-
-  Future<bool> deleteByQueueId(int? queueId) {
-    return deleteByIndex(r'queueId', [queueId]);
-  }
-
-  bool deleteByQueueIdSync(int? queueId) {
-    return deleteByIndexSync(r'queueId', [queueId]);
-  }
-
-  Future<List<Message?>> getAllByQueueId(List<int?> queueIdValues) {
-    final values = queueIdValues.map((e) => [e]).toList();
-    return getAllByIndex(r'queueId', values);
-  }
-
-  List<Message?> getAllByQueueIdSync(List<int?> queueIdValues) {
-    final values = queueIdValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'queueId', values);
-  }
-
-  Future<int> deleteAllByQueueId(List<int?> queueIdValues) {
-    final values = queueIdValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'queueId', values);
-  }
-
-  int deleteAllByQueueIdSync(List<int?> queueIdValues) {
-    final values = queueIdValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'queueId', values);
-  }
-
-  Future<Id> putByQueueId(Message object) {
-    return putByIndex(r'queueId', object);
-  }
-
-  Id putByQueueIdSync(Message object, {bool saveLinks = true}) {
-    return putByIndexSync(r'queueId', object, saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByQueueId(List<Message> objects) {
-    return putAllByIndex(r'queueId', objects);
-  }
-
-  List<Id> putAllByQueueIdSync(List<Message> objects, {bool saveLinks = true}) {
-    return putAllByIndexSync(r'queueId', objects, saveLinks: saveLinks);
   }
 }
 

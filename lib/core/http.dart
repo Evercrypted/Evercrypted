@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
 // import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/services/settings_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:retry/retry.dart';

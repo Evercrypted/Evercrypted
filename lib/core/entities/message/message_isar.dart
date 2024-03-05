@@ -27,7 +27,7 @@ class Message {
   @Index(unique: true)
   String? uniqueId;
 
-  @Index(unique: true)
+  @Index()
   int? queueId;
 
   bool successfullySent;
