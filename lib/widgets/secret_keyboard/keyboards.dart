@@ -7,7 +7,6 @@ class Keyboards {
       case ('English'):
         return Keyboard(
           name: 'English',
-          firstRow: List<String>.from('1234567890'.split('')),
           secondRow: List<String>.from('qwertyuiop'.split('')),
           thirdRow: List<String>.from('asdfghjkl'.split('')),
           fourthRow: List<String>.from('zxcvbnm'.split('')),
@@ -20,20 +19,19 @@ class Keyboards {
       case ('Russian'):
         return Keyboard(
           name: 'Русский',
-          firstRow: List<String>.from('1234567890'.split('')),
-          secondRow: List<String>.from('йцукенгшщзхъ'.split('')),
+          keyWidth: 27,
+          secondRow: List<String>.from('йцукенгшщзх'.split('')),
           thirdRow: List<String>.from('фывапролджэ'.split('')),
-          fourthRow: List<String>.from('ячсмитьбю'.split('')),
-          secondRowShifted: List<String>.from('ЙЦУКЕНГШЩЗХЪ'.split('')),
+          fourthRow: List<String>.from('ячсмитьбюъ'.split('')),
+          secondRowShifted: List<String>.from('ЙЦУКЕНГШЩЗХ'.split('')),
           thirdRowShifted: List<String>.from('ФЫВАПРОЛДЖЭ'.split('')),
-          fourthRowShifted: List<String>.from('ЯЧСМИТЬБЮ'.split('')),
+          fourthRowShifted: List<String>.from('ЯЧСМИТЬБЮЪ'.split('')),
           isShifted: isShifted,
           isSpecial: isSpecial,
         );
       case ('Georgian'):
         return Keyboard(
           name: 'ქართული',
-          firstRow: List<String>.from('1234567890'.split('')),
           secondRow: List<String>.from('ქწერტყუიოპ'.split('')),
           thirdRow: List<String>.from('ასდფგჰჯკლ'.split('')),
           fourthRow: List<String>.from('ზხცვბნმ'.split('')),
@@ -46,7 +44,7 @@ class Keyboards {
       case ('Turkish'):
         return Keyboard(
           name: 'Türkçe',
-          firstRow: List<String>.from('1234567890'.split('')),
+          keyWidth: 26,
           secondRow: List<String>.from('qwertyuiopğü'.split('')),
           thirdRow: List<String>.from('asdfghjklşi'.split('')),
           fourthRow: List<String>.from('zxcvbnmöç'.split('')),
@@ -59,7 +57,6 @@ class Keyboards {
       default:
         return Keyboard(
           name: 'English',
-          firstRow: List<String>.from('1234567890'.split('')),
           secondRow: List<String>.from('qwertyuiop'.split('')),
           thirdRow: List<String>.from('asdfghjkl'.split('')),
           fourthRow: List<String>.from('zxcvbnm'.split('')),
@@ -74,4 +71,11 @@ class Keyboards {
 
   static List<String> get availableKeyboards =>
       ['English', 'Russian', 'Georgian', 'Turkish'];
+
+  static Map<String, String> abbreviations = {
+    'English': 'EN',
+    'Russian': 'RU',
+    'Georgian': 'GE',
+    'Turkish': 'TR',
+  };
 }

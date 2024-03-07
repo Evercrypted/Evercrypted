@@ -3,6 +3,7 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_riverp
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/screens/contacts/components/received_requests_list.dart';
 import 'package:evercrypted/screens/contacts/components/sent_requests_list.dart';
+import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -114,6 +115,10 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
     }
   }
 
+  Dialog secretInput = Dialog.fullscreen(
+    child: SecretInput(),
+  );
+
   @override
   Widget build(BuildContext context) {
     sentRequests = ref.watch(sentRequestsProvider);
@@ -187,6 +192,12 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                   textInputAction: TextInputAction.next,
                                   onSaved: (value) {
                                     email = value;
+                                  },
+                                  onTap: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            secretInput);
                                   },
                                   keyboardType: TextInputType.emailAddress,
                                   decoration: InputDecoration(
