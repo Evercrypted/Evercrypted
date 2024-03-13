@@ -17,6 +17,7 @@ class SecretInputState extends State<SecretInput>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _animation;
+  final TextEditingController _textController = TextEditingController();
 
   List<String> availableKeyboards = Keyboards.availableKeyboards;
   bool isShifted = false;
@@ -25,14 +26,29 @@ class SecretInputState extends State<SecretInput>
   String activeLanguage = 'English';
   Keyboard activeKeyboard = Keyboards.getKeyboard();
 
+  int? selectionStart;
+  int? selectionEnd;
+
   @override
   void initState() {
     super.initState();
+    if (widget.originalText != null) {
+      _textController.text = widget.originalText!;
+    }
     _controller = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500))
       ..repeat(reverse: true);
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
+    _textController.addListener(() {
+      if (_textController.selection.start != _textController.selection.end) {
+        selectionStart = _textController.selection.start;
+        selectionEnd = _textController.selection.end;
+      } else {
+        selectionStart = null;
+        selectionEnd = null;
+      }
+    });
   }
 
   @override
@@ -74,7 +90,11 @@ class SecretInputState extends State<SecretInput>
           minimumSize: Size.zero,
           padding: paddings,
         ),
-        onPressed: () {},
+        onPressed: () {
+          setState(() {
+            _textController.text += key;
+          });
+        },
         child: Text(key,
             style: const TextStyle(color: Colors.white, fontSize: 20)),
       ),
@@ -92,19 +112,72 @@ class SecretInputState extends State<SecretInput>
           mainAxisSize: MainAxisSize.max,
           children: [
             Container(
-              height: MediaQuery.of(context).size.height - 270 - 93,
+              height: MediaQuery.of(context).size.height - 300 - 93,
               width: MediaQuery.of(context).size.width,
               color: Colors.black.withOpacity(0.5),
-              child: SelectableText(widget.originalText ?? '',
-                  style: const TextStyle(color: Colors.white, fontSize: 20)),
+              child: Container(
+                margin:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+                child: TextField(
+                  controller: _textController,
+                  keyboardType: TextInputType.none,
+                  style: const TextStyle(color: Colors.white, fontSize: 20),
+                  autofocus: true,
+                  showCursor: true,
+                  cursorColor: Colors.white,
+                  cursorHeight: 15,
+                  cursorWidth: 2,
+                  enableInteractiveSelection: true,
+                  expands: true,
+                  minLines: null,
+                  maxLines: null,
+                ),
+              ),
             ),
             Container(
-                height: 270,
+                height: 300,
                 padding: const EdgeInsets.only(top: 5),
                 width: MediaQuery.of(context).size.width,
                 color: primaryColor,
                 child: Column(
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              Navigator.of(context).pop((done: false));
+                            },
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.white,
+                              size: 35,
+                            )),
+                        IconButton(
+                            onPressed: () {
+                              setState(() {
+                                if (_textController.text.isNotEmpty) {
+                                  if (selectionStart != null &&
+                                      selectionEnd != null) {
+                                    _textController.text = _textController.text
+                                            .substring(0, selectionStart!) +
+                                        _textController.text
+                                            .substring(selectionEnd!);
+                                  } else if (_textController.text.isNotEmpty) {
+                                    _textController.text = _textController.text
+                                        .substring(
+                                            0, _textController.text.length - 1);
+                                  }
+                                }
+                              });
+                            },
+                            icon: const Icon(
+                              Icons.backspace,
+                              color: Colors.white,
+                              size: 30,
+                            )),
+                      ],
+                    ),
                     Container(
                       margin: const EdgeInsets.all(2),
                       child: Row(
@@ -230,7 +303,9 @@ class SecretInputState extends State<SecretInput>
                           margin: const EdgeInsets.only(
                               left: 5, top: 2, bottom: 2, right: 5),
                           child: HighlightedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.of(context).pop((done: true));
+                            },
                             child: const Icon(
                               Icons.done,
                               color: Colors.white,

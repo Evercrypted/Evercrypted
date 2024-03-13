@@ -115,7 +115,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
     }
   }
 
-  Dialog secretInput = Dialog.fullscreen(
+  Dialog secretInput = const Dialog.fullscreen(
     child: SecretInput(),
   );
 
@@ -197,7 +197,11 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                     showDialog(
                                         context: context,
                                         builder: (BuildContext context) =>
-                                            secretInput);
+                                            secretInput).then((value) {
+                                      if (value.done) {
+                                        print('done');
+                                      }
+                                    });
                                   },
                                   keyboardType: TextInputType.emailAddress,
                                   decoration: InputDecoration(
