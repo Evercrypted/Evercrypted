@@ -44,13 +44,13 @@ class Keyboards {
       case ('Turkish'):
         return Keyboard(
           name: 'Türkçe',
-          keyWidth: 26,
-          secondRow: List<String>.from('qwertyuiopğü'.split('')),
+          keyWidth: 28,
+          secondRow: List<String>.from('qwertyuiopğ'.split('')),
           thirdRow: List<String>.from('asdfghjklşi'.split('')),
-          fourthRow: List<String>.from('zxcvbnmöç'.split('')),
-          secondRowShifted: List<String>.from('QWERTYUIOPĞÜ'.split('')),
+          fourthRow: List<String>.from('zxcvbnmöçü'.split('')),
+          secondRowShifted: List<String>.from('QWERTYUIOPĞ'.split('')),
           thirdRowShifted: List<String>.from('ASDFGHJKLŞİ'.split('')),
-          fourthRowShifted: List<String>.from('ZXCVBNMÖÇ'.split('')),
+          fourthRowShifted: List<String>.from('ZXCVBNMÖÇÜ'.split('')),
           isShifted: isShifted,
           isSpecial: isSpecial,
         );

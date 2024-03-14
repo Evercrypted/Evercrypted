@@ -61,19 +61,6 @@ class Keyboard {
     '0'
   ];
 
-  static const List<String> firstRowShifted = [
-    '!',
-    '"',
-    '#',
-    '\$',
-    '%',
-    '^',
-    '&',
-    '*',
-    '(',
-    ')'
-  ];
-
   static const List<String> firstRowSpecial = [
     '-',
     '_',
@@ -113,21 +100,8 @@ class Keyboard {
   static const List<String> fourthRowSpecial = [
     '(',
     ')',
-    '_',
-    '+',
-    '-',
-    '=',
-    '{',
-    '}',
-    '[',
-    ']'
   ];
 
-  get firstRowKeys => isSpecial
-      ? firstRowSpecial
-      : isShifted
-          ? firstRowShifted
-          : firstRow;
   get secondRowKeys => isSpecial
       ? secondRowSpecial
       : isShifted

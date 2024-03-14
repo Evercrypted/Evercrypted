@@ -9,17 +9,20 @@ class HighlightedButton extends StatefulWidget {
   final Color? hoverColor;
   final Widget child;
   final ButtonStyle? style;
+  final bool isActive;
+  final Color? specificColor;
 
-  const HighlightedButton({
-    super.key,
-    this.onPressed,
-    this.onHover,
-    this.onLongPress,
-    this.backgroundColor = primaryColor,
-    this.hoverColor = secondaryColor,
-    required this.child,
-    this.style,
-  });
+  const HighlightedButton(
+      {super.key,
+      this.onPressed,
+      this.onHover,
+      this.onLongPress,
+      this.backgroundColor = primaryColor,
+      this.hoverColor = secondaryColor,
+      required this.child,
+      this.style,
+      this.isActive = false,
+      this.specificColor});
 
   @override
   HighlightedButtonState createState() => HighlightedButtonState();
@@ -30,8 +33,9 @@ class HighlightedButtonState extends State<HighlightedButton> {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor =
-        _isPressed ? widget.hoverColor : widget.backgroundColor;
+    final backgroundColor = _isPressed || widget.isActive
+        ? widget.hoverColor
+        : widget.backgroundColor;
 
     return GestureDetector(
       onTapDown: (_) {

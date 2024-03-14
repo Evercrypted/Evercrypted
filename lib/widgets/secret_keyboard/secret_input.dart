@@ -81,9 +81,12 @@ class SecretInputState extends State<SecretInput>
             left: activeKeyboard.keyMargins.left,
             right: activeKeyboard.keyMargins.right);
     return Container(
-      width: useDefualtSizes ? Keyboard.defaultWidth : activeKeyboard.keyWidth,
-      height:
-          useDefualtSizes ? Keyboard.defaultHeight : activeKeyboard.keyHeight,
+      width: useDefualtSizes || isSpecial
+          ? Keyboard.defaultWidth
+          : activeKeyboard.keyWidth,
+      height: useDefualtSizes || isSpecial
+          ? Keyboard.defaultHeight
+          : activeKeyboard.keyHeight,
       margin: margins,
       child: HighlightedButton(
         style: ElevatedButton.styleFrom(
@@ -141,49 +144,12 @@ class SecretInputState extends State<SecretInput>
                 color: primaryColor,
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                            onPressed: () {
-                              Navigator.of(context).pop((done: false));
-                            },
-                            icon: const Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Colors.white,
-                              size: 35,
-                            )),
-                        IconButton(
-                            onPressed: () {
-                              setState(() {
-                                if (_textController.text.isNotEmpty) {
-                                  if (selectionStart != null &&
-                                      selectionEnd != null) {
-                                    _textController.text = _textController.text
-                                            .substring(0, selectionStart!) +
-                                        _textController.text
-                                            .substring(selectionEnd!);
-                                  } else if (_textController.text.isNotEmpty) {
-                                    _textController.text = _textController.text
-                                        .substring(
-                                            0, _textController.text.length - 1);
-                                  }
-                                }
-                              });
-                            },
-                            icon: const Icon(
-                              Icons.backspace,
-                              color: Colors.white,
-                              size: 30,
-                            )),
-                      ],
-                    ),
                     Container(
                       margin: const EdgeInsets.all(2),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          for (var key in activeKeyboard.firstRowKeys)
+                          for (var key in Keyboard.firstRow)
                             _keyboardButton(key, useDefualtSizes: true)
                         ],
                       ),
@@ -215,51 +181,171 @@ class SecretInputState extends State<SecretInput>
                         children: [
                           for (var key in activeKeyboard.fourthRowKeys)
                             _keyboardButton(key),
-                          Container(
-                            height: Keyboard.defaultHeight,
-                            margin: EdgeInsets.only(
-                                top: Keyboard.defaultMargins.top,
-                                bottom: Keyboard.defaultMargins.bottom,
-                                left: Keyboard.defaultMargins.left,
-                                right: Keyboard.defaultMargins.right),
-                            child: HighlightedButton(
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: Size.zero,
-                                  padding: const EdgeInsets.only(
-                                      top: 2, bottom: 2, left: 13, right: 15),
-                                ),
-                                onPressed: () {},
-                                child: const Icon(Icons.backspace,
-                                    color: Colors.white)),
-                          ),
                         ],
                       ),
                     ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
                           children: [
-                            HighlightedButton(
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: Size.zero,
-                                padding: const EdgeInsets.only(
-                                    top: 2, bottom: 2, left: 5, right: 5),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  isShifted = !isShifted;
-                                  activeKeyboard = Keyboards.getKeyboard(
-                                      language: activeLanguage,
-                                      isShifted: isShifted,
-                                      isSpecial: isSpecial);
-                                });
-                              },
-                              child: const Icon(
-                                Icons.arrow_right_alt,
-                                color: Color.fromRGBO(255, 255, 255, 1),
+                            Container(
+                              margin: EdgeInsets.only(
+                                  left: Keyboard.defaultMargins.left,
+                                  right: Keyboard.defaultMargins.right),
+                              child: HighlightedButton(
+                                isActive: isShifted,
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  padding: const EdgeInsets.only(
+                                      top: 2, bottom: 2, left: 5, right: 5),
+                                  fixedSize: const Size(50, 40),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    isShifted = !isShifted;
+                                    activeKeyboard = Keyboards.getKeyboard(
+                                        language: activeLanguage,
+                                        isShifted: isShifted,
+                                        isSpecial: isSpecial);
+                                  });
+                                },
+                                child: const Icon(
+                                  Icons.arrow_circle_up,
+                                  color: Color.fromRGBO(255, 255, 255, 1),
+                                ),
                               ),
                             ),
+                            Container(
+                              margin: EdgeInsets.only(
+                                  left: Keyboard.defaultMargins.left,
+                                  right: Keyboard.defaultMargins.right),
+                              child: HighlightedButton(
+                                isActive: isSpecial,
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  fixedSize: const Size(50, 40),
+                                  padding: const EdgeInsets.only(
+                                      top: 2, bottom: 2, left: 5, right: 5),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    isSpecial = !isSpecial;
+                                    activeKeyboard = Keyboards.getKeyboard(
+                                        language: activeLanguage,
+                                        isShifted: isShifted,
+                                        isSpecial: isSpecial);
+                                  });
+                                },
+                                child: const Text('#?&!',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 15)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            _keyboardButton('.', useDefualtSizes: true),
+                            _keyboardButton(',', useDefualtSizes: true),
+                            _keyboardButton('@', useDefualtSizes: true),
+                            _keyboardButton('?', useDefualtSizes: true),
+                            Container(
+                              height: Keyboard.defaultHeight,
+                              margin: EdgeInsets.only(
+                                  top: Keyboard.defaultMargins.top,
+                                  bottom: Keyboard.defaultMargins.bottom,
+                                  left: Keyboard.defaultMargins.left,
+                                  right: Keyboard.defaultMargins.right),
+                              child: HighlightedButton(
+                                  backgroundColor: Colors.red[300],
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: Size.zero,
+                                    padding: const EdgeInsets.only(
+                                        top: 2, bottom: 2, left: 13, right: 15),
+                                  ),
+                                  onPressed: () {
+                                    if (selectionStart != null &&
+                                        selectionEnd != null) {
+                                      setState(() {
+                                        _textController.text = _textController
+                                                .text
+                                                .substring(0, selectionStart!) +
+                                            _textController.text
+                                                .substring(selectionEnd!);
+                                      });
+                                    } else {
+                                      setState(() {
+                                        _textController.text =
+                                            _textController.text.substring(
+                                                0,
+                                                _textController.text.length -
+                                                    1);
+                                      });
+                                    }
+                                  },
+                                  onLongPress: () {
+                                    setState(() {
+                                      Future.doWhile(() async {
+                                        await Future.delayed(
+                                            const Duration(milliseconds: 100));
+                                        setState(() {
+                                          _textController.text =
+                                              _textController.text.substring(
+                                                  0,
+                                                  _textController.text.length -
+                                                      1);
+                                        });
+                                        return _textController.text.isNotEmpty;
+                                      });
+                                    });
+                                  },
+                                  child: const Icon(Icons.backspace,
+                                      color: Colors.white)),
+                            ),
+                            Container(
+                              height: Keyboard.defaultHeight,
+                              margin: EdgeInsets.only(
+                                  top: Keyboard.defaultMargins.top,
+                                  bottom: Keyboard.defaultMargins.bottom,
+                                  left: Keyboard.defaultMargins.left,
+                                  right: Keyboard.defaultMargins.right),
+                              child: HighlightedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: Size.zero,
+                                    padding: const EdgeInsets.only(
+                                        top: 2, bottom: 2, left: 13, right: 15),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _textController.text += "\n";
+                                    });
+                                  },
+                                  child: const Icon(
+                                      Icons.subdirectory_arrow_left,
+                                      color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop((
+                                    text: _textController.text,
+                                    done: false,
+                                  ));
+                                },
+                                icon: const Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: Colors.white,
+                                  size: 35,
+                                )),
                             DropdownButton(
                                 iconSize: 0.0,
                                 dropdownColor: secondaryColor,
@@ -292,7 +378,11 @@ class SecretInputState extends State<SecretInput>
                               left: 5, top: 2, bottom: 2, right: 5),
                           width: 150,
                           child: HighlightedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              setState(() {
+                                _textController.text += ' ';
+                              });
+                            },
                             child: const Icon(
                               Icons.space_bar,
                               color: Colors.white,
@@ -303,8 +393,12 @@ class SecretInputState extends State<SecretInput>
                           margin: const EdgeInsets.only(
                               left: 5, top: 2, bottom: 2, right: 5),
                           child: HighlightedButton(
+                            backgroundColor: Colors.lightGreen,
                             onPressed: () {
-                              Navigator.of(context).pop((done: true));
+                              Navigator.of(context).pop((
+                                text: _textController.text,
+                                done: true,
+                              ));
                             },
                             child: const Icon(
                               Icons.done,
