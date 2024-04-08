@@ -1,8 +1,8 @@
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,7 +20,7 @@ class ProfileScreen extends ConsumerWidget {
   Future<void> _signOut() async {
     await settingsService.deleteOtpToken();
     ChatSocket.instance.disconnectWS();
-    FirebaseAuth.instance.signOut();
+    Auth.clearAuth();
   }
 
   @override

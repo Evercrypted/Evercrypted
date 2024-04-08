@@ -1,5 +1,4 @@
 import 'package:evercrypted/core/helpers/field_validators.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../../widgets/primary_button.dart';
@@ -25,21 +24,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() {
       _shouldShowLoading = true;
     });
-    FirebaseAuth.instance.sendPasswordResetEmail(email: email).then((value) {
-      setState(() {
-        _shouldShowLoading = false;
-      });
-      Navigator.pop(context);
-    }).catchError((e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content:
-            Text(e.toString(), style: const TextStyle(color: Colors.white)),
-        backgroundColor: errorColor,
-      ));
-      setState(() {
-        _shouldShowLoading = false;
-      });
-    });
+    //firebaseauth
+    // FirebaseAuth.instance.sendPasswordResetEmail(email: email).then((value) {
+    //   setState(() {
+    //     _shouldShowLoading = false;
+    //   });
+    //   Navigator.pop(context);
+    // }).catchError((e) {
+    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //     content:
+    //         Text(e.toString(), style: const TextStyle(color: Colors.white)),
+    //     backgroundColor: errorColor,
+    //   ));
+    //   setState(() {
+    //     _shouldShowLoading = false;
+    //   });
+    // });
   }
 
   @override

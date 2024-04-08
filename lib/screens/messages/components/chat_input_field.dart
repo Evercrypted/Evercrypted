@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/cryptography/payload.dart';
+import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/entities/message/message_service.dart';
@@ -17,7 +18,7 @@ class ChatInputField extends StatefulWidget {
 
 class ChatInputFieldState extends State<ChatInputField> {
   bool _showAttachment = false;
-  final TextEditingController messageField = TextEditingController();
+  final TextEditingController _messageField = TextEditingController();
   final MessageService _messageService = MessageService();
 
   void _updateAttachmentState() {
@@ -27,6 +28,9 @@ class ChatInputFieldState extends State<ChatInputField> {
   }
 
   void sendMessage(String message) async {
+    if (message.isEmpty) {
+      return;
+    }
     dynamic encr = message;
     if (widget.pass != null) {
       if (widget.pass != null && widget.pass!.isNotEmpty == true) {
@@ -38,7 +42,13 @@ class ChatInputFieldState extends State<ChatInputField> {
       }
     }
     _messageService.sendMessage(encr, widget.chatId);
-    messageField.clear();
+    _messageField.clear();
+  }
+
+  @override
+  void dispose() {
+    _messageField.dispose();
+    super.dispose();
   }
 
   @override
@@ -59,7 +69,7 @@ class ChatInputFieldState extends State<ChatInputField> {
                       const SizedBox(width: defaultPadding / 4),
                       Expanded(
                         child: TextField(
-                          controller: messageField,
+                          controller: _messageField,
                           decoration: InputDecoration(
                             hintText: "Type message",
                             suffixIcon: SizedBox(
@@ -84,7 +94,7 @@ class ChatInputFieldState extends State<ChatInputField> {
                                           horizontal: defaultPadding / 2),
                                       child: InkWell(
                                         onTap: () {
-                                          sendMessage(messageField.text);
+                                          sendMessage(_messageField.text);
                                         },
                                         child: const Icon(
                                           Icons.send,
@@ -95,6 +105,24 @@ class ChatInputFieldState extends State<ChatInputField> {
                               ),
                             ),
                           ),
+                          onTap: () {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) =>
+                                    Dialog.fullscreen(
+                                      child: SecretInput(
+                                        originalText: _messageField.text,
+                                      ),
+                                    )).then((value) {
+                              if (value.text.isNotEmpty) {
+                                _messageField.text = value.text;
+                              }
+                              if (value.done) {
+                                sendMessage(value.text);
+                              }
+                            });
+                          },
+                          keyboardType: TextInputType.none,
                           onSubmitted: (value) {
                             if (value.isNotEmpty) {
                               sendMessage(value);

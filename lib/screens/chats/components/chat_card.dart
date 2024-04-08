@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:evercrypted/core/auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/entities/chat/chat_model.dart';
@@ -16,7 +16,7 @@ class ChatCard extends StatelessWidget {
 
   final Chat chat;
   final VoidCallback press;
-  final userId = FirebaseAuth.instance.currentUser?.uid;
+  final userId = Auth.user?.uid;
   final bool isActive;
 
   @override

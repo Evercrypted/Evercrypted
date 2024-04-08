@@ -38,7 +38,6 @@ dependencies:
   rxdart: ^0.27.7
 
   firebase_core: ^2.25.4
-  firebase_auth: ^4.17.4
   firebase_messaging: ^14.7.15
 
   google_fonts: ^6.1.0

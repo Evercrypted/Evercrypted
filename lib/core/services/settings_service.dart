@@ -1,6 +1,6 @@
 import 'package:cryptography/cryptography.dart';
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwk/jwk.dart';
@@ -14,7 +14,7 @@ class SettingsService {
   final storage = const FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true));
 
-  final currentUser = FirebaseAuth.instance.currentUser;
+  final currentUserUid = Auth.user?.uid;
 
   Future<String> httpHandshake() async {
     final algo = X25519();
@@ -46,16 +46,16 @@ class SettingsService {
   }
 
   getOtpToken() {
-    return storage.read(key: otpTokenPrefix + currentUser!.uid);
+    return storage.read(key: otpTokenPrefix + currentUserUid!);
   }
 
   updateOtpToken(String otpToken) async {
-    await storage.delete(key: otpTokenPrefix + currentUser!.uid);
+    await storage.delete(key: otpTokenPrefix + currentUserUid!);
     return storage.write(
-        key: otpTokenPrefix + currentUser!.uid, value: otpToken);
+        key: otpTokenPrefix + currentUserUid!, value: otpToken);
   }
 
   deleteOtpToken() {
-    return storage.delete(key: otpTokenPrefix + currentUser!.uid);
+    return storage.delete(key: otpTokenPrefix + currentUserUid!);
   }
 }

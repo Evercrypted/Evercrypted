@@ -22,19 +22,17 @@ class ActionQueueService {
           switch (action.channel) {
             case SocketChannelTypes.message:
               if (action.type == MessageEventTypes.sendMessage) {
-                print(action.id);
-                await isar?.writeTxn(() async {
-                  await isar.messages
-                      .where()
-                      .queueIdEqualTo(action.id)
-                      .findFirst()
-                      .then((message) {
-                    print(message!.toJson());
-                    message.successfullySent = true;
-                    message.uid = result['messageUid'];
-                    isar.messages.put(message);
-                                    });
-                });
+                Message? msg = isar?.messages
+                    .where()
+                    .queueIdEqualTo(action.id)
+                    .findFirstSync();
+                if (msg != null) {
+                  await isar?.writeTxn(() async {
+                    msg.successfullySent = true;
+                    msg.uid = result['messageUid'];
+                    await isar.messages.put(msg);
+                  });
+                }
               }
           }
           await isar?.writeTxn(() async {

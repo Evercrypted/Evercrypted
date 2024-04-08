@@ -31,8 +31,9 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
 
   final ContactRequestService _contactRequestService = ContactRequestService();
 
-  String? email;
-  String? message;
+  final _emailController = TextEditingController();
+  final _messageController = TextEditingController();
+  final _messageFocus = FocusNode();
 
   int _selectedIndex = 0;
   List<ContactRequest> sentRequests = [];
@@ -49,6 +50,14 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _messageController.dispose();
+    _messageFocus.dispose();
+    super.dispose();
+  }
+
   void _onBotNavTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -57,7 +66,8 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
 
   submitForm() {
     final List<Contact> contacts = ref.read(contactsProvider);
-    if (contacts.any((Contact element) => element.email == email)) {
+    if (contacts
+        .any((Contact element) => element.email == _emailController.text)) {
       showSimpleNotification(
           const Text(
             "You already have a contact with this email",
@@ -74,7 +84,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
         builder: (BuildContext context) => AlertDialog(
           title: const Text('Confirm Contact Request'),
           content: Text(
-              'Are you sure that you want to send a contact request to $email?'),
+              'Are you sure that you want to send a contact request to $_emailController.text?'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -90,8 +100,9 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
         if (value == null) return;
         if (value) {
           form.currentState?.reset();
-          final cRequest =
-              ContactRequest(recipientEmail: email!, message: message);
+          final cRequest = ContactRequest(
+              recipientEmail: _emailController.text,
+              message: _messageController.text);
           _contactRequestService.createContactRequest(cRequest).then((resp) {
             setState(() {
               _selectedIndex = 1;
@@ -114,10 +125,6 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
       });
     }
   }
-
-  Dialog secretInput = const Dialog.fullscreen(
-    child: SecretInput(),
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +182,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                             child: Column(
                               children: [
                                 TextFormField(
+                                  controller: _emailController,
                                   validator: (val) {
                                     String? emailError = validateEmail(val);
                                     if (emailError != null) return emailError;
@@ -190,20 +198,26 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                     }
                                   },
                                   textInputAction: TextInputAction.next,
-                                  onSaved: (value) {
-                                    email = value;
-                                  },
                                   onTap: () {
                                     showDialog(
                                         context: context,
                                         builder: (BuildContext context) =>
-                                            secretInput).then((value) {
+                                            Dialog.fullscreen(
+                                              child: SecretInput(
+                                                originalText:
+                                                    _emailController.text,
+                                              ),
+                                            )).then((value) {
+                                      if (value.text.isNotEmpty) {
+                                        _emailController.text = value.text;
+                                      }
                                       if (value.done) {
-                                        print('done');
+                                        FocusScope.of(context)
+                                            .requestFocus(_messageFocus);
                                       }
                                     });
                                   },
-                                  keyboardType: TextInputType.emailAddress,
+                                  keyboardType: TextInputType.none,
                                   decoration: InputDecoration(
                                     border: const OutlineInputBorder(
                                       borderSide: BorderSide.none,
@@ -225,19 +239,30 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                 ),
                                 const SizedBox(height: defaultPadding / 2),
                                 TextFormField(
-                                  minLines: 2,
-                                  maxLines: 2,
+                                  controller: _messageController,
+                                  focusNode: _messageFocus,
                                   validator: (val) {
                                     return maxLengthValidator(val, 100);
                                   },
-                                  textInputAction: TextInputAction.done,
-                                  onSaved: (value) {
-                                    message = value;
+                                  onTap: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            Dialog.fullscreen(
+                                              child: SecretInput(
+                                                originalText:
+                                                    _messageController.text,
+                                              ),
+                                            )).then((value) {
+                                      if (value.text.isNotEmpty) {
+                                        _messageController.text = value.text;
+                                      }
+                                      if (value.done) {
+                                        submitForm();
+                                      }
+                                    });
                                   },
-                                  onFieldSubmitted: (_) {
-                                    submitForm();
-                                  },
-                                  keyboardType: TextInputType.text,
+                                  keyboardType: TextInputType.none,
                                   decoration: InputDecoration(
                                     border: const OutlineInputBorder(
                                       borderSide: BorderSide.none,

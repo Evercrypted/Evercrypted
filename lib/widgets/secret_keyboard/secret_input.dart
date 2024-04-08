@@ -5,9 +5,11 @@ import 'package:evercrypted/widgets/secret_keyboard/keyboards.dart';
 import 'package:flutter/material.dart';
 
 class SecretInput extends StatefulWidget {
-  const SecretInput({super.key, this.originalText});
+  const SecretInput(
+      {super.key, this.originalText, this.isPasswordLike = false});
 
   final String? originalText;
+  final bool isPasswordLike;
 
   @override
   SecretInputState createState() => SecretInputState();
@@ -371,6 +373,18 @@ class SecretInputState extends State<SecretInput>
                                         isSpecial: isSpecial);
                                   });
                                 }),
+                            IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop((
+                                    text: _textController.text,
+                                    done: false,
+                                  ));
+                                },
+                                icon: const Icon(
+                                  Icons.visibility,
+                                  color: Colors.white,
+                                  size: 25,
+                                )),
                           ],
                         ),
                         Container(

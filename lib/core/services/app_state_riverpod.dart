@@ -22,7 +22,7 @@ class AppState {
       isConnected: isConnected ?? this.isConnected,
       shouldOtpLogin: shouldOtpLogin ?? this.shouldOtpLogin,
       httpEncryptionKey: httpEncryptionKey ?? this.httpEncryptionKey,
-      openedChatId: openedChatId ?? this.openedChatId,
+      openedChatId: openedChatId,
     );
   }
 }
@@ -50,7 +50,7 @@ class AppStateNotifier extends StateNotifier<AppState> {
   void setOpenedChatId(String? chatId) {
     if (chatId == null) {
       Future.delayed(Duration.zero, () {
-        state = state.copyWith(openedChatId: chatId);
+        state = state.copyWith(openedChatId: null);
       });
     } else {
       state = state.copyWith(openedChatId: chatId);

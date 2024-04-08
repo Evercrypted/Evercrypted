@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
@@ -37,7 +38,6 @@ import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'core/interceptors/auth_interceptor.dart';
 import 'firebase_options.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,7 +94,7 @@ class AuthGate extends ConsumerStatefulWidget {
 }
 
 class AuthGateState extends ConsumerState<AuthGate> {
-  User? user;
+  late AuthUser user;
   Timer? userReloadTimer;
   Timer? ioConnectionTimer;
   final ProfileService profileService = ProfileService();
@@ -107,20 +107,21 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
     _checkAndroidNotifications();
 
-    FirebaseAuth.instance.authStateChanges().listen((User? fbUser) {
-      if (fbUser != null) {
-        setState(() {
-          user = fbUser;
-        });
-        _checkIfUserEmailIsVerified(fbUser);
-        _syncIsarToRiverpod(fbUser);
-        _setIsarWatchers(fbUser);
-      } else {
-        setState(() {
-          user = null;
-        });
-      }
-    });
+    //firebaseauth
+    // FirebaseAuth.instance.authStateChanges().listen((User? fbUser) {
+    //   if (fbUser != null) {
+    //     setState(() {
+    //       user = fbUser;
+    //     });
+    //     _checkIfUserEmailIsVerified(fbUser);
+    //     _syncIsarToRiverpod(fbUser);
+    //     _setIsarWatchers(fbUser);
+    //   } else {
+    //     setState(() {
+    //       user = null;
+    //     });
+    //   }
+    // });
   }
 
   @override
@@ -224,7 +225,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         'afterlaunch payload: ${notificationAppLaunchDetails.toString()}');
   }
 
-  void _syncIsarToRiverpod(User user) {
+  void _syncIsarToRiverpod() {
     final isar = Isar.getInstance();
 
     //profile
@@ -256,7 +257,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
     }
   }
 
-  void _setIsarWatchers(User user) {
+  void _setIsarWatchers() {
     final isar = Isar.getInstance();
 
     //profile
@@ -286,13 +287,14 @@ class AuthGateState extends ConsumerState<AuthGate> {
     //messages
   }
 
-  _getTokenAndAddAuthInterceptor(User user) {
-    user.getIdTokenResult().then((value) {
-      if (value.claims?['email_verified']) {
-        addAuthInterceptor(value.token!);
-        _checkIfOtpIsNeeded(value.token!);
-      }
-    });
+  _getTokenAndAddAuthInterceptor() {
+    //firebaseauth
+    // user.getIdTokenResult().then((value) {
+    //   if (value.claims?['email_verified']) {
+    //     addAuthInterceptor(value.token!);
+    //     _checkIfOtpIsNeeded(value.token!);
+    //   }
+    // });
   }
 
   _checkIfOtpIsNeeded(String token) {
@@ -329,19 +331,20 @@ class AuthGateState extends ConsumerState<AuthGate> {
       userReloadTimer = Timer.periodic(
         const Duration(seconds: 5),
         (timer) {
-          FirebaseAuth.instance.currentUser?.reload().then((value) {
-            setState(() {
-              user = FirebaseAuth.instance.currentUser;
-            });
-            if (user?.emailVerified ?? false) {
-              userReloadTimer?.cancel();
-              _getTokenAndAddAuthInterceptor(user!);
-            }
-          });
+          //firebaseauth
+          // FirebaseAuth.instance.currentUser?.reload().then((value) {
+          //   setState(() {
+          //     user = FirebaseAuth.instance.currentUser;
+          //   });
+          //   if (user?.emailVerified ?? false) {
+          //     userReloadTimer?.cancel();
+          //     _getTokenAndAddAuthInterceptor(user!);
+          //   }
+          // });
         },
       );
     } else {
-      _getTokenAndAddAuthInterceptor(user!);
+      _getTokenAndAddAuthInterceptor();
       userReloadTimer?.cancel();
     }
   }

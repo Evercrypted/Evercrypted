@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
@@ -12,7 +13,6 @@ import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 
@@ -166,7 +166,7 @@ class SocketEventsService {
   }
 
   handleChatEvent(WidgetRef ref, String type, dynamic payload) {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = Auth.user?.uid;
     switch (type) {
       case ChatEventTypes.chatCreated:
         Chat chat = Chat.fromJson(payload['chat']);
@@ -189,23 +189,26 @@ class SocketEventsService {
   }
 
   handleMessageEvent(WidgetRef ref, String type, dynamic payload) {
-    print(type);
     switch (type) {
       case MessageEventTypes.messageReceived:
         Message message = Message.fromJson(payload['message']);
         messageService.writeNewMessageToIsar(message);
 
         final String? chatId = ref.read(appStateProvider).openedChatId;
-        print(chatId);
         Chat? chat = ref
             .read(chatsProvider)
             .firstWhereOrNull((element) => element.uid == message.chatUid);
         if (chat != null && chatId != message.chatUid) {
-          final userId = FirebaseAuth.instance.currentUser?.uid;
-          final chatname = chat.name ??
-              chat.participants
-                  .firstWhere((element) => element.uid != userId)
-                  .email;
+          String chatname;
+          if (chat.name != null && chat.name!.isNotEmpty) {
+            chatname = chat.name!;
+          } else {
+            final userId = Auth.user?.uid;
+            chatname = chat.participants
+                    .firstWhere((element) => element.uid != userId)
+                    .email ??
+                '';
+          }
           LocalNotification.instance.displayNotification(
             'Message',
             'New message from $chatname',

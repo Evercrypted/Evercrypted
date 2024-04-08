@@ -1,11 +1,15 @@
+import 'dart:async';
+
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/services/appbar_service.dart';
 import 'package:evercrypted/models/ChatMessage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -28,14 +32,17 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   final settingsForm = GlobalKey<FormState>();
   final MessageService _messageService = MessageService();
   late Isar? isar = Isar.getInstance();
-  final userId = FirebaseAuth.instance.currentUser?.uid;
+  final userId = Auth.user?.uid;
   late int startingCreatedAtMSE;
   int nextPageKey = 1;
   bool startedListeningToIsar = false;
   bool _passwordVisible = false;
+  final TextEditingController _passController = TextEditingController();
   String? pass;
 
   static const _pageSize = 10;
+
+  StreamSubscription? _isarSubscription;
 
   final PagingController<int, Message> _pagingController =
       PagingController(firstPageKey: 1);
@@ -58,6 +65,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           }
           _fetchPage(0).then((value) {
             listenToIsarChanges();
+            _pagingController.addPageRequestListener((pageKey) {
+              _fetchPage(pageKey);
+            });
           });
         });
       });
@@ -72,7 +82,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   void dispose() async {
-    isar?.close();
+    _isarSubscription?.cancel();
+    _passController.dispose();
     _pagingController.dispose();
     super.dispose();
   }
@@ -101,16 +112,29 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                       children: [
                         const SizedBox(height: defaultPadding / 2),
                         TextFormField(
+                          controller: _passController,
                           maxLength: 32,
                           textInputAction: TextInputAction.done,
-                          onSaved: (value) {
-                            setState(() {
-                              pass = value != null && value.isNotEmpty
-                                  ? value
-                                  : null;
+                          onTap: () {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) =>
+                                    Dialog.fullscreen(
+                                      child: SecretInput(
+                                        originalText: pass,
+                                      ),
+                                    )).then((value) {
+                              if (value.text.isNotEmpty) {
+                                _passController.text = value.text;
+                              }
+                              if (value.done) {
+                                setState(() {
+                                  pass = _passController.text;
+                                });
+                              }
                             });
                           },
-                          keyboardType: TextInputType.text,
+                          keyboardType: TextInputType.none,
                           obscureText: !_passwordVisible,
                           decoration: InputDecoration(
                             errorMaxLines: 3,
@@ -153,10 +177,10 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         PrimaryButton(
                           text: 'DECRYPT',
                           press: () {
-                            if (settingsForm.currentState!.validate()) {
-                              settingsForm.currentState!.save();
-                              Navigator.pop(context);
-                            }
+                            setState(() {
+                              pass = _passController.text;
+                            });
+                            Navigator.pop(context);
                           },
                           color: secondaryColor,
                         )
@@ -191,10 +215,16 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     Stream<List<Message>>? queryChanged =
         messagesQuery?.watch(fireImmediately: true);
-    queryChanged?.listen((messages) {
-      _pagingController.value = PagingState(
-          itemList: [...messages, ...(_pagingController.itemList ?? [])],
-          nextPageKey: nextPageKey);
+    _isarSubscription?.cancel();
+    _isarSubscription = queryChanged?.listen((messages) {
+      messages.retainWhere((element) =>
+          _pagingController.itemList
+              ?.firstWhereOrNull((el) => el.id == element.id) ==
+          null);
+      _pagingController.itemList = [
+        ...messages,
+        ...(_pagingController.itemList ?? []),
+      ];
     });
   }
 
@@ -202,12 +232,24 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     try {
       final newItems =
           await _messageService.getMessagesFromDB(pageKey, _pageSize);
+      newItems.retainWhere((element) =>
+          _pagingController.itemList
+              ?.firstWhereOrNull((el) => el.id == element.id) ==
+          null);
       final isLastPage = newItems.length < _pageSize;
       if (isLastPage) {
-        _pagingController.appendLastPage(newItems);
+        _pagingController.itemList = [
+          ...(_pagingController.itemList ?? []),
+          ...newItems,
+        ];
+        _pagingController.nextPageKey = null;
       } else {
         nextPageKey = pageKey + 1;
-        _pagingController.appendPage(newItems, nextPageKey);
+        _pagingController.itemList = [
+          ...(_pagingController.itemList ?? []),
+          ...newItems,
+        ];
+        _pagingController.nextPageKey = nextPageKey;
       }
       if (pageKey == 0 && newItems.isNotEmpty) {
         startingCreatedAtMSE = newItems.last.createdAtMSE;
