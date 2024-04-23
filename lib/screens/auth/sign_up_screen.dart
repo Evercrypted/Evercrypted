@@ -44,8 +44,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         _authService.signUp(formValues).then((result) {
           if (result['success']) {
-            //firebaseauth
-            // FirebaseAuth.instance.currentUser?.sendEmailVerification();
             setState(() {
               _shouldShowLoading = false;
             });

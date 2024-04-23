@@ -7,7 +7,7 @@ import 'profile_model.dart';
 
 class ProfileService {
   Future<bool?> checkIfOtpIsNeeded(WidgetRef ref, String token) async {
-    final String key = await getHttpEncKey(ref);
+    final String key = await getOtpEncKey(ref);
     return dio.post('/users/isOtpNeeded', data: {}).then((resp) async {
       final payload = await decodePayload(
         resp.data,

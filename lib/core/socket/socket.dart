@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
+import 'package:evercrypted/core/auth.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
@@ -96,7 +97,8 @@ class ChatSocket {
       'authorization': 'Bearer ${token ?? userToken}',
     };
 
-    String? otpToken = await settingsService.getOtpToken();
+    final otpToken = await Auth.getOtpToken;
+
     if (otpToken != null) {
       headers['otpToken'] = otpToken;
     }

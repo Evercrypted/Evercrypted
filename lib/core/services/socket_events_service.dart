@@ -61,7 +61,7 @@ class SocketEventsService {
     if (type == ErrorEventTypes.accessDenied) {
     } else if (type == ErrorEventTypes.noOTPToken ||
         type == ErrorEventTypes.invalidOTPToken) {
-      ref.read(appStateProvider.notifier).setShouldOtpLogin(true);
+      Auth.setAuth(newIsOtpActive: true);
     } else if (type == ErrorEventTypes.userLoggedInElsewhere) {
     } else if (type == ErrorEventTypes.couldNotLogin) {
     } else {

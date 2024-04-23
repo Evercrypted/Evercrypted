@@ -33,13 +33,8 @@ const ProfileSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'otpActive': PropertySchema(
-      id: 3,
-      name: r'otpActive',
-      type: IsarType.bool,
-    ),
     r'uid': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'uid',
       type: IsarType.string,
     )
@@ -106,8 +101,7 @@ void _profileSerialize(
   );
   writer.writeString(offsets[1], object.email);
   writer.writeString(offsets[2], object.name);
-  writer.writeBool(offsets[3], object.otpActive);
-  writer.writeString(offsets[4], object.uid);
+  writer.writeString(offsets[3], object.uid);
 }
 
 Profile _profileDeserialize(
@@ -124,8 +118,7 @@ Profile _profileDeserialize(
     ),
     email: reader.readStringOrNull(offsets[1]),
     name: reader.readStringOrNull(offsets[2]),
-    otpActive: reader.readBoolOrNull(offsets[3]) ?? false,
-    uid: reader.readStringOrNull(offsets[4]),
+    uid: reader.readStringOrNull(offsets[3]),
   );
   object.id = id;
   return object;
@@ -149,8 +142,6 @@ P _profileDeserializeProp<P>(
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
-    case 4:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -606,16 +597,6 @@ extension ProfileQueryFilter
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterFilterCondition> otpActiveEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'otpActive',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<Profile, Profile, QAfterFilterCondition> uidIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -801,18 +782,6 @@ extension ProfileQuerySortBy on QueryBuilder<Profile, Profile, QSortBy> {
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterSortBy> sortByOtpActive() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'otpActive', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterSortBy> sortByOtpActiveDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'otpActive', Sort.desc);
-    });
-  }
-
   QueryBuilder<Profile, Profile, QAfterSortBy> sortByUid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.asc);
@@ -864,18 +833,6 @@ extension ProfileQuerySortThenBy
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterSortBy> thenByOtpActive() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'otpActive', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterSortBy> thenByOtpActiveDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'otpActive', Sort.desc);
-    });
-  }
-
   QueryBuilder<Profile, Profile, QAfterSortBy> thenByUid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.asc);
@@ -902,12 +859,6 @@ extension ProfileQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QDistinct> distinctByOtpActive() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'otpActive');
     });
   }
 
@@ -942,12 +893,6 @@ extension ProfileQueryProperty
   QueryBuilder<Profile, String?, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
-    });
-  }
-
-  QueryBuilder<Profile, bool, QQueryOperations> otpActiveProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'otpActive');
     });
   }
 

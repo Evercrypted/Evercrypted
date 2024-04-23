@@ -1,3 +1,12 @@
+import 'package:cryptography/cryptography.dart';
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/combine_keys.dart';
+import 'package:evercrypted/core/cryptography/payload.dart';
+import 'package:evercrypted/core/helpers/get_random_string.dart';
+import 'package:evercrypted/core/http.dart';
+import 'package:jwk/jwk.dart';
+import 'package:retry/retry.dart';
+
 class AuthForm {
   String? email;
   String? password;
@@ -6,51 +15,106 @@ class AuthForm {
 }
 
 class AuthService {
-  Future signUp(AuthForm formValues) async {
-    //firebaseauth
-    // try {
-    //   final credential =
-    //       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-    //     email: formValues.email!,
-    //     password: formValues.password!,
-    //   );
-    //   return {'success': true, 'result': credential};
-    // } on FirebaseAuthException catch (e) {
-    //   if (e.code == 'weak-password') {
-    //     return {
-    //       'success': false,
-    //       'message': 'The password provided is too weak.'
-    //     };
-    //   } else if (e.code == 'email-already-in-use') {
-    //     return {
-    //       'success': false,
-    //       'message': 'The account already exists for that email.'
-    //     };
-    //   }
-    // } catch (e) {
-    //   return {'success': false, 'message': e.toString()};
-    // }
+  Future<Map<String, dynamic>> loginHandshake(identifier) async {
+    final algo = X25519();
+
+    // We need the private key pair of Alice.
+    final keyPair = await algo.newKeyPair();
+    final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
+    final resp = await dio.post('/auth/handshake', data: {
+      'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+      'identifier': identifier,
+    });
+    return {
+      'key': await combineKeys(algo, keyPair, resp.data['publicKey']),
+      'publicKey': resp.data['publicKey'],
+    };
   }
 
+  Future<Map<String, dynamic>> getLoginEncKey(identifier) async {
+    final response = await retry(
+        // Make a GET request
+        () => loginHandshake(identifier).timeout(const Duration(seconds: 5)),
+        // Retry on SocketException or TimeoutException
+        delayFactor: const Duration(seconds: 2),
+        maxAttempts: 10000,
+        onRetry: (e) {});
+    return response;
+  }
+
+  Future signUp(AuthForm formValues) async {
+    final identifier =
+        DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
+    final Map<String, dynamic> keys = await getLoginEncKey(identifier);
+    final crypted = await encodePayload({
+      'email': formValues.email,
+      'password': formValues.password,
+    }, keys['key']);
+    return dio.post('/auth/register',
+        data: {'crypted': crypted, 'identifier': identifier}).then(
+      (value) async {
+        final payload = await decodePayload(
+          value.data,
+          keys['key'],
+        );
+        print(payload);
+        Auth.setAuth(
+            newUser: AuthUser(
+                uid: payload['uid'],
+                email: payload['email'] ?? payload['preverified_email'],
+                emailVerified: payload['email_verified'] as bool),
+            newToken: payload['access_token'] as String,
+            newIsOtpActive: payload['otp_active'] as bool);
+        return {
+          'success': true,
+          'payload': payload,
+        };
+      },
+    );
+  }
+  //firebaseauth
+  // try {
+  //   final credential =
+  //       await FirebaseAuth.instance.createUserWithEmailAndPassword(
+  //     email: formValues.email!,
+  //     password: formValues.password!,
+  //   );
+  //   return {'success': true, 'result': credential};
+  // } on FirebaseAuthException catch (e) {
+  //   if (e.code == 'weak-password') {
+  //     return {
+  //       'success': false,
+  //       'message': 'The password provided is too weak.'
+  //     };
+  //   } else if (e.code == 'email-already-in-use') {
+  //     return {
+  //       'success': false,
+  //       'message': 'The account already exists for that email.'
+  //     };
+  //   }
+  // } catch (e) {
+  //   return {'success': false, 'message': e.toString()};
+  // }
+  // }
+
   Future singIn(AuthForm formValues) async {
-    //firebaseauth
-    // try {
-    //   final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-    //     email: formValues.email!,
-    //     password: formValues.password!,
-    //   );
-    //   return {'success': true, 'result': credential};
-    // } on FirebaseAuthException catch (e) {
-    //   if (e.code == 'user-not-found') {
-    //     return {'success': false, 'message': 'No user found for that email.'};
-    //   } else if (e.code == 'wrong-password') {
-    //     return {
-    //       'success': false,
-    //       'message': 'Wrong password provided for that user.'
-    //     };
-    //   }
-    // } catch (e) {
-    //   return {'success': false, 'message': e.toString()};
-    // }
+    final identifier =
+        DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
+    final Map<String, dynamic> keys = await getLoginEncKey(identifier);
+    final crypted = await encodePayload({
+      'email': formValues.email,
+      'password': formValues.password,
+    }, keys['key']);
+    return dio.post('/auth/login',
+        data: {'crypted': crypted, 'identifier': identifier}).then(
+      (value) async {
+        final payload = await decodePayload(
+          value.data,
+          keys['key'],
+        );
+        print(payload);
+        return payload;
+      },
+    );
   }
 }

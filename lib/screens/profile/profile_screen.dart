@@ -18,7 +18,6 @@ class ProfileScreen extends ConsumerWidget {
   final SettingsService settingsService = SettingsService();
 
   Future<void> _signOut() async {
-    await settingsService.deleteOtpToken();
     ChatSocket.instance.disconnectWS();
     Auth.clearAuth();
   }
@@ -72,9 +71,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             PrimaryButton(
               padding: const EdgeInsets.all(5),
-              text: profile?.otpActive == false
-                  ? "Activate 2FA"
-                  : "Deactivate 2FA",
+              text: Auth.isOtpActive! ? "Deactivate 2FA" : "Activate 2FA",
               press: () => Navigator.pushNamed(context, OtpScreen.routeName),
             ),
             PrimaryButton(

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +12,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/entities/profile/profile_model.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
-import '../../core/services/app_state_riverpod.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/socket/socket.dart';
 import '../../core/socket/event_types/settings_event_types.dart';
@@ -32,6 +34,9 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   String? gAuthCode;
   final pinController = TextEditingController();
   String? errorMessage;
+  bool isOtpActive = false;
+
+  late StreamSubscription authListener;
 
   Future<void> _launchUrl() async {
     final Uri url = Uri.parse(gAuthURI!);
@@ -175,6 +180,11 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   @override
   void initState() {
     super.initState();
+    authListener = Auth.authSubject.stream.listen((shouldFire) {
+      setState(() {
+        isOtpActive = Auth.getIsOtpActive;
+      });
+    });
     gAuthURI = null;
     gAuthCode = null;
   }
@@ -182,6 +192,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   @override
   void dispose() {
     pinController.dispose();
+    authListener.cancel();
     super.dispose();
   }
 
@@ -190,10 +201,8 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
       if (resp['activated'] == true && resp['otpToken'] != null) {
-        Profile? profile = ref.read(profileProvider);
-        profile?.otpActive = true;
-        profileService.syncProfile(profile!);
-        await settingsService.updateOtpToken(resp['otpToken']);
+        Auth.setIsOtpActive(true);
+        Auth.setOtpToken(resp['otpToken']);
         if (context.mounted) Navigator.pop(context);
         showSimpleNotification(
             const Text(
@@ -214,10 +223,8 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.deactivate2FA, {'code': code}).then((resp) async {
       if (resp['deactivated'] == true) {
-        Profile? profile = ref.read(profileProvider);
-        profile?.otpActive = false;
-        profileService.syncProfile(profile!);
-        await settingsService.deleteOtpToken();
+        Auth.setIsOtpActive(false);
+        Auth.clearOtpToken();
         if (context.mounted) Navigator.pop(context);
         showSimpleNotification(
             const Text(
@@ -237,8 +244,8 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     pinController.clear();
     settingsService.otpLogin(ref, code).then((Map<String, dynamic> resp) async {
       if (resp['status'] == 'ok') {
-        await settingsService.updateOtpToken(resp['payload']['otpToken']);
-        ref.read(appStateProvider.notifier).setShouldOtpLogin(false);
+        Auth.setOtpToken(resp['payload']['otpToken']);
+        Auth.setAuth(newIsOtpActive: false);
       } else {
         setState(() {
           errorMessage = resp['error'];
@@ -249,10 +256,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Profile? profile = ref.watch(profileProvider);
-
-    bool otpActive = profile?.otpActive == true;
-
     if (widget.isLogin) {
       activateWidgets = [
         const Text(
@@ -273,7 +276,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
             style: const TextStyle(color: Colors.red),
           ),
       ];
-    } else if (otpActive) {
+    } else if (isOtpActive) {
       activateWidgets = [
         const Text(
           'To deactivate 2FA, enter the 6-digit code from your 2FA app below',
@@ -301,7 +304,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
       appBar: AppBar(
         title: Text(widget.isLogin
             ? '2FA Login'
-            : profile?.otpActive == true
+            : isOtpActive
                 ? "Deactivate 2FA"
                 : "Activate 2FA"),
       ),

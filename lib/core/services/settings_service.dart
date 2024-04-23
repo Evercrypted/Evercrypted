@@ -2,7 +2,6 @@ import 'package:cryptography/cryptography.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwk/jwk.dart';
 
 import '../cryptography/combine_keys.dart';
@@ -11,12 +10,10 @@ import '../http.dart';
 
 class SettingsService {
   static const String otpTokenPrefix = 'otpToken-';
-  final storage = const FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true));
 
   final currentUserUid = Auth.user?.uid;
 
-  Future<String> httpHandshake() async {
+  Future<String> otpHandshake() async {
     final algo = X25519();
 
     // We need the private key pair of Alice.
@@ -29,7 +26,7 @@ class SettingsService {
   }
 
   Future<Map<String, dynamic>> otpLogin(WidgetRef ref, String otpCode) async {
-    final String key = await getHttpEncKey(ref);
+    final String key = await getOtpEncKey(ref);
     final crypted = await encodePayload({
       'type': SettingsEventTypes.login2FA,
       'payload': {'code': otpCode}
@@ -43,19 +40,5 @@ class SettingsService {
         return payload['needOtp'];
       },
     );
-  }
-
-  getOtpToken() {
-    return storage.read(key: otpTokenPrefix + currentUserUid!);
-  }
-
-  updateOtpToken(String otpToken) async {
-    await storage.delete(key: otpTokenPrefix + currentUserUid!);
-    return storage.write(
-        key: otpTokenPrefix + currentUserUid!, value: otpToken);
-  }
-
-  deleteOtpToken() {
-    return storage.delete(key: otpTokenPrefix + currentUserUid!);
   }
 }

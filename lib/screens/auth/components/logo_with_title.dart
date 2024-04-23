@@ -23,6 +23,7 @@ class LogoWithTitle extends StatelessWidget {
               SizedBox(height: constraints.maxHeight * 0.1),
               SvgPicture.asset(
                 logoTheme,
+                width: 150,
               ),
               SizedBox(
                 height: constraints.maxHeight * 0.1,

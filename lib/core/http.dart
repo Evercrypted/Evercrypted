@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:evercrypted/core/auth.dart';
 // import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/services/settings_service.dart';
@@ -31,20 +32,20 @@ initializeDio() {
   // ));
 }
 
-Future<String> getHttpEncKey(WidgetRef ref) async {
+Future<String> getOtpEncKey(WidgetRef ref) async {
   final SettingsService settingsService = SettingsService();
-  String? key = ref.read(appStateProvider).httpEncryptionKey;
+  String? key = await Auth.getOtpToken;
   if (key == null) {
     final response = await retry(
         // Make a GET request
         () =>
-            settingsService.httpHandshake().timeout(const Duration(seconds: 5)),
+            settingsService.otpHandshake().timeout(const Duration(seconds: 5)),
         // Retry on SocketException or TimeoutException
         delayFactor: const Duration(seconds: 2),
         maxAttempts: 10000, onRetry: (e) {
       ref.read(appStateProvider.notifier).setIsConnected(false);
     });
-    ref.read(appStateProvider).httpEncryptionKey = response;
+    Auth.setOtpToken(response);
     ref.read(appStateProvider.notifier).setIsConnected(true);
     return response;
   } else {

@@ -32,7 +32,6 @@ import 'core/entities/contact-request/contact_request_model.dart';
 import 'core/entities/contact-request/contact_request_riverpod.dart';
 import 'core/entities/contact/contact_model.dart';
 import 'core/entities/contact/contact_riverpod.dart';
-import 'core/services/app_state_riverpod.dart';
 import 'core/socket/socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
@@ -94,12 +93,16 @@ class AuthGate extends ConsumerStatefulWidget {
 }
 
 class AuthGateState extends ConsumerState<AuthGate> {
-  late AuthUser user;
+  AuthUser? user;
   Timer? userReloadTimer;
   Timer? ioConnectionTimer;
   final ProfileService profileService = ProfileService();
   final NotifiacationEventsService notifiacationEventsService =
       NotifiacationEventsService();
+
+  bool isOtpActive = false;
+
+  late StreamSubscription authListener;
 
   @override
   void initState() {
@@ -107,40 +110,47 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
     _checkAndroidNotifications();
 
-    //firebaseauth
-    // FirebaseAuth.instance.authStateChanges().listen((User? fbUser) {
-    //   if (fbUser != null) {
-    //     setState(() {
-    //       user = fbUser;
-    //     });
-    //     _checkIfUserEmailIsVerified(fbUser);
-    //     _syncIsarToRiverpod(fbUser);
-    //     _setIsarWatchers(fbUser);
-    //   } else {
-    //     setState(() {
-    //       user = null;
-    //     });
-    //   }
-    // });
+    authListener = Auth.authSubject.stream.listen((shouldFire) async {
+      if (Auth.user != null) {
+        setState(() {
+          user = Auth.user;
+        });
+      }
+      final String? token = await Auth.getToken;
+      if (token != null) {
+        addAuthInterceptor(token);
+        final bool otpActive = await Auth.getIsOtpActive;
+        setState(() {
+          isOtpActive = otpActive;
+        });
+        _connectIO(token);
+      } else {
+        setState(() {
+          user = null;
+        });
+      }
+    });
+    Future.delayed(Duration.zero, () {
+      _syncIsarToRiverpod();
+      _setIsarWatchers();
+    });
   }
 
   @override
   void dispose() {
     userReloadTimer?.cancel();
     ioConnectionTimer?.cancel();
+    authListener.cancel();
     ChatSocket.instance.disconnectWS();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final shouldOtpLogin = ref
-        .watch(appStateProvider.select((appState) => appState.shouldOtpLogin));
-
     return Scaffold(
       body: user == null
           ? const SignInScreen()
-          : shouldOtpLogin
+          : isOtpActive
               ? const OtpScreen(
                   isLogin: true,
                 )
@@ -237,10 +247,10 @@ class AuthGateState extends ConsumerState<AuthGate> {
     if (contactRequests != null) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
           contactRequests
-              .where((element) => element.recipientEmail == user.email)
+              .where((element) => element.recipientEmail == user!.email)
               .toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-          .where((element) => element.authorId == user.uid)
+          .where((element) => element.authorId == user!.uid)
           .toList());
     }
 
@@ -270,10 +280,10 @@ class AuthGateState extends ConsumerState<AuthGate> {
     isar?.contactRequests.where().build().watch().listen((contactRequests) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
           contactRequests
-              .where((element) => element.recipientEmail == user.email)
+              .where((element) => element.recipientEmail == user!.email)
               .toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-          .where((element) => element.authorId == user.uid)
+          .where((element) => element.authorId == user!.uid)
           .toList());
     });
     //contacts
@@ -287,65 +297,17 @@ class AuthGateState extends ConsumerState<AuthGate> {
     //messages
   }
 
-  _getTokenAndAddAuthInterceptor() {
-    //firebaseauth
-    // user.getIdTokenResult().then((value) {
-    //   if (value.claims?['email_verified']) {
-    //     addAuthInterceptor(value.token!);
-    //     _checkIfOtpIsNeeded(value.token!);
-    //   }
-    // });
-  }
-
-  _checkIfOtpIsNeeded(String token) {
-    profileService.checkIfOtpIsNeeded(ref, token).then((resp) {
-      if (resp == true) {
-        ref.read(appStateProvider.notifier).setShouldOtpLogin(true);
-      } else {
-        _connectIO(token);
-      }
-    }).catchError((error) {
-      print(error);
-      // _checkProfileExists(token);
-    });
-  }
-
   _connectIO(token) {
     ChatSocket.instance.connectWS(token, ref);
     ioConnectionTimer = Timer.periodic(
       const Duration(seconds: 5),
       (timer) {
         if (ChatSocket.instance.socket == null) {
-          bool isOtpLogin = ref.read(
-              appStateProvider.select((appState) => appState.shouldOtpLogin));
-          if (!isOtpLogin) {
+          if (!isOtpActive) {
             ChatSocket.instance.connectWS(token, ref);
           }
         }
       },
     );
-  }
-
-  _checkIfUserEmailIsVerified(fbUser) {
-    if (!fbUser.emailVerified) {
-      userReloadTimer = Timer.periodic(
-        const Duration(seconds: 5),
-        (timer) {
-          //firebaseauth
-          // FirebaseAuth.instance.currentUser?.reload().then((value) {
-          //   setState(() {
-          //     user = FirebaseAuth.instance.currentUser;
-          //   });
-          //   if (user?.emailVerified ?? false) {
-          //     userReloadTimer?.cancel();
-          //     _getTokenAndAddAuthInterceptor(user!);
-          //   }
-          // });
-        },
-      );
-    } else {
-      _getTokenAndAddAuthInterceptor();
-      userReloadTimer?.cancel();
-    }
   }
 }

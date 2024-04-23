@@ -9,7 +9,7 @@ void addAuthInterceptor(token) {
 
       return handler.next(options);
     },
-    onError: (DioError e, ErrorInterceptorHandler handler) {
+    onError: (DioException e, ErrorInterceptorHandler handler) {
       // Do something with response error.
       // If you want to resolve the request with some custom data,
       // you can resolve a `Response` object using `handler.resolve(response)`.
