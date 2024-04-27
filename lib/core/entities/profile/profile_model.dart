@@ -20,9 +20,11 @@ class Profile {
       uid: json['uid'] as String?,
       name: json['name'] as String?,
       email: json['email'] as String?,
-      avatar: Avatar.fromJson(
-        json['avatar'],
-      ));
+      avatar: json['avatar'] == null
+          ? null
+          : Avatar.fromJson(
+              json['avatar'],
+            ));
 
   // Map<String, dynamic> toJson() => <String, dynamic>{
   //       'name': name,

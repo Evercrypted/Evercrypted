@@ -31,24 +31,3 @@ initializeDio() {
   //   ],
   // ));
 }
-
-Future<String> getOtpEncKey(WidgetRef ref) async {
-  final SettingsService settingsService = SettingsService();
-  String? key = await Auth.getOtpToken;
-  if (key == null) {
-    final response = await retry(
-        // Make a GET request
-        () =>
-            settingsService.otpHandshake().timeout(const Duration(seconds: 5)),
-        // Retry on SocketException or TimeoutException
-        delayFactor: const Duration(seconds: 2),
-        maxAttempts: 10000, onRetry: (e) {
-      ref.read(appStateProvider.notifier).setIsConnected(false);
-    });
-    Auth.setOtpToken(response);
-    ref.read(appStateProvider.notifier).setIsConnected(true);
-    return response;
-  } else {
-    return key;
-  }
-}

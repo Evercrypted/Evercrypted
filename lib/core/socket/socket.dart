@@ -34,7 +34,6 @@ class ChatSocket {
   ChatSocket._();
   final wsUrl = Uri.parse('ws://localhost:1234');
   io.Socket? socket;
-  String? userToken;
   SimpleKeyPair? keyPair;
   String? key;
   SettingsService settingsService = SettingsService();
@@ -83,7 +82,6 @@ class ChatSocket {
 
   connectWS(String? token, WidgetRef ref) async {
     tries = tries + 1;
-    userToken = token;
 
     if (socket != null) {
       socket?.destroy();
@@ -94,7 +92,7 @@ class ChatSocket {
     dynamic options = OptionBuilder().setTransports(['websocket']);
 
     var headers = {
-      'authorization': 'Bearer ${token ?? userToken}',
+      'authorization': 'Bearer $token',
     };
 
     final otpToken = await Auth.getOtpToken;

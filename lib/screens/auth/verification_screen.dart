@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +87,14 @@ class VerificationScreenState extends State<VerificationScreen> {
                     size: 17,
                   )
                 : null,
-          )
+          ),
+          TextButton(
+            onPressed: () => Auth.clearAuth(),
+            child: Text(
+              'Back to Sign In',
+              style: TextStyle(color: Theme.of(context).primaryColor),
+            ),
+          ),
         ],
       ),
     );

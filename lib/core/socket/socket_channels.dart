@@ -6,4 +6,5 @@ class SocketChannelTypes {
   static const contact = 'contact';
   static const settings = 'settings';
   static const error = 'error';
+  static const auth = 'auth';
 }

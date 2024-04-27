@@ -90,6 +90,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(height: constraints.maxHeight * 0.08),
                 SvgPicture.asset(
                   logoTheme,
+                  width: 150,
                 ),
                 SizedBox(height: constraints.maxHeight * 0.08),
                 Text(

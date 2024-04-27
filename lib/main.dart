@@ -111,25 +111,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
     _checkAndroidNotifications();
 
     authListener = Auth.authSubject.stream.listen((shouldFire) async {
-      if (Auth.user != null) {
-        setState(() {
-          user = Auth.user;
-        });
-      }
-      final String? token = await Auth.getToken;
-      if (token != null) {
-        addAuthInterceptor(token);
-        final bool otpActive = await Auth.getIsOtpActive;
-        setState(() {
-          isOtpActive = otpActive;
-        });
-        _connectIO(token);
-      } else {
-        setState(() {
-          user = null;
-        });
-      }
+      _authFlow();
     });
+
+    _authFlow();
+
     Future.delayed(Duration.zero, () {
       _syncIsarToRiverpod();
       _setIsarWatchers();
@@ -158,6 +144,27 @@ class AuthGateState extends ConsumerState<AuthGate> {
                   ? const VerificationScreen()
                   : const MainScreen(),
     );
+  }
+
+  void _authFlow() async {
+    if (Auth.user != null) {
+      setState(() {
+        user = Auth.user;
+      });
+    }
+    final String? token = await Auth.getToken;
+    if (token != null) {
+      addAuthInterceptor(token);
+      final bool otpActive = await Auth.getIsOtpActive;
+      setState(() {
+        isOtpActive = otpActive;
+      });
+      _connectIO(token);
+    } else {
+      setState(() {
+        user = null;
+      });
+    }
   }
 
   void _checkAndroidNotifications() async {

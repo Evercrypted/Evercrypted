@@ -13,12 +13,20 @@ class Auth {
   static String? otpToken;
 
   static const storage = FlutterSecureStorage(
+      iOptions: IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock,
+      ),
       aOptions: AndroidOptions(encryptedSharedPreferences: true));
 
-  static setAuth({AuthUser? newUser, String? newToken, bool? newIsOtpActive}) {
+  static setAuth(
+      {AuthUser? newUser, String? newToken, bool? newIsOtpActive}) async {
     Auth.user = newUser ?? user;
-    Auth.token = newToken ?? token;
-    Auth.isOtpActive = newIsOtpActive ?? isOtpActive;
+    if (newToken != null) {
+      await Auth.setToken(newToken);
+    }
+    if (newIsOtpActive != null) {
+      await Auth.setIsOtpActive(newIsOtpActive);
+    }
     authSubject.add(true);
   }
 
@@ -26,20 +34,20 @@ class Auth {
     if (token == null) {
       final fromStorage = await storage.read(key: 'token');
       token = fromStorage;
+      print('token $token');
     }
     return token;
   }
 
-  static setToken(String token) async {
-    Auth.token = token;
-    await storage.delete(key: 'token');
-    storage.write(key: 'token', value: token);
+  static setToken(String newToken) async {
+    Auth.token = newToken;
+    await storage.write(key: 'token', value: newToken);
     authSubject.add(true);
   }
 
-  static clearToken() {
+  static clearToken() async {
     Auth.token = null;
-    storage.delete(key: 'token');
+    await storage.delete(key: 'token');
     authSubject.add(true);
   }
 
@@ -53,14 +61,13 @@ class Auth {
 
   static setOtpToken(String otpToken) async {
     Auth.otpToken = token;
-    await storage.delete(key: 'otpToken');
     storage.write(key: 'otpToken', value: otpToken);
     authSubject.add(true);
   }
 
-  static clearOtpToken() {
+  static clearOtpToken() async {
     Auth.otpToken = null;
-    storage.delete(key: 'otpToken');
+    await storage.delete(key: 'otpToken');
     authSubject.add(true);
   }
 
@@ -74,7 +81,6 @@ class Auth {
 
   static setIsOtpActive(bool isOtpActive) async {
     Auth.isOtpActive = isOtpActive;
-    await storage.delete(key: 'isOtpActive');
     storage.write(key: 'isOtpActive', value: isOtpActive.toString());
     authSubject.add(true);
   }

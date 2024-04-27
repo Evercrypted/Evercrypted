@@ -4,6 +4,9 @@ import 'package:evercrypted/core/cryptography/combine_keys.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
+import 'package:evercrypted/core/socket/event_types/auth_event_types.dart';
+import 'package:evercrypted/core/socket/socket.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:jwk/jwk.dart';
 import 'package:retry/retry.dart';
 
@@ -29,6 +32,18 @@ class AuthService {
       'key': await combineKeys(algo, keyPair, resp.data['publicKey']),
       'publicKey': resp.data['publicKey'],
     };
+  }
+
+  Future<String> otpHandshake() async {
+    final algo = X25519();
+
+    // We need the private key pair of Alice.
+    final keyPair = await algo.newKeyPair();
+    final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
+    final resp = await dio.post('/auth/httpHandshake', data: {
+      'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+    });
+    return combineKeys(algo, keyPair, resp.data['publicKey']);
   }
 
   Future<Map<String, dynamic>> getLoginEncKey(identifier) async {
@@ -72,30 +87,6 @@ class AuthService {
       },
     );
   }
-  //firebaseauth
-  // try {
-  //   final credential =
-  //       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-  //     email: formValues.email!,
-  //     password: formValues.password!,
-  //   );
-  //   return {'success': true, 'result': credential};
-  // } on FirebaseAuthException catch (e) {
-  //   if (e.code == 'weak-password') {
-  //     return {
-  //       'success': false,
-  //       'message': 'The password provided is too weak.'
-  //     };
-  //   } else if (e.code == 'email-already-in-use') {
-  //     return {
-  //       'success': false,
-  //       'message': 'The account already exists for that email.'
-  //     };
-  //   }
-  // } catch (e) {
-  //   return {'success': false, 'message': e.toString()};
-  // }
-  // }
 
   Future singIn(AuthForm formValues) async {
     final identifier =
@@ -113,8 +104,27 @@ class AuthService {
           keys['key'],
         );
         print(payload);
-        return payload;
+        Auth.setAuth(
+            newUser: AuthUser(
+                uid: payload['uid'],
+                email: payload['email'] ?? payload['preverified_email'],
+                emailVerified: payload['email_verified'] as bool),
+            newToken: payload['access_token'] as String,
+            newIsOtpActive: payload['otp_active'] as bool);
+        return {
+          'success': true,
+          'payload': payload,
+        };
       },
     );
+  }
+
+  Future resendVerificationEmail() async {
+    return ChatSocket.instance.emitWAck(
+        SocketChannelTypes.auth,
+        AuthEventTypes.resendVerificationEmail,
+        {'resend': true}).then((resp) async {
+      return resp;
+    });
   }
 }

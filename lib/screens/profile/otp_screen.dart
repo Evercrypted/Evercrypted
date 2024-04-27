@@ -242,10 +242,10 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
   loginWith2Fa(WidgetRef ref, String code) {
     pinController.clear();
-    settingsService.otpLogin(ref, code).then((Map<String, dynamic> resp) async {
+    ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
+        SettingsEventTypes.login2FA, {'code': code}).then((resp) async {
       if (resp['status'] == 'ok') {
         Auth.setOtpToken(resp['payload']['otpToken']);
-        Auth.setAuth(newIsOtpActive: false);
       } else {
         setState(() {
           errorMessage = resp['error'];
