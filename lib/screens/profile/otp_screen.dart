@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
+import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,9 +12,6 @@ import 'package:pinput/pinput.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/entities/profile/profile_model.dart';
-import '../../core/entities/profile/profile_riverpod.dart';
-import '../../core/services/settings_service.dart';
 import '../../core/socket/socket.dart';
 import '../../core/socket/event_types/settings_event_types.dart';
 import '../../core/socket/socket_channels.dart';
@@ -27,8 +26,8 @@ class OtpScreen extends ConsumerStatefulWidget {
 }
 
 class OtpScreenState extends ConsumerState<OtpScreen> {
-  SettingsService settingsService = SettingsService();
   ProfileService profileService = ProfileService();
+  AuthService authService = AuthService();
 
   String? gAuthURI;
   String? gAuthCode;
@@ -180,9 +179,10 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   @override
   void initState() {
     super.initState();
-    authListener = Auth.authSubject.stream.listen((shouldFire) {
+    authListener = Auth.authSubject.stream.listen((shouldFire) async {
+      final bool isActive = await Auth.getIsOtpActive;
       setState(() {
-        isOtpActive = Auth.getIsOtpActive;
+        isOtpActive = isActive;
       });
     });
     gAuthURI = null;
@@ -201,9 +201,10 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
       if (resp['activated'] == true && resp['otpToken'] != null) {
-        Auth.setIsOtpActive(true);
-        Auth.setOtpToken(resp['otpToken']);
-        if (context.mounted) Navigator.pop(context);
+        await Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
+        await Auth.setOtpToken(otpToken: resp['otpToken']);
+        ChatSocket.instance.resetConnection(ref);
+        if (mounted) Navigator.pop(context);
         showSimpleNotification(
             const Text(
               "Successfully activated 2FA",
@@ -223,9 +224,12 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.deactivate2FA, {'code': code}).then((resp) async {
       if (resp['deactivated'] == true) {
-        Auth.setIsOtpActive(false);
-        Auth.clearOtpToken();
-        if (context.mounted) Navigator.pop(context);
+        await Auth.setIsOtpActive(isOtpActive: false, skipNotify: true);
+        await Auth.clearOtpToken();
+        ChatSocket.instance.resetConnection(ref);
+        if (mounted) {
+          Navigator.pop(context);
+        }
         showSimpleNotification(
             const Text(
               "Successfully deactivated 2FA",
@@ -237,16 +241,17 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
           errorMessage = 'Incorrect code';
         });
       }
+    }, onError: (e) {
+      setState(() {
+        errorMessage = e.toString();
+      });
     });
   }
 
   loginWith2Fa(WidgetRef ref, String code) {
     pinController.clear();
-    ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
-        SettingsEventTypes.login2FA, {'code': code}).then((resp) async {
-      if (resp['status'] == 'ok') {
-        Auth.setOtpToken(resp['payload']['otpToken']);
-      } else {
+    authService.login2FA(ref, code).then((resp) {
+      if (resp['error'] != null) {
         setState(() {
           errorMessage = resp['error'];
         });
@@ -275,6 +280,13 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.red),
           ),
+        TextButton(
+          onPressed: () => Auth.clearAuth(),
+          child: Text(
+            'Back to Sign In',
+            style: TextStyle(color: Theme.of(context).primaryColor),
+          ),
+        ),
       ];
     } else if (isOtpActive) {
       activateWidgets = [

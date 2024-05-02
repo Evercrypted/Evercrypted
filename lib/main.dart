@@ -21,10 +21,12 @@ import 'package:evercrypted/screens/main/main_screen.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/theme.dart';
+import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
@@ -100,7 +102,8 @@ class AuthGateState extends ConsumerState<AuthGate> {
   final NotifiacationEventsService notifiacationEventsService =
       NotifiacationEventsService();
 
-  bool isOtpActive = false;
+  bool isOtpActiveAndNoToken = false;
+  bool tokenAndUserNotLoaded = false;
 
   late StreamSubscription authListener;
 
@@ -135,8 +138,19 @@ class AuthGateState extends ConsumerState<AuthGate> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: user == null
-          ? const SignInScreen()
-          : isOtpActive
+          ? tokenAndUserNotLoaded
+              ? isOtpActiveAndNoToken
+                  ? const OtpScreen(
+                      isLogin: true,
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Center(child: SvgPicture.asset(logoTheme, width: 150)),
+                      ],
+                    )
+              : const SignInScreen()
+          : isOtpActiveAndNoToken
               ? const OtpScreen(
                   isLogin: true,
                 )
@@ -147,19 +161,23 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   void _authFlow() async {
-    if (Auth.user != null) {
-      setState(() {
-        user = Auth.user;
-      });
-    }
     final String? token = await Auth.getToken;
     if (token != null) {
+      if (Auth.user == null) {
+        tokenAndUserNotLoaded = true;
+      } else if (user == null) {
+        setState(() {
+          user = Auth.user;
+          tokenAndUserNotLoaded = false;
+        });
+      }
+      _connectIO(token);
       addAuthInterceptor(token);
       final bool otpActive = await Auth.getIsOtpActive;
+      final String? otpToken = await Auth.getOtpToken;
       setState(() {
-        isOtpActive = otpActive;
+        isOtpActiveAndNoToken = otpActive && otpToken == null;
       });
-      _connectIO(token);
     } else {
       setState(() {
         user = null;
@@ -305,14 +323,14 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   _connectIO(token) {
-    ChatSocket.instance.connectWS(token, ref);
+    if (ChatSocket.instance.socket == null && Auth.token != null) {
+      ChatSocket.instance.connectWS(ref);
+    }
     ioConnectionTimer = Timer.periodic(
       const Duration(seconds: 5),
       (timer) {
-        if (ChatSocket.instance.socket == null) {
-          if (!isOtpActive) {
-            ChatSocket.instance.connectWS(token, ref);
-          }
+        if (ChatSocket.instance.socket == null && Auth.token != null) {
+          ChatSocket.instance.connectWS(ref);
         }
       },
     );

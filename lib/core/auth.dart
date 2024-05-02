@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/socket/socket.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rxdart/subjects.dart';
 
@@ -22,10 +23,16 @@ class Auth {
       {AuthUser? newUser, String? newToken, bool? newIsOtpActive}) async {
     Auth.user = newUser ?? user;
     if (newToken != null) {
-      await Auth.setToken(newToken);
+      await Auth.setToken(
+        newToken: newToken,
+        skipNotify: true,
+      );
     }
     if (newIsOtpActive != null) {
-      await Auth.setIsOtpActive(newIsOtpActive);
+      await Auth.setIsOtpActive(
+        isOtpActive: newIsOtpActive,
+        skipNotify: true,
+      );
     }
     authSubject.add(true);
   }
@@ -39,15 +46,21 @@ class Auth {
     return token;
   }
 
-  static setToken(String newToken) async {
+  static setToken({newToken, skipNotify = false}) async {
     Auth.token = newToken;
     await storage.write(key: 'token', value: newToken);
+    if (skipNotify) {
+      return;
+    }
     authSubject.add(true);
   }
 
-  static clearToken() async {
+  static clearToken({skipNotify = false}) async {
     Auth.token = null;
     await storage.delete(key: 'token');
+    if (skipNotify) {
+      return;
+    }
     authSubject.add(true);
   }
 
@@ -59,15 +72,21 @@ class Auth {
     return otpToken;
   }
 
-  static setOtpToken(String otpToken) async {
-    Auth.otpToken = token;
+  static setOtpToken({otpToken, skipNotify = false}) async {
+    Auth.otpToken = otpToken;
     storage.write(key: 'otpToken', value: otpToken);
+    if (skipNotify) {
+      return;
+    }
     authSubject.add(true);
   }
 
-  static clearOtpToken() async {
+  static clearOtpToken({skipNotify = false}) async {
     Auth.otpToken = null;
     await storage.delete(key: 'otpToken');
+    if (skipNotify) {
+      return;
+    }
     authSubject.add(true);
   }
 
@@ -79,18 +98,21 @@ class Auth {
     return isOtpActive;
   }
 
-  static setIsOtpActive(bool isOtpActive) async {
+  static setIsOtpActive({isOtpActive, skipNotify = false}) async {
     Auth.isOtpActive = isOtpActive;
     storage.write(key: 'isOtpActive', value: isOtpActive.toString());
+    if (skipNotify) {
+      return;
+    }
     authSubject.add(true);
   }
 
-  static clearAuth() {
+  static clearAuth() async {
     Auth.user = null;
-    Auth.token = null;
     Auth.isOtpActive = false;
-    Auth.clearOtpToken();
-    Auth.clearToken();
+    await Auth.clearOtpToken(skipNotify: true);
+    await Auth.clearToken(skipNotify: true);
+    ChatSocket.instance.disconnectWS();
     authSubject.add(true);
   }
 }

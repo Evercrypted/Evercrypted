@@ -18,8 +18,7 @@ class ProfileScreen extends ConsumerWidget {
   final SettingsService settingsService = SettingsService();
 
   Future<void> _signOut() async {
-    ChatSocket.instance.disconnectWS();
-    Auth.clearAuth();
+    await Auth.clearAuth();
   }
 
   @override

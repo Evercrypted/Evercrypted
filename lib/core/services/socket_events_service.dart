@@ -7,12 +7,14 @@ import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
+import 'package:evercrypted/core/socket/event_types/auth_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
+import 'package:evercrypted/core/socket/socket.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 
@@ -51,8 +53,28 @@ class SocketEventsService {
       case SocketChannelTypes.message:
         handleMessageEvent(ref, type, payload);
         break;
+      case SocketChannelTypes.auth:
+        handleAuthEvent(ref, type, payload);
+        break;
       default:
         print('Unknown Event');
+        print(payload);
+    }
+  }
+
+  handleAuthEvent(WidgetRef ref, String type, dynamic payload) {
+    switch (type) {
+      case AuthEventTypes.emailVerified:
+        Auth.setAuth(
+            newUser: AuthUser(
+                uid: payload['user']['uid'],
+                email: payload['user']['email'],
+                emailVerified: true),
+            newToken: payload['new_token']);
+        ChatSocket.instance.resetConnection(ref);
+        break;
+      default:
+        print('Unknown Contact Event');
         print(payload);
     }
   }
@@ -61,7 +83,8 @@ class SocketEventsService {
     if (type == ErrorEventTypes.accessDenied) {
     } else if (type == ErrorEventTypes.noOTPToken ||
         type == ErrorEventTypes.invalidOTPToken) {
-      Auth.setAuth(newIsOtpActive: true);
+      Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
+      Auth.clearOtpToken();
     } else if (type == ErrorEventTypes.userLoggedInElsewhere) {
     } else if (type == ErrorEventTypes.couldNotLogin) {
     } else {
@@ -73,6 +96,15 @@ class SocketEventsService {
   handleGeneralEvent(WidgetRef ref, String type, dynamic payload) {
     switch (type) {
       case 'getInitialData':
+        Auth.setAuth(
+            newIsOtpActive: payload['profile']['isOtpActive'],
+            newUser: AuthUser(
+              uid: payload['profile']['uid'],
+              email: payload['profile']['email'] ??
+                  payload['profile']['preverified_email'],
+              emailVerified: payload['profile']['email_verified'],
+            ),
+            newToken: payload['newToken']);
         contactRequestService
             .syncContactRequests((payload['contactRequests'] as List<dynamic>)
                 .map(

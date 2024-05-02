@@ -48,7 +48,8 @@ class ChatSocket {
     SocketChannelTypes.contactRequest,
     SocketChannelTypes.contact,
     SocketChannelTypes.settings,
-    SocketChannelTypes.message
+    SocketChannelTypes.message,
+    SocketChannelTypes.auth,
   ];
 
   final SocketEventsService socketEventsService = SocketEventsService();
@@ -80,16 +81,16 @@ class ChatSocket {
     return keyCompleter.future;
   }
 
-  connectWS(String? token, WidgetRef ref) async {
+  connectWS(WidgetRef ref) async {
     tries = tries + 1;
 
     if (socket != null) {
-      socket?.destroy();
-      socket?.dispose();
-      socket = null;
+      disconnectWS();
     }
 
     dynamic options = OptionBuilder().setTransports(['websocket']);
+
+    final token = await Auth.getToken;
 
     var headers = {
       'authorization': 'Bearer $token',
@@ -139,19 +140,26 @@ class ChatSocket {
     });
 
     socket?.onError((data) {
+      print('data $data');
       if (data.message == 'Connection refused') {
         ref.read(appStateProvider.notifier).setIsConnected(false);
-        socket?.clearListeners();
-        socket?.dispose();
-        socket?.destroy();
-        key = null;
-        socket = null;
+        Auth.clearAuth();
         disconnected = true;
       }
     });
 
     socket?.onAny((event, data) {
-      print(event);
+      print('event $event');
+      print('data $data');
+      if (event == 'connected') {
+        Auth.setToken(
+          newToken: data['new_token'],
+          skipNotify: true,
+        );
+      } else if (event == 'error') {
+        socketEventsService.handleErrorEvent(
+            ref, data['type'], data['payload']);
+      }
     });
 
     socket?.onDisconnect((_) {
@@ -232,6 +240,7 @@ class ChatSocket {
           resp,
           key,
         );
+        print(payload);
         if (payload['error'] != null) {
           respCompleter.completeError(payload['error']);
         } else if (payload['status'] == 'ok') {
@@ -248,5 +257,10 @@ class ChatSocket {
     socket?.dispose();
     key = null;
     socket = null;
+  }
+
+  resetConnection(ref) {
+    disconnectWS();
+    connectWS(ref);
   }
 }

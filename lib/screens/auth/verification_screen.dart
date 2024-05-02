@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,8 @@ class VerificationScreen extends StatefulWidget {
 class VerificationScreenState extends State<VerificationScreen> {
   int buttonDisableDuration = 0;
   Timer? disableInterval;
+
+  AuthService authService = AuthService();
 
   @override
   void initState() {
@@ -57,10 +60,7 @@ class VerificationScreenState extends State<VerificationScreen> {
           PrimaryButton(
             press: () {
               if (buttonDisableDuration != 0) return;
-              //firebaseauth
-              // user?.sendEmailVerification().catchError((e) {
-              //   return;
-              // });
+              authService.resendVerificationEmail();
               setState(() {
                 buttonDisableDuration = 60;
               });

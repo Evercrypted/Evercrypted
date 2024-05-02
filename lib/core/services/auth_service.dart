@@ -5,8 +5,10 @@ import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/auth_event_types.dart';
+import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jwk/jwk.dart';
 import 'package:retry/retry.dart';
 
@@ -103,7 +105,6 @@ class AuthService {
           value.data,
           keys['key'],
         );
-        print(payload);
         Auth.setAuth(
             newUser: AuthUser(
                 uid: payload['uid'],
@@ -115,6 +116,34 @@ class AuthService {
           'success': true,
           'payload': payload,
         };
+      },
+    );
+  }
+
+  Future login2FA(WidgetRef ref, String code) async {
+    final identifier =
+        DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
+    final Map<String, dynamic> keys = await getLoginEncKey(identifier);
+    final crypted = await encodePayload(
+        {'type': SettingsEventTypes.login2FA, 'code': code}, keys['key']);
+    return dio.post('/auth/login2fa',
+        data: {'crypted': crypted, 'identifier': identifier}).then(
+      (value) async {
+        final payload = await decodePayload(
+          value.data,
+          keys['key'],
+        );
+        if (payload['status'] == 'ok') {
+          await Auth.setOtpToken(otpToken: payload['payload']['otpToken']);
+          ChatSocket.instance.resetConnection(ref);
+          return {
+            'success': true,
+          };
+        } else {
+          return {
+            'error': payload['error'],
+          };
+        }
       },
     );
   }
