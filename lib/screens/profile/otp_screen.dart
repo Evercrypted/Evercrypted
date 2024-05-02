@@ -181,9 +181,14 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     super.initState();
     authListener = Auth.authSubject.stream.listen((shouldFire) async {
       final bool isActive = await Auth.getIsOtpActive;
-      setState(() {
-        isOtpActive = isActive;
-      });
+      if (isOtpActive != isActive) {
+        setState(() {
+          isOtpActive = isActive;
+        });
+      }
+      if (!isActive) {
+        getActivationParams();
+      }
     });
     gAuthURI = null;
     gAuthCode = null;
@@ -201,6 +206,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
       if (resp['activated'] == true && resp['otpToken'] != null) {
+        print('resp $resp');
         await Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
         await Auth.setOtpToken(otpToken: resp['otpToken']);
         ChatSocket.instance.resetConnection(ref);
@@ -308,8 +314,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
             style: const TextStyle(color: Colors.red),
           ),
       ];
-    } else {
-      getActivationParams();
     }
 
     return Scaffold(

@@ -124,6 +124,8 @@ class AuthService {
     final identifier =
         DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
+    final otptkn = await Auth.getOtpToken;
+    print('otpTkn $otptkn');
     final crypted = await encodePayload(
         {'type': SettingsEventTypes.login2FA, 'code': code}, keys['key']);
     return dio.post('/auth/login2fa',
