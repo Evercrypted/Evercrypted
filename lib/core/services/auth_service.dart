@@ -137,7 +137,7 @@ class AuthService {
         );
         if (payload['status'] == 'ok') {
           await Auth.setOtpToken(otpToken: payload['payload']['otpToken']);
-          ChatSocket.instance.resetConnection(ref);
+          ChatSocket.resetConnectionSubject.add(true);
           return {
             'success': true,
           };
@@ -151,7 +151,7 @@ class AuthService {
   }
 
   Future resendVerificationEmail() async {
-    return ChatSocket.instance.emitWAck(
+    return ChatSocket.emitWAck(
         SocketChannelTypes.auth,
         AuthEventTypes.resendVerificationEmail,
         {'resend': true}).then((resp) async {

@@ -8,12 +8,12 @@ import 'package:evercrypted/core/auth.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
-import 'package:evercrypted/core/services/app_state_riverpod.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:jwk/jwk.dart';
+import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 import '../cryptography/combine_keys.dart';
@@ -33,14 +33,19 @@ List<int> getNewNonce(byteLength, random) {
 class ChatSocket {
   ChatSocket._();
   final wsUrl = Uri.parse('ws://localhost:1234');
-  io.Socket? socket;
-  SimpleKeyPair? keyPair;
-  String? key;
-  SettingsService settingsService = SettingsService();
-  ActionQueueService actionQueueService = ActionQueueService();
-  bool disconnected = false;
+  static io.Socket? socket;
+  static SimpleKeyPair? keyPair;
+  static String? key;
+  static final SettingsService settingsService = SettingsService();
+  static final ActionQueueService actionQueueService = ActionQueueService();
+  static final SocketEventsService socketEventsService = SocketEventsService();
 
-  num tries = 0;
+  static bool isConnected = false;
+
+  static BehaviorSubject<bool> isConnectedSubject = BehaviorSubject<bool>();
+  static BehaviorSubject<bool> resetConnectionSubject = BehaviorSubject<bool>();
+
+  static num tries = 0;
 
   static const channelsToListen = [
     SocketChannelTypes.chat,
@@ -52,11 +57,7 @@ class ChatSocket {
     SocketChannelTypes.auth,
   ];
 
-  final SocketEventsService socketEventsService = SocketEventsService();
-
-  static final ChatSocket instance = ChatSocket._();
-
-  getGeneralInfoAndExchangeKey(riverPodRef) async {
+  static getGeneralInfoAndExchangeKey() async {
     final keyCompleter = Completer<bool>();
     final algo = X25519();
 
@@ -74,14 +75,13 @@ class ChatSocket {
           resp,
           key,
         );
-        socketEventsService.handleGeneralEvent(
-            riverPodRef, 'getInitialData', payload);
+        socketEventsService.handleGeneralEvent('getInitialData', payload);
       }
     });
     return keyCompleter.future;
   }
 
-  connectWS(WidgetRef ref) async {
+  static connectWS(WidgetRef ref) async {
     tries = tries + 1;
 
     if (socket != null) {
@@ -113,38 +113,36 @@ class ChatSocket {
 
     socket?.onConnect((_) async {
       socket?.clearListeners();
-      ref.read(appStateProvider.notifier).setIsConnected(true);
-      await getGeneralInfoAndExchangeKey(ref);
+      await getGeneralInfoAndExchangeKey();
       actionQueueService.processQueue();
       setListeners(ref);
-      disconnected = false;
+      isConnected = true;
+      isConnectedSubject.add(isConnected);
     });
 
     socket?.onReconnect((data) async {
       socket?.clearListeners();
-      ref.read(appStateProvider.notifier).setIsConnected(true);
-      await getGeneralInfoAndExchangeKey(ref);
+      await getGeneralInfoAndExchangeKey();
       actionQueueService.processQueue();
       setListeners(ref);
-      disconnected = false;
+      isConnected = true;
+      isConnectedSubject.add(isConnected);
     });
 
     socket?.on('disconnect', (data) {
       print('disconnected');
-      ref.read(appStateProvider.notifier).setIsConnected(false);
-      socket?.clearListeners();
-      socket?.dispose();
-      socket?.destroy();
-      key = null;
-      socket = null;
+      isConnected = false;
+      isConnectedSubject.add(isConnected);
+      disconnectWS();
     });
 
     socket?.onError((data) {
       print('data $data');
       if (data.message == 'Connection refused') {
-        ref.read(appStateProvider.notifier).setIsConnected(false);
+        isConnected = false;
+        isConnectedSubject.add(isConnected);
         Auth.clearAuth();
-        disconnected = true;
+        isConnected = false;
       }
     });
 
@@ -163,27 +161,21 @@ class ChatSocket {
     });
 
     socket?.onDisconnect((_) {
-      ref.read(appStateProvider.notifier).setIsConnected(false);
-      socket?.clearListeners();
-      socket?.dispose();
-      socket?.destroy();
-      key = null;
-      socket = null;
+      isConnected = false;
+      isConnectedSubject.add(isConnected);
+      disconnectWS();
     });
 
     socket?.onConnectError((data) {
-      ref.read(appStateProvider.notifier).setIsConnected(false);
-      socket?.clearListeners();
-      socket?.dispose();
-      socket?.destroy();
-      key = null;
-      socket = null;
+      isConnected = false;
+      isConnectedSubject.add(isConnected);
+      disconnectWS();
     });
 
     setListeners(ref);
   }
 
-  setListeners(ref) {
+  static setListeners(ref) {
     for (var channel in channelsToListen) {
       socket?.on(channel, (dynamic data) async {
         print('raw data: $data');
@@ -205,7 +197,7 @@ class ChatSocket {
     }
   }
 
-  Future<dynamic> emitWAck(String channel, String type, dynamic payload,
+  static Future<dynamic> emitWAck(String channel, String type, dynamic payload,
       {bool isFromQueue = false}) async {
     Future<int> saveActionForLater() async {
       final writingToQueueCompleter = Completer<int>();
@@ -223,7 +215,7 @@ class ChatSocket {
     }
 
     final respCompleter = Completer<dynamic>();
-    if (instance.socket?.connected != true || disconnected) {
+    if (socket?.connected != true || !isConnected) {
       if (!isFromQueue && allowedForQueue.contains('$channel/$type')) {
         final int queuedItemId = await saveActionForLater();
         respCompleter
@@ -251,7 +243,7 @@ class ChatSocket {
     return respCompleter.future;
   }
 
-  disconnectWS() {
+  static disconnectWS() {
     socket?.clearListeners();
     socket?.destroy();
     socket?.dispose();
@@ -259,7 +251,7 @@ class ChatSocket {
     socket = null;
   }
 
-  resetConnection(ref) {
+  static resetConnection(ref) {
     disconnectWS();
     connectWS(ref);
   }

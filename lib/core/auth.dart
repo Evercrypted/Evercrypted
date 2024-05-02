@@ -112,7 +112,7 @@ class Auth {
     Auth.isOtpActive = false;
     await Auth.clearOtpToken(skipNotify: true);
     await Auth.clearToken(skipNotify: true);
-    ChatSocket.instance.disconnectWS();
+    ChatSocket.disconnectWS();
     authSubject.add(true);
   }
 }

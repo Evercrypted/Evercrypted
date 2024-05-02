@@ -1,19 +1,55 @@
-import 'package:evercrypted/core/services/app_state_riverpod.dart';
+import 'dart:async';
+import 'package:evercrypted/core/socket/socket.dart';
 import 'package:flutter/material.dart';
 
-class AppbarService {
-  static AppBar? getAppbar(ref, Widget? title, List<Widget>? actions) {
-    final isConnected = ref.watch(appStateProvider).isConnected;
+class ConnectionStatusAppbar extends StatefulWidget
+    implements PreferredSizeWidget {
+  final Widget? title;
+  final List<Widget>? actions;
+
+  const ConnectionStatusAppbar({super.key, this.title, this.actions});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(0);
+
+  @override
+  State<ConnectionStatusAppbar> createState() => _ConnectionStatusAppbarState();
+}
+
+class _ConnectionStatusAppbarState extends State<ConnectionStatusAppbar> {
+  bool isConnected = true;
+  late StreamSubscription isConnectedListener;
+
+  @override
+  void initState() {
+    super.initState();
+
+    isConnectedListener =
+        ChatSocket.isConnectedSubject.stream.listen((isConnected) async {
+      setState(() {
+        this.isConnected = isConnected;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    isConnectedListener.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     if (isConnected) {
-      return title != null && actions != null
+      return widget.title != null && widget.actions != null
           ? AppBar(
-              title: title,
-              actions: actions,
+              title: widget.title,
+              actions: widget.actions,
             )
-          : null;
+          : AppBar();
     } else {
       return AppBar(
-        title: title != null
+        title: widget.title != null
             ? Column(children: [
                 Container(
                     padding: const EdgeInsets.only(bottom: 8),
@@ -21,16 +57,16 @@ class AppbarService {
                       "We're not able to connect with the server",
                       style: TextStyle(color: Colors.red, fontSize: 12),
                     )),
-                title
+                widget.title ?? Container()
               ])
             : const Text(
                 "We're not able to connect with the server",
                 style: TextStyle(color: Colors.white, fontSize: 15),
               ),
-        actions: actions,
+        actions: widget.actions,
         centerTitle: true,
-        backgroundColor: title != null ? Colors.white : Colors.red,
-        toolbarHeight: title != null ? 100 : 25,
+        backgroundColor: widget.title != null ? Colors.white : Colors.red,
+        toolbarHeight: widget.title != null ? 100 : 25,
       );
     }
   }

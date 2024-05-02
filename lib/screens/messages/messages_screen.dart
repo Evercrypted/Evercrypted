@@ -262,7 +262,34 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: buildAppBar(context, ref),
+        appBar: ConnectionStatusAppbar(
+          title: const Row(
+            children: [
+              CircleAvatar(
+                backgroundImage: AssetImage("assets/images/user_2.png"),
+              ),
+              SizedBox(width: defaultPadding * 0.75),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Kristin Watson",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              )
+            ],
+          ),
+          actions: [
+            IconButton(
+                icon: Icon(Icons.security,
+                    color: pass == null ? Colors.redAccent : primaryColor),
+                onPressed: () {
+                  openPasswordDialog(context);
+                }),
+            const SizedBox(width: defaultPadding / 2),
+          ],
+        ),
         body: Column(
           children: [
             Expanded(
@@ -291,37 +318,5 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             ),
           ],
         ));
-  }
-
-  AppBar? buildAppBar(BuildContext context, WidgetRef ref) {
-    return AppbarService.getAppbar(
-      ref,
-      const Row(
-        children: [
-          CircleAvatar(
-            backgroundImage: AssetImage("assets/images/user_2.png"),
-          ),
-          SizedBox(width: defaultPadding * 0.75),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Kristin Watson",
-                style: TextStyle(fontSize: 16),
-              ),
-            ],
-          )
-        ],
-      ),
-      [
-        IconButton(
-            icon: Icon(Icons.security,
-                color: pass == null ? Colors.redAccent : primaryColor),
-            onPressed: () {
-              openPasswordDialog(context);
-            }),
-        const SizedBox(width: defaultPadding / 2),
-      ],
-    );
   }
 }

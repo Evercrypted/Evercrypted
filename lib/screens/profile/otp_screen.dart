@@ -48,7 +48,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
   getActivationParams() {
     if (gAuthURI == null || gAuthCode == null) {
-      ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
+      ChatSocket.emitWAck(SocketChannelTypes.settings,
           SettingsEventTypes.getActivate2FA, {}).then((resp) {
         setState(() {
           gAuthURI = resp['URI'];
@@ -203,13 +203,13 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
   activate2FA(String code) {
     pinController.clear();
-    ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
+    ChatSocket.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
       if (resp['activated'] == true && resp['otpToken'] != null) {
         print('resp $resp');
         await Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
         await Auth.setOtpToken(otpToken: resp['otpToken']);
-        ChatSocket.instance.resetConnection(ref);
+        ChatSocket.resetConnectionSubject.add(true);
         if (mounted) Navigator.pop(context);
         showSimpleNotification(
             const Text(
@@ -227,12 +227,12 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
   deactivate2FA(String code) {
     pinController.clear();
-    ChatSocket.instance.emitWAck(SocketChannelTypes.settings,
+    ChatSocket.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.deactivate2FA, {'code': code}).then((resp) async {
       if (resp['deactivated'] == true) {
         await Auth.setIsOtpActive(isOtpActive: false, skipNotify: true);
         await Auth.clearOtpToken();
-        ChatSocket.instance.resetConnection(ref);
+        ChatSocket.resetConnectionSubject.add(true);
         if (mounted) {
           Navigator.pop(context);
         }

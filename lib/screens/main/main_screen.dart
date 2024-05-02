@@ -40,7 +40,10 @@ class MainScreenState extends ConsumerState<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppbarService.getAppbar(ref, null, null),
+      appBar: const ConnectionStatusAppbar(
+        title: null,
+        actions: null,
+      ),
       body: PageTransitionSwitcher(
         transitionBuilder: (
           Widget child,

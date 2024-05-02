@@ -106,6 +106,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   bool tokenAndUserNotLoaded = false;
 
   late StreamSubscription authListener;
+  late StreamSubscription resetConnectionListener;
 
   @override
   void initState() {
@@ -116,6 +117,12 @@ class AuthGateState extends ConsumerState<AuthGate> {
     authListener = Auth.authSubject.stream.listen((shouldFire) async {
       _authFlow();
     });
+
+    resetConnectionListener = ChatSocket.resetConnectionSubject.stream.listen(
+      (shouldFire) async {
+        ChatSocket.resetConnection(ref);
+      },
+    );
 
     _authFlow();
 
@@ -130,7 +137,8 @@ class AuthGateState extends ConsumerState<AuthGate> {
     userReloadTimer?.cancel();
     ioConnectionTimer?.cancel();
     authListener.cancel();
-    ChatSocket.instance.disconnectWS();
+    resetConnectionListener.cancel();
+    ChatSocket.disconnectWS();
     super.dispose();
   }
 
@@ -323,14 +331,14 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   _connectIO(token) {
-    if (ChatSocket.instance.socket == null && Auth.token != null) {
-      ChatSocket.instance.connectWS(ref);
+    if (ChatSocket.socket == null && Auth.token != null) {
+      ChatSocket.connectWS(ref);
     }
     ioConnectionTimer = Timer.periodic(
       const Duration(seconds: 5),
       (timer) {
-        if (ChatSocket.instance.socket == null && Auth.token != null) {
-          ChatSocket.instance.connectWS(ref);
+        if (ChatSocket.socket == null && Auth.token != null) {
+          ChatSocket.connectWS(ref);
         }
       },
     );

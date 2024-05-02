@@ -71,7 +71,7 @@ class SocketEventsService {
                 email: payload['user']['email'],
                 emailVerified: true),
             newToken: payload['new_token']);
-        ChatSocket.instance.resetConnection(ref);
+        ChatSocket.resetConnectionSubject.add(true);
         break;
       default:
         print('Unknown Contact Event');
@@ -93,7 +93,7 @@ class SocketEventsService {
     }
   }
 
-  handleGeneralEvent(WidgetRef ref, String type, dynamic payload) {
+  handleGeneralEvent(String type, dynamic payload) {
     switch (type) {
       case 'getInitialData':
         Auth.setAuth(

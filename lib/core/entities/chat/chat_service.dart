@@ -29,8 +29,7 @@ class ChatService {
 
   Future<Chat> createNewChat(NewChatDTO newChatDTO) async {
     Completer<Chat> complete = Completer();
-    ChatSocket.instance
-        .emitWAck(SocketChannelTypes.chat, ChatEventTypes.createChat,
+    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createChat,
             newChatDTO.toJson())
         .then((resp) {
       final Chat returnedChat = Chat.fromJson(resp['chat']);
@@ -42,8 +41,8 @@ class ChatService {
 
   deleteChat(String chatUid) async {
     final isar = Isar.getInstance();
-    return ChatSocket.instance
-        .emitWAck(SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid)
+    return ChatSocket.emitWAck(
+            SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid)
         .then((resp) {
       isar?.writeTxn(() async {
         isar.chats.deleteByUid(chatUid);

@@ -19,7 +19,7 @@ class ContactService {
 
   void deleteContact(String contactUid) async {
     final isar = Isar.getInstance();
-    return ChatSocket.instance.emitWAck(
+    return ChatSocket.emitWAck(
         SocketChannelTypes.contact,
         ContactEventTypes.deleteContact,
         {'contactUid': contactUid}).then((value) {

@@ -76,9 +76,8 @@ class MessageService {
       );
     }
     Completer<Message> complete = Completer();
-    ChatSocket.instance
-        .emitWAck(SocketChannelTypes.message, MessageEventTypes.sendMessage,
-            messageToSend.toJson())
+    ChatSocket.emitWAck(SocketChannelTypes.message,
+            MessageEventTypes.sendMessage, messageToSend.toJson())
         .then((resp) {
       if (resp['status'] == 'queued') {
         messageToSend.successfullySent = false;

@@ -12,8 +12,7 @@ class ContactRequestService {
   final ContactService contactService = ContactService();
 
   Future<dynamic> createContactRequest(ContactRequest cRequest) {
-    return ChatSocket.instance
-        .emitWAck(SocketChannelTypes.contactRequest,
+    return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
             ContactRequestEventTypes.createContactRequests, cRequest.toJson())
         .then((resp) {
       final ContactRequest returnedContactRequest =
@@ -25,8 +24,7 @@ class ContactRequestService {
 
   Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
     final isar = Isar.getInstance();
-    return ChatSocket.instance
-        .emitWAck(SocketChannelTypes.contactRequest,
+    return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
             ContactRequestEventTypes.acceptContactRequest, cRequest.uid)
         .then((value) {
       isar?.writeTxn(() async {
@@ -44,8 +42,7 @@ class ContactRequestService {
 
   Future<dynamic> cancelContactReqeuest(ContactRequest cRequest) {
     final isar = Isar.getInstance();
-    return ChatSocket.instance
-        .emitWAck(SocketChannelTypes.contactRequest,
+    return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
             ContactRequestEventTypes.cancelContactRequest, cRequest.uid)
         .then((value) {
       isar?.writeTxn(() async {
@@ -62,8 +59,7 @@ class ContactRequestService {
 
   Future<dynamic> declineContactRequest(ContactRequest cRequest) {
     final isar = Isar.getInstance();
-    return ChatSocket.instance
-        .emitWAck(SocketChannelTypes.contactRequest,
+    return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
             ContactRequestEventTypes.declineContactRequest, cRequest.uid)
         .then((value) {
       isar?.writeTxn(() async {

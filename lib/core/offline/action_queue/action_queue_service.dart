@@ -12,7 +12,7 @@ class ActionQueueService {
     final queue = await isar?.actionQueues.where().findAll();
     if (queue != null) {
       for (var action in queue) {
-        final result = await ChatSocket.instance.emitWAck(
+        final result = await ChatSocket.emitWAck(
           action.channel,
           action.type,
           json.decode(action.payload),
