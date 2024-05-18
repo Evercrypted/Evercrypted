@@ -182,7 +182,6 @@ class SocketEventsService {
             )
             .email;
         contactService.handleDeletedContact(payload['contactUid']);
-        //TODO need to delete chats along with contact
         LocalNotification.instance.displayNotification(
           'Contact',
           'Your contact $contactEmail has deleted chat with you and removed you from their contacts',

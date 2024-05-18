@@ -38,12 +38,16 @@ class Auth {
   }
 
   static get getToken async {
-    if (token == null) {
-      final fromStorage = await storage.read(key: 'token');
-      token = fromStorage;
-      print('token $token');
+    try {
+      if (token == null) {
+        final fromStorage = await storage.read(key: 'token');
+        token = fromStorage;
+        print('token $token');
+      }
+      return token;
+    } catch (e) {
+      return null;
     }
-    return token;
   }
 
   static setToken({newToken, skipNotify = false}) async {
@@ -65,11 +69,15 @@ class Auth {
   }
 
   static get getOtpToken async {
-    if (otpToken == null) {
-      final fromStorage = await storage.read(key: 'otpToken');
-      otpToken = fromStorage;
+    try {
+      if (otpToken == null) {
+        final fromStorage = await storage.read(key: 'otpToken');
+        otpToken = fromStorage;
+      }
+      return otpToken;
+    } catch (e) {
+      return null;
     }
-    return otpToken;
   }
 
   static setOtpToken({otpToken, skipNotify = false}) async {
@@ -91,11 +99,15 @@ class Auth {
   }
 
   static get getIsOtpActive async {
-    if (isOtpActive == null) {
-      final fromStorage = await storage.read(key: 'isOtpActive');
-      isOtpActive = fromStorage == 'true';
+    try {
+      if (isOtpActive == null) {
+        final fromStorage = await storage.read(key: 'isOtpActive');
+        isOtpActive = fromStorage == 'true';
+      }
+      return isOtpActive;
+    } catch (e) {
+      return null;
     }
-    return isOtpActive;
   }
 
   static setIsOtpActive({isOtpActive, skipNotify = false}) async {

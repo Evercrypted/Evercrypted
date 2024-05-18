@@ -33,8 +33,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
           final contact = contacts[index];
           return ContactCard(
             contact: contact,
-            isActive: false, // for demo
-            press: () {},
+            isActive: false,
           );
         },
       ),

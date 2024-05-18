@@ -14,6 +14,7 @@ class Chat {
   final int? messageLongevitySeconds;
   final String? name;
 
+  @Index()
   final List<Participant> participants;
 
   @Index()

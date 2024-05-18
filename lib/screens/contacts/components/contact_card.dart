@@ -1,6 +1,7 @@
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
+import 'package:evercrypted/screens/contacts/contact_screen.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,13 +15,11 @@ class ContactCard extends ConsumerWidget {
     super.key,
     required this.contact,
     required this.isActive,
-    required this.press,
   });
 
   final ChatService chatService = ChatService();
   final Contact contact;
   final bool isActive;
-  final VoidCallback press;
 
   openChat(BuildContext context, WidgetRef ref) {
     List<Chat> chats = ref.read(chatsProvider);
@@ -90,7 +89,13 @@ class ContactCard extends ConsumerWidget {
           openChat(context, ref);
         },
       ),
-      onTap: () {},
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return ContactScreen(
+            contact: contact,
+          );
+        }));
+      },
     );
   }
 }

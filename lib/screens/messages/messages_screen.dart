@@ -4,7 +4,7 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state_riverpod.dart';
-import 'package:evercrypted/core/services/appbar_service.dart';
+import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:evercrypted/models/ChatMessage.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';

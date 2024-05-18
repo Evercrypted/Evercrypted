@@ -18,12 +18,12 @@ class NotifiacationEventsService {
         );
         break;
       case NotificationEventTypes.goToContactsPage:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ContactsScreen(),
-          ),
-        );
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ContactsScreen(),
+            ),
+            (Route<dynamic> route) => false);
         break;
       case null:
         break;

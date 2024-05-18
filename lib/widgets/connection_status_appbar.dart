@@ -10,7 +10,9 @@ class ConnectionStatusAppbar extends StatefulWidget
   const ConnectionStatusAppbar({super.key, this.title, this.actions});
 
   @override
-  Size get preferredSize => const Size.fromHeight(0);
+  Size get preferredSize => title != null || actions != null
+      ? const Size.fromHeight(56.0)
+      : const Size.fromHeight(20);
 
   @override
   State<ConnectionStatusAppbar> createState() => _ConnectionStatusAppbarState();
@@ -41,7 +43,7 @@ class _ConnectionStatusAppbarState extends State<ConnectionStatusAppbar> {
   @override
   Widget build(BuildContext context) {
     if (isConnected) {
-      return widget.title != null && widget.actions != null
+      return widget.title != null || widget.actions != null
           ? AppBar(
               title: widget.title,
               actions: widget.actions,
@@ -57,7 +59,7 @@ class _ConnectionStatusAppbarState extends State<ConnectionStatusAppbar> {
                       "We're not able to connect with the server",
                       style: TextStyle(color: Colors.red, fontSize: 12),
                     )),
-                widget.title ?? Container()
+                widget.title!
               ])
             : const Text(
                 "We're not able to connect with the server",

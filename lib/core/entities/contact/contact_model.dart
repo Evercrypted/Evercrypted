@@ -26,7 +26,11 @@ class Contact {
   factory Contact.fromJson(Map<String, dynamic> json) => Contact(
         uid: json['uid'] as String?,
         email: json['email'] as String?,
-        avatar: Avatar.fromJson(json['avatar']),
+        avatar: json['avatar'] != null
+            ? Avatar.fromJson(
+                json['avatar'],
+              )
+            : null,
         name: json['name'] as String?,
         contactPersonUid: json['contactPersonUid'] as String?,
       );

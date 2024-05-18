@@ -107,6 +107,10 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   late StreamSubscription authListener;
   late StreamSubscription resetConnectionListener;
+  StreamSubscription? isarProfileListener;
+  StreamSubscription? isarContactRequestsListener;
+  StreamSubscription? isarContactsListener;
+  StreamSubscription? isarChatsListener;
 
   @override
   void initState() {
@@ -125,11 +129,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
     );
 
     _authFlow();
-
-    Future.delayed(Duration.zero, () {
-      _syncIsarToRiverpod();
-      _setIsarWatchers();
-    });
   }
 
   @override
@@ -138,6 +137,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
     ioConnectionTimer?.cancel();
     authListener.cancel();
     resetConnectionListener.cancel();
+    cancelIsarListeners();
     ChatSocket.disconnectWS();
     super.dispose();
   }
@@ -177,6 +177,10 @@ class AuthGateState extends ConsumerState<AuthGate> {
         setState(() {
           user = Auth.user;
           tokenAndUserNotLoaded = false;
+        });
+        Future.delayed(Duration.zero, () {
+          _syncIsarToRiverpod();
+          _setIsarWatchers();
         });
       }
       _connectIO(token);
@@ -300,17 +304,28 @@ class AuthGateState extends ConsumerState<AuthGate> {
     }
   }
 
+  void cancelIsarListeners() {
+    isarProfileListener?.cancel();
+    isarContactRequestsListener?.cancel();
+    isarContactsListener?.cancel();
+    isarChatsListener?.cancel();
+  }
+
   void _setIsarWatchers() {
     final isar = Isar.getInstance();
 
+    cancelIsarListeners();
+
     //profile
-    isar?.profiles.where().build().watch().listen((profiles) {
+    isarProfileListener =
+        isar?.profiles.where().build().watch().listen((profiles) {
       if (profiles.isNotEmpty) {
         ref.read(profileProvider.notifier).setProfile(profiles.first);
       }
     });
     //contactRequests
-    isar?.contactRequests.where().build().watch().listen((contactRequests) {
+    isarContactRequestsListener =
+        isar?.contactRequests.where().build().watch().listen((contactRequests) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
           contactRequests
               .where((element) => element.recipientEmail == user!.email)
@@ -320,11 +335,12 @@ class AuthGateState extends ConsumerState<AuthGate> {
           .toList());
     });
     //contacts
-    isar?.contacts.where().build().watch().listen((contacts) {
+    isarContactsListener =
+        isar?.contacts.where().build().watch().listen((contacts) {
       ref.read(contactsProvider.notifier).setContacts(contacts);
     });
     //chats
-    isar?.chats.where().build().watch().listen((chats) {
+    isarChatsListener = isar?.chats.where().build().watch().listen((chats) {
       ref.read(chatsProvider.notifier).setChats(chats);
     });
     //messages

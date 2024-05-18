@@ -84,7 +84,7 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
         builder: (BuildContext context) => AlertDialog(
           title: const Text('Confirm Contact Request'),
           content: Text(
-              'Are you sure that you want to send a contact request to $_emailController.text?'),
+              'Are you sure that you want to send a contact request to ${_emailController.text}?'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context, false),

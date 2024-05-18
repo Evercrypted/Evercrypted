@@ -39,6 +39,18 @@ class ChatService {
     return complete.future;
   }
 
+  findContactChatAndDelete(String contactUid) async {
+    // final isar = Isar.getInstance();
+    // final chat = await isar!.chats
+    //     .where()
+    //     .filter()
+    //     .contactUidsEqualTo([contactUid])
+    //     .findFirst();
+    // if (chat != null) {
+    //   deleteChat(chat.uid);
+    // }
+  }
+
   deleteChat(String chatUid) async {
     final isar = Isar.getInstance();
     return ChatSocket.emitWAck(
