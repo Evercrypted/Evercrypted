@@ -105,17 +105,24 @@ class AuthService {
           value.data,
           keys['key'],
         );
-        Auth.setAuth(
-            newUser: AuthUser(
-                uid: payload['uid'],
-                email: payload['email'] ?? payload['preverified_email'],
-                emailVerified: payload['email_verified'] as bool),
-            newToken: payload['access_token'] as String,
-            newIsOtpActive: payload['otp_active'] as bool);
-        return {
-          'success': true,
-          'payload': payload,
-        };
+        if (payload['error'] != null) {
+          return {
+            'success': false,
+            'error': payload['error'],
+          };
+        } else {
+          Auth.setAuth(
+              newUser: AuthUser(
+                  uid: payload['uid'],
+                  email: payload['email'] ?? payload['preverified_email'],
+                  emailVerified: payload['email_verified'] as bool),
+              newToken: payload['access_token'] as String,
+              newIsOtpActive: payload['otp_active'] as bool);
+          return {
+            'success': true,
+            'payload': payload,
+          };
+        }
       },
     );
   }

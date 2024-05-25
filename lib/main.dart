@@ -124,7 +124,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
     resetConnectionListener = ChatSocket.resetConnectionSubject.stream.listen(
       (shouldFire) async {
-        ChatSocket.resetConnection(ref);
+        ChatSocket.resetConnection();
       },
     );
 
@@ -348,13 +348,13 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   _connectIO(token) {
     if (ChatSocket.socket == null && Auth.token != null) {
-      ChatSocket.connectWS(ref);
+      ChatSocket.connectWS();
     }
     ioConnectionTimer = Timer.periodic(
       const Duration(seconds: 5),
       (timer) {
         if (ChatSocket.socket == null && Auth.token != null) {
-          ChatSocket.connectWS(ref);
+          ChatSocket.connectWS();
         }
       },
     );

@@ -6,7 +6,7 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_servic
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
-import 'package:evercrypted/core/services/app_state_riverpod.dart';
+import 'package:evercrypted/core/services/app_state.dart';
 import 'package:evercrypted/core/socket/event_types/auth_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
@@ -17,6 +17,7 @@ import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
+import 'package:isar/isar.dart';
 
 import '../entities/chat/chat_model.dart';
 import '../entities/chat/chat_service.dart';
@@ -35,26 +36,26 @@ class SocketEventsService {
   ChatService chatService = ChatService();
   MessageService messageService = MessageService();
 
-  handleEvent(WidgetRef ref, String channel, String type, dynamic payload) {
+  handleEvent(String channel, String type, dynamic payload) {
     print('Channel: $channel');
     switch (channel) {
       case SocketChannelTypes.contactRequest:
-        handleContactRequestEvent(ref, type, payload);
+        handleContactRequestEvent(type, payload);
         break;
       case SocketChannelTypes.contact:
-        handleContactEvent(ref, type, payload);
+        handleContactEvent(type, payload);
         break;
       case SocketChannelTypes.error:
-        handleErrorEvent(ref, type, payload);
+        handleErrorEvent(type, payload);
         break;
       case SocketChannelTypes.chat:
-        handleChatEvent(ref, type, payload);
+        handleChatEvent(type, payload);
         break;
       case SocketChannelTypes.message:
-        handleMessageEvent(ref, type, payload);
+        handleMessageEvent(type, payload);
         break;
       case SocketChannelTypes.auth:
-        handleAuthEvent(ref, type, payload);
+        handleAuthEvent(type, payload);
         break;
       default:
         print('Unknown Event');
@@ -62,7 +63,7 @@ class SocketEventsService {
     }
   }
 
-  handleAuthEvent(WidgetRef ref, String type, dynamic payload) {
+  handleAuthEvent(String type, dynamic payload) {
     switch (type) {
       case AuthEventTypes.emailVerified:
         Auth.setAuth(
@@ -79,7 +80,7 @@ class SocketEventsService {
     }
   }
 
-  handleErrorEvent(WidgetRef ref, String type, dynamic payload) {
+  handleErrorEvent(String type, dynamic payload) {
     if (type == ErrorEventTypes.accessDenied) {
     } else if (type == ErrorEventTypes.noOTPToken ||
         type == ErrorEventTypes.invalidOTPToken) {
@@ -131,7 +132,7 @@ class SocketEventsService {
     }
   }
 
-  handleContactRequestEvent(WidgetRef ref, String type, dynamic payload) {
+  handleContactRequestEvent(String type, dynamic payload) {
     switch (type) {
       case ContactRequestEventTypes.contactRequestCreated:
         final contactRequest = ContactRequest.fromJson(payload);
@@ -172,23 +173,39 @@ class SocketEventsService {
     }
   }
 
-  handleContactEvent(WidgetRef ref, String type, dynamic payload) {
+  handleContactEvent(String type, dynamic payload) {
     switch (type) {
       case ContactEventTypes.contactDeleted:
-        List<Contact> contacts = ref.read(contactsProvider);
+        final isar = Isar.getInstance();
+        List<Contact> contacts = isar!.contacts.where().findAllSync();
         String? contactEmail = contacts
             .firstWhere(
               (element) => element.uid == payload['contactUid'],
             )
             .email;
         contactService.handleDeletedContact(payload['contactUid']);
-        LocalNotification.instance.displayNotification(
-          'Contact',
-          'Your contact $contactEmail has deleted chat with you and removed you from their contacts',
-          json.encode({
-            'type': null,
-          }),
-        );
+        chatService
+            .findContactChatAndDelete(
+                contactUid: payload['contactUid'], skipNotify: true)
+            .then((bool chatWasFound) {
+          if (chatWasFound) {
+            LocalNotification.instance.displayNotification(
+              'Contact',
+              'Your contact $contactEmail has deleted chat with you and removed you from their contacts',
+              json.encode({
+                'type': null,
+              }),
+            );
+          } else {
+            LocalNotification.instance.displayNotification(
+              'Contact',
+              'Your contact $contactEmail has removed you from their contacts',
+              json.encode({
+                'type': null,
+              }),
+            );
+          }
+        });
         break;
       default:
         print('Unknown Contact Event');
@@ -196,7 +213,7 @@ class SocketEventsService {
     }
   }
 
-  handleChatEvent(WidgetRef ref, String type, dynamic payload) {
+  handleChatEvent(String type, dynamic payload) {
     final userId = Auth.user?.uid;
     switch (type) {
       case ChatEventTypes.chatCreated:
@@ -213,23 +230,40 @@ class SocketEventsService {
           }),
         );
         break;
+      case ChatEventTypes.chatDeleted:
+        final isar = Isar.getInstance();
+        final List<Chat> chats = isar!.chats.where().findAllSync();
+        final Chat chat =
+            chats.firstWhere((element) => element.uid == payload['chatUid']);
+        chatService.deleteChat(chatUid: payload['chatUid']);
+        LocalNotification.instance.displayNotification(
+          'Chat Deleted',
+          chat.name != null
+              ? 'Chat ${chat.name} has been deleted'
+              : 'Chat with ${chat.participants.firstWhere((element) => element.uid != userId).email} has been deleted',
+          json.encode({
+            'type': null,
+          }),
+        );
+        break;
       default:
         print('Unknown Contact Event');
         print(payload);
     }
   }
 
-  handleMessageEvent(WidgetRef ref, String type, dynamic payload) {
+  handleMessageEvent(String type, dynamic payload) {
     switch (type) {
       case MessageEventTypes.messageReceived:
         Message message = Message.fromJson(payload['message']);
         messageService.writeNewMessageToIsar(message);
 
-        final String? chatId = ref.read(appStateProvider).openedChatId;
-        Chat? chat = ref
-            .read(chatsProvider)
-            .firstWhereOrNull((element) => element.uid == message.chatUid);
-        if (chat != null && chatId != message.chatUid) {
+        final isar = Isar.getInstance();
+        List<Chat> chats = isar!.chats.where().findAllSync();
+        Chat? chat =
+            chats.firstWhereOrNull((element) => element.uid == message.chatUid);
+
+        if (chat != null && AppState.openedChatId != message.chatUid) {
           String chatname;
           if (chat.name != null && chat.name!.isNotEmpty) {
             chatname = chat.name!;

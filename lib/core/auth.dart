@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/socket/socket.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rxdart/subjects.dart';
 
@@ -61,7 +62,11 @@ class Auth {
 
   static clearToken({skipNotify = false}) async {
     Auth.token = null;
-    await storage.delete(key: 'token');
+    try {
+      await storage.delete(key: 'token');
+    } catch (e) {
+      debugPrint('Error clearing token');
+    }
     if (skipNotify) {
       return;
     }
@@ -91,7 +96,11 @@ class Auth {
 
   static clearOtpToken({skipNotify = false}) async {
     Auth.otpToken = null;
-    await storage.delete(key: 'otpToken');
+    try {
+      await storage.delete(key: 'otpToken');
+    } catch (e) {
+      debugPrint('Error clearing otp token');
+    }
     if (skipNotify) {
       return;
     }

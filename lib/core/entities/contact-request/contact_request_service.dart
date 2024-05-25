@@ -100,8 +100,15 @@ class ContactRequestService {
             .isEmpty)
         .toList();
 
+    final List<int> contactRequestsToDelete = contactRequestsInDb
+        .where((element) =>
+            contactRequests.where((el) => el.uid == element.uid).isEmpty)
+        .map((ContactRequest el) => el.id)
+        .toList();
+
     await isar.writeTxn(() async {
       await isar.contactRequests.putAll(contactRequestsToPut);
+      await isar.contactRequests.deleteAll(contactRequestsToDelete);
     });
   }
 }

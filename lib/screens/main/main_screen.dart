@@ -6,15 +6,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/entities/profile/profile_model.dart';
 import '../../core/entities/profile/profile_riverpod.dart';
-import '../calls/calls_history_screen.dart';
 import '../chats/chats_screen.dart';
 import '../contacts/contacts_screen.dart';
 import '../profile/profile_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+enum MainPageIndex { chats, contacts, profile }
+
 class MainScreen extends ConsumerStatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({super.key, this.page});
   static const routeName = '/main';
+  final MainPageIndex? page;
 
   @override
   MainScreenState createState() => MainScreenState();
@@ -25,10 +27,27 @@ class MainScreenState extends ConsumerState<MainScreen> {
 
   List<Widget> pageList = <Widget>[
     const ChatsScreen(),
-    const CallsHistoryScreen(),
     const ContactsScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    switch (widget.page) {
+      case MainPageIndex.chats:
+        pageIndex = 0;
+        break;
+      case MainPageIndex.contacts:
+        pageIndex = 1;
+        break;
+      case MainPageIndex.profile:
+        pageIndex = 2;
+        break;
+      default:
+        pageIndex = 0;
+    }
+  }
 
   void checkOnPermissions() async {
     await [
@@ -70,8 +89,6 @@ class MainScreenState extends ConsumerState<MainScreen> {
           items: [
             const BottomNavigationBarItem(
                 icon: Icon(Icons.messenger), label: "Chats"),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.groups_rounded), label: "Groups"),
             const BottomNavigationBarItem(
                 icon: Icon(Icons.people), label: "People"),
             BottomNavigationBarItem(

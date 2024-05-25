@@ -41,7 +41,7 @@ class _SignInScreenState extends State<SignInScreen> {
         });
 
         _authService.singIn(formValues).then((result) {
-          if (result['error'] == null) {
+          if (result['success'] == true) {
             setState(() {
               _shouldShowLoading = false;
             });

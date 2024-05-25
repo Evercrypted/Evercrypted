@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
-import 'package:evercrypted/core/services/app_state_riverpod.dart';
+import 'package:evercrypted/core/services/app_state.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:evercrypted/models/ChatMessage.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
@@ -50,10 +50,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   @override
   void initState() {
     super.initState();
-
-    Future.delayed(Duration.zero, () {
-      ref.read(appStateProvider.notifier).setOpenedChatId(widget.chat.uid);
-    });
+    AppState.setOpenedChatId(widget.chat.uid);
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       openPasswordDialog(context).then((value) {
@@ -76,7 +73,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   void deactivate() {
-    ref.read(appStateProvider.notifier).setOpenedChatId(null);
+    AppState.setOpenedChatId(null);
     super.deactivate();
   }
 

@@ -40,7 +40,7 @@ class ChatSocket {
   static final ActionQueueService actionQueueService = ActionQueueService();
   static final SocketEventsService socketEventsService = SocketEventsService();
 
-  static bool isConnected = false;
+  static bool? isConnected;
 
   static BehaviorSubject<bool> isConnectedSubject = BehaviorSubject<bool>();
   static BehaviorSubject<bool> resetConnectionSubject = BehaviorSubject<bool>();
@@ -81,7 +81,7 @@ class ChatSocket {
     return keyCompleter.future;
   }
 
-  static connectWS(WidgetRef ref) async {
+  static connectWS() async {
     tries = tries + 1;
 
     if (socket != null) {
@@ -115,24 +115,24 @@ class ChatSocket {
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
       actionQueueService.processQueue();
-      setListeners(ref);
+      setListeners();
       isConnected = true;
-      isConnectedSubject.add(isConnected);
+      isConnectedSubject.add(isConnected!);
     });
 
     socket?.onReconnect((data) async {
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
       actionQueueService.processQueue();
-      setListeners(ref);
+      setListeners();
       isConnected = true;
-      isConnectedSubject.add(isConnected);
+      isConnectedSubject.add(isConnected!);
     });
 
     socket?.on('disconnect', (data) {
       print('disconnected');
       isConnected = false;
-      isConnectedSubject.add(isConnected);
+      isConnectedSubject.add(isConnected!);
       disconnectWS();
     });
 
@@ -140,7 +140,7 @@ class ChatSocket {
       print('data $data');
       if (data.message == 'Connection refused') {
         isConnected = false;
-        isConnectedSubject.add(isConnected);
+        isConnectedSubject.add(isConnected!);
         Auth.clearAuth();
         isConnected = false;
       }
@@ -155,27 +155,26 @@ class ChatSocket {
           skipNotify: true,
         );
       } else if (event == 'error') {
-        socketEventsService.handleErrorEvent(
-            ref, data['type'], data['payload']);
+        socketEventsService.handleErrorEvent(data['type'], data['payload']);
       }
     });
 
     socket?.onDisconnect((_) {
       isConnected = false;
-      isConnectedSubject.add(isConnected);
+      isConnectedSubject.add(isConnected!);
       disconnectWS();
     });
 
     socket?.onConnectError((data) {
       isConnected = false;
-      isConnectedSubject.add(isConnected);
+      isConnectedSubject.add(isConnected!);
       disconnectWS();
     });
 
-    setListeners(ref);
+    setListeners();
   }
 
-  static setListeners(ref) {
+  static setListeners() {
     for (var channel in channelsToListen) {
       socket?.on(channel, (dynamic data) async {
         print('raw data: $data');
@@ -192,7 +191,7 @@ class ChatSocket {
           'got emit to $channel - ${payload.toString()}',
         );
         socketEventsService.handleEvent(
-            ref, channel, payload['type'], payload['payload']);
+            channel, payload['type'], payload['payload']);
       });
     }
   }
@@ -215,7 +214,7 @@ class ChatSocket {
     }
 
     final respCompleter = Completer<dynamic>();
-    if (socket?.connected != true || !isConnected) {
+    if (socket?.connected != true || isConnected == null || !isConnected!) {
       if (!isFromQueue && allowedForQueue.contains('$channel/$type')) {
         final int queuedItemId = await saveActionForLater();
         respCompleter
@@ -251,8 +250,8 @@ class ChatSocket {
     socket = null;
   }
 
-  static resetConnection(ref) {
+  static resetConnection() {
     disconnectWS();
-    connectWS(ref);
+    connectWS();
   }
 }

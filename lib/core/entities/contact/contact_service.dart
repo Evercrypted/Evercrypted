@@ -52,8 +52,15 @@ class ContactService {
             contactsInDb.where((dbEl) => dbEl.uid == element.uid).isEmpty)
         .toList();
 
+    final List<int> contactsToDelete = contactsInDb
+        .where(
+            (element) => contacts.where((el) => el.uid == element.uid).isEmpty)
+        .map((e) => e.id)
+        .toList();
+
     await isar.writeTxn(() async {
       await isar.contacts.putAll(contactsToPut);
+      await isar.contacts.deleteAll(contactsToDelete);
     });
   }
 }

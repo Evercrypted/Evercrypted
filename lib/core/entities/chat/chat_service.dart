@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
+import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -20,8 +22,19 @@ class ChatService {
             chatsInDb.where((dbEl) => dbEl.uid == element.uid).isEmpty)
         .toList();
 
+    final List<String> chatsToDelete = chatsInDb
+        .where((element) => chats.where((el) => el.uid == element.uid).isEmpty)
+        .map((e) => e.uid)
+        .toList();
+
     await isar.writeTxn(() async {
       await isar.chats.putAll(contactRequestsToPut);
+      await isar.chats.deleteAllByUid(chatsToDelete);
+      final List<Message> msgsToDelete = await isar.messages
+          .filter()
+          .anyOf(chatsToDelete, (q, uid) => q.chatUidEqualTo(uid))
+          .findAll();
+      await isar.messages.deleteAll(msgsToDelete.map((el) => el.id).toList());
       complete.complete();
     });
     return complete.future;
@@ -39,32 +52,44 @@ class ChatService {
     return complete.future;
   }
 
-  findContactChatAndDelete(String contactUid) async {
-    // final isar = Isar.getInstance();
-    // final chat = await isar!.chats
-    //     .where()
-    //     .filter()
-    //     .contactUidsEqualTo([contactUid])
-    //     .findFirst();
-    // if (chat != null) {
-    //   deleteChat(chat.uid);
-    // }
+  Future<bool> findContactChatAndDelete(
+      {required String contactUid, bool skipNotify = false}) async {
+    final isar = Isar.getInstance();
+    final chats = isar!.chats.where().findAllSync();
+    final chat = chats.firstWhereOrNull((chat) {
+      return chat.participants.length == 2 &&
+          chat.participants.any((participant) => participant.uid == contactUid);
+    });
+    if (chat != null) {
+      deleteChat(chatUid: chat.uid, skipNotify: skipNotify);
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  deleteChat(String chatUid) async {
+  deleteChat({required String chatUid, bool? skipNotify = false}) async {
     final isar = Isar.getInstance();
-    return ChatSocket.emitWAck(
-            SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid)
-        .then((resp) {
-      isar?.writeTxn(() async {
-        isar.chats.deleteByUid(chatUid);
-      });
-    }).onError((error, stackTrace) {
-      if (error == 'No such chat found') {
+    if (skipNotify == false) {
+      ChatSocket.emitWAck(
+          SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid);
+      return ChatSocket.emitWAck(
+              SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid)
+          .then((resp) {
         isar?.writeTxn(() async {
           isar.chats.deleteByUid(chatUid);
         });
-      }
-    });
+      }).onError((error, stackTrace) {
+        if (error == 'No such chat found') {
+          isar?.writeTxn(() async {
+            isar.chats.deleteByUid(chatUid);
+          });
+        }
+      });
+    } else {
+      isar?.writeTxn(() async {
+        isar.chats.deleteByUid(chatUid);
+      });
+    }
   }
 }

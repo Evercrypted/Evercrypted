@@ -2,7 +2,6 @@ import 'package:evercrypted/core/notifications/notification_event_types.dart';
 import 'package:flutter/material.dart';
 
 import '../../screens/contacts/add_new_contact_screen.dart';
-import '../../screens/contacts/contacts_screen.dart';
 
 class NotifiacationEventsService {
   handleNotification(context, payload) {
@@ -18,12 +17,7 @@ class NotifiacationEventsService {
         );
         break;
       case NotificationEventTypes.goToContactsPage:
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ContactsScreen(),
-            ),
-            (Route<dynamic> route) => false);
+        Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
         break;
       case null:
         break;
