@@ -16,9 +16,9 @@ class Contact {
   @Index(unique: true)
   final String? contactPersonUid;
 
-  final Avatar? avatar;
+  Avatar? avatar;
 
-  final String? name;
+  String? name;
 
   Contact(
       {this.uid, this.email, this.avatar, this.name, this.contactPersonUid});

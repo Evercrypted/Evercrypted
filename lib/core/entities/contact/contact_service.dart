@@ -42,6 +42,16 @@ class ContactService {
     });
   }
 
+  void renameContact(String contactUid, String newName) async {
+    final isar = Isar.getInstance();
+    await isar?.writeTxn(() async {
+      final contact =
+          await isar.contacts.where().uidEqualTo(contactUid).findFirst();
+      contact?.name = newName;
+      await isar.contacts.put(contact!);
+    });
+  }
+
   void syncContacts(List<Contact> contacts) async {
     final isar = Isar.getInstance();
 

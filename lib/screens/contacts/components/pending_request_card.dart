@@ -59,7 +59,8 @@ class PendingRequestCard extends StatelessWidget {
       iconColor: Colors.white,
       textColor: Colors.white,
       children: [
-        if (contactRequest!.message != null)
+        if (contactRequest!.message != null &&
+            contactRequest!.message!.isNotEmpty)
           Container(
             margin: const EdgeInsets.only(left: 30, right: 30, bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
