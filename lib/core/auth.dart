@@ -1,12 +1,17 @@
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
+import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:isar/isar.dart';
 import 'package:rxdart/subjects.dart';
 
 class Auth {
   Auth._();
 
   static BehaviorSubject<bool> authSubject = BehaviorSubject<bool>();
+
+  static ProfileService profileService = ProfileService();
 
   static AuthUser? user;
   static String? token;
@@ -21,8 +26,14 @@ class Auth {
       aOptions: AndroidOptions(encryptedSharedPreferences: true));
 
   static setAuth(
-      {AuthUser? newUser, String? newToken, bool? newIsOtpActive}) async {
-    Auth.user = newUser ?? user;
+      {Profile? profile, String? newToken, bool? newIsOtpActive}) async {
+    if (profile != null) {
+      profileService.syncProfile(profile);
+      Auth.user = AuthUser(
+          email: profile.email,
+          uid: profile.uid,
+          emailVerified: profile.emailVerified);
+    }
     if (newToken != null) {
       await Auth.setToken(
         newToken: newToken,
@@ -38,12 +49,34 @@ class Auth {
     authSubject.add(true);
   }
 
+  static AuthUser? get getUser {
+    if (Auth.user == null) {
+      final isar = Isar.getInstance();
+      final Profile profile = isar!.profiles.where().findFirstSync()!;
+      Auth.user = AuthUser(
+          email: profile.email,
+          uid: profile.uid,
+          emailVerified: profile.emailVerified);
+    }
+    return Auth.user;
+  }
+
+  static updateEmailVerified({required bool emailVerified}) {
+    if (Auth.getUser != null) {
+      Auth.user = AuthUser(
+          email: Auth.user!.email,
+          uid: Auth.user!.uid,
+          emailVerified: emailVerified);
+    }
+    profileService.updateProfileEmailVerified(emailVerified: emailVerified);
+    authSubject.add(true);
+  }
+
   static get getToken async {
     try {
       if (token == null) {
         final fromStorage = await storage.read(key: 'token');
         token = fromStorage;
-        print('token $token');
       }
       return token;
     } catch (e) {

@@ -10,7 +10,6 @@ import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:jwk/jwk.dart';
 import 'package:rxdart/subjects.dart';
@@ -140,9 +139,8 @@ class ChatSocket {
       print('data $data');
       if (data.message == 'Connection refused') {
         isConnected = false;
-        isConnectedSubject.add(isConnected!);
-        Auth.clearAuth();
         isConnected = false;
+        isConnectedSubject.add(isConnected!);
       }
     });
 

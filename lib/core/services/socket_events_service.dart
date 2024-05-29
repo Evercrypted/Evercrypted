@@ -66,12 +66,8 @@ class SocketEventsService {
   handleAuthEvent(String type, dynamic payload) {
     switch (type) {
       case AuthEventTypes.emailVerified:
-        Auth.setAuth(
-            newUser: AuthUser(
-                uid: payload['user']['uid'],
-                email: payload['user']['email'],
-                emailVerified: true),
-            newToken: payload['new_token']);
+        Auth.updateEmailVerified(emailVerified: true);
+        Auth.setAuth(newToken: payload['new_token']);
         ChatSocket.resetConnectionSubject.add(true);
         break;
       default:
@@ -99,12 +95,7 @@ class SocketEventsService {
       case 'getInitialData':
         Auth.setAuth(
             newIsOtpActive: payload['profile']['isOtpActive'],
-            newUser: AuthUser(
-              uid: payload['profile']['uid'],
-              email: payload['profile']['email'] ??
-                  payload['profile']['preverified_email'],
-              emailVerified: payload['profile']['email_verified'],
-            ),
+            profile: Profile.fromJson(payload['profile']),
             newToken: payload['newToken']);
         contactRequestService
             .syncContactRequests((payload['contactRequests'] as List<dynamic>)
@@ -116,9 +107,6 @@ class SocketEventsService {
         contactService.syncContacts((payload['contacts'] as List<dynamic>)
             .map((contactData) => Contact.fromJson(contactData))
             .toList());
-        profileService.syncProfile(
-          Profile.fromJson(payload['profile']),
-        );
         chatService.syncChats((payload['chats'] as List<dynamic>)
             .map((chatData) => Chat.fromJson(chatData))
             .toList());

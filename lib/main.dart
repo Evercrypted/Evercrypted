@@ -171,11 +171,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
   void _authFlow() async {
     final String? token = await Auth.getToken;
     if (token != null) {
-      if (Auth.user == null) {
+      if (Auth.getUser == null) {
         tokenAndUserNotLoaded = true;
       } else if (user == null) {
         setState(() {
-          user = Auth.user;
+          user = Auth.getUser;
           tokenAndUserNotLoaded = false;
         });
         Future.delayed(Duration.zero, () {

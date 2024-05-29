@@ -9,9 +9,7 @@ import 'package:isar/isar.dart';
 import 'message_isar.dart';
 
 class MessageService {
-  StreamSubscription? fbListener;
-
-  String? firebaseuserId = Auth.user?.uid;
+  String? userId = Auth.user?.uid;
 
   void syncMessages(List<Message> messages) async {
     final isar = Isar.getInstance();
@@ -59,14 +57,14 @@ class MessageService {
     Message messageToSend;
     if (message is String) {
       messageToSend = Message(
-        authorId: firebaseuserId!,
+        authorId: userId!,
         text: message,
         createdAtMSE: DateTime.now().millisecondsSinceEpoch,
         chatUid: chatUid,
       );
     } else {
       messageToSend = Message(
-        authorId: firebaseuserId!,
+        authorId: userId!,
         text: message['crypted'],
         createdAtMSE: DateTime.now().millisecondsSinceEpoch,
         chatUid: chatUid,
@@ -107,9 +105,5 @@ class MessageService {
     return isar?.writeTxn(() async {
       await isar.messages.put(message);
     });
-  }
-
-  void stopListening() {
-    fbListener?.cancel();
   }
 }

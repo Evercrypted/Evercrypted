@@ -2,6 +2,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/combine_keys.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/auth_event_types.dart';
@@ -74,9 +75,8 @@ class AuthService {
           value.data,
           keys['key'],
         );
-        print(payload);
         Auth.setAuth(
-            newUser: AuthUser(
+            profile: Profile(
                 uid: payload['uid'],
                 email: payload['email'] ?? payload['preverified_email'],
                 emailVerified: payload['email_verified'] as bool),
@@ -112,7 +112,7 @@ class AuthService {
           };
         } else {
           Auth.setAuth(
-              newUser: AuthUser(
+              profile: Profile(
                   uid: payload['uid'],
                   email: payload['email'] ?? payload['preverified_email'],
                   emailVerified: payload['email_verified'] as bool),

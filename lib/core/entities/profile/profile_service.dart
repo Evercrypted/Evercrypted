@@ -11,4 +11,15 @@ class ProfileService {
       });
     });
   }
+
+  void updateProfileEmailVerified({required bool emailVerified}) async {
+    final isar = Isar.getInstance();
+    final profile = isar?.profiles.where().findFirstSync();
+    if (profile != null) {
+      profile.emailVerified = emailVerified;
+      await isar?.writeTxn(() async {
+        isar.profiles.put(profile);
+      });
+    }
+  }
 }

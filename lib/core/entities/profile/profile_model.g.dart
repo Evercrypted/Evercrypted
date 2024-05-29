@@ -28,13 +28,18 @@ const ProfileSchema = CollectionSchema(
       name: r'email',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(
+    r'emailVerified': PropertySchema(
       id: 2,
+      name: r'emailVerified',
+      type: IsarType.bool,
+    ),
+    r'name': PropertySchema(
+      id: 3,
       name: r'name',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'uid',
       type: IsarType.string,
     )
@@ -66,24 +71,14 @@ int _profileEstimateSize(
           3 + AvatarSchema.estimateSize(value, allOffsets[Avatar]!, allOffsets);
     }
   }
-  {
-    final value = object.email;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.email.length * 3;
   {
     final value = object.name;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
-  {
-    final value = object.uid;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.uid.length * 3;
   return bytesCount;
 }
 
@@ -100,8 +95,9 @@ void _profileSerialize(
     object.avatar,
   );
   writer.writeString(offsets[1], object.email);
-  writer.writeString(offsets[2], object.name);
-  writer.writeString(offsets[3], object.uid);
+  writer.writeBool(offsets[2], object.emailVerified);
+  writer.writeString(offsets[3], object.name);
+  writer.writeString(offsets[4], object.uid);
 }
 
 Profile _profileDeserialize(
@@ -116,9 +112,10 @@ Profile _profileDeserialize(
       AvatarSchema.deserialize,
       allOffsets,
     ),
-    email: reader.readStringOrNull(offsets[1]),
-    name: reader.readStringOrNull(offsets[2]),
-    uid: reader.readStringOrNull(offsets[3]),
+    email: reader.readString(offsets[1]),
+    emailVerified: reader.readBoolOrNull(offsets[2]) ?? false,
+    name: reader.readStringOrNull(offsets[3]),
+    uid: reader.readString(offsets[4]),
   );
   object.id = id;
   return object;
@@ -138,11 +135,13 @@ P _profileDeserializeProp<P>(
         allOffsets,
       )) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -253,24 +252,8 @@ extension ProfileQueryFilter
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterFilterCondition> emailIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'email',
-      ));
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition> emailIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'email',
-      ));
-    });
-  }
-
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -283,7 +266,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -298,7 +281,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -313,8 +296,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -395,6 +378,16 @@ extension ProfileQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'email',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> emailVerifiedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'emailVerified',
+        value: value,
       ));
     });
   }
@@ -597,24 +590,8 @@ extension ProfileQueryFilter
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterFilterCondition> uidIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'uid',
-      ));
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition> uidIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'uid',
-      ));
-    });
-  }
-
   QueryBuilder<Profile, Profile, QAfterFilterCondition> uidEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -627,7 +604,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> uidGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -642,7 +619,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> uidLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -657,8 +634,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> uidBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -770,6 +747,18 @@ extension ProfileQuerySortBy on QueryBuilder<Profile, Profile, QSortBy> {
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterSortBy> sortByEmailVerified() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emailVerified', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> sortByEmailVerifiedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emailVerified', Sort.desc);
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -806,6 +795,18 @@ extension ProfileQuerySortThenBy
   QueryBuilder<Profile, Profile, QAfterSortBy> thenByEmailDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'email', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> thenByEmailVerified() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emailVerified', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> thenByEmailVerifiedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emailVerified', Sort.desc);
     });
   }
 
@@ -855,6 +856,12 @@ extension ProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Profile, Profile, QDistinct> distinctByEmailVerified() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'emailVerified');
+    });
+  }
+
   QueryBuilder<Profile, Profile, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -884,9 +891,15 @@ extension ProfileQueryProperty
     });
   }
 
-  QueryBuilder<Profile, String?, QQueryOperations> emailProperty() {
+  QueryBuilder<Profile, String, QQueryOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'email');
+    });
+  }
+
+  QueryBuilder<Profile, bool, QQueryOperations> emailVerifiedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'emailVerified');
     });
   }
 
@@ -896,7 +909,7 @@ extension ProfileQueryProperty
     });
   }
 
-  QueryBuilder<Profile, String?, QQueryOperations> uidProperty() {
+  QueryBuilder<Profile, String, QQueryOperations> uidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'uid');
     });

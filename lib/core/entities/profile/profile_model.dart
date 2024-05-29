@@ -6,20 +6,28 @@ part 'profile_model.g.dart';
 class Profile {
   Id id = Isar.autoIncrement;
 
-  final String? uid;
+  final String uid;
 
   String? name;
 
-  final String? email;
+  final String email;
+
+  bool emailVerified;
 
   Avatar? avatar;
 
-  Profile({this.uid, this.name, this.email, this.avatar});
+  Profile(
+      {required this.uid,
+      this.name,
+      required this.email,
+      this.avatar,
+      this.emailVerified = false});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
-      uid: json['uid'] as String?,
+      uid: json['uid'] as String,
       name: json['name'] as String?,
-      email: json['email'] as String?,
+      email: json['email'] as String,
+      emailVerified: json['email_verified'] as bool,
       avatar: json['avatar'] == null
           ? null
           : Avatar.fromJson(
