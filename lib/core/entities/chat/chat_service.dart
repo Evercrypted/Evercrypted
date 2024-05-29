@@ -1,10 +1,15 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
+import 'package:evercrypted/screens/messages/messages_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 
 import 'chat_model.dart';
@@ -50,6 +55,37 @@ class ChatService {
           .then((value) => complete.complete(returnedChat));
     });
     return complete.future;
+  }
+
+  openChat(BuildContext context, WidgetRef ref, Contact contact) {
+    List<Chat> chats = ref.read(chatsProvider);
+    Chat? foundChat = chats
+        .where((element) => (element.participants.length == 2 &&
+            element.participants
+                .any((element) => element.uid == contact.contactPersonUid)))
+        .firstOrNull;
+    if (foundChat != null) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MessagesScreen(
+            chat: foundChat,
+          ),
+        ),
+        (route) => route.isFirst,
+      );
+    } else {
+      NewChatDTO newChat = NewChatDTO(contact: contact.contactPersonUid!);
+      createNewChat(newChat).then((Chat returnedChat) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MessagesScreen(chat: returnedChat),
+          ),
+          (route) => route.isFirst,
+        );
+      });
+    }
   }
 
   Future<bool> findContactChatAndDelete(

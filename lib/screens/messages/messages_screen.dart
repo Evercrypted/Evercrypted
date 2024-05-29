@@ -4,6 +4,9 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
+import 'package:evercrypted/screens/chats/components/chat_card.dart';
+import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
+import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:evercrypted/models/ChatMessage.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
@@ -53,19 +56,16 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     AppState.setOpenedChatId(widget.chat.uid);
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      openPasswordDialog(context).then((value) {
-        getlastMessageCreatedAtMSE().then((value) {
-          startingCreatedAtMSE = value ?? 0;
-        }).then((value) async {
-          if (startingCreatedAtMSE == 0) {
-            await Future.delayed(const Duration(seconds: 1));
-          }
-          _fetchPage(0).then((value) {
-            listenToIsarChanges();
-            _pagingController.addPageRequestListener((pageKey) {
-              _fetchPage(pageKey);
-            });
-          });
+      openPasswordDialog(context);
+    });
+
+    getlastMessageCreatedAtMSE().then((value) {
+      startingCreatedAtMSE = value ?? 0;
+    }).then((value) async {
+      _fetchPage(0).then((value) {
+        listenToIsarChanges();
+        _pagingController.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey);
         });
       });
     });
@@ -258,26 +258,41 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final participantNames = chatParticipantNames(widget.chat, ref).join(', ');
+
     return Scaffold(
         appBar: ConnectionStatusAppbar(
-          title: const Row(
+          title: Row(
             children: [
-              CircleAvatar(
-                backgroundImage: AssetImage("assets/images/user_2.png"),
+              CircleAvatarWithActiveIndicator(
+                image: widget.chat.avatar?.pic,
+                isActive: true,
+                radius: 28,
+                name: widget.chat.name ?? participantNames,
               ),
-              SizedBox(width: defaultPadding * 0.75),
+              const SizedBox(width: defaultPadding * 0.75),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Kristin Watson",
-                    style: TextStyle(fontSize: 16),
+                    participantNames,
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               )
             ],
           ),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              color: primaryColor,
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ChatSettingsScreen(widget.chat)));
+              },
+            ),
             IconButton(
                 icon: Icon(Icons.security,
                     color: pass == null ? Colors.redAccent : primaryColor),

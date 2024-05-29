@@ -1,13 +1,32 @@
+import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/entities/contact/contact_model.dart';
+import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/entities/chat/chat_model.dart';
 import '../../../widgets/circle_avatar_with_active_indicator.dart';
 import '../../../ui_constants.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-class ChatCard extends StatelessWidget {
-  ChatCard({
+List<String> chatParticipantNames(currentChat, widgetRef) {
+  final List<Contact> contacts = widgetRef.read(contactsProvider);
+  return currentChat.participants
+      .where((element) => element.uid != Auth.user?.uid)
+      .map<String>((Participant e) {
+    final Contact? contactFound = contacts
+        .firstWhereOrNull((element) => element.contactPersonUid == e.uid);
+    if (contactFound != null && contactFound.name != null) {
+      return contactFound.name!;
+    } else {
+      return e.name ?? e.email!.split('@')[0];
+    }
+  }).toList();
+}
+
+class ChatCard extends ConsumerWidget {
+  const ChatCard({
     super.key,
     required this.chat,
     required this.press,
@@ -16,11 +35,12 @@ class ChatCard extends StatelessWidget {
 
   final Chat chat;
   final VoidCallback press;
-  final userId = Auth.user?.uid;
   final bool isActive;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
+    final participantNames = chatParticipantNames(chat, ref).join(', ');
+
     return InkWell(
       onTap: press,
       child: Padding(
@@ -32,12 +52,7 @@ class ChatCard extends StatelessWidget {
               image: chat.avatar?.pic,
               isActive: true,
               radius: 28,
-              name: chat.name ??
-                  chat.participants
-                      .where((element) => element.uid != userId)
-                      .map((e) => e.name ?? e.email!.split('@')[0])
-                      .toList()
-                      .join(', '),
+              name: chat.name ?? participantNames,
             ),
             Expanded(
               child: Padding(
@@ -46,12 +61,7 @@ class ChatCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      chat.name ??
-                          chat.participants
-                              .where((element) => element.uid != userId)
-                              .map((e) => e.name ?? e.email!.split('@')[0])
-                              .toList()
-                              .join(', '),
+                      chat.name ?? participantNames,
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w500),
                       overflow: TextOverflow.ellipsis,

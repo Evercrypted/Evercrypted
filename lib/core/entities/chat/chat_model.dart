@@ -84,6 +84,20 @@ class Participant {
         'lastSawChat': lastSawChat,
         'avatar': avatar?.toJson(),
       };
+
+  copyWith(
+          {String? uid,
+          String? email,
+          String? name,
+          DateTime? lastSawChat,
+          Avatar? avatar}) =>
+      Participant(
+        uid: uid ?? this.uid,
+        email: email ?? this.email,
+        name: name ?? this.name,
+        lastSawChat: lastSawChat ?? this.lastSawChat,
+        avatar: avatar ?? this.avatar,
+      );
 }
 
 class NewChatDTO {

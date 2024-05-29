@@ -1,8 +1,5 @@
-import 'package:evercrypted/core/entities/chat/chat_model.dart';
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/screens/contacts/contact_screen.dart';
-import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,35 +17,6 @@ class ContactCard extends ConsumerWidget {
   final ChatService chatService = ChatService();
   final Contact contact;
   final bool isActive;
-
-  openChat(BuildContext context, WidgetRef ref) {
-    List<Chat> chats = ref.read(chatsProvider);
-    Chat? foundChat = chats
-        .where((element) => (element.participants.length == 2 &&
-            element.participants
-                .any((element) => element.uid == contact.contactPersonUid)))
-        .firstOrNull;
-    if (foundChat != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MessagesScreen(
-            chat: foundChat,
-          ),
-        ),
-      );
-    } else {
-      NewChatDTO newChat = NewChatDTO(contact: contact.contactPersonUid!);
-      chatService.createNewChat(newChat).then((Chat returnedChat) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MessagesScreen(chat: returnedChat),
-          ),
-        );
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -86,7 +54,7 @@ class ContactCard extends ConsumerWidget {
           color: primaryColor,
         ),
         onPressed: () {
-          openChat(context, ref);
+          chatService.openChat(context, ref, contact);
         },
       ),
       onTap: () {

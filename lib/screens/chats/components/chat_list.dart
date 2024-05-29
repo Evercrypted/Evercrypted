@@ -17,8 +17,6 @@ class ChatListState extends ConsumerState<ChatList> {
   Widget build(BuildContext context) {
     final List<Chat> chats = ref.watch(chatsProvider);
 
-    print(chats.map((e) => e.toJson()).toList());
-
     return ListView.builder(
       // Show messages from bottom to top
       itemCount: chats.length,
