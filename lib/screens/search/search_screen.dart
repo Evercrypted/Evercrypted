@@ -44,7 +44,6 @@ class SearchScreen extends StatelessWidget {
               ),
             ),
           ),
-          const Expanded(child: Body()),
         ],
       ),
     );

@@ -10,9 +10,9 @@ import '../../../widgets/circle_avatar_with_active_indicator.dart';
 import '../../../ui_constants.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-List<String> chatParticipantNames(currentChat, widgetRef) {
+List<String> chatParticipantNames({chat, widgetRef}) {
   final List<Contact> contacts = widgetRef.read(contactsProvider);
-  return currentChat.participants
+  return chat.participants
       .where((element) => element.uid != Auth.user?.uid)
       .map<String>((Participant e) {
     final Contact? contactFound = contacts
@@ -39,7 +39,8 @@ class ChatCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final participantNames = chatParticipantNames(chat, ref).join(', ');
+    final participantNames =
+        chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
 
     return InkWell(
       onTap: press,
@@ -50,7 +51,6 @@ class ChatCard extends ConsumerWidget {
           children: [
             CircleAvatarWithActiveIndicator(
               image: chat.avatar?.pic,
-              isActive: true,
               radius: 28,
               name: chat.name ?? participantNames,
             ),

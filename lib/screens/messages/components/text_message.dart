@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../ui_constants.dart';
-import '../../../models/ChatMessage.dart';
+import '../../../models/chat_message.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 
 class TextMessage extends StatelessWidget {

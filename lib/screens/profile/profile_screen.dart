@@ -40,7 +40,8 @@ class ProfileScreen extends ConsumerWidget {
         child: Column(
           children: [
             ProfilePic(
-              image: "assets/images/user_2.png",
+              image: profile?.avatar?.pic,
+              name: profile?.name ?? profile?.email.split('@')[0],
               imageUploadBtnPress: () {},
             ),
             Text(

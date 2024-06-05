@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
@@ -22,7 +23,7 @@ class ChatService {
 
     final List<Chat> chatsInDb = await isar!.chats.where().findAll();
 
-    final List<Chat> contactRequestsToPut = chats
+    final List<Chat> chatsToPut = chats
         .where((element) =>
             chatsInDb.where((dbEl) => dbEl.uid == element.uid).isEmpty)
         .toList();
@@ -33,13 +34,16 @@ class ChatService {
         .toList();
 
     await isar.writeTxn(() async {
-      await isar.chats.putAll(contactRequestsToPut);
-      await isar.chats.deleteAllByUid(chatsToDelete);
-      final List<Message> msgsToDelete = await isar.messages
-          .filter()
-          .anyOf(chatsToDelete, (q, uid) => q.chatUidEqualTo(uid))
-          .findAll();
-      await isar.messages.deleteAll(msgsToDelete.map((el) => el.id).toList());
+      await isar.chats.putAll(chatsToPut);
+      if (chatsToDelete.isNotEmpty) {
+        for (var chat in chatsToDelete) {
+          // delete all messages in chat
+          final List<Message> msgsToDelete =
+              await isar.messages.filter().chatUidEqualTo(chat).findAll();
+          await isar.messages.deleteAll(msgsToDelete.map((e) => e.id).toList());
+        }
+        await isar.chats.deleteAllByUid(chatsToDelete);
+      }
       complete.complete();
     });
     return complete.future;

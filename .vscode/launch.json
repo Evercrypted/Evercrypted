@@ -32,12 +32,18 @@
             "request": "launch",
             "type": "dart",
             "deviceId": "07E9C4F8-4949-4400-8343-28A05357796F"
+        },
+        {
+            "name": "iPhone 15 Plus",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "DCE72BD3-5274-444F-A619-ED59F2CA45A5"
         }
     ],
     "compounds": [
 		{
 			"name": "All Devices",
-			"configurations": ["iPhone 14", "iPhone 14 Pro"],
+			"configurations": ["iPhone 15", "iPhone 15 Pro", "iPhone 15 Plus"],
 		}
 	]
 }

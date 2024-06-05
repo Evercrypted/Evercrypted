@@ -27,53 +27,63 @@ const MessageSchema = CollectionSchema(
       name: r'chatUid',
       type: IsarType.string,
     ),
-    r'createdAtMSE': PropertySchema(
+    r'couldNotSend': PropertySchema(
       id: 2,
+      name: r'couldNotSend',
+      type: IsarType.bool,
+    ),
+    r'createdAtMSE': PropertySchema(
+      id: 3,
       name: r'createdAtMSE',
       type: IsarType.long,
     ),
     r'fileIds': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'fileIds',
       type: IsarType.stringList,
     ),
     r'isEncrypted': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isEncrypted',
       type: IsarType.bool,
     ),
     r'iv': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'iv',
       type: IsarType.string,
     ),
     r'mac': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'mac',
       type: IsarType.string,
     ),
+    r'messageType': PropertySchema(
+      id: 8,
+      name: r'messageType',
+      type: IsarType.string,
+    ),
     r'queueId': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'queueId',
       type: IsarType.long,
     ),
     r'successfullySent': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'successfullySent',
       type: IsarType.bool,
     ),
     r'text': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'text',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'uid',
       type: IsarType.string,
     ),
     r'uniqueId': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'uniqueId',
       type: IsarType.string,
     )
@@ -190,6 +200,7 @@ int _messageEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.messageType.length * 3;
   {
     final value = object.text;
     if (value != null) {
@@ -219,16 +230,18 @@ void _messageSerialize(
 ) {
   writer.writeString(offsets[0], object.authorId);
   writer.writeString(offsets[1], object.chatUid);
-  writer.writeLong(offsets[2], object.createdAtMSE);
-  writer.writeStringList(offsets[3], object.fileIds);
-  writer.writeBool(offsets[4], object.isEncrypted);
-  writer.writeString(offsets[5], object.iv);
-  writer.writeString(offsets[6], object.mac);
-  writer.writeLong(offsets[7], object.queueId);
-  writer.writeBool(offsets[8], object.successfullySent);
-  writer.writeString(offsets[9], object.text);
-  writer.writeString(offsets[10], object.uid);
-  writer.writeString(offsets[11], object.uniqueId);
+  writer.writeBool(offsets[2], object.couldNotSend);
+  writer.writeLong(offsets[3], object.createdAtMSE);
+  writer.writeStringList(offsets[4], object.fileIds);
+  writer.writeBool(offsets[5], object.isEncrypted);
+  writer.writeString(offsets[6], object.iv);
+  writer.writeString(offsets[7], object.mac);
+  writer.writeString(offsets[8], object.messageType);
+  writer.writeLong(offsets[9], object.queueId);
+  writer.writeBool(offsets[10], object.successfullySent);
+  writer.writeString(offsets[11], object.text);
+  writer.writeString(offsets[12], object.uid);
+  writer.writeString(offsets[13], object.uniqueId);
 }
 
 Message _messageDeserialize(
@@ -240,16 +253,18 @@ Message _messageDeserialize(
   final object = Message(
     authorId: reader.readString(offsets[0]),
     chatUid: reader.readString(offsets[1]),
-    createdAtMSE: reader.readLong(offsets[2]),
-    fileIds: reader.readStringList(offsets[3]),
-    isEncrypted: reader.readBoolOrNull(offsets[4]) ?? false,
-    iv: reader.readStringOrNull(offsets[5]),
-    mac: reader.readStringOrNull(offsets[6]),
-    queueId: reader.readLongOrNull(offsets[7]),
-    successfullySent: reader.readBoolOrNull(offsets[8]) ?? true,
-    text: reader.readStringOrNull(offsets[9]),
-    uid: reader.readStringOrNull(offsets[10]),
-    uniqueId: reader.readStringOrNull(offsets[11]),
+    couldNotSend: reader.readBoolOrNull(offsets[2]) ?? false,
+    createdAtMSE: reader.readLong(offsets[3]),
+    fileIds: reader.readStringList(offsets[4]),
+    isEncrypted: reader.readBoolOrNull(offsets[5]) ?? false,
+    iv: reader.readStringOrNull(offsets[6]),
+    mac: reader.readStringOrNull(offsets[7]),
+    messageType: reader.readStringOrNull(offsets[8]) ?? MessageTypes.text,
+    queueId: reader.readLongOrNull(offsets[9]),
+    successfullySent: reader.readBoolOrNull(offsets[10]) ?? true,
+    text: reader.readStringOrNull(offsets[11]),
+    uid: reader.readStringOrNull(offsets[12]),
+    uniqueId: reader.readStringOrNull(offsets[13]),
   );
   object.id = id;
   return object;
@@ -267,24 +282,28 @@ P _messageDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
-    case 3:
-      return (reader.readStringList(offset)) as P;
-    case 4:
       return (reader.readBoolOrNull(offset) ?? false) as P;
+    case 3:
+      return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readStringList(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readBoolOrNull(offset) ?? true) as P;
+      return (reader.readStringOrNull(offset) ?? MessageTypes.text) as P;
     case 9:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readStringOrNull(offset)) as P;
+    case 13:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1084,6 +1103,16 @@ extension MessageQueryFilter
     });
   }
 
+  QueryBuilder<Message, Message, QAfterFilterCondition> couldNotSendEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'couldNotSend',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> createdAtMSEEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1725,6 +1754,137 @@ extension MessageQueryFilter
     });
   }
 
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'messageType',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'messageType',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> messageTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'messageType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      messageTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'messageType',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> queueIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2274,6 +2434,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> sortByCouldNotSend() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'couldNotSend', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByCouldNotSendDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'couldNotSend', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAtMSE', Sort.asc);
@@ -2319,6 +2491,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
   QueryBuilder<Message, Message, QAfterSortBy> sortByMacDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mac', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByMessageType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'messageType', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByMessageTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'messageType', Sort.desc);
     });
   }
 
@@ -2409,6 +2593,18 @@ extension MessageQuerySortThenBy
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> thenByCouldNotSend() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'couldNotSend', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByCouldNotSendDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'couldNotSend', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAtMSE', Sort.asc);
@@ -2466,6 +2662,18 @@ extension MessageQuerySortThenBy
   QueryBuilder<Message, Message, QAfterSortBy> thenByMacDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mac', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByMessageType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'messageType', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByMessageTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'messageType', Sort.desc);
     });
   }
 
@@ -2546,6 +2754,12 @@ extension MessageQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Message, Message, QDistinct> distinctByCouldNotSend() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'couldNotSend');
+    });
+  }
+
   QueryBuilder<Message, Message, QDistinct> distinctByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAtMSE');
@@ -2575,6 +2789,13 @@ extension MessageQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'mac', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByMessageType(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'messageType', caseSensitive: caseSensitive);
     });
   }
 
@@ -2632,6 +2853,12 @@ extension MessageQueryProperty
     });
   }
 
+  QueryBuilder<Message, bool, QQueryOperations> couldNotSendProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'couldNotSend');
+    });
+  }
+
   QueryBuilder<Message, int, QQueryOperations> createdAtMSEProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAtMSE');
@@ -2659,6 +2886,12 @@ extension MessageQueryProperty
   QueryBuilder<Message, String?, QQueryOperations> macProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'mac');
+    });
+  }
+
+  QueryBuilder<Message, String, QQueryOperations> messageTypeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'messageType');
     });
   }
 

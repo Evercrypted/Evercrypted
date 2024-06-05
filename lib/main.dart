@@ -175,7 +175,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
         tokenAndUserNotLoaded = true;
       } else if (user == null) {
         setState(() {
-          user = Auth.getUser;
           tokenAndUserNotLoaded = false;
         });
         Future.delayed(Duration.zero, () {
@@ -183,6 +182,9 @@ class AuthGateState extends ConsumerState<AuthGate> {
           _setIsarWatchers();
         });
       }
+      setState(() {
+        user = Auth.getUser;
+      });
       _connectIO(token);
       addAuthInterceptor(token);
       final bool otpActive = await Auth.getIsOtpActive;

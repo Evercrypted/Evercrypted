@@ -29,7 +29,6 @@ class CallHistoryCard extends StatelessWidget {
       onTap: () {},
       leading: CircleAvatarWithActiveIndicator(
         image: image,
-        isActive: isActive,
         radius: 28,
       ),
       title: Text(name),

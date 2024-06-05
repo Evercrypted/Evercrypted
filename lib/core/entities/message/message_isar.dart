@@ -2,6 +2,14 @@ import 'package:isar/isar.dart';
 
 part 'message_isar.g.dart';
 
+class MessageTypes {
+  MessageTypes._();
+  static const text = 'text';
+  static const audio = 'audio';
+  static const image = 'image';
+  static const video = 'video';
+}
+
 @collection
 class Message {
   Id id = Isar.autoIncrement;
@@ -14,6 +22,7 @@ class Message {
   String? text;
   String? iv;
   String? mac;
+  String messageType;
   bool isEncrypted;
 
   List<String>? fileIds;
@@ -32,10 +41,13 @@ class Message {
 
   bool successfullySent;
 
+  bool couldNotSend;
+
   Message(
       {this.uid,
       required this.authorId,
       this.text,
+      this.messageType = MessageTypes.text,
       this.fileIds,
       required this.createdAtMSE,
       this.iv,
@@ -44,6 +56,7 @@ class Message {
       required this.chatUid,
       this.uniqueId,
       this.successfullySent = true,
+      this.couldNotSend = false,
       this.queueId});
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -56,6 +69,9 @@ class Message {
         chatUid: json['chatUid'] as String,
         uniqueId: json['chatUid'] + json['uid'],
         successfullySent: true,
+        iv: json['iv'] as String?,
+        mac: json['mac'] as String?,
+        messageType: json['messageType'] as String,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -68,5 +84,6 @@ class Message {
         'isEncrypted': isEncrypted,
         'iv': iv,
         'mac': mac,
+        'messageType': messageType,
       };
 }

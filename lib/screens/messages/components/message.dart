@@ -1,7 +1,8 @@
+import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:flutter/material.dart';
 
 import '../../../ui_constants.dart';
-import '../../../models/ChatMessage.dart';
+import '../../../models/chat_message.dart';
 import 'audio_message.dart';
 import 'text_message.dart';
 import 'video_message.dart';
@@ -15,13 +16,16 @@ class MessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(message);
+    print(pass);
+    print(iv);
     Widget messageContaint(ChatMessage message) {
       switch (message.messageType) {
-        case ChatMessageType.text:
+        case MessageTypes.text:
           return TextMessage(message: message, pass: pass, iv: iv);
-        case ChatMessageType.audio:
+        case MessageTypes.audio:
           return AudioMessage(message: message);
-        case ChatMessageType.video:
+        case MessageTypes.video:
           return const VideoMessage();
         default:
           return const SizedBox();
@@ -57,11 +61,11 @@ class MessageStatusDot extends StatelessWidget {
   Widget build(BuildContext context) {
     Color dotColor(MessageStatus status) {
       switch (status) {
-        case MessageStatus.not_sent:
+        case MessageStatus.couldNotSend:
           return errorColor;
-        case MessageStatus.not_view:
+        case MessageStatus.queued:
           return Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.1);
-        case MessageStatus.viewed:
+        case MessageStatus.successfullySent:
           return primaryColor;
         default:
           return Colors.transparent;
@@ -77,7 +81,7 @@ class MessageStatusDot extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Icon(
-        status == MessageStatus.not_sent ? Icons.close : Icons.done,
+        status == MessageStatus.couldNotSend ? Icons.close : Icons.done,
         size: 8,
         color: Theme.of(context).scaffoldBackgroundColor,
       ),

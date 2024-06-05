@@ -1,3 +1,4 @@
+import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../ui_constants.dart';
@@ -33,19 +34,24 @@ class ProfilePic extends StatelessWidget {
       child: Stack(
         alignment: Alignment.bottomRight,
         children: [
-          CircleAvatar(
+          CircleAvatarWithActiveIndicator(
+            image: image,
             radius: 50,
-            backgroundImage: AssetImage(image!),
+            name: name,
           ),
           InkWell(
             onTap: imageUploadBtnPress,
             child: CircleAvatar(
-              radius: 13,
-              backgroundColor: Theme.of(context).primaryColor,
-              child: const Icon(
-                Icons.settings,
-                color: Colors.white,
-                size: 20,
+              radius: 17,
+              backgroundColor: Colors.white,
+              child: CircleAvatar(
+                radius: 15,
+                backgroundColor: Theme.of(context).primaryColor,
+                child: const Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           )

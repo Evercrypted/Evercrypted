@@ -8,7 +8,7 @@ import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
-import 'package:evercrypted/models/ChatMessage.dart';
+import 'package:evercrypted/models/chat_message.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -258,7 +258,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final participantNames = chatParticipantNames(widget.chat, ref).join(', ');
+    final participantNames =
+        chatParticipantNames(chat: widget.chat, widgetRef: ref).join(', ');
 
     return Scaffold(
         appBar: ConnectionStatusAppbar(
@@ -266,7 +267,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             children: [
               CircleAvatarWithActiveIndicator(
                 image: widget.chat.avatar?.pic,
-                isActive: true,
                 radius: 28,
                 name: widget.chat.name ?? participantNames,
               ),
@@ -315,9 +315,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                       itemBuilder: (context, item, index) {
                         final chatMessage = ChatMessage(
                           text: item.text!,
-                          messageType: ChatMessageType.text,
+                          messageType: MessageTypes.text,
                           isSender: item.authorId == userId,
-                          messageStatus: MessageStatus.viewed,
+                          messageStatus: MessageStatus.successfullySent,
                         );
                         return MessageWidget(message: chatMessage, pass: pass);
                       }),

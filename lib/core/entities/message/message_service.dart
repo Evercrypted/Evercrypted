@@ -55,6 +55,7 @@ class MessageService {
 
   Future<Message> sendMessage(dynamic message, String chatUid) async {
     Message messageToSend;
+    print(message);
     if (message is String) {
       messageToSend = Message(
         authorId: userId!,

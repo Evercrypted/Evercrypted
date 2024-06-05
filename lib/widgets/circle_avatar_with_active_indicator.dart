@@ -4,7 +4,11 @@ import '../ui_constants.dart';
 
 class CircleAvatarWithActiveIndicator extends StatelessWidget {
   const CircleAvatarWithActiveIndicator(
-      {super.key, this.image, this.radius = 24, this.isActive, this.name});
+      {super.key,
+      this.image,
+      this.radius = 24,
+      this.isActive = false,
+      this.name});
 
   final String? image;
   final double? radius;
@@ -31,7 +35,7 @@ class CircleAvatarWithActiveIndicator extends StatelessWidget {
                 )
               : null,
         ),
-        if (isActive!)
+        if (isActive != null && isActive! == true)
           Positioned(
             right: 0,
             bottom: 0,

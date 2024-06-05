@@ -89,7 +89,6 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
           Center(
               child: CircleAvatarWithActiveIndicator(
             image: widget.contact.avatar?.pic,
-            isActive: false,
             radius: 64,
             name: name,
           )),
