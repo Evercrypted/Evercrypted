@@ -4,4 +4,5 @@ class ChatEventTypes {
   static const deleteChat = 'deleteChat';
   static const chatCreated = 'chatCreated';
   static const chatDeleted = 'chatDeleted';
+  static const updateChatLastSeen = 'updateChatLastSeen';
 }

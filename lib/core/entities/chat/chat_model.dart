@@ -62,8 +62,17 @@ class Participant {
   final String? name;
   final DateTime? lastSawChat;
   final Avatar? avatar;
+  final bool isCreator;
+  final bool isAdmin;
 
-  Participant({this.uid, this.email, this.name, this.lastSawChat, this.avatar});
+  Participant(
+      {this.uid,
+      this.email,
+      this.name,
+      this.lastSawChat,
+      this.avatar,
+      this.isCreator = false,
+      this.isAdmin = false});
 
   factory Participant.fromJson(Map<String, dynamic> json) => Participant(
         uid: json['uid'] as String?,
@@ -75,6 +84,8 @@ class Participant {
                 json['avatar'],
               )
             : null,
+        isCreator: json['isCreator'] as bool? ?? false,
+        isAdmin: json['isAdmin'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -83,6 +94,8 @@ class Participant {
         'name': name,
         'lastSawChat': lastSawChat,
         'avatar': avatar?.toJson(),
+        'isCreator': isCreator,
+        'isAdmin': isAdmin,
       };
 
   copyWith(
@@ -90,13 +103,17 @@ class Participant {
           String? email,
           String? name,
           DateTime? lastSawChat,
-          Avatar? avatar}) =>
+          Avatar? avatar,
+          bool? isCreator,
+          bool? isAdmin}) =>
       Participant(
         uid: uid ?? this.uid,
         email: email ?? this.email,
         name: name ?? this.name,
         lastSawChat: lastSawChat ?? this.lastSawChat,
         avatar: avatar ?? this.avatar,
+        isCreator: isCreator ?? this.isCreator,
+        isAdmin: isAdmin ?? this.isAdmin,
       );
 }
 

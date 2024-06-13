@@ -1304,18 +1304,28 @@ const ParticipantSchema = Schema(
       name: r'email',
       type: IsarType.string,
     ),
-    r'lastSawChat': PropertySchema(
+    r'isAdmin': PropertySchema(
       id: 2,
+      name: r'isAdmin',
+      type: IsarType.bool,
+    ),
+    r'isCreator': PropertySchema(
+      id: 3,
+      name: r'isCreator',
+      type: IsarType.bool,
+    ),
+    r'lastSawChat': PropertySchema(
+      id: 4,
       name: r'lastSawChat',
       type: IsarType.dateTime,
     ),
     r'name': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'name',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'uid',
       type: IsarType.string,
     )
@@ -1373,9 +1383,11 @@ void _participantSerialize(
     object.avatar,
   );
   writer.writeString(offsets[1], object.email);
-  writer.writeDateTime(offsets[2], object.lastSawChat);
-  writer.writeString(offsets[3], object.name);
-  writer.writeString(offsets[4], object.uid);
+  writer.writeBool(offsets[2], object.isAdmin);
+  writer.writeBool(offsets[3], object.isCreator);
+  writer.writeDateTime(offsets[4], object.lastSawChat);
+  writer.writeString(offsets[5], object.name);
+  writer.writeString(offsets[6], object.uid);
 }
 
 Participant _participantDeserialize(
@@ -1391,9 +1403,11 @@ Participant _participantDeserialize(
       allOffsets,
     ),
     email: reader.readStringOrNull(offsets[1]),
-    lastSawChat: reader.readDateTimeOrNull(offsets[2]),
-    name: reader.readStringOrNull(offsets[3]),
-    uid: reader.readStringOrNull(offsets[4]),
+    isAdmin: reader.readBoolOrNull(offsets[2]) ?? false,
+    isCreator: reader.readBoolOrNull(offsets[3]) ?? false,
+    lastSawChat: reader.readDateTimeOrNull(offsets[4]),
+    name: reader.readStringOrNull(offsets[5]),
+    uid: reader.readStringOrNull(offsets[6]),
   );
   return object;
 }
@@ -1414,10 +1428,14 @@ P _participantDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 4:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1588,6 +1606,26 @@ extension ParticipantQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'email',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition> isAdminEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isAdmin',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition>
+      isCreatorEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isCreator',
+        value: value,
       ));
     });
   }

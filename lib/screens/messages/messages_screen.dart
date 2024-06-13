@@ -318,8 +318,18 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           messageType: MessageTypes.text,
                           isSender: item.authorId == userId,
                           messageStatus: MessageStatus.successfullySent,
+                          pass: pass,
+                          iv: item.iv,
+                          mac: item.mac,
+                          encryptionStatus: item.iv != null && item.mac != null
+                              ? EncryptionStatus.encrypted
+                              : EncryptionStatus.notEncrypted,
                         );
-                        return MessageWidget(message: chatMessage, pass: pass);
+                        return MessageWidget(
+                          message: chatMessage,
+                          sender: widget.chat.participants.firstWhereOrNull(
+                              (element) => element.uid == item.authorId),
+                        );
                       }),
                 ),
               ),

@@ -240,6 +240,12 @@ class ChatSocket {
     return respCompleter.future;
   }
 
+  static void emit(String channel, String type, dynamic payload) async {
+    final crypted =
+        await encodePayload({'type': type, 'payload': payload}, key);
+    socket?.emit(channel, crypted);
+  }
+
   static disconnectWS() {
     socket?.clearListeners();
     socket?.destroy();

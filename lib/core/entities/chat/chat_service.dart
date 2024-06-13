@@ -132,4 +132,9 @@ class ChatService {
       });
     }
   }
+
+  updateChatLastSeen({String? chatUid}) {
+    ChatSocket.emitWAck(SocketChannelTypes.chat,
+        ChatEventTypes.updateChatLastSeen, chatUid ?? 'all');
+  }
 }

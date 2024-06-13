@@ -113,6 +113,7 @@ class SocketEventsService {
         messageService.syncMessages((payload['unreadMessages'] as List<dynamic>)
             .map((messageData) => Message.fromJson(messageData))
             .toList());
+        chatService.updateChatLastSeen();
         break;
       default:
         print('Unknown General Event');
@@ -269,6 +270,7 @@ class SocketEventsService {
               'type': NotificationEventTypes.goToChatPage,
             }),
           );
+          chatService.updateChatLastSeen(chatUid: chat.uid);
         }
         break;
       default:
