@@ -5,11 +5,15 @@ import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
 
 class ParticipantCard extends StatelessWidget {
+  final Participant user;
   final Participant participant;
   final int participantsLenght;
 
   ParticipantCard(
-      {super.key, required this.participant, required this.participantsLenght});
+      {super.key,
+      required this.participant,
+      required this.participantsLenght,
+      required this.user});
 
   final String userEmail = Auth.getUser!.email;
 
@@ -48,9 +52,11 @@ class ParticipantCard extends StatelessWidget {
               ],
             ),
           ),
-          if (participantsLenght > 2)
+          if (participantsLenght > 2 && (user.isAdmin || user.isCreator))
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                // TODO remove participant
+              },
               icon: const Icon(Icons.delete, color: Colors.red),
             )
         ],

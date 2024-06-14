@@ -92,6 +92,12 @@ class ChatService {
     }
   }
 
+  addParticipant(Contact contact, Chat chat) {
+    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.addParticipant,
+            {'chatUid': chat.uid, 'contactUid': contact.contactPersonUid})
+        .then((resp) {});
+  }
+
   Future<bool> findContactChatAndDelete(
       {required String contactUid, bool skipNotify = false}) async {
     final isar = Isar.getInstance();

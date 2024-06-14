@@ -90,10 +90,10 @@ class SocketEventsService {
     }
   }
 
-  handleGeneralEvent(String type, dynamic payload) {
+  handleGeneralEvent(String type, dynamic payload) async {
     switch (type) {
       case 'getInitialData':
-        Auth.setAuth(
+        await Auth.setAuth(
             newIsOtpActive: payload['profile']['isOtpActive'],
             profile: Profile.fromJson(payload['profile']),
             newToken: payload['newToken']);

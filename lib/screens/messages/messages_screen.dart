@@ -326,6 +326,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                               : EncryptionStatus.notEncrypted,
                         );
                         return MessageWidget(
+                          key: ValueKey(item.id),
                           message: chatMessage,
                           sender: widget.chat.participants.firstWhereOrNull(
                               (element) => element.uid == item.authorId),

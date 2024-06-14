@@ -18,6 +18,15 @@ class ChatSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
+  late Participant user;
+
+  @override
+  void initState() {
+    user = widget.chat.participants
+        .firstWhere((p) => p.email == Auth.getUser!.email);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,6 +93,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
             for (final participant in widget.chat.participants
                 .where((p) => p.email != Auth.getUser!.email))
               ParticipantCard(
+                user: user,
                 participant: participant,
                 participantsLenght: widget.chat.participants.length,
               ),
@@ -96,24 +106,26 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                 label: const Text('Add Participant'),
               ),
             ),
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                ),
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.delete,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  'Delete Chat',
-                  style: TextStyle(color: Colors.white),
+            if (user.isCreator || widget.chat.participants.length == 2) ...[
+              const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'Delete Chat',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
-            ),
+            ]
           ],
         )));
   }
