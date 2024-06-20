@@ -54,7 +54,7 @@ class ContactCard extends ConsumerWidget {
           color: primaryColor,
         ),
         onPressed: () {
-          chatService.openChat(context, ref, contact);
+          chatService.openOneToOneChat(context, ref, contact);
         },
       ),
       onTap: () {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -103,8 +104,15 @@ class MessageService {
 
   writeNewMessageToIsar(Message message) async {
     final isar = Isar.getInstance();
-    return isar?.writeTxn(() async {
+    Chat chat = isar!.chats
+        .where()
+        .filter()
+        .uidEqualTo(message.chatUid)
+        .findFirstSync()!;
+    chat.lastMessageTime = DateTime.now();
+    return isar.writeTxn(() async {
       await isar.messages.put(message);
+      await isar.chats.put(chat);
     });
   }
 }

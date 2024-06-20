@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
+import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
@@ -113,23 +114,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           maxLength: 32,
                           textInputAction: TextInputAction.done,
                           onTap: () {
-                            showDialog(
+                            openSecretInput(
                                 context: context,
-                                builder: (BuildContext context) =>
-                                    Dialog.fullscreen(
-                                      child: SecretInput(
-                                        originalText: pass,
-                                      ),
-                                    )).then((value) {
-                              if (value.text.isNotEmpty) {
-                                _passController.text = value.text;
-                              }
-                              if (value.done) {
-                                setState(() {
-                                  pass = _passController.text;
-                                });
-                              }
-                            });
+                                controller: _passController,
+                                done: (val) => setState(() {
+                                      pass = val.text;
+                                    }));
                           },
                           keyboardType: TextInputType.none,
                           obscureText: !_passwordVisible,
@@ -258,17 +248,19 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Chat chat =
+        ref.watch(chatsProvider).firstWhere((c) => c.uid == widget.chat.uid);
     final participantNames =
-        chatParticipantNames(chat: widget.chat, widgetRef: ref).join(', ');
+        chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
 
     return Scaffold(
         appBar: ConnectionStatusAppbar(
           title: Row(
             children: [
               CircleAvatarWithActiveIndicator(
-                image: widget.chat.avatar?.pic,
+                image: chat.avatar?.pic,
                 radius: 28,
-                name: widget.chat.name ?? participantNames,
+                name: chat.name ?? participantNames,
               ),
               const SizedBox(width: defaultPadding * 0.75),
               Column(
@@ -290,7 +282,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => ChatSettingsScreen(widget.chat)));
+                        builder: (context) => ChatSettingsScreen(chat)));
               },
             ),
             IconButton(
@@ -328,7 +320,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         return MessageWidget(
                           key: ValueKey(item.id),
                           message: chatMessage,
-                          sender: widget.chat.participants.firstWhereOrNull(
+                          sender: chat.participants.firstWhereOrNull(
                               (element) => element.uid == item.authorId),
                         );
                       }),
@@ -336,7 +328,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
               ),
             ),
             ChatInputField(
-              chatId: widget.chat.uid,
+              chatId: chat.uid,
               pass: pass,
             ),
           ],

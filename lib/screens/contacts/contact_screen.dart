@@ -23,7 +23,7 @@ class ContactScreen extends ConsumerStatefulWidget {
 class ContactScreenState extends ConsumerState<ContactScreen> {
   ContactService contactService = ContactService();
   ChatService chatService = ChatService();
-  final _renamingController = TextEditingController();
+  final TextEditingController _renamingController = TextEditingController();
 
   bool renaming = false;
 
@@ -94,82 +94,59 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
           )),
           const SizedBox(height: 20),
           if (renaming)
-            Row(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(left: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      width: 2,
-                      color: primaryColor,
-                    ),
-                  ),
-                  width: MediaQuery.of(context).size.width - 110,
-                  child: TextFormField(
-                    controller: _renamingController,
-                    onTap: () {
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) => Dialog.fullscreen(
-                                child: SecretInput(
-                                  originalText: _renamingController.text,
-                                ),
-                              )).then((value) {
-                        if (value.text.isNotEmpty) {
-                          _renamingController.text = value.text;
-                        }
-                        if (value.done) {
-                          _rename();
-                        }
-                      });
-                    },
-                    keyboardType: TextInputType.none,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      fillColor: Colors.white,
-                      hintStyle: TextStyle(
-                        color: contentColorLightTheme.withOpacity(0.64),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(left: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        width: 1,
+                        color: primaryColor,
                       ),
                     ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.check),
-                  color: Colors.white,
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(primaryColor),
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    _rename();
-                  },
-                ),
-                IconButton(
-                    color: Colors.white,
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(Colors.red),
-                      shape: WidgetStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    width: MediaQuery.of(context).size.width - 150,
+                    child: TextFormField(
+                      controller: _renamingController,
+                      onTap: () {
+                        openSecretInput(
+                            context: context,
+                            controller: _renamingController,
+                            done: (val) => _rename());
+                      },
+                      keyboardType: TextInputType.none,
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        fillColor: Colors.white,
+                        hintStyle: TextStyle(
+                          color: contentColorLightTheme.withOpacity(0.64),
                         ),
                       ),
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.check),
+                    color: primaryColor,
                     onPressed: () {
-                      setState(() {
-                        renaming = false;
-                      });
+                      _rename();
                     },
-                    icon: const Icon(Icons.close))
-              ],
+                  ),
+                  IconButton(
+                      color: errorColor,
+                      onPressed: () {
+                        setState(() {
+                          renaming = false;
+                        });
+                      },
+                      icon: const Icon(Icons.close))
+                ],
+              ),
             )
           else
             Text(
@@ -179,108 +156,55 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+          const SizedBox(height: 10),
+          Text(
+            widget.contact.email!,
+            style: const TextStyle(
+              fontSize: 16,
+              color: lightGrey,
+            ),
+          ),
           const SizedBox(height: 40),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Material(
-                color: primaryColor,
-                borderRadius: BorderRadius.circular(5),
-                child: InkWell(
-                    onTap: () {
-                      chatService.openChat(context, ref, widget.contact);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      width: 100,
-                      height: 100,
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.chat,
-                            color: Colors.white,
-                            size: 25,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Open Chat',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          )
-                        ],
-                      ),
-                    )),
+              TextButton.icon(
+                onPressed: () {
+                  chatService.openOneToOneChat(context, ref, widget.contact);
+                },
+                icon: const Icon(Icons.chat),
+                label: const Text(
+                  'Open Chat',
+                  style: TextStyle(fontSize: 16, color: contentColorLightTheme),
+                ),
               ),
-              Material(
-                color: primaryColor,
-                borderRadius: BorderRadius.circular(5),
-                child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        renaming = true;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      width: 100,
-                      height: 100,
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                            size: 25,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Rename Contact',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          )
-                        ],
-                      ),
-                    )),
+              const SizedBox(height: 5),
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    renaming = true;
+                  });
+                },
+                icon: const Icon(Icons.edit),
+                label: const Text(
+                  'Rename Contact',
+                  style: TextStyle(fontSize: 16, color: contentColorLightTheme),
+                ),
               ),
-              Material(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(5),
-                child: InkWell(
-                    onTap: () {
-                      _deleteContact();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      width: 100,
-                      height: 100,
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.delete,
-                            color: Colors.white,
-                            size: 25,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Delete Contact',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          )
-                        ],
-                      ),
-                    )),
-              ),
+              const SizedBox(height: 5),
+              TextButton.icon(
+                  onPressed: () {
+                    _deleteContact();
+                  },
+                  icon: const Icon(
+                    Icons.delete,
+                    color: errorColor,
+                  ),
+                  label: const Text(
+                    'Delete Contact',
+                    style:
+                        TextStyle(color: contentColorLightTheme, fontSize: 16),
+                  )),
             ],
           )
         ],

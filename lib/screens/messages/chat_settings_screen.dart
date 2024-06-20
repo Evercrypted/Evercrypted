@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
+import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/components/participant_card.dart';
 import 'package:evercrypted/ui_constants.dart';
@@ -29,6 +30,8 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Chat chat =
+        ref.watch(chatsProvider).firstWhere((c) => c.uid == widget.chat.uid);
     return Scaffold(
         appBar: AppBar(
           title: const Text('Chat Settings'),
@@ -41,10 +44,10 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
               alignment: Alignment.bottomRight,
               children: [
                 CircleAvatarWithActiveIndicator(
-                  image: widget.chat.avatar?.pic,
+                  image: chat.avatar?.pic,
                   radius: 50,
-                  name: widget.chat.name ??
-                      chatParticipantNames(chat: widget.chat, widgetRef: ref)
+                  name: chat.name ??
+                      chatParticipantNames(chat: chat, widgetRef: ref)
                           .join(', '),
                 ),
                 Padding(
@@ -74,39 +77,43 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
               child: Column(
                 children: [
                   Text(
-                    widget.chat.name ??
-                        chatParticipantNames(chat: widget.chat, widgetRef: ref)
+                    chat.name ??
+                        chatParticipantNames(chat: chat, widgetRef: ref)
                             .join(', '),
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Last Message ${timeago.format(widget.chat.lastMessageTime!)}',
+                    'Last Message ${timeago.format(chat.lastMessageTime!)}',
                     style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w400),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: lightGrey),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 30),
-            for (final participant in widget.chat.participants
+            for (final participant in chat.participants
                 .where((p) => p.email != Auth.getUser!.email))
               ParticipantCard(
                 user: user,
                 participant: participant,
-                participantsLenght: widget.chat.participants.length,
+                participantsLenght: chat.participants.length,
               ),
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.add),
-                label: const Text('Add Participant'),
-              ),
-            ),
-            if (user.isCreator || widget.chat.participants.length == 2) ...[
+            if ((user.isCreator || user.isAdmin) && !chat.isOneToOne) ...[
+              const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Participant'),
+                ),
+              )
+            ],
+            if (user.isCreator || chat.participants.length == 2) ...[
               const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),

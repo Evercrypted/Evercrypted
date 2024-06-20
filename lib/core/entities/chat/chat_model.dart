@@ -14,14 +14,17 @@ class Chat {
   final int? messageLongevitySeconds;
   final String? name;
 
-  final List<Participant> participants;
+  final bool isOneToOne;
+
+  List<Participant> participants;
 
   @Index()
-  final DateTime? lastMessageTime;
+  DateTime? lastMessageTime;
 
   Avatar? avatar;
 
   Chat({
+    this.isOneToOne = true,
     required this.uid,
     this.messageLongevitySeconds,
     this.name,
@@ -43,6 +46,7 @@ class Chat {
                 json['avatar'],
               )
             : null,
+        isOneToOne: json['isOneToOne'] as bool,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -52,6 +56,7 @@ class Chat {
         'participants': participants,
         'lastMessageTime': lastMessageTime,
         'avatar': avatar?.toJson(),
+        'isOneToOne': isOneToOne,
       };
 }
 
@@ -78,24 +83,24 @@ class Participant {
         uid: json['uid'] as String?,
         email: json['email'] as String?,
         name: json['name'] as String?,
-        lastSawChat: json['lastSawChat'] as DateTime?,
+        lastSawChat: DateTime.parse(json['last_saw_chat']),
         avatar: json['avatar'] != null
             ? Avatar.fromJson(
                 json['avatar'],
               )
             : null,
-        isCreator: json['isCreator'] as bool? ?? false,
-        isAdmin: json['isAdmin'] as bool? ?? false,
+        isCreator: json['is_creator'] as bool? ?? false,
+        isAdmin: json['is_admin'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'uid': uid,
         'email': email,
         'name': name,
-        'lastSawChat': lastSawChat,
+        'last_saw_chat': lastSawChat,
         'avatar': avatar?.toJson(),
-        'isCreator': isCreator,
-        'isAdmin': isAdmin,
+        'is_creator': isCreator,
+        'is_admin': isAdmin,
       };
 
   copyWith(

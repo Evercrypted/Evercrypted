@@ -158,7 +158,7 @@ class MessageStatusDot extends StatelessWidget {
       status == MessageStatus.couldNotSend
           ? Icons.pause_circle
           : Icons.check_circle,
-      size: 26,
+      size: 22,
       color: dotColor(status!),
     );
   }
@@ -189,7 +189,7 @@ class EncryptionStatusIcon extends StatelessWidget {
           : status == EncryptionStatus.failed
               ? Icons.gpp_bad
               : Icons.gpp_good,
-      size: 26,
+      size: 24,
       color: dotColor(status!),
     );
   }

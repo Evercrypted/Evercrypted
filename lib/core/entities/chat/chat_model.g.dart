@@ -23,29 +23,34 @@ const ChatSchema = CollectionSchema(
       type: IsarType.object,
       target: r'Avatar',
     ),
-    r'lastMessageTime': PropertySchema(
+    r'isOneToOne': PropertySchema(
       id: 1,
+      name: r'isOneToOne',
+      type: IsarType.bool,
+    ),
+    r'lastMessageTime': PropertySchema(
+      id: 2,
       name: r'lastMessageTime',
       type: IsarType.dateTime,
     ),
     r'messageLongevitySeconds': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'messageLongevitySeconds',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'name',
       type: IsarType.string,
     ),
     r'participants': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'participants',
       type: IsarType.objectList,
       target: r'Participant',
     ),
     r'uid': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'uid',
       type: IsarType.string,
     )
@@ -134,16 +139,17 @@ void _chatSerialize(
     AvatarSchema.serialize,
     object.avatar,
   );
-  writer.writeDateTime(offsets[1], object.lastMessageTime);
-  writer.writeLong(offsets[2], object.messageLongevitySeconds);
-  writer.writeString(offsets[3], object.name);
+  writer.writeBool(offsets[1], object.isOneToOne);
+  writer.writeDateTime(offsets[2], object.lastMessageTime);
+  writer.writeLong(offsets[3], object.messageLongevitySeconds);
+  writer.writeString(offsets[4], object.name);
   writer.writeObjectList<Participant>(
-    offsets[4],
+    offsets[5],
     allOffsets,
     ParticipantSchema.serialize,
     object.participants,
   );
-  writer.writeString(offsets[5], object.uid);
+  writer.writeString(offsets[6], object.uid);
 }
 
 Chat _chatDeserialize(
@@ -158,17 +164,18 @@ Chat _chatDeserialize(
       AvatarSchema.deserialize,
       allOffsets,
     ),
-    lastMessageTime: reader.readDateTimeOrNull(offsets[1]),
-    messageLongevitySeconds: reader.readLongOrNull(offsets[2]),
-    name: reader.readStringOrNull(offsets[3]),
+    isOneToOne: reader.readBoolOrNull(offsets[1]) ?? true,
+    lastMessageTime: reader.readDateTimeOrNull(offsets[2]),
+    messageLongevitySeconds: reader.readLongOrNull(offsets[3]),
+    name: reader.readStringOrNull(offsets[4]),
     participants: reader.readObjectList<Participant>(
-          offsets[4],
+          offsets[5],
           ParticipantSchema.deserialize,
           allOffsets,
           Participant(),
         ) ??
         [],
-    uid: reader.readString(offsets[5]),
+    uid: reader.readString(offsets[6]),
   );
   object.id = id;
   return object;
@@ -188,12 +195,14 @@ P _chatDeserializeProp<P>(
         allOffsets,
       )) as P;
     case 1:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 2:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
       return (reader.readObjectList<Participant>(
             offset,
             ParticipantSchema.deserialize,
@@ -201,7 +210,7 @@ P _chatDeserializeProp<P>(
             Participant(),
           ) ??
           []) as P;
-    case 5:
+    case 6:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -575,6 +584,16 @@ extension ChatQueryFilter on QueryBuilder<Chat, Chat, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> isOneToOneEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isOneToOne',
+        value: value,
       ));
     });
   }
@@ -1098,6 +1117,18 @@ extension ChatQueryObject on QueryBuilder<Chat, Chat, QFilterCondition> {
 extension ChatQueryLinks on QueryBuilder<Chat, Chat, QFilterCondition> {}
 
 extension ChatQuerySortBy on QueryBuilder<Chat, Chat, QSortBy> {
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByIsOneToOne() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isOneToOne', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortByIsOneToOneDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isOneToOne', Sort.desc);
+    });
+  }
+
   QueryBuilder<Chat, Chat, QAfterSortBy> sortByLastMessageTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastMessageTime', Sort.asc);
@@ -1160,6 +1191,18 @@ extension ChatQuerySortThenBy on QueryBuilder<Chat, Chat, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByIsOneToOne() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isOneToOne', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenByIsOneToOneDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isOneToOne', Sort.desc);
+    });
+  }
+
   QueryBuilder<Chat, Chat, QAfterSortBy> thenByLastMessageTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastMessageTime', Sort.asc);
@@ -1210,6 +1253,12 @@ extension ChatQuerySortThenBy on QueryBuilder<Chat, Chat, QSortThenBy> {
 }
 
 extension ChatQueryWhereDistinct on QueryBuilder<Chat, Chat, QDistinct> {
+  QueryBuilder<Chat, Chat, QDistinct> distinctByIsOneToOne() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isOneToOne');
+    });
+  }
+
   QueryBuilder<Chat, Chat, QDistinct> distinctByLastMessageTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastMessageTime');
@@ -1247,6 +1296,12 @@ extension ChatQueryProperty on QueryBuilder<Chat, Chat, QQueryProperty> {
   QueryBuilder<Chat, Avatar?, QQueryOperations> avatarProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'avatar');
+    });
+  }
+
+  QueryBuilder<Chat, bool, QQueryOperations> isOneToOneProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isOneToOne');
     });
   }
 

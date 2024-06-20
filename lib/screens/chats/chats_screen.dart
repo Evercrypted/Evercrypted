@@ -1,8 +1,7 @@
+import 'package:evercrypted/widgets/search_header.dart';
+import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../ui_constants.dart';
-import '../search/search_screen.dart';
 import 'components/chat_list.dart';
 
 class ChatsScreen extends ConsumerStatefulWidget {
@@ -13,38 +12,64 @@ class ChatsScreen extends ConsumerStatefulWidget {
 }
 
 class ChatsScreenState extends ConsumerState<ChatsScreen> {
+  bool searching = false;
+
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode searchFocus = FocusNode();
+  String searchValue = '';
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: buildAppBar(context),
-      body: const ChatList(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: primaryColor,
-        child: const Icon(
-          Icons.message,
-          color: Colors.white,
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        searchValue = _searchController.text;
+      });
+    });
   }
 
-  AppBar buildAppBar(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      title: const Text("Chats"),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SearchScreen(),
-                ));
-          },
-        ),
-      ],
+  @override
+  void dispose() {
+    _searchController.dispose();
+    searchFocus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          SearchHeader(
+              label: const Text(
+                'Chats',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              searching: searching,
+              searchFocus: searchFocus,
+              searchController: _searchController,
+              onSearchIconPressed: () {
+                setState(() {
+                  searching = true;
+                  searchFocus.requestFocus();
+                  openSecretInput(
+                      context: context, controller: _searchController);
+                });
+              },
+              onCloseIconPressed: () {
+                setState(() {
+                  searching = false;
+                  _searchController.clear();
+                });
+              }),
+          SizedBox(
+              height: MediaQuery.of(context).size.height - 243,
+              child: ChatList(
+                searchValue: searchValue,
+              )),
+        ],
+      ),
     );
   }
 }

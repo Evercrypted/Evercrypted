@@ -199,23 +199,11 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                   },
                                   textInputAction: TextInputAction.next,
                                   onTap: () {
-                                    showDialog(
+                                    openSecretInput(
                                         context: context,
-                                        builder: (BuildContext context) =>
-                                            Dialog.fullscreen(
-                                              child: SecretInput(
-                                                originalText:
-                                                    _emailController.text,
-                                              ),
-                                            )).then((value) {
-                                      if (value.text.isNotEmpty) {
-                                        _emailController.text = value.text;
-                                      }
-                                      if (value.done) {
-                                        FocusScope.of(context)
-                                            .requestFocus(_messageFocus);
-                                      }
-                                    });
+                                        controller: _emailController,
+                                        done: (val) => FocusScope.of(context)
+                                            .requestFocus(_messageFocus));
                                   },
                                   keyboardType: TextInputType.none,
                                   decoration: InputDecoration(
@@ -245,22 +233,10 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                                     return maxLengthValidator(val, 100);
                                   },
                                   onTap: () {
-                                    showDialog(
+                                    openSecretInput(
                                         context: context,
-                                        builder: (BuildContext context) =>
-                                            Dialog.fullscreen(
-                                              child: SecretInput(
-                                                originalText:
-                                                    _messageController.text,
-                                              ),
-                                            )).then((value) {
-                                      if (value.text.isNotEmpty) {
-                                        _messageController.text = value.text;
-                                      }
-                                      if (value.done) {
-                                        submitForm();
-                                      }
-                                    });
+                                        controller: _messageController,
+                                        done: (val) => submitForm());
                                   },
                                   keyboardType: TextInputType.none,
                                   decoration: InputDecoration(

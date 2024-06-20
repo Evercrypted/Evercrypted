@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
@@ -33,8 +32,18 @@ class ChatService {
         .map((e) => e.uid)
         .toList();
 
+    final List<Chat> chatsToUpdate = chatsInDb.map((el) {
+      final Chat? chat = chats.firstWhereOrNull((chat) => chat.uid == el.uid);
+      if (chat != null) {
+        chat.id = el.id;
+        return chat;
+      } else {
+        return el;
+      }
+    }).toList();
+
     await isar.writeTxn(() async {
-      await isar.chats.putAll(chatsToPut);
+      await isar.chats.putAll([...chatsToUpdate, ...chatsToPut]);
       if (chatsToDelete.isNotEmpty) {
         for (var chat in chatsToDelete) {
           // delete all messages in chat
@@ -61,10 +70,10 @@ class ChatService {
     return complete.future;
   }
 
-  openChat(BuildContext context, WidgetRef ref, Contact contact) {
+  openOneToOneChat(BuildContext context, WidgetRef ref, Contact contact) {
     List<Chat> chats = ref.read(chatsProvider);
     Chat? foundChat = chats
-        .where((element) => (element.participants.length == 2 &&
+        .where((element) => (element.isOneToOne &&
             element.participants
                 .any((element) => element.uid == contact.contactPersonUid)))
         .firstOrNull;

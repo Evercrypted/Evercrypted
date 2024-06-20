@@ -113,7 +113,8 @@ class SocketEventsService {
         messageService.syncMessages((payload['unreadMessages'] as List<dynamic>)
             .map((messageData) => Message.fromJson(messageData))
             .toList());
-        chatService.updateChatLastSeen();
+        Future.delayed(
+            const Duration(seconds: 2), () => chatService.updateChatLastSeen());
         break;
       default:
         print('Unknown General Event');
@@ -241,11 +242,11 @@ class SocketEventsService {
     }
   }
 
-  handleMessageEvent(String type, dynamic payload) {
+  handleMessageEvent(String type, dynamic payload) async {
     switch (type) {
       case MessageEventTypes.messageReceived:
         Message message = Message.fromJson(payload['message']);
-        messageService.writeNewMessageToIsar(message);
+        await messageService.writeNewMessageToIsar(message);
 
         final isar = Isar.getInstance();
         List<Chat> chats = isar!.chats.where().findAllSync();

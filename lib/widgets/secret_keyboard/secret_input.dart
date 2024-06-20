@@ -4,6 +4,23 @@ import 'package:evercrypted/widgets/secret_keyboard/keyboard.dart';
 import 'package:evercrypted/widgets/secret_keyboard/keyboards.dart';
 import 'package:flutter/material.dart';
 
+openSecretInput({required context, required controller, done}) {
+  showDialog(
+      context: context,
+      builder: (BuildContext context) => Dialog.fullscreen(
+            child: SecretInput(
+              originalText: controller.text,
+            ),
+          )).then((value) {
+    if (value.text.isNotEmpty) {
+      controller.text = value.text;
+    }
+    if (done != null && value.done) {
+      done(value);
+    }
+  });
+}
+
 class SecretInput extends StatefulWidget {
   const SecretInput(
       {super.key, this.originalText, this.isPasswordLike = false});

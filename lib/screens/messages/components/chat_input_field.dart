@@ -106,21 +106,10 @@ class ChatInputFieldState extends State<ChatInputField> {
                             ),
                           ),
                           onTap: () {
-                            showDialog(
+                            openSecretInput(
                                 context: context,
-                                builder: (BuildContext context) =>
-                                    Dialog.fullscreen(
-                                      child: SecretInput(
-                                        originalText: _messageField.text,
-                                      ),
-                                    )).then((value) {
-                              if (value.text.isNotEmpty) {
-                                _messageField.text = value.text;
-                              }
-                              if (value.done) {
-                                sendMessage(value.text);
-                              }
-                            });
+                                controller: _messageField,
+                                done: (val) => sendMessage(val.text));
                           },
                           keyboardType: TextInputType.none,
                           onSubmitted: (value) {
