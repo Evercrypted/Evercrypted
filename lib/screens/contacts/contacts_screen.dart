@@ -54,15 +54,20 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                   false) ||
               e.email!.toLowerCase().contains(searchValue.toLowerCase()))
           .toList();
-      contactsToUse = contactsAfterSearch;
+      contactsToUse = [...contactsAfterSearch];
     } else {
-      contactsToUse = contacts;
+      contactsToUse = [...contacts];
     }
+
+    final List<Contact> favorites =
+        contactsToUse.where((e) => e.isFavorite).toList();
+    contactsToUse.removeWhere((e) => e.isFavorite);
 
     final alphabetFromContacts =
         contactsToUse.map((e) => (e.name ?? e.email)![0]).toSet();
 
-    final contactTree = {
+    Map<String, List<Contact>> contactTree = {
+      'Favorites': favorites,
       for (var e1 in alphabetFromContacts)
         e1: contactsToUse.where((e) => (e.name ?? e.email)![0] == e1).toList()
     };
@@ -95,44 +100,48 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
           SizedBox(
             height: MediaQuery.of(context).size.height - 243,
             child: contacts.isNotEmpty
-                ? contactsToUse.isNotEmpty
+                ? contactsToUse.isNotEmpty || favorites.isNotEmpty
                     ? ListView.builder(
                         itemCount: contactTree.length,
                         itemBuilder: (context, index) {
                           String key = contactTree.keys.elementAt(index);
                           final contactsFromIndex = contactTree[key] ?? [];
-                          return Column(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(
-                                    top: 15, left: 20, right: 20),
-                                alignment: Alignment.centerLeft,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: Colors.grey[100]!,
+                          if (contactsFromIndex.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            return Column(
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(
+                                      top: 15, left: 20, right: 20),
+                                  alignment: Alignment.centerLeft,
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors.grey[100]!,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    key.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                                child: Text(
-                                  key.toUpperCase(),
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Column(
+                                  children: [
+                                    for (var contact in contactsFromIndex)
+                                      ContactCard(
+                                        contact: contact,
+                                        isActive: false,
+                                      ),
+                                  ],
                                 ),
-                              ),
-                              Column(
-                                children: [
-                                  for (var contact in contactsFromIndex)
-                                    ContactCard(
-                                      contact: contact,
-                                      isActive: false,
-                                    ),
-                                ],
-                              ),
-                            ],
-                          );
+                              ],
+                            );
+                          }
                         },
                       )
                     : Container(

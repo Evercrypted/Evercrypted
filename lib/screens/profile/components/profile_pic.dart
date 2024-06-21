@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 import '../../../ui_constants.dart';
 
 class ProfilePic extends StatelessWidget {
-  const ProfilePic({
-    super.key,
-    this.name,
-    this.image,
-    this.color,
-    this.isShowPhotoUpload = false,
-    this.btnPress,
-    this.icon = Icons.edit,
-    this.radius = 50,
-    this.iconsSize = 20,
-    this.circleRadius = 17,
-    this.iconBackgroundColor = primaryColor,
-    this.iconColor = Colors.white,
-    this.iconBorderColor = Colors.white,
-  });
+  const ProfilePic(
+      {super.key,
+      this.name,
+      this.image,
+      this.color,
+      this.isShowPhotoUpload = false,
+      this.btnPress,
+      this.icon = Icons.edit,
+      this.radius = 50,
+      this.iconsSize = 20,
+      this.circleRadius = 17,
+      this.iconBackgroundColor = primaryColor,
+      this.iconColor = Colors.white,
+      this.iconBorderColor = Colors.white,
+      this.confirmText});
 
   final String? image;
   final Color? color;
@@ -32,6 +32,7 @@ class ProfilePic extends StatelessWidget {
   final Color iconBackgroundColor;
   final Color iconColor;
   final Color iconBorderColor;
+  final String? confirmText;
 
   @override
   Widget build(BuildContext context) {
@@ -53,22 +54,46 @@ class ProfilePic extends StatelessWidget {
             radius: radius,
             name: name,
           ),
-          InkWell(
-            onTap: btnPress,
-            child: CircleAvatar(
-              radius: circleRadius,
-              backgroundColor: iconBorderColor,
+          if (btnPress != null)
+            InkWell(
+              onTap: confirmText == null
+                  ? btnPress
+                  : () => showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Are you sure?'),
+                          content: Text(confirmText!),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Yes'),
+                            ),
+                          ],
+                        ),
+                      ).then((value) {
+                        if (value == null) return;
+                        if (value) {
+                          btnPress!();
+                        }
+                      }),
               child: CircleAvatar(
-                radius: circleRadius - 2,
-                backgroundColor: iconBackgroundColor,
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: iconsSize,
+                radius: circleRadius,
+                backgroundColor: iconBorderColor,
+                child: CircleAvatar(
+                  radius: circleRadius - 2,
+                  backgroundColor: iconBackgroundColor,
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: iconsSize,
+                  ),
                 ),
               ),
-            ),
-          )
+            )
         ],
       ),
     );

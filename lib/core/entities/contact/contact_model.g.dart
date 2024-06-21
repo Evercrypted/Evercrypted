@@ -33,13 +33,18 @@ const ContactSchema = CollectionSchema(
       name: r'email',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(
+    r'isFavorite': PropertySchema(
       id: 3,
+      name: r'isFavorite',
+      type: IsarType.bool,
+    ),
+    r'name': PropertySchema(
+      id: 4,
       name: r'name',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'uid',
       type: IsarType.string,
     )
@@ -139,8 +144,9 @@ void _contactSerialize(
   );
   writer.writeString(offsets[1], object.contactPersonUid);
   writer.writeString(offsets[2], object.email);
-  writer.writeString(offsets[3], object.name);
-  writer.writeString(offsets[4], object.uid);
+  writer.writeBool(offsets[3], object.isFavorite);
+  writer.writeString(offsets[4], object.name);
+  writer.writeString(offsets[5], object.uid);
 }
 
 Contact _contactDeserialize(
@@ -157,8 +163,9 @@ Contact _contactDeserialize(
     ),
     contactPersonUid: reader.readStringOrNull(offsets[1]),
     email: reader.readStringOrNull(offsets[2]),
-    name: reader.readStringOrNull(offsets[3]),
-    uid: reader.readStringOrNull(offsets[4]),
+    isFavorite: reader.readBoolOrNull(offsets[3]) ?? false,
+    name: reader.readStringOrNull(offsets[4]),
+    uid: reader.readStringOrNull(offsets[5]),
   );
   object.id = id;
   return object;
@@ -182,8 +189,10 @@ P _contactDeserializeProp<P>(
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -886,6 +895,16 @@ extension ContactQueryFilter
     });
   }
 
+  QueryBuilder<Contact, Contact, QAfterFilterCondition> isFavoriteEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isFavorite',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Contact, Contact, QAfterFilterCondition> nameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1217,6 +1236,18 @@ extension ContactQuerySortBy on QueryBuilder<Contact, Contact, QSortBy> {
     });
   }
 
+  QueryBuilder<Contact, Contact, QAfterSortBy> sortByIsFavorite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isFavorite', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterSortBy> sortByIsFavoriteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isFavorite', Sort.desc);
+    });
+  }
+
   QueryBuilder<Contact, Contact, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1280,6 +1311,18 @@ extension ContactQuerySortThenBy
     });
   }
 
+  QueryBuilder<Contact, Contact, QAfterSortBy> thenByIsFavorite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isFavorite', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Contact, Contact, QAfterSortBy> thenByIsFavoriteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isFavorite', Sort.desc);
+    });
+  }
+
   QueryBuilder<Contact, Contact, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1322,6 +1365,12 @@ extension ContactQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Contact, Contact, QDistinct> distinctByIsFavorite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isFavorite');
+    });
+  }
+
   QueryBuilder<Contact, Contact, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1360,6 +1409,12 @@ extension ContactQueryProperty
   QueryBuilder<Contact, String?, QQueryOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'email');
+    });
+  }
+
+  QueryBuilder<Contact, bool, QQueryOperations> isFavoriteProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isFavorite');
     });
   }
 

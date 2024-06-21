@@ -98,6 +98,9 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
             iconBackgroundColor: Colors.white,
             iconColor: Colors.amber,
             iconBorderColor: primaryColor,
+            confirmText: widget.contact.isFavorite
+                ? 'You want to Remove this contact from the favorites list?'
+                : 'You want to Add this contact to the favorites list?',
             btnPress: () {
               contactService.toggleFavorite(widget.contact.uid!);
               setState(() {
