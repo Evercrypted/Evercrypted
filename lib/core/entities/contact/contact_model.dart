@@ -20,8 +20,15 @@ class Contact {
 
   String? name;
 
+  bool isFavorite;
+
   Contact(
-      {this.uid, this.email, this.avatar, this.name, this.contactPersonUid});
+      {this.uid,
+      this.email,
+      this.avatar,
+      this.name,
+      this.contactPersonUid,
+      this.isFavorite = false});
 
   factory Contact.fromJson(Map<String, dynamic> json) => Contact(
         uid: json['uid'] as String?,
@@ -33,6 +40,7 @@ class Contact {
             : null,
         name: json['name'] as String?,
         contactPersonUid: json['contactPersonUid'] as String?,
+        isFavorite: json['isFavorite'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -41,5 +49,6 @@ class Contact {
         'name': name,
         'contactPersonUid': contactPersonUid,
         'avatar': avatar?.toJson(),
+        'isFavorite': isFavorite,
       };
 }

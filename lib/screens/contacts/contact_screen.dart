@@ -1,6 +1,7 @@
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
+import 'package:evercrypted/screens/profile/components/profile_pic.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
@@ -87,10 +88,22 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
         children: [
           const SizedBox(height: 30),
           Center(
-              child: CircleAvatarWithActiveIndicator(
+              child: ProfilePic(
             image: widget.contact.avatar?.pic,
             radius: 64,
             name: name,
+            icon: widget.contact.isFavorite ? Icons.star : Icons.star_border,
+            circleRadius: 20,
+            iconsSize: 30,
+            iconBackgroundColor: Colors.white,
+            iconColor: Colors.amber,
+            iconBorderColor: primaryColor,
+            btnPress: () {
+              contactService.toggleFavorite(widget.contact.uid!);
+              setState(() {
+                widget.contact.isFavorite = !widget.contact.isFavorite;
+              });
+            },
           )),
           const SizedBox(height: 20),
           if (renaming)

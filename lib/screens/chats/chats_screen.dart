@@ -37,9 +37,8 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Column(
+    return Scaffold(
+      body: Column(
         children: [
           SearchHeader(
               label: const Text(

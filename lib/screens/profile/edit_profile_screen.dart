@@ -102,7 +102,7 @@ class EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           children: [
             ProfilePic(
               image: demoContactsImage[0],
-              imageUploadBtnPress: () {
+              btnPress: () {
                 colorPickerDialog().then((value) => print(dialogPickerColor));
               },
             ),

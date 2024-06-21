@@ -73,4 +73,19 @@ class ContactService {
       await isar.contacts.deleteAll(contactsToDelete);
     });
   }
+
+  toggleFavorite(String contactUid) async {
+    ChatSocket.emitWAck(
+        SocketChannelTypes.contact,
+        ContactEventTypes.toggleFavorite,
+        {'contactUid': contactUid}).then((resp) async {
+      final isar = Isar.getInstance();
+      final contact =
+          await isar?.contacts.where().uidEqualTo(contactUid).findFirst();
+      contact?.isFavorite = !contact.isFavorite;
+      await isar?.writeTxn(() async {
+        await isar.contacts.put(contact!);
+      });
+    });
+  }
 }

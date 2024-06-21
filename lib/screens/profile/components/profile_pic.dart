@@ -10,14 +10,28 @@ class ProfilePic extends StatelessWidget {
     this.image,
     this.color,
     this.isShowPhotoUpload = false,
-    this.imageUploadBtnPress,
+    this.btnPress,
+    this.icon = Icons.edit,
+    this.radius = 50,
+    this.iconsSize = 20,
+    this.circleRadius = 17,
+    this.iconBackgroundColor = primaryColor,
+    this.iconColor = Colors.white,
+    this.iconBorderColor = Colors.white,
   });
 
   final String? image;
   final Color? color;
   final String? name;
   final bool isShowPhotoUpload;
-  final VoidCallback? imageUploadBtnPress;
+  final VoidCallback? btnPress;
+  final IconData icon;
+  final double radius;
+  final double iconsSize;
+  final double circleRadius;
+  final Color iconBackgroundColor;
+  final Color iconColor;
+  final Color iconBorderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -36,21 +50,21 @@ class ProfilePic extends StatelessWidget {
         children: [
           CircleAvatarWithActiveIndicator(
             image: image,
-            radius: 50,
+            radius: radius,
             name: name,
           ),
           InkWell(
-            onTap: imageUploadBtnPress,
+            onTap: btnPress,
             child: CircleAvatar(
-              radius: 17,
-              backgroundColor: Colors.white,
+              radius: circleRadius,
+              backgroundColor: iconBorderColor,
               child: CircleAvatar(
-                radius: 15,
-                backgroundColor: Theme.of(context).primaryColor,
-                child: const Icon(
-                  Icons.edit,
-                  color: Colors.white,
-                  size: 20,
+                radius: circleRadius - 2,
+                backgroundColor: iconBackgroundColor,
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: iconsSize,
                 ),
               ),
             ),
