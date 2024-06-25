@@ -86,42 +86,12 @@ class MainScreenState extends ConsumerState<MainScreen> {
               pageIndex = value;
             });
           },
-          items: [
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.messenger), label: "Chats"),
-            const BottomNavigationBarItem(
-                icon: Icon(Icons.people), label: "People"),
+          items: const [
             BottomNavigationBarItem(
-              icon: Consumer(
-                builder: (context, ref, child) {
-                  final Profile? profile = ref.read(profileProvider);
-                  if (profile?.avatar?.pic != null) {
-                    return CircleAvatar(
-                        backgroundColor: secondaryColor,
-                        radius: 14,
-                        backgroundImage: NetworkImage(profile!.avatar!.pic!));
-                  } else {
-                    return Container(
-                      height: 46,
-                      width: 46,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.green,
-                      ),
-                      alignment: Alignment.center,
-                      child: profile?.avatar?.icon != null
-                          ? Text(
-                              profile!.avatar!.icon!,
-                              style:
-                                  const TextStyle(fontFamily: 'MaterialIcons'),
-                            )
-                          : null,
-                    );
-                  }
-                },
-              ),
-              label: "Profile",
-            ),
+                icon: Icon(Icons.messenger), label: "Chats"),
+            BottomNavigationBarItem(icon: Icon(Icons.people), label: "People"),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.manage_accounts), label: "Settings"),
           ],
         );
       }),

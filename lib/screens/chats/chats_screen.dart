@@ -1,3 +1,5 @@
+import 'package:evercrypted/screens/contacts/contacts_screen.dart';
+import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/search_header.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +70,28 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
                 searchValue: searchValue,
               )),
         ],
+      ),
+      floatingActionButton: Tooltip(
+        message: 'Check Contact Requests',
+        preferBelow: false,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ContactsScreen(
+                  isParticipantSelect: true,
+                  participants: [],
+                ),
+              ),
+            );
+          },
+          backgroundColor: primaryColor,
+          child: const Icon(
+            Icons.group_add,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }

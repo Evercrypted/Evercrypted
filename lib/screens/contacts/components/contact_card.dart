@@ -1,5 +1,4 @@
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
-import 'package:evercrypted/screens/contacts/contact_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,11 +11,15 @@ class ContactCard extends ConsumerWidget {
     super.key,
     required this.contact,
     required this.isActive,
+    required this.onTap,
+    this.isParticipantSelect = false,
   });
 
   final ChatService chatService = ChatService();
   final Contact contact;
   final bool isActive;
+  final bool isParticipantSelect;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,22 +51,18 @@ class ContactCard extends ConsumerWidget {
           ),
         ),
       ),
-      trailing: IconButton(
-        icon: const Icon(
-          Icons.chat,
-          color: primaryColor,
-        ),
-        onPressed: () {
-          chatService.openOneToOneChat(context, ref, contact);
-        },
-      ),
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return ContactScreen(
-            contact: contact,
-          );
-        }));
-      },
+      trailing: isParticipantSelect
+          ? null
+          : IconButton(
+              icon: const Icon(
+                Icons.chat,
+                color: primaryColor,
+              ),
+              onPressed: () {
+                chatService.openOneToOneChat(context, ref, contact);
+              },
+            ),
+      onTap: onTap,
     );
   }
 }

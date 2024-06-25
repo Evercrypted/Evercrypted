@@ -27,7 +27,7 @@ class SearchHeader extends StatelessWidget {
           border: Border(
               bottom: BorderSide(color: Colors.grey[200] ?? Colors.grey))),
       padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-      height: 50,
+      height: 44,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

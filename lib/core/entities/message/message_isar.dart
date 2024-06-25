@@ -43,6 +43,12 @@ class Message {
 
   bool couldNotSend;
 
+  String? pinnedByUid;
+
+  String? pinLabel;
+
+  String? localPinLabel;
+
   Message(
       {this.uid,
       required this.authorId,
@@ -57,7 +63,10 @@ class Message {
       this.uniqueId,
       this.successfullySent = true,
       this.couldNotSend = false,
-      this.queueId});
+      this.queueId,
+      this.pinnedByUid,
+      this.pinLabel,
+      this.localPinLabel});
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         uid: json['uid'] as String,
@@ -72,6 +81,8 @@ class Message {
         iv: json['iv'] as String?,
         mac: json['mac'] as String?,
         messageType: json['messageType'] as String,
+        pinnedByUid: json['pinnedByUid'] as String?,
+        pinLabel: json['pinLabel'] as String?,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -85,5 +96,7 @@ class Message {
         'iv': iv,
         'mac': mac,
         'messageType': messageType,
+        'pinnedByUid': pinnedByUid,
+        'pinLabel': pinLabel,
       };
 }

@@ -27,7 +27,7 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile"),
+        title: const Text("Settings"),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),

@@ -12,7 +12,7 @@ openSecretInput({required context, required controller, done}) {
               originalText: controller.text,
             ),
           )).then((value) {
-    if (value?.text.isNotEmpty) {
+    if (value?.text.isNotEmpty ?? false) {
       controller.text = value.text;
     }
     if (done != null && value?.done) {

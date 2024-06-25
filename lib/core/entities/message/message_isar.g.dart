@@ -52,38 +52,53 @@ const MessageSchema = CollectionSchema(
       name: r'iv',
       type: IsarType.string,
     ),
-    r'mac': PropertySchema(
+    r'localPinLabel': PropertySchema(
       id: 7,
+      name: r'localPinLabel',
+      type: IsarType.string,
+    ),
+    r'mac': PropertySchema(
+      id: 8,
       name: r'mac',
       type: IsarType.string,
     ),
     r'messageType': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'messageType',
       type: IsarType.string,
     ),
+    r'pinLabel': PropertySchema(
+      id: 10,
+      name: r'pinLabel',
+      type: IsarType.string,
+    ),
+    r'pinnedByUid': PropertySchema(
+      id: 11,
+      name: r'pinnedByUid',
+      type: IsarType.string,
+    ),
     r'queueId': PropertySchema(
-      id: 9,
+      id: 12,
       name: r'queueId',
       type: IsarType.long,
     ),
     r'successfullySent': PropertySchema(
-      id: 10,
+      id: 13,
       name: r'successfullySent',
       type: IsarType.bool,
     ),
     r'text': PropertySchema(
-      id: 11,
+      id: 14,
       name: r'text',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 12,
+      id: 15,
       name: r'uid',
       type: IsarType.string,
     ),
     r'uniqueId': PropertySchema(
-      id: 13,
+      id: 16,
       name: r'uniqueId',
       type: IsarType.string,
     )
@@ -195,12 +210,30 @@ int _messageEstimateSize(
     }
   }
   {
+    final value = object.localPinLabel;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.mac;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
   bytesCount += 3 + object.messageType.length * 3;
+  {
+    final value = object.pinLabel;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.pinnedByUid;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.text;
     if (value != null) {
@@ -235,13 +268,16 @@ void _messageSerialize(
   writer.writeStringList(offsets[4], object.fileIds);
   writer.writeBool(offsets[5], object.isEncrypted);
   writer.writeString(offsets[6], object.iv);
-  writer.writeString(offsets[7], object.mac);
-  writer.writeString(offsets[8], object.messageType);
-  writer.writeLong(offsets[9], object.queueId);
-  writer.writeBool(offsets[10], object.successfullySent);
-  writer.writeString(offsets[11], object.text);
-  writer.writeString(offsets[12], object.uid);
-  writer.writeString(offsets[13], object.uniqueId);
+  writer.writeString(offsets[7], object.localPinLabel);
+  writer.writeString(offsets[8], object.mac);
+  writer.writeString(offsets[9], object.messageType);
+  writer.writeString(offsets[10], object.pinLabel);
+  writer.writeString(offsets[11], object.pinnedByUid);
+  writer.writeLong(offsets[12], object.queueId);
+  writer.writeBool(offsets[13], object.successfullySent);
+  writer.writeString(offsets[14], object.text);
+  writer.writeString(offsets[15], object.uid);
+  writer.writeString(offsets[16], object.uniqueId);
 }
 
 Message _messageDeserialize(
@@ -258,13 +294,16 @@ Message _messageDeserialize(
     fileIds: reader.readStringList(offsets[4]),
     isEncrypted: reader.readBoolOrNull(offsets[5]) ?? false,
     iv: reader.readStringOrNull(offsets[6]),
-    mac: reader.readStringOrNull(offsets[7]),
-    messageType: reader.readStringOrNull(offsets[8]) ?? MessageTypes.text,
-    queueId: reader.readLongOrNull(offsets[9]),
-    successfullySent: reader.readBoolOrNull(offsets[10]) ?? true,
-    text: reader.readStringOrNull(offsets[11]),
-    uid: reader.readStringOrNull(offsets[12]),
-    uniqueId: reader.readStringOrNull(offsets[13]),
+    localPinLabel: reader.readStringOrNull(offsets[7]),
+    mac: reader.readStringOrNull(offsets[8]),
+    messageType: reader.readStringOrNull(offsets[9]) ?? MessageTypes.text,
+    pinLabel: reader.readStringOrNull(offsets[10]),
+    pinnedByUid: reader.readStringOrNull(offsets[11]),
+    queueId: reader.readLongOrNull(offsets[12]),
+    successfullySent: reader.readBoolOrNull(offsets[13]) ?? true,
+    text: reader.readStringOrNull(offsets[14]),
+    uid: reader.readStringOrNull(offsets[15]),
+    uniqueId: reader.readStringOrNull(offsets[16]),
   );
   object.id = id;
   return object;
@@ -294,16 +333,22 @@ P _messageDeserializeProp<P>(
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset) ?? MessageTypes.text) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? MessageTypes.text) as P;
     case 10:
-      return (reader.readBoolOrNull(offset) ?? true) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 13:
+      return (reader.readBoolOrNull(offset) ?? true) as P;
+    case 14:
+      return (reader.readStringOrNull(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
+    case 16:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1608,6 +1653,155 @@ extension MessageQueryFilter
     });
   }
 
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localPinLabel',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      localPinLabelIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localPinLabel',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localPinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      localPinLabelGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localPinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localPinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localPinLabel',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'localPinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'localPinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'localPinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'localPinLabel',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> localPinLabelIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localPinLabel',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      localPinLabelIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'localPinLabel',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> macIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1880,6 +2074,299 @@ extension MessageQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'messageType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'pinLabel',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'pinLabel',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'pinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'pinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'pinLabel',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'pinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'pinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'pinLabel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'pinLabel',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pinLabel',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinLabelIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'pinLabel',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'pinnedByUid',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'pinnedByUid',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pinnedByUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'pinnedByUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'pinnedByUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'pinnedByUid',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'pinnedByUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'pinnedByUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'pinnedByUid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'pinnedByUid',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> pinnedByUidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pinnedByUid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      pinnedByUidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'pinnedByUid',
         value: '',
       ));
     });
@@ -2482,6 +2969,18 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> sortByLocalPinLabel() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPinLabel', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByLocalPinLabelDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPinLabel', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortByMac() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mac', Sort.asc);
@@ -2503,6 +3002,30 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
   QueryBuilder<Message, Message, QAfterSortBy> sortByMessageTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageType', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByPinLabel() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pinLabel', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByPinLabelDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pinLabel', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByPinnedByUid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pinnedByUid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByPinnedByUidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pinnedByUid', Sort.desc);
     });
   }
 
@@ -2653,6 +3176,18 @@ extension MessageQuerySortThenBy
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> thenByLocalPinLabel() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPinLabel', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByLocalPinLabelDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPinLabel', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenByMac() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mac', Sort.asc);
@@ -2674,6 +3209,30 @@ extension MessageQuerySortThenBy
   QueryBuilder<Message, Message, QAfterSortBy> thenByMessageTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageType', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByPinLabel() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pinLabel', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByPinLabelDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pinLabel', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByPinnedByUid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pinnedByUid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByPinnedByUidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pinnedByUid', Sort.desc);
     });
   }
 
@@ -2785,6 +3344,14 @@ extension MessageQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Message, Message, QDistinct> distinctByLocalPinLabel(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localPinLabel',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Message, Message, QDistinct> distinctByMac(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2796,6 +3363,20 @@ extension MessageQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'messageType', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByPinLabel(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'pinLabel', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByPinnedByUid(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'pinnedByUid', caseSensitive: caseSensitive);
     });
   }
 
@@ -2883,6 +3464,12 @@ extension MessageQueryProperty
     });
   }
 
+  QueryBuilder<Message, String?, QQueryOperations> localPinLabelProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localPinLabel');
+    });
+  }
+
   QueryBuilder<Message, String?, QQueryOperations> macProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'mac');
@@ -2892,6 +3479,18 @@ extension MessageQueryProperty
   QueryBuilder<Message, String, QQueryOperations> messageTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'messageType');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> pinLabelProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'pinLabel');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> pinnedByUidProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'pinnedByUid');
     });
   }
 
