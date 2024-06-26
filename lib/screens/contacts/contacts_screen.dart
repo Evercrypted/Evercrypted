@@ -4,6 +4,7 @@ import 'package:evercrypted/screens/contacts/contact_screen.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
+import 'package:evercrypted/widgets/grid.dart';
 import 'package:evercrypted/widgets/search_header.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -37,7 +38,9 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
 
   @override
   void initState() {
-    participants = widget.participants;
+    if (widget.participants != null) {
+      participants = [...widget.participants!];
+    }
     super.initState();
     _searchController.addListener(() {
       setState(() {
@@ -78,6 +81,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
         contactsToUse.map((e) => (e.name ?? e.email)![0]).toSet();
 
     Map<String, List<Contact>> contactTree = {
+      'participants': participants ?? [],
       'Favorites': favorites,
       for (var e1 in alphabetFromContacts)
         e1: contactsToUse.where((e) => (e.name ?? e.email)![0] == e1).toList()
@@ -126,49 +130,12 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
               }),
           SizedBox(
               height: MediaQuery.of(context).size.height - 243,
-              child: widget.isParticipantSelect &&
-                      (participants?.isNotEmpty ?? false)
-                  ? Column(
-                      children: [
-                        Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey[100]!,
-                                ),
-                              ),
-                            ),
-                            child: GridView.count(
-                              crossAxisCount:
-                                  (MediaQuery.of(context).size.width / 50)
-                                      .floor(),
-                              children: [
-                                for (var contact in participants!)
-                                  CircleAvatarWithActiveIndicator(
-                                    image: contact.avatar?.pic,
-                                    isActive: false,
-                                    radius: 15,
-                                    name: contact.name ??
-                                        contact.email!.split('@')[0],
-                                  ),
-                              ],
-                            )),
-                        _contactList(
-                            widget: widget,
-                            contacts: contacts,
-                            contactsToUse: contactsToUse,
-                            favorites: favorites,
-                            contactTree: contactTree),
-                      ],
-                    )
-                  : _contactList(
-                      widget: widget,
-                      contacts: contacts,
-                      contactsToUse: contactsToUse,
-                      favorites: favorites,
-                      contactTree: contactTree)),
+              child: _contactList(
+                  widget: widget,
+                  contacts: contacts,
+                  contactsToUse: contactsToUse,
+                  favorites: favorites,
+                  contactTree: contactTree)),
         ],
       ),
       floatingActionButton: widget.isParticipantSelect
@@ -201,6 +168,44 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                   final contactsFromIndex = contactTree[key] ?? [];
                   if (contactsFromIndex.isEmpty) {
                     return const SizedBox.shrink();
+                  } else if (key == 'participants') {
+                    return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.grey[100]!,
+                            ),
+                          ),
+                        ),
+                        child: Grid(
+                          childWidth: 57,
+                          children: [
+                            for (var contact in contactsFromIndex)
+                              SizedBox(
+                                width: 50,
+                                child: Column(
+                                  children: [
+                                    CircleAvatarWithActiveIndicator(
+                                      image: contact.avatar?.pic,
+                                      isActive: false,
+                                      radius: 24,
+                                      name: contact.name ??
+                                          contact.email!.split('@')[0],
+                                    ),
+                                    Text(
+                                      contact.name != null
+                                          ? contact.name!
+                                          : contact.email!.split('@')[0],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ));
                   } else {
                     return Column(
                       children: [
@@ -231,20 +236,20 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                                 isActive: false,
                                 isParticipantSelect: widget.isParticipantSelect,
                                 onTap: () {
-                                  widget.isParticipantSelect
-                                      ? () {
-                                          setState(() {
-                                            participants!.add(contact);
-                                          });
-                                        }
-                                      : Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) {
-                                            return ContactScreen(
-                                              contact: contact,
-                                            );
-                                          }),
+                                  if (widget.isParticipantSelect) {
+                                    setState(() {
+                                      participants!.add(contact);
+                                    });
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) {
+                                        return ContactScreen(
+                                          contact: contact,
                                         );
+                                      }),
+                                    );
+                                  }
                                 },
                               ),
                           ],
