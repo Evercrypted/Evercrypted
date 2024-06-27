@@ -193,6 +193,12 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                                       radius: 24,
                                       name: contact.name ??
                                           contact.email!.split('@')[0],
+                                      icon: Icons.close,
+                                      onIconTap: () {
+                                        setState(() {
+                                          participants!.remove(contact);
+                                        });
+                                      },
                                     ),
                                     Text(
                                       contact.name != null
@@ -238,7 +244,9 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                                 onTap: () {
                                   if (widget.isParticipantSelect) {
                                     setState(() {
-                                      participants!.add(contact);
+                                      if (!participants!.contains(contact)) {
+                                        participants!.add(contact);
+                                      }
                                     });
                                   } else {
                                     Navigator.push(
