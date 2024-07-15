@@ -12,12 +12,14 @@ class PrimaryButton extends StatelessWidget {
     this.textColor = Colors.white,
     this.padding = const EdgeInsets.all(defaultPadding),
     this.disabled = false,
+    this.textBold = false,
   });
 
   final String text;
   final VoidCallback press;
   final Color color;
   final Color textColor;
+  final bool textBold;
   final EdgeInsets padding;
   final Widget? child;
   final bool disabled;
@@ -26,32 +28,25 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: disabled
-          ? OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18.0)),
-                  side: BorderSide(color: color)),
-              onPressed: press,
-              child: child ??
-                  Text(
-                    text,
-                    style: TextStyle(color: color),
-                  ))
-          : ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0)),
-                padding: padding,
-                backgroundColor: color,
+      child: Opacity(
+        opacity: disabled ? 0.5 : 1,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            padding: padding,
+            backgroundColor: color,
+          ),
+          onPressed: press,
+          child: child ??
+              Text(
+                text,
+                style: TextStyle(
+                    color: textColor,
+                    fontWeight: textBold ? FontWeight.bold : FontWeight.normal),
               ),
-              onPressed: press,
-              child: child ??
-                  Text(
-                    text,
-                    style: TextStyle(color: textColor),
-                  ),
-            ),
+        ),
+      ),
     );
   }
 }

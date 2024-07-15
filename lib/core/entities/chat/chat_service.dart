@@ -4,6 +4,9 @@ import 'package:collection/collection.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/core/entities/message/message_service.dart';
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
+import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -15,6 +18,16 @@ import 'package:isar/isar.dart';
 import 'chat_model.dart';
 
 class ChatService {
+  ProfileService profileService = ProfileService();
+  MessageService messageService = MessageService();
+
+  Future<void> addChat(Chat chat) async {
+    final isar = Isar.getInstance();
+    return isar?.writeTxn(() async {
+      await isar.chats.put(chat);
+    });
+  }
+
   Future<void> syncChats(List<Chat> chats) async {
     Completer<void> complete = Completer();
 
@@ -58,14 +71,32 @@ class ChatService {
     return complete.future;
   }
 
-  Future<Chat> createNewChat(NewChatDTO newChatDTO) async {
+  Future<Chat> createNewChat(NewOneToOneChatDTO newChatDTO) async {
     Completer<Chat> complete = Completer();
     ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createChat,
             newChatDTO.toJson())
         .then((resp) {
       final Chat returnedChat = Chat.fromJson(resp['chat']);
-      syncChats([returnedChat])
-          .then((value) => complete.complete(returnedChat));
+      addChat(returnedChat).then((value) => complete.complete(returnedChat));
+    });
+    return complete.future;
+  }
+
+  Future<Chat> createNewGroupChat(NewGroupChatDTO newGroupChatDTO) async {
+    final Profile? profile = profileService.getProfile();
+    newGroupChatDTO.participants.add(Participant(
+        uid: profile!.uid,
+        email: profile.email,
+        name: profile.name,
+        avatar: profile.avatar,
+        isCreator: true,
+        isAdmin: true));
+    Completer<Chat> complete = Completer();
+    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createGroupChat,
+            newGroupChatDTO.toJson())
+        .then((resp) {
+      final Chat returnedChat = Chat.fromJson(resp['chat']);
+      addChat(returnedChat).then((value) => complete.complete(returnedChat));
     });
     return complete.future;
   }
@@ -88,7 +119,8 @@ class ChatService {
         (route) => route.isFirst,
       );
     } else {
-      NewChatDTO newChat = NewChatDTO(contact: contact.contactPersonUid!);
+      NewOneToOneChatDTO newChat =
+          NewOneToOneChatDTO(contact: contact.contactPersonUid!);
       createNewChat(newChat).then((Chat returnedChat) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -101,10 +133,15 @@ class ChatService {
     }
   }
 
-  addParticipant(Contact contact, Chat chat) {
-    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.addParticipant,
-            {'chatUid': chat.uid, 'contactUid': contact.contactPersonUid})
-        .then((resp) {});
+  updateChat(Chat chat) {
+    final isar = Isar.getInstance();
+    final chatInDb = isar?.chats.where().uidEqualTo(chat.uid).findFirstSync();
+    if (chatInDb != null) {
+      chat.id = chatInDb.id;
+      return isar?.writeTxn(() {
+        return isar.chats.put(chat);
+      });
+    }
   }
 
   Future<bool> findContactChatAndDelete(
@@ -126,8 +163,6 @@ class ChatService {
   deleteChat({required String chatUid, bool? skipNotify = false}) async {
     final isar = Isar.getInstance();
     if (skipNotify == false) {
-      ChatSocket.emitWAck(
-          SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid);
       return ChatSocket.emitWAck(
               SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid)
           .then((resp) {

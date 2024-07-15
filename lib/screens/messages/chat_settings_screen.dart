@@ -1,7 +1,9 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
+import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/messages/components/participant_card.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
@@ -19,6 +21,7 @@ class ChatSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
+  ChatService chatService = ChatService();
   late Participant user;
 
   @override
@@ -107,13 +110,28 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ContactsScreen(
+                          isParticipantSelect: true,
+                          isAddNewParticipants: true,
+                          participants: widget.chat.participants
+                              .where((p) => p.email != Auth.getUser!.email)
+                              .toList(),
+                        ),
+                      ),
+                    ).then((val) {
+                      print(val);
+                    });
+                  },
                   icon: const Icon(Icons.add),
                   label: const Text('Add Participant'),
                 ),
               )
             ],
-            if (user.isCreator || chat.participants.length == 2) ...[
+            if (user.isCreator || chat.isOneToOne) ...[
               const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -121,7 +139,12 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                    ModalRoute.of(context)!
+                        .completed
+                        .then((_) => chatService.deleteChat(chatUid: chat.uid));
+                  },
                   icon: const Icon(
                     Icons.delete,
                     color: Colors.white,

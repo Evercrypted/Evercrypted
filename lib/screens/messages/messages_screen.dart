@@ -217,8 +217,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   Future<void> _fetchPage(int pageKey) async {
     try {
-      final newItems =
-          await _messageService.getMessagesFromDB(pageKey, _pageSize);
+      final newItems = await _messageService.getMessagesFromDB(
+          widget.chat.uid, pageKey, _pageSize);
       newItems.retainWhere((element) =>
           _pagingController.itemList
               ?.firstWhereOrNull((el) => el.id == element.id) ==
@@ -250,8 +250,11 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   Widget build(BuildContext context) {
     Chat chat =
         ref.watch(chatsProvider).firstWhere((c) => c.uid == widget.chat.uid);
-    final participantNames =
-        chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
+    String? participantNames;
+    if (chat.name == null) {
+      participantNames =
+          chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
+    }
 
     return Scaffold(
         appBar: ConnectionStatusAppbar(
@@ -260,18 +263,16 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
               CircleAvatarWithActiveIndicator(
                 image: chat.avatar?.pic,
                 radius: 28,
-                name: chat.name ?? participantNames,
+                name: (chat.name ?? participantNames),
               ),
-              const SizedBox(width: defaultPadding * 0.75),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    participantNames,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              )
+              const SizedBox(width: defaultPadding * 0.5),
+              Expanded(
+                child: Text(
+                  chat.name ?? participantNames!,
+                  style: const TextStyle(fontSize: 16),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           actions: [
@@ -309,6 +310,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           text: item.text!,
                           messageType: MessageTypes.text,
                           isSender: item.authorId == userId,
+                          isSystemMessage:
+                              item.messageType == MessageTypes.system,
                           messageStatus: MessageStatus.successfullySent,
                           pass: pass,
                           iv: item.iv,

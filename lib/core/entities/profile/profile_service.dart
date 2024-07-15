@@ -22,4 +22,9 @@ class ProfileService {
       });
     }
   }
+
+  Profile? getProfile() {
+    final isar = Isar.getInstance();
+    return isar?.profiles.where().findFirstSync()!;
+  }
 }

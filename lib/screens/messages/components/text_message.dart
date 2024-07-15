@@ -20,7 +20,9 @@ class TextMessage extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
       ),
       child: Text(
-        message.text,
+        message.encryptionStatus == EncryptionStatus.decrypted
+            ? message.decrypted!
+            : message.text,
         style: TextStyle(
           color: message.isSender
               ? Colors.white

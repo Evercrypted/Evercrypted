@@ -34,11 +34,13 @@ class MessageService {
     }
   }
 
-  Future<List<Message>> getMessagesFromDB(int pageKey, int pageSize) async {
+  Future<List<Message>> getMessagesFromDB(
+      String chatUid, int pageKey, int pageSize) async {
     final isar = Isar.getInstance();
     if (pageKey == 0) {
       return isar!.messages
           .where()
+          .chatUidEqualTo(chatUid)
           .sortByCreatedAtMSEDesc()
           .limit(pageSize)
           .findAllSync()
@@ -46,6 +48,7 @@ class MessageService {
     } else {
       return isar!.messages
           .where()
+          .chatUidEqualTo(chatUid)
           .sortByCreatedAtMSEDesc()
           .offset(pageKey * pageSize)
           .limit(pageSize)
@@ -56,7 +59,6 @@ class MessageService {
 
   Future<Message> sendMessage(dynamic message, String chatUid) async {
     Message messageToSend;
-    print(message);
     if (message is String) {
       messageToSend = Message(
         authorId: userId!,

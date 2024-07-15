@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:isar/isar.dart';
 
 import '../profile/profile_model.dart';
@@ -79,11 +80,20 @@ class Participant {
       this.isCreator = false,
       this.isAdmin = false});
 
+  factory Participant.fromContact(Contact contact) => Participant(
+        uid: contact.contactPersonUid,
+        email: contact.email,
+        name: contact.name,
+        avatar: contact.avatar,
+      );
+
   factory Participant.fromJson(Map<String, dynamic> json) => Participant(
         uid: json['uid'] as String?,
         email: json['email'] as String?,
         name: json['name'] as String?,
-        lastSawChat: DateTime.parse(json['last_saw_chat']),
+        lastSawChat: json['last_saw_chat'] != null
+            ? DateTime.parse(json['last_saw_chat'])
+            : null,
         avatar: json['avatar'] != null
             ? Avatar.fromJson(
                 json['avatar'],
@@ -122,12 +132,34 @@ class Participant {
       );
 }
 
-class NewChatDTO {
+class NewOneToOneChatDTO {
   String contact;
 
-  NewChatDTO({required this.contact});
+  NewOneToOneChatDTO({required this.contact});
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'contact': contact,
       };
+}
+
+class NewGroupChatDTO {
+  String? name;
+  List<Participant> participants;
+  Avatar? avatar;
+
+  NewGroupChatDTO({this.name, required this.participants, this.avatar});
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'name': name,
+        'participants':
+            participants.map((participant) => participant.toJson()).toList(),
+        'avatar': avatar?.toJson(),
+      };
+
+  copyWith({String? name, List<Participant>? participants, Avatar? avatar}) =>
+      NewGroupChatDTO(
+        name: name ?? this.name,
+        participants: participants ?? this.participants,
+        avatar: avatar ?? this.avatar,
+      );
 }

@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/screens/contacts/contact_screen.dart';
@@ -19,10 +21,15 @@ class ContactsScreen extends ConsumerStatefulWidget {
 
   final bool isParticipantSelect;
 
-  final List<Contact>? participants;
+  final bool isAddNewParticipants;
+
+  final List<Participant>? participants;
 
   const ContactsScreen(
-      {super.key, this.isParticipantSelect = false, this.participants});
+      {super.key,
+      this.isParticipantSelect = false,
+      this.participants,
+      this.isAddNewParticipants = false});
 
   @override
   ContactsScreenState createState() => ContactsScreenState();
@@ -33,13 +40,16 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode searchFocus = FocusNode();
+  late final List<Contact> contacts = ref.read(contactsProvider);
   String searchValue = '';
-  List<Contact>? participants;
+  List<Participant>? participants;
 
   @override
   void initState() {
-    if (widget.participants != null) {
+    if (widget.participants != null && !widget.isAddNewParticipants) {
       participants = [...widget.participants!];
+    } else {
+      participants = [];
     }
     super.initState();
     _searchController.addListener(() {
@@ -58,8 +68,6 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Contact> contacts = ref.watch(contactsProvider);
-
     late final List<Contact> contactsToUse;
     if (searchValue.isNotEmpty) {
       final contactsAfterSearch = contacts
@@ -75,26 +83,69 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
 
     final List<Contact> favorites =
         contactsToUse.where((e) => e.isFavorite).toList();
+
     contactsToUse.removeWhere((e) => e.isFavorite);
+
+    if (widget.isAddNewParticipants) {
+      contactsToUse.removeWhere((e) => widget.participants!
+          .map((e) => e.uid)
+          .toList()
+          .contains(e.contactPersonUid));
+      favorites.removeWhere((e) => widget.participants!
+          .map((e) => e.uid)
+          .toList()
+          .contains(e.contactPersonUid));
+    }
 
     final alphabetFromContacts =
         contactsToUse.map((e) => (e.name ?? e.email)![0]).toSet();
 
-    Map<String, List<Contact>> contactTree = {
+    Map<String, List<dynamic>> contactTree = {
       'participants': participants ?? [],
-      'Favorites': favorites,
+      'Favorites': favorites
+          .where((e) =>
+              participants!
+                  .firstWhereOrNull((p) => p.uid == e.contactPersonUid) ==
+              null)
+          .toList(),
       for (var e1 in alphabetFromContacts)
-        e1: contactsToUse.where((e) => (e.name ?? e.email)![0] == e1).toList()
+        e1: contactsToUse
+            .where((e) =>
+                (e.name ?? e.email)![0] == e1 &&
+                participants!
+                        .firstWhereOrNull((p) => p.uid == e.contactPersonUid) ==
+                    null)
+            .toList()
     };
 
     return Scaffold(
       appBar: widget.isParticipantSelect
-          ? const ConnectionStatusAppbar(
+          ? ConnectionStatusAppbar(
               title: Text(
-                'Participants',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                widget.participants == null
+                    ? 'Create New Group'
+                    : 'Manage Participants',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              actions: null,
+              actions: widget.isParticipantSelect
+                  ? [
+                      IconButton(
+                          onPressed: () {
+                            if (participants != null &&
+                                participants!.isNotEmpty) {
+                              Navigator.pop(context, participants);
+                            }
+                          },
+                          icon: Icon(
+                            Icons.check_circle,
+                            color:
+                                participants != null && participants!.isNotEmpty
+                                    ? primaryColor
+                                    : Colors.grey,
+                            size: 30,
+                          ))
+                    ]
+                  : null,
             )
           : null,
       body: Column(
@@ -165,7 +216,8 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                 itemCount: contactTree.length,
                 itemBuilder: (context, index) {
                   String key = contactTree.keys.elementAt(index);
-                  final contactsFromIndex = contactTree[key] ?? [];
+                  final List<dynamic> contactsFromIndex =
+                      contactTree[key] ?? [];
                   if (contactsFromIndex.isEmpty) {
                     return const SizedBox.shrink();
                   } else if (key == 'participants') {
@@ -182,28 +234,28 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                         child: Grid(
                           childWidth: 57,
                           children: [
-                            for (var contact in contactsFromIndex)
+                            for (var participant in contactsFromIndex)
                               SizedBox(
                                 width: 50,
                                 child: Column(
                                   children: [
                                     CircleAvatarWithActiveIndicator(
-                                      image: contact.avatar?.pic,
+                                      image: participant.avatar?.pic,
                                       isActive: false,
                                       radius: 24,
-                                      name: contact.name ??
-                                          contact.email!.split('@')[0],
+                                      name: participant.name ??
+                                          participant.email!.split('@')[0],
                                       icon: Icons.close,
                                       onIconTap: () {
                                         setState(() {
-                                          participants!.remove(contact);
+                                          participants!.remove(participant);
                                         });
                                       },
                                     ),
                                     Text(
-                                      contact.name != null
-                                          ? contact.name!
-                                          : contact.email!.split('@')[0],
+                                      participant.name != null
+                                          ? participant.name!
+                                          : participant.email!.split('@')[0],
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
@@ -244,8 +296,12 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                                 onTap: () {
                                   if (widget.isParticipantSelect) {
                                     setState(() {
-                                      if (!participants!.contains(contact)) {
-                                        participants!.add(contact);
+                                      if (participants!.firstWhereOrNull((p) =>
+                                              p.uid ==
+                                              contact.contactPersonUid) ==
+                                          null) {
+                                        participants!.add(
+                                            Participant.fromContact(contact));
                                       }
                                     });
                                   } else {

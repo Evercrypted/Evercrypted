@@ -208,7 +208,7 @@ class SocketEventsService {
     switch (type) {
       case ChatEventTypes.chatCreated:
         Chat chat = Chat.fromJson(payload['chat']);
-        chatService.syncChats([chat]);
+        chatService.addChat(chat);
         String creatorEmail = chat.participants
             .firstWhere((element) => element.uid != userId)
             .email!;
@@ -222,17 +222,53 @@ class SocketEventsService {
         break;
       case ChatEventTypes.chatDeleted:
         final isar = Isar.getInstance();
-        final List<Chat> chats = isar!.chats.where().findAllSync();
-        final Chat chat =
-            chats.firstWhere((element) => element.uid == payload['chatUid']);
-        chatService.deleteChat(chatUid: payload['chatUid']);
+        final Chat? chat = isar!.chats
+            .where()
+            .uidEqualTo(payload['chatUid'])
+            .findAllSync()
+            .firstOrNull;
+        if (chat != null) {
+          chatService.deleteChat(chatUid: payload['chatUid'], skipNotify: true);
+          LocalNotification.instance.displayNotification(
+            'Chat Deleted',
+            chat.name != null
+                ? 'Chat ${chat.name} has been deleted'
+                : 'Chat with ${chat.participants.firstWhere((element) => element.uid != userId).email} has been deleted',
+            json.encode({
+              'type': null,
+            }),
+          );
+        }
+        break;
+      case ChatEventTypes.participantAdded:
+        final Chat chat = Chat.fromJson(payload['chat']);
+        final List<String> newParticipantsUids = payload['newParticipantsUids'];
+        final List<Participant> newParticipants = chat.participants
+            .where((element) => newParticipantsUids.contains(element.uid))
+            .toList();
+        chatService.updateChat(chat);
+        messageService
+            .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
         LocalNotification.instance.displayNotification(
-          'Chat Deleted',
-          chat.name != null
-              ? 'Chat ${chat.name} has been deleted'
-              : 'Chat with ${chat.participants.firstWhere((element) => element.uid != userId).email} has been deleted',
+          'Participant Added',
+          '${newParticipants.length > 1 ? 'Participants' : 'Participant'} ${newParticipants.map(
+                (e) => e.name ?? e.email,
+              ).join(', ')} has been added to chat',
           json.encode({
             'type': null,
+          }),
+        );
+        break;
+      case ChatEventTypes.addedToChat:
+        final chat = Chat.fromJson(payload['chat']);
+        chatService.addChat(chat);
+        messageService
+            .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
+        LocalNotification.instance.displayNotification(
+          'Added to Chat',
+          'You have been added to chat ${chat.name}',
+          json.encode({
+            'type': NotificationEventTypes.goToChatPage,
           }),
         );
         break;

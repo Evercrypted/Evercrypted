@@ -37,7 +37,9 @@ class CircleAvatarWithActiveIndicator extends StatelessWidget {
               : null,
           child: name != null
               ? Text(
-                  name!.substring(0, 2).toUpperCase(),
+                  name!.length > 2
+                      ? name!.substring(0, 2).toUpperCase()
+                      : name!,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: radius! * initialsSize,

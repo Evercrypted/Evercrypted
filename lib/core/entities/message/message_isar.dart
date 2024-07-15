@@ -8,6 +8,7 @@ class MessageTypes {
   static const audio = 'audio';
   static const image = 'image';
   static const video = 'video';
+  static const system = 'system';
 }
 
 @collection

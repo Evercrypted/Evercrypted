@@ -3,13 +3,15 @@ enum MessageStatus { successfullySent, queued, couldNotSend }
 enum EncryptionStatus { encrypted, notEncrypted, decrypted, failed }
 
 class ChatMessage {
-  String text;
+  final String text;
+  String? decrypted;
   final String messageType;
   MessageStatus messageStatus;
   final bool isSender;
   String? pass;
   final String? iv;
   final String? mac;
+  final bool isSystemMessage;
   EncryptionStatus encryptionStatus;
 
   ChatMessage({
@@ -20,6 +22,18 @@ class ChatMessage {
     required this.messageType,
     required this.messageStatus,
     required this.isSender,
+    required this.isSystemMessage,
     this.encryptionStatus = EncryptionStatus.notEncrypted,
   });
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'text': text,
+        'messageType': messageType,
+        'messageStatus': messageStatus.toString(),
+        'isSender': isSender,
+        'pass': pass,
+        'iv': iv,
+        'mac': mac,
+        'encryptionStatus': encryptionStatus.toString(),
+      };
 }

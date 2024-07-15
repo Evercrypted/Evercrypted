@@ -25,22 +25,35 @@ class MessageWidget extends StatefulWidget {
 }
 
 class _MessageWidgetState extends State<MessageWidget> {
+  bool triedDecrypt = false;
   late ChatMessage message;
 
   @override
   void initState() {
     message = widget.message;
+    if (widget.message.pass != null) {
+      message.pass = widget.message.pass;
+      decrypt();
+    }
     super.initState();
-    decrypt();
   }
+
+  // @override
+  // didChangeDependencies() {
+  //   message = widget.message;
+  //   print('changedep' + ' ' + message.toJson().toString());
+  //   if (widget.message.pass != null) {
+  //     message.pass = widget.message.pass;
+  //     decrypt();
+  //   }
+  //   super.didChangeDependencies();
+  // }
 
   @override
   didUpdateWidget(MessageWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.message.pass != widget.message.pass) {
-      message.pass = widget.message.pass;
-      decrypt();
-    }
+    message.pass = widget.message.pass;
+    decrypt();
   }
 
   decrypt() async {
@@ -53,16 +66,17 @@ class _MessageWidgetState extends State<MessageWidget> {
         if (fullKeyString!.length < 32) {
           fullKeyString = fullKeyString + '0' * (32 - message.pass!.length);
         }
-        setState(() async {
-          message.text = await decodePayload(
-            {
-              'crypted': message.text,
-              'iv': message.iv,
-              'mac': message.mac,
-            },
-            fullKeyString,
-            true,
-          );
+        final String decrypted = await decodePayload(
+          {
+            'crypted': message.text,
+            'iv': message.iv,
+            'mac': message.mac,
+          },
+          fullKeyString,
+          true,
+        );
+        setState(() {
+          message.decrypted = decrypted;
           message.encryptionStatus = EncryptionStatus.decrypted;
         });
       }
@@ -75,7 +89,7 @@ class _MessageWidgetState extends State<MessageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Widget messageContaint(ChatMessage message) {
+    Widget messageContent(ChatMessage message) {
       switch (message.messageType) {
         case MessageTypes.text:
           return TextMessage(message: message);
@@ -90,47 +104,61 @@ class _MessageWidgetState extends State<MessageWidget> {
 
     return Padding(
       padding: const EdgeInsets.only(top: defaultPadding / 2),
-      child: Row(
-        mainAxisAlignment:
-            message.isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: [
-          if (!message.isSender && widget.sender != null) ...[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (message.encryptionStatus !=
-                    EncryptionStatus.notEncrypted) ...[
-                  EncryptionStatusIcon(status: message.encryptionStatus),
-                  const SizedBox(height: 2),
-                ],
-                CircleAvatarWithActiveIndicator(
-                  image: widget.sender!.avatar?.pic,
-                  radius: 12,
-                  name: widget.sender!.name ?? widget.sender!.email,
-                  initialsSize: 1,
+      child: message.isSystemMessage
+          ? Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: defaultPadding, vertical: defaultPadding),
+                child: Text(message.text),
+              ),
+            )
+          : Row(
+              mainAxisAlignment: message.isSender
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
+              children: [
+                if (!message.isSender && widget.sender != null) ...[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (message.encryptionStatus !=
+                          EncryptionStatus.notEncrypted) ...[
+                        EncryptionStatusIcon(status: message.encryptionStatus),
+                        const SizedBox(height: 2),
+                      ],
+                      CircleAvatarWithActiveIndicator(
+                        image: widget.sender!.avatar?.pic,
+                        radius: 12,
+                        name: widget.sender!.name ?? widget.sender!.email,
+                        initialsSize: 1,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: defaultPadding / 3),
+                ],
+                messageContent(message),
+                if (message.isSender) ...[
+                  const SizedBox(width: defaultPadding / 4),
+                  Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (message.encryptionStatus !=
+                            EncryptionStatus.notEncrypted) ...[
+                          EncryptionStatusIcon(
+                              status: message.encryptionStatus),
+                          const SizedBox(height: 2),
+                        ],
+                        MessageStatusDot(status: message.messageStatus),
+                      ]),
+                ],
               ],
             ),
-            const SizedBox(width: defaultPadding / 3),
-          ],
-          messageContaint(message),
-          if (message.isSender) ...[
-            const SizedBox(width: defaultPadding / 4),
-            Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (message.encryptionStatus !=
-                      EncryptionStatus.notEncrypted) ...[
-                    EncryptionStatusIcon(status: message.encryptionStatus),
-                    const SizedBox(height: 2),
-                  ],
-                  MessageStatusDot(status: message.messageStatus),
-                ]),
-          ],
-        ],
-      ),
     );
   }
 }
