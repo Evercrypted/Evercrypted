@@ -6,8 +6,8 @@ class ChatEventTypes {
   static const chatCreated = 'chatCreated';
   static const chatDeleted = 'chatDeleted';
   static const updateChatLastSeen = 'updateChatLastSeen';
-  static const addParticipant = 'addParticipant';
-  static const participantAdded = 'participantAdded';
+  static const addParticipants = 'addParticipants';
+  static const participantsAdded = 'participantsAdded';
   static const addedToChat = 'addedToChat';
   static const removeParticipant = 'removeParticipant';
   static const participantRemoved = 'participantRemoved';

@@ -8,12 +8,14 @@ class ParticipantCard extends StatelessWidget {
   final Participant user;
   final Participant participant;
   final int participantsLenght;
+  final Function remove;
 
   ParticipantCard(
       {super.key,
       required this.participant,
       required this.participantsLenght,
-      required this.user});
+      required this.user,
+      required this.remove});
 
   final String userEmail = Auth.getUser!.email;
 
@@ -55,7 +57,7 @@ class ParticipantCard extends StatelessWidget {
           if (participantsLenght > 2 && (user.isAdmin || user.isCreator))
             IconButton(
               onPressed: () {
-                // TODO remove participant
+                remove();
               },
               icon: const Icon(Icons.delete, color: Colors.red),
             )

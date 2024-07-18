@@ -104,6 +104,8 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                 user: user,
                 participant: participant,
                 participantsLenght: chat.participants.length,
+                remove: () => chatService.removeParticipantFromChat(
+                    chat: chat, participant: participant),
               ),
             if ((user.isCreator || user.isAdmin) && !chat.isOneToOne) ...[
               const SizedBox(height: 30),
@@ -123,7 +125,10 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                         ),
                       ),
                     ).then((val) {
-                      print(val);
+                      if (val != null && val.length > 0) {
+                        chatService.addParticipantsToChat(
+                            chat: chat, participants: val);
+                      }
                     });
                   },
                   icon: const Icon(Icons.add),

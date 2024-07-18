@@ -29,7 +29,7 @@ class ChatService {
   }
 
   Future<void> syncChats(List<Chat> chats) async {
-    Completer<void> complete = Completer();
+    Completer<void> completer = Completer();
 
     final isar = Isar.getInstance();
 
@@ -66,9 +66,9 @@ class ChatService {
         }
         await isar.chats.deleteAllByUid(chatsToDelete);
       }
-      complete.complete();
+      completer.complete();
     });
-    return complete.future;
+    return completer.future;
   }
 
   Future<Chat> createNewChat(NewOneToOneChatDTO newChatDTO) async {
@@ -133,7 +133,48 @@ class ChatService {
     }
   }
 
-  updateChat(Chat chat) {
+  addParticipantsToChat(
+      {required Chat chat, required List<Participant> participants}) {
+    Completer<bool> completer = Completer();
+    ChatSocket.emitWAck(
+        SocketChannelTypes.chat, ChatEventTypes.addParticipants, {
+      'chatUid': chat.uid,
+      'contactUids': participants.map((p) => p.uid).toList()
+    }).then((resp) {
+      Chat updatedChat = chat;
+      updatedChat.participants = [...chat.participants, ...participants];
+      final isar = Isar.getInstance();
+      isar?.writeTxn(() {
+        return isar.chats.put(updatedChat);
+      });
+      completer.complete(true);
+    }).catchError((error) {
+      completer.completeError(false);
+    });
+    return completer.future;
+  }
+
+  removeParticipantFromChat(
+      {required Chat chat, required Participant participant}) {
+    Completer<bool> completer = Completer();
+    ChatSocket.emitWAck(
+        SocketChannelTypes.chat,
+        ChatEventTypes.removeParticipant,
+        {'chatUid': chat.uid, 'participantUid': participant.uid}).then((resp) {
+      Chat updatedChat = chat;
+      updatedChat.participants
+          .removeWhere((element) => element.uid == participant.uid);
+      final isar = Isar.getInstance();
+      isar?.writeTxn(() {
+        return isar.chats.put(updatedChat);
+      });
+      completer.complete(true);
+    }).catchError((error) {
+      completer.completeError(false);
+    });
+  }
+
+  updateChatFromResp(Chat chat) {
     final isar = Isar.getInstance();
     final chatInDb = isar?.chats.where().uidEqualTo(chat.uid).findFirstSync();
     if (chatInDb != null) {

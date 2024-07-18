@@ -240,13 +240,15 @@ class SocketEventsService {
           );
         }
         break;
-      case ChatEventTypes.participantAdded:
+      case ChatEventTypes.participantsAdded:
+        print(payload);
         final Chat chat = Chat.fromJson(payload['chat']);
-        final List<String> newParticipantsUids = payload['newParticipantsUids'];
+        final List<String> newParticipantUids =
+            payload['newParticipantUids'].cast<String>();
         final List<Participant> newParticipants = chat.participants
-            .where((element) => newParticipantsUids.contains(element.uid))
+            .where((element) => newParticipantUids.contains(element.uid))
             .toList();
-        chatService.updateChat(chat);
+        chatService.updateChatFromResp(chat);
         messageService
             .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
         LocalNotification.instance.displayNotification(
