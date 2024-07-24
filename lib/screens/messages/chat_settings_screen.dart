@@ -119,7 +119,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                         builder: (context) => ContactsScreen(
                           isParticipantSelect: true,
                           isAddNewParticipants: true,
-                          participants: widget.chat.participants
+                          participants: chat.participants
                               .where((p) => p.email != Auth.getUser!.email)
                               .toList(),
                         ),
@@ -156,6 +156,31 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                   ),
                   label: const Text(
                     'Delete Chat',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+            if (!user.isCreator) ...[
+              const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  onPressed: () {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                    ModalRoute.of(context)!
+                        .completed
+                        .then((_) => chatService.leaveChat(chatUid: chat.uid));
+                  },
+                  icon: const Icon(
+                    Icons.exit_to_app,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'Leave Chat',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

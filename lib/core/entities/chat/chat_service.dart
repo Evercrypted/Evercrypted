@@ -162,23 +162,35 @@ class ChatService {
         ChatEventTypes.removeParticipant,
         {'chatUid': chat.uid, 'participantUid': participant.uid}).then((resp) {
       Chat updatedChat = chat;
-      updatedChat.participants
-          .removeWhere((element) => element.uid == participant.uid);
+      updatedChat.participants = updatedChat.participants
+          .where((element) => element.uid != participant.uid)
+          .toList();
       final isar = Isar.getInstance();
       isar?.writeTxn(() {
         return isar.chats.put(updatedChat);
       });
       completer.complete(true);
     }).catchError((error) {
+      print(error);
       completer.completeError(false);
     });
   }
 
-  updateChatFromResp(Chat chat) {
+  leaveChat({required String chatUid}) {
+    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.leaveChat, {
+      'chatUid': chatUid,
+    }).then((resp) {
+      deleteChat(chatUid: chatUid, skipNotify: true);
+    });
+  }
+
+  updateChatFromResp(Chat chat) async {
     final isar = Isar.getInstance();
-    final chatInDb = isar?.chats.where().uidEqualTo(chat.uid).findFirstSync();
+    final Chat? chatInDb =
+        isar?.chats.where().uidEqualTo(chat.uid).findFirstSync();
     if (chatInDb != null) {
       chat.id = chatInDb.id;
+      print(chat.toJson());
       return isar?.writeTxn(() {
         return isar.chats.put(chat);
       });
@@ -219,6 +231,9 @@ class ChatService {
       });
     } else {
       isar?.writeTxn(() async {
+        final messages =
+            await isar.messages.where().chatUidEqualTo(chatUid).findAll();
+        await isar.messages.deleteAll(messages.map((e) => e.id).toList());
         isar.chats.deleteByUid(chatUid);
       });
     }

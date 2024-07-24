@@ -203,7 +203,7 @@ class SocketEventsService {
     }
   }
 
-  handleChatEvent(String type, dynamic payload) {
+  handleChatEvent(String type, dynamic payload) async {
     final userId = Auth.user?.uid;
     switch (type) {
       case ChatEventTypes.chatCreated:
@@ -241,21 +241,20 @@ class SocketEventsService {
         }
         break;
       case ChatEventTypes.participantsAdded:
-        print(payload);
         final Chat chat = Chat.fromJson(payload['chat']);
         final List<String> newParticipantUids =
             payload['newParticipantUids'].cast<String>();
         final List<Participant> newParticipants = chat.participants
             .where((element) => newParticipantUids.contains(element.uid))
             .toList();
-        chatService.updateChatFromResp(chat);
+        await chatService.updateChatFromResp(chat);
         messageService
             .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
         LocalNotification.instance.displayNotification(
           'Participant Added',
           '${newParticipants.length > 1 ? 'Participants' : 'Participant'} ${newParticipants.map(
                 (e) => e.name ?? e.email,
-              ).join(', ')} has been added to chat',
+              ).join(', ')} has been added to chat - ${chat.name}',
           json.encode({
             'type': null,
           }),
@@ -268,9 +267,48 @@ class SocketEventsService {
             .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
         LocalNotification.instance.displayNotification(
           'Added to Chat',
-          'You have been added to chat ${chat.name}',
+          'You have been added to chat - ${chat.name}',
           json.encode({
             'type': NotificationEventTypes.goToChatPage,
+          }),
+        );
+        break;
+      case ChatEventTypes.participantRemoved:
+        final chat = Chat.fromJson(payload['chat']);
+        final participantName = payload['participantName'];
+        await chatService.updateChatFromResp(chat);
+        messageService
+            .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
+        LocalNotification.instance.displayNotification(
+          'Participant Removed',
+          'Participant $participantName has been removed from chat - ${chat.name}',
+          json.encode({
+            'type': null,
+          }),
+        );
+        break;
+      case ChatEventTypes.removedFromChat:
+        final String chatName = payload['chatName'];
+        chatService.deleteChat(chatUid: payload['chatUid'], skipNotify: true);
+        LocalNotification.instance.displayNotification(
+          'Removed from Chat',
+          'You have been removed from chat - $chatName',
+          json.encode({
+            'type': null,
+          }),
+        );
+        break;
+      case ChatEventTypes.leftChat:
+        final Chat chat = Chat.fromJson(payload['chat']);
+        await chatService.updateChatFromResp(chat);
+        messageService
+            .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
+        final String userEmail = payload['userEmail'];
+        LocalNotification.instance.displayNotification(
+          'Left Chat',
+          '$userEmail has left chat - ${chat.name}',
+          json.encode({
+            'type': null,
           }),
         );
         break;
