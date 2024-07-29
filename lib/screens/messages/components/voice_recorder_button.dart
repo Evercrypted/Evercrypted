@@ -1,5 +1,8 @@
+import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../ui_constants.dart';
 
@@ -14,12 +17,16 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     with SingleTickerProviderStateMixin {
   late AnimationController controller;
   int voiceMessageDurationSeconds = 30;
-  FlutterSoundRecorder? myRecorder;
-
-  void disposeRecorder() {
-    myRecorder?.closeRecorder();
-    myRecorder = null;
-  }
+  bool recording = false;
+  double progress = 0;
+  FlutterSoundRecorder? _myRecorder = FlutterSoundRecorder();
+  FlutterSoundPlayer? _myPlayer = FlutterSoundPlayer();
+  RecorderController? waveFormController;
+  List<double>? waveData;
+  bool wavePlaying = false;
+  DateTime? recordStartTime;
+  DateTime? recordEndTime;
+  String? filePath;
 
   @override
   void initState() {
@@ -27,57 +34,143 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
 
     controller = AnimationController(
         vsync: this, duration: Duration(seconds: voiceMessageDurationSeconds));
+
     controller.addListener(() {
-      setState(() {});
+      setState(() {
+        progress = controller.value;
+      });
+    });
+    controller.addStatusListener((status) {
+      setState(() {
+        if (status == AnimationStatus.forward) {
+          recording = true;
+        } else {
+          recording = false;
+        }
+      });
     });
   }
 
   @override
   void dispose() {
-    disposeRecorder();
+    // closeRecorder();
+    // closePlayer();
+    controller.dispose();
     super.dispose();
+  }
+
+  void closeRecorder() async {
+    _myRecorder?.closeRecorder();
+    _myRecorder = null;
+  }
+
+  void closePlayer() async {
+    await _myPlayer?.closePlayer();
+    _myPlayer = null;
+  }
+
+  Future<void> record() async {
+    waveFormController = RecorderController();
+    setState(() {
+      wavePlaying = true;
+    });
+    await waveFormController?.record();
+    var tempDir = await getTemporaryDirectory();
+    filePath = '${tempDir.path}/${getRandomString(36)}.aac';
+    await _myRecorder?.startRecorder(
+      toFile: filePath,
+      codec: Codec.aacADTS,
+    );
+    recordStartTime = DateTime.now();
+  }
+
+  Future<void> stopRecorder() async {
+    waveFormController?.stop();
+    setState(() {
+      wavePlaying = false;
+      waveData = waveFormController?.waveData;
+    });
+    waveFormController?.dispose();
+    waveFormController = null;
+    final String? url = await _myRecorder?.stopRecorder();
+    recordEndTime = DateTime.now();
+    final int microSeconds =
+        recordEndTime!.difference(recordStartTime!).inMicroseconds;
+
+    if (url != null) {
+      closeRecorder();
+      // await _myPlayer?.openPlayer();
+      // final Duration? dur =
+      //     await _myPlayer?.startPlayer(fromURI: url, codec: Codec.aacADTS);
+      // if (dur != null) {
+      //   Future.delayed(dur, () {
+      //     closePlayer();
+      //
+      //   });
+      // }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) async {
-        myRecorder = await FlutterSoundRecorder().openRecorder();
-
         controller.forward().then((value) {
-          disposeRecorder();
           controller.reset();
         });
+        _myRecorder?.openRecorder();
+        await record();
       },
       onTapUp: (_) {
-        disposeRecorder();
+        stopRecorder();
         controller.reset();
       },
       onTapCancel: () {
-        disposeRecorder();
+        stopRecorder();
         controller.reset();
       },
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          CircularProgressIndicator(
-            value: 1.0,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade200),
+      child: Row(
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              CircularProgressIndicator(
+                value: 1.0,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade200),
+              ),
+              CircularProgressIndicator(
+                value: progress,
+                valueColor: const AlwaysStoppedAnimation<Color>(primaryColor),
+              ),
+              if (recording)
+                Text(
+                  (progress * voiceMessageDurationSeconds).round().toString(),
+                  style: const TextStyle(
+                      color: primaryColor, fontWeight: FontWeight.bold),
+                )
+              else
+                const Icon(Icons.mic, color: primaryColor),
+            ],
           ),
-          CircularProgressIndicator(
-            value: controller.value,
-            valueColor: const AlwaysStoppedAnimation<Color>(primaryColor),
-          ),
-          if (controller.status == AnimationStatus.forward)
-            Text(
-              (controller.value * voiceMessageDurationSeconds)
-                  .round()
-                  .toString(),
-              style:
-                  const TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+          if (wavePlaying)
+            AudioWaveforms(
+              enableGesture: true,
+              size: const Size(50, 50),
+              recorderController: waveFormController!,
+              waveStyle: const WaveStyle(
+                  spacing: 4,
+                  waveThickness: 3,
+                  waveColor: primaryColor,
+                  extendWaveform: true,
+                  showMiddleLine: false,
+                  scaleFactor: 100),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15.0),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              padding: const EdgeInsets.only(left: 10),
+              margin: const EdgeInsets.only(left: 10),
             )
-          else
-            const Icon(Icons.mic, color: primaryColor)
         ],
       ),
     );

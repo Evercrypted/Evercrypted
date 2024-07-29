@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
 
-decodePayload(resp, key, [bool notHex = false]) async {
+dynamic decodePayload(resp, key, [bool notHex = false]) async {
   final algorithm = Chacha20.poly1305Aead();
   final secretBox = SecretBox(
     base64.decode(resp['crypted']),
@@ -16,7 +16,7 @@ decodePayload(resp, key, [bool notHex = false]) async {
   return json.decode(utf8.decode(clearText));
 }
 
-encodePayload(message, key, [bool notHex = false]) async {
+dynamic encodePayload(message, key, [bool notHex = false]) async {
   final algorithm = Chacha20.poly1305Aead();
   final secretBox = await algorithm.encrypt(
       utf8.encode(json.encode(message).toString()),

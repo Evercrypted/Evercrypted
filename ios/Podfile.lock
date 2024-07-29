@@ -1,4 +1,6 @@
 PODS:
+  - audio_waveforms (0.0.1):
+    - Flutter
   - cryptography_flutter (0.2.0):
     - Flutter
   - Firebase/CoreOnly (10.25.0):
@@ -38,10 +40,10 @@ PODS:
     - Flutter
   - flutter_secure_storage (6.0.0):
     - Flutter
-  - flutter_sound (9.4.9):
+  - flutter_sound (9.8.1):
     - Flutter
-    - flutter_sound_core (= 9.4.9)
-  - flutter_sound_core (9.4.9)
+    - flutter_sound_core (= 9.8.1)
+  - flutter_sound_core (9.8.1)
   - GoogleDataTransport (9.4.1):
     - GoogleUtilities/Environment (~> 7.7)
     - nanopb (< 2.30911.0, >= 2.30908.0)
@@ -92,6 +94,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - audio_waveforms (from `.symlinks/plugins/audio_waveforms/ios`)
   - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
@@ -120,6 +123,8 @@ SPEC REPOS:
     - PromisesObjC
 
 EXTERNAL SOURCES:
+  audio_waveforms:
+    :path: ".symlinks/plugins/audio_waveforms/ios"
   cryptography_flutter:
     :path: ".symlinks/plugins/cryptography_flutter/ios"
   firebase_core:
@@ -148,6 +153,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
+  audio_waveforms: cd736909ebc6b6a164eb74701d8c705ce3241e1c
   cryptography_flutter: 381bdacc984abcfbe3ca45ef7c76566ff061614c
   Firebase: 0312a2352584f782ea56f66d91606891d4607f06
   firebase_core: 0b39f4f424e02eecabb2356ddf331fa07b772af8
@@ -159,8 +165,8 @@ SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_local_notifications: 4cde75091f6327eb8517fa068a0a5950212d2086
   flutter_secure_storage: d33dac7ae2ea08509be337e775f6b59f1ff45f12
-  flutter_sound: 43ad7dbb865b342218081bb898cec581f9743b9e
-  flutter_sound_core: 79a0ff8dd3115005a44d8953bd37627343d8b58a
+  flutter_sound: 50f27298c6997541da1afbd4ff368a3aee60451d
+  flutter_sound_core: e7ccc8b10ecfd22894fd0507c5e79a6ae6fafeb8
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
@@ -172,6 +178,6 @@ SPEC CHECKSUMS:
   smart_auth: 4bedbc118723912d0e45a07e8ab34039c19e04f2
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
 
-PODFILE CHECKSUM: e02631d5b2ed39471a51578addefc7a901f7ee2b
+PODFILE CHECKSUM: 94e399427d849360c9e82ea402a43faf56bb80d4
 
 COCOAPODS: 1.15.2

@@ -1,11 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
-import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../core/entities/profile/profile_model.dart';
-import '../../core/entities/profile/profile_riverpod.dart';
 import '../chats/chats_screen.dart';
 import '../contacts/contacts_screen.dart';
 import '../profile/profile_screen.dart';
@@ -51,7 +47,6 @@ class MainScreenState extends ConsumerState<MainScreen> {
 
   void checkOnPermissions() async {
     await [
-      Permission.location,
       Permission.storage,
     ].request();
   }
