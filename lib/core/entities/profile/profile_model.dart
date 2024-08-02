@@ -26,7 +26,7 @@ class Profile {
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
       uid: json['uid'] as String,
       name: json['name'] as String?,
-      email: json['email'] as String,
+      email: (json['email'] ?? json['preverified_email']) as String,
       emailVerified: json['email_verified'] as bool,
       avatar: json['avatar'] == null
           ? null

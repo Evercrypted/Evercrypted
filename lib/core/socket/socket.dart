@@ -31,7 +31,6 @@ List<int> getNewNonce(byteLength, random) {
 
 class ChatSocket {
   ChatSocket._();
-  final wsUrl = Uri.parse('ws://localhost:1234');
   static io.Socket? socket;
   static SimpleKeyPair? keyPair;
   static String? key;
@@ -104,13 +103,15 @@ class ChatSocket {
     options = options.setExtraHeaders(headers);
 
     io.cache.clear();
-    socket = io.io('http://localhost:4000', options.build());
+    // socket = io.io('http://localhost:4000', options.build());
+    socket = io.io('http://49.13.136.216:8080', options.build());
 
     if (socket?.connected != true) {
       socket?.connect();
     }
 
     socket?.onConnect((_) async {
+      print('connected');
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
       actionQueueService.processQueue();
@@ -137,7 +138,7 @@ class ChatSocket {
 
     socket?.onError((data) {
       print('data $data');
-      if (data.message == 'Connection refused') {
+      if (data['message'] == 'Connection refused') {
         isConnected = false;
         isConnected = false;
         isConnectedSubject.add(isConnected!);
