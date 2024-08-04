@@ -9,8 +9,8 @@ final dio = Dio(
 
 initializeDio() {
   dio
-    // ..options.baseUrl = 'http://localhost:3001'
-    ..options.baseUrl = 'http://49.13.136.216'
+    ..options.baseUrl = 'http://localhost:3001'
+    // ..options.baseUrl = 'http://49.13.136.216'
     ..interceptors.add(PrettyDioLogger());
   // ..interceptors.add(RetryInterceptor(
   //   dio: dio,

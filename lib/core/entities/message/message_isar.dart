@@ -6,6 +6,7 @@ class MessageTypes {
   MessageTypes._();
   static const text = 'text';
   static const audio = 'audio';
+  static const file = 'file';
   static const image = 'image';
   static const video = 'video';
   static const system = 'system';
@@ -50,6 +51,10 @@ class Message {
 
   String? localPinLabel;
 
+  int? playbackDurationMicroSeconds;
+
+  List<double>? waveData;
+
   Message(
       {this.uid,
       required this.authorId,
@@ -67,7 +72,9 @@ class Message {
       this.queueId,
       this.pinnedByUid,
       this.pinLabel,
-      this.localPinLabel});
+      this.localPinLabel,
+      this.playbackDurationMicroSeconds,
+      this.waveData});
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         uid: json['uid'] as String,
@@ -84,6 +91,10 @@ class Message {
         messageType: json['messageType'] as String,
         pinnedByUid: json['pinnedByUid'] as String?,
         pinLabel: json['pinLabel'] as String?,
+        playbackDurationMicroSeconds: json['playbackDuration'] as int?,
+        waveData: (json['waveData'] as List<dynamic>)
+            .map((e) => e as double)
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -99,5 +110,7 @@ class Message {
         'messageType': messageType,
         'pinnedByUid': pinnedByUid,
         'pinLabel': pinLabel,
+        'playbackDuration': playbackDurationMicroSeconds,
+        'waveData': waveData,
       };
 }

@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:evercrypted/core/cryptography/file.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -7,7 +11,9 @@ import 'package:path_provider/path_provider.dart';
 import '../../../ui_constants.dart';
 
 class VoiceRecorderButton extends StatefulWidget {
-  const VoiceRecorderButton({super.key});
+  const VoiceRecorderButton({super.key, this.pass, required this.chatId});
+  final String? pass;
+  final String chatId;
 
   @override
   VoiceRecorderButtonState createState() => VoiceRecorderButtonState();
@@ -27,6 +33,9 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   DateTime? recordStartTime;
   DateTime? recordEndTime;
   String? filePath;
+  bool fileWritten = false;
+  String? iv;
+  String? mac;
 
   @override
   void initState() {
@@ -76,7 +85,8 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     });
     await waveFormController?.record();
     var tempDir = await getTemporaryDirectory();
-    filePath = '${tempDir.path}/${getRandomString(36)}.aac';
+    filePath =
+        '${tempDir.path}/${widget.chatId}-${DateTime.now().millisecondsSinceEpoch}-${getRandomString(16)}.aac';
     await _myRecorder?.startRecorder(
       toFile: filePath,
       codec: Codec.aacADTS,
@@ -88,8 +98,8 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     waveFormController?.stop();
     setState(() {
       wavePlaying = false;
-      waveData = waveFormController?.waveData;
     });
+    waveData = waveFormController?.waveData;
     waveFormController?.dispose();
     waveFormController = null;
     final String? url = await _myRecorder?.stopRecorder();
@@ -99,15 +109,22 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
 
     if (url != null) {
       closeRecorder();
-      // await _myPlayer?.openPlayer();
-      // final Duration? dur =
-      //     await _myPlayer?.startPlayer(fromURI: url, codec: Codec.aacADTS);
-      // if (dur != null) {
-      //   Future.delayed(dur, () {
-      //     closePlayer();
-      //
-      //   });
-      // }
+      if (widget.pass != null &&
+          widget.pass!.isNotEmpty == true &&
+          filePath != null) {
+        final encrypted = await encodeFile(widget.pass!, filePath!);
+        if (encrypted != null) {
+          await File(filePath!).delete();
+        }
+        // iv = encrypted.iv;
+        // mac = encrypted.mac;
+        // var tempDir = await getTemporaryDirectory();
+        // await File('${tempDir.path}/crypted')
+        //     .writeAsBytes(encrypted.cryptedFile);
+        // setState(() {
+        //   fileWritten = true;
+        // });
+      }
     }
   }
 
@@ -170,7 +187,26 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
               ),
               padding: const EdgeInsets.only(left: 10),
               margin: const EdgeInsets.only(left: 10),
-            )
+            ),
+          // if (fileWritten)
+          //   IconButton(
+          //       onPressed: () async {
+          //         var tempDir = await getTemporaryDirectory();
+          //         final Uint8List file =
+          //             File('${tempDir.path}/crypted').readAsBytesSync();
+          //         final decrypted =
+          //             await decodeFile(widget.pass!, iv!, mac!, file, true);
+          //         print(decrypted);
+          //         await _myPlayer?.openPlayer();
+          //         final Duration? dur = await _myPlayer?.startPlayer(
+          //             fromDataBuffer: decrypted, codec: Codec.aacADTS);
+          //         if (dur != null) {
+          //           Future.delayed(dur, () {
+          //             closePlayer();
+          //           });
+          //         }
+          //       },
+          //       icon: const Icon(Icons.play_arrow))
         ],
       ),
     );

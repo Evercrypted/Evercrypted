@@ -77,30 +77,40 @@ const MessageSchema = CollectionSchema(
       name: r'pinnedByUid',
       type: IsarType.string,
     ),
-    r'queueId': PropertySchema(
+    r'playbackDurationMicroSeconds': PropertySchema(
       id: 12,
+      name: r'playbackDurationMicroSeconds',
+      type: IsarType.long,
+    ),
+    r'queueId': PropertySchema(
+      id: 13,
       name: r'queueId',
       type: IsarType.long,
     ),
     r'successfullySent': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'successfullySent',
       type: IsarType.bool,
     ),
     r'text': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'text',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'uid',
       type: IsarType.string,
     ),
     r'uniqueId': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'uniqueId',
       type: IsarType.string,
+    ),
+    r'waveData': PropertySchema(
+      id: 18,
+      name: r'waveData',
+      type: IsarType.doubleList,
     )
   },
   estimateSize: _messageEstimateSize,
@@ -180,7 +190,7 @@ const MessageSchema = CollectionSchema(
   getId: _messageGetId,
   getLinks: _messageGetLinks,
   attach: _messageAttach,
-  version: '3.1.0+1',
+  version: '3.1.7',
 );
 
 int _messageEstimateSize(
@@ -252,6 +262,12 @@ int _messageEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.waveData;
+    if (value != null) {
+      bytesCount += 3 + value.length * 8;
+    }
+  }
   return bytesCount;
 }
 
@@ -273,11 +289,13 @@ void _messageSerialize(
   writer.writeString(offsets[9], object.messageType);
   writer.writeString(offsets[10], object.pinLabel);
   writer.writeString(offsets[11], object.pinnedByUid);
-  writer.writeLong(offsets[12], object.queueId);
-  writer.writeBool(offsets[13], object.successfullySent);
-  writer.writeString(offsets[14], object.text);
-  writer.writeString(offsets[15], object.uid);
-  writer.writeString(offsets[16], object.uniqueId);
+  writer.writeLong(offsets[12], object.playbackDurationMicroSeconds);
+  writer.writeLong(offsets[13], object.queueId);
+  writer.writeBool(offsets[14], object.successfullySent);
+  writer.writeString(offsets[15], object.text);
+  writer.writeString(offsets[16], object.uid);
+  writer.writeString(offsets[17], object.uniqueId);
+  writer.writeDoubleList(offsets[18], object.waveData);
 }
 
 Message _messageDeserialize(
@@ -299,11 +317,13 @@ Message _messageDeserialize(
     messageType: reader.readStringOrNull(offsets[9]) ?? MessageTypes.text,
     pinLabel: reader.readStringOrNull(offsets[10]),
     pinnedByUid: reader.readStringOrNull(offsets[11]),
-    queueId: reader.readLongOrNull(offsets[12]),
-    successfullySent: reader.readBoolOrNull(offsets[13]) ?? true,
-    text: reader.readStringOrNull(offsets[14]),
-    uid: reader.readStringOrNull(offsets[15]),
-    uniqueId: reader.readStringOrNull(offsets[16]),
+    playbackDurationMicroSeconds: reader.readLongOrNull(offsets[12]),
+    queueId: reader.readLongOrNull(offsets[13]),
+    successfullySent: reader.readBoolOrNull(offsets[14]) ?? true,
+    text: reader.readStringOrNull(offsets[15]),
+    uid: reader.readStringOrNull(offsets[16]),
+    uniqueId: reader.readStringOrNull(offsets[17]),
+    waveData: reader.readDoubleList(offsets[18]),
   );
   object.id = id;
   return object;
@@ -343,13 +363,17 @@ P _messageDeserializeProp<P>(
     case 12:
       return (reader.readLongOrNull(offset)) as P;
     case 13:
-      return (reader.readBoolOrNull(offset) ?? true) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 14:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 15:
       return (reader.readStringOrNull(offset)) as P;
     case 16:
       return (reader.readStringOrNull(offset)) as P;
+    case 17:
+      return (reader.readStringOrNull(offset)) as P;
+    case 18:
+      return (reader.readDoubleList(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -2372,6 +2396,80 @@ extension MessageQueryFilter
     });
   }
 
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'playbackDurationMicroSeconds',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'playbackDurationMicroSeconds',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'playbackDurationMicroSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'playbackDurationMicroSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'playbackDurationMicroSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'playbackDurationMicroSeconds',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterFilterCondition> queueIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2888,6 +2986,170 @@ extension MessageQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'waveData',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'waveData',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataElementEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'waveData',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      waveDataElementGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'waveData',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataElementLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'waveData',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataElementBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'waveData',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'waveData',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'waveData',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'waveData',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'waveData',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      waveDataLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'waveData',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'waveData',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
 }
 
 extension MessageQueryObject
@@ -3026,6 +3288,20 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
   QueryBuilder<Message, Message, QAfterSortBy> sortByPinnedByUidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'pinnedByUid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy>
+      sortByPlaybackDurationMicroSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'playbackDurationMicroSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy>
+      sortByPlaybackDurationMicroSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'playbackDurationMicroSeconds', Sort.desc);
     });
   }
 
@@ -3236,6 +3512,20 @@ extension MessageQuerySortThenBy
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy>
+      thenByPlaybackDurationMicroSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'playbackDurationMicroSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy>
+      thenByPlaybackDurationMicroSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'playbackDurationMicroSeconds', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenByQueueId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'queueId', Sort.asc);
@@ -3380,6 +3670,13 @@ extension MessageQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Message, Message, QDistinct>
+      distinctByPlaybackDurationMicroSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'playbackDurationMicroSeconds');
+    });
+  }
+
   QueryBuilder<Message, Message, QDistinct> distinctByQueueId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'queueId');
@@ -3410,6 +3707,12 @@ extension MessageQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'uniqueId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByWaveData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'waveData');
     });
   }
 }
@@ -3494,6 +3797,13 @@ extension MessageQueryProperty
     });
   }
 
+  QueryBuilder<Message, int?, QQueryOperations>
+      playbackDurationMicroSecondsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'playbackDurationMicroSeconds');
+    });
+  }
+
   QueryBuilder<Message, int?, QQueryOperations> queueIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'queueId');
@@ -3521,6 +3831,12 @@ extension MessageQueryProperty
   QueryBuilder<Message, String?, QQueryOperations> uniqueIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'uniqueId');
+    });
+  }
+
+  QueryBuilder<Message, List<double>?, QQueryOperations> waveDataProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'waveData');
     });
   }
 }

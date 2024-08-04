@@ -118,7 +118,17 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                 context: context,
                                 controller: _passController,
                                 done: (val) => setState(() {
-                                      pass = val.text;
+                                      if (val.text == null ||
+                                          val.text.isEmpty) {
+                                        pass = null;
+                                      } else {
+                                        var fullKeyString = val.text as String;
+                                        if (fullKeyString.length < 32) {
+                                          fullKeyString = fullKeyString +
+                                              '0' * (32 - fullKeyString.length);
+                                        }
+                                        pass = fullKeyString;
+                                      }
                                     }));
                           },
                           keyboardType: TextInputType.none,
@@ -166,6 +176,18 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           press: () {
                             setState(() {
                               pass = _passController.text;
+                              setState(() {
+                                if (_passController.text.isEmpty) {
+                                  pass = null;
+                                } else {
+                                  var fullKeyString = _passController.text;
+                                  if (fullKeyString.length < 32) {
+                                    fullKeyString = fullKeyString +
+                                        '0' * (32 - fullKeyString.length);
+                                  }
+                                  pass = fullKeyString;
+                                }
+                              });
                             });
                             Navigator.pop(context);
                           },

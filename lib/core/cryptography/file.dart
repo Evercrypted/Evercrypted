@@ -4,22 +4,31 @@ import 'package:cryptography/cryptography.dart';
 import 'dart:convert';
 
 import 'package:convert/convert.dart';
+import 'package:evercrypted/core/helpers/as_uinteight_list.dart';
 
-Future<Map<String, dynamic>> encodeFile(key, filePath,
-    [bool notHex = false]) async {
-  final algorithm = Chacha20.poly1305Aead();
-  Uint8List bytes = File(filePath).readAsBytesSync();
-  final SecretBox secretBox = await algorithm.encrypt(bytes,
-      secretKey:
-          SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
-  return {
-    'cryptedFile': secretBox.cipherText,
-    'iv': base64.encode(secretBox.nonce),
-    'mac': base64.encode(secretBox.mac.bytes),
-  };
+class EncryptedFile {
+  final String iv;
+  final String mac;
+  final Uint8List cryptedFile;
+
+  EncryptedFile(this.cryptedFile, this.iv, this.mac);
 }
 
-Future<List<int>> decodeFile(
+Future<EncryptedFile?> encodeFile(key, filePath, [bool notHex = true]) async {
+  try {
+    final algorithm = Chacha20.poly1305Aead();
+    Uint8List bytes = File(filePath).readAsBytesSync();
+    final SecretBox secretBox = await algorithm.encrypt(bytes,
+        secretKey:
+            SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
+    return EncryptedFile(secretBox.cipherText.asUint8List(),
+        base64.encode(secretBox.nonce), base64.encode(secretBox.mac.bytes));
+  } catch (e) {
+    return null;
+  }
+}
+
+Future<Uint8List> decodeFile(
     String key, String iv, String mac, List<int> cryptedFile,
     [bool notHex = false]) async {
   final algorithm = Chacha20.poly1305Aead();
@@ -28,7 +37,8 @@ Future<List<int>> decodeFile(
     nonce: base64.decode(iv),
     mac: Mac(base64.decode(mac)),
   );
-  return algorithm.decrypt(secretBox,
+  final decrypted = await algorithm.decrypt(secretBox,
       secretKey:
           SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
+  return decrypted.asUint8List();
 }

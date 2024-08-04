@@ -62,17 +62,13 @@ class _MessageWidgetState extends State<MessageWidget> {
               message.pass!.isNotEmpty &&
               message.encryptionStatus == EncryptionStatus.encrypted ||
           message.encryptionStatus == EncryptionStatus.failed) {
-        var fullKeyString = message.pass;
-        if (fullKeyString!.length < 32) {
-          fullKeyString = fullKeyString + '0' * (32 - message.pass!.length);
-        }
         final String decrypted = await decodePayload(
           {
             'crypted': message.text,
             'iv': message.iv,
             'mac': message.mac,
           },
-          fullKeyString,
+          message.pass,
           true,
         );
         setState(() {

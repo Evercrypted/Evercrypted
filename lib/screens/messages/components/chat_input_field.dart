@@ -61,7 +61,7 @@ class ChatInputFieldState extends State<ChatInputField> {
             child: Row(
               children: [
                 const SizedBox(width: defaultPadding / 2),
-                const VoiceRecorderButton(),
+                VoiceRecorderButton(pass: widget.pass, chatId: widget.chatId),
                 const SizedBox(width: defaultPadding / 4),
                 Expanded(
                   child: Row(
