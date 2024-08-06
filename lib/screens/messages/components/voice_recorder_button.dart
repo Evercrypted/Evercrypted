@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:evercrypted/core/cryptography/file.dart';
+import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -109,21 +110,30 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
 
     if (url != null) {
       closeRecorder();
-      if (widget.pass != null &&
-          widget.pass!.isNotEmpty == true &&
-          filePath != null) {
-        final encrypted = await encodeFile(widget.pass!, filePath!);
-        if (encrypted != null) {
-          await File(filePath!).delete();
-        }
-        // iv = encrypted.iv;
-        // mac = encrypted.mac;
-        // var tempDir = await getTemporaryDirectory();
-        // await File('${tempDir.path}/crypted')
-        //     .writeAsBytes(encrypted.cryptedFile);
-        // setState(() {
-        //   fileWritten = true;
-        // });
+      if (filePath != null) {
+        if (widget.pass != null && widget.pass!.isNotEmpty == true) {
+          final encrypted = await encodeFile(widget.pass!, filePath!);
+          final iv = encrypted!.iv;
+          final mac = encrypted.mac;
+          final ecnryptedMicroSeconds =
+              await encodePayload(microSeconds, widget.pass!);
+
+          final encryptedWaveData = await encodePayload(waveData, widget.pass!);
+          if (encrypted != null) {
+            await File(filePath!).delete();
+          }
+
+          final Directory appDocumentsDir =
+              await getApplicationDocumentsDirectory();
+          // iv = encrypted.iv;
+          // mac = encrypted.mac;
+          // var tempDir = await getTemporaryDirectory();
+          // await File('${tempDir.path}/crypted')
+          //     .writeAsBytes(encrypted.cryptedFile);
+          // setState(() {
+          //   fileWritten = true;
+          // });
+        } else {}
       }
     }
   }

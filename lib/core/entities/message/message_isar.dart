@@ -52,8 +52,12 @@ class Message {
   String? localPinLabel;
 
   int? playbackDurationMicroSeconds;
+  String? durationIV;
+  String? durationMAC;
 
   List<double>? waveData;
+  String? waveDataIV;
+  String? waveDataMAC;
 
   Message(
       {this.uid,
@@ -74,7 +78,11 @@ class Message {
       this.pinLabel,
       this.localPinLabel,
       this.playbackDurationMicroSeconds,
-      this.waveData});
+      this.durationIV,
+      this.durationMAC,
+      this.waveData,
+      this.waveDataIV,
+      this.waveDataMAC});
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         uid: json['uid'] as String,
@@ -92,9 +100,13 @@ class Message {
         pinnedByUid: json['pinnedByUid'] as String?,
         pinLabel: json['pinLabel'] as String?,
         playbackDurationMicroSeconds: json['playbackDuration'] as int?,
+        durationIV: json['durationIV'] as String?,
+        durationMAC: json['durationMAC'] as String?,
         waveData: (json['waveData'] as List<dynamic>)
             .map((e) => e as double)
             .toList(),
+        waveDataIV: json['waveDataIV'] as String?,
+        waveDataMAC: json['waveDataMAC'] as String?,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -111,6 +123,10 @@ class Message {
         'pinnedByUid': pinnedByUid,
         'pinLabel': pinLabel,
         'playbackDuration': playbackDurationMicroSeconds,
+        'durationIV': durationIV,
+        'durationMAC': durationMAC,
         'waveData': waveData,
+        'waveDataIV': waveDataIV,
+        'waveDataMAC': waveDataMAC,
       };
 }

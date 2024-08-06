@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
@@ -55,6 +56,58 @@ class MessageService {
           .findAllSync()
           .toList();
     }
+  }
+
+  Future<Message> sendFile(
+      {required String chatUid,
+      required fileBuffer,
+      String? iv,
+      String? mac,
+      int? playbackDurationMicroSeconds,
+      String? durationIV,
+      String? durationMAC,
+      List<double>? waveData,
+      String? waveDataIV,
+      String? waveDataMAC}) async {
+    Message messageToSend = Message(
+      authorId: userId!,
+      createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+      chatUid: chatUid,
+      iv: iv,
+      mac: mac,
+      isEncrypted: iv != null && mac != null ? true : false,
+      playbackDurationMicroSeconds: playbackDurationMicroSeconds,
+      durationIV: durationIV,
+      durationMAC: durationMAC,
+      waveData: waveData,
+      waveDataIV: waveDataIV,
+      waveDataMAC: waveDataMAC,
+    );
+    Completer<Message> complete = Completer();
+    ChatSocket.emitWAck(SocketChannelTypes.message, MessageEventTypes.sendFile,
+            messageToSend.toJson())
+        .then((resp) {
+      if (resp['status'] == 'queued') {
+        messageToSend.successfullySent = false;
+        messageToSend.queueId = resp['queuedItemId'];
+        messageToSend.uid = DateTime.now().millisecondsSinceEpoch.toString() +
+            resp['queuedItemId'].toString();
+        messageToSend.uniqueId =
+            DateTime.now().millisecondsSinceEpoch.toString() +
+                chatUid +
+                resp['queuedItemId'].toString();
+      } else {
+        messageToSend.uid = resp['messageUid'];
+        messageToSend.uniqueId = chatUid + resp['messageUid'];
+        messageToSend.successfullySent = true;
+      }
+      writeNewMessageToIsar(messageToSend).then((value) {
+        complete.complete(messageToSend);
+      });
+    }).onError((error, stackTrace) {
+      complete.completeError(error!);
+    });
+    return complete.future;
   }
 
   Future<Message> sendMessage(dynamic message, String chatUid) async {

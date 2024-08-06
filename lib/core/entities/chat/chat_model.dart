@@ -113,7 +113,7 @@ class Participant {
         'is_admin': isAdmin,
       };
 
-  copyWith(
+  Participant copyWith(
           {String? uid,
           String? email,
           String? name,

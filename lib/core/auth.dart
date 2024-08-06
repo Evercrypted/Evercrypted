@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
+import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -18,12 +19,27 @@ class Auth {
   static String? refreshToken;
   static bool? isOtpActive;
   static String? otpToken;
+  static String? appKey;
 
   static const storage = FlutterSecureStorage(
       iOptions: IOSOptions(
         accessibility: KeychainAccessibility.first_unlock,
       ),
-      aOptions: AndroidOptions(encryptedSharedPreferences: true));
+      aOptions: AndroidOptions());
+
+  static setAppKey() async {
+    final random = getRandomString(32);
+    await storage.write(key: 'appKey', value: random);
+    return random;
+  }
+
+  static Future<String> get getAppKey async {
+    if (appKey == null) {
+      final fromStorage = await storage.read(key: 'appKey');
+      appKey = fromStorage;
+    }
+    return appKey!;
+  }
 
   static setAuth(
       {Profile? profile, String? newToken, bool? newIsOtpActive}) async {
