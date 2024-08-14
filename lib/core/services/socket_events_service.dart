@@ -107,14 +107,13 @@ class SocketEventsService {
         contactService.syncContacts((payload['contacts'] as List<dynamic>)
             .map((contactData) => Contact.fromJson(contactData))
             .toList());
+        chatService.updateChatLastSeen();
         chatService.syncChats((payload['chats'] as List<dynamic>)
             .map((chatData) => Chat.fromJson(chatData))
             .toList());
         messageService.syncMessages((payload['unreadMessages'] as List<dynamic>)
             .map((messageData) => Message.fromJson(messageData))
             .toList());
-        Future.delayed(
-            const Duration(seconds: 2), () => chatService.updateChatLastSeen());
         break;
       default:
         print('Unknown General Event');
@@ -311,6 +310,10 @@ class SocketEventsService {
             'type': null,
           }),
         );
+        break;
+      case ChatEventTypes.chatUpdated:
+        final Chat chat = Chat.fromJson(payload['chat']);
+        chatService.updateChatFromResp(chat);
         break;
       default:
         print('Unknown Contact Event');

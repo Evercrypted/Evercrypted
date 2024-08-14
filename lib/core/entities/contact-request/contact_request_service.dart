@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:isar/isar.dart';
@@ -22,14 +24,18 @@ class ContactRequestService {
     });
   }
 
-  Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
+  Future<dynamic> acceptContactRequest(ContactRequest cRequest) async {
     final isar = Isar.getInstance();
+    final String appKey = await Auth.getAppKey;
+
     return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
             ContactRequestEventTypes.acceptContactRequest, cRequest.uid)
         .then((value) {
       isar?.writeTxn(() async {
         isar.contactRequests.deleteByUid(cRequest.uid);
-        isar.contacts.put(Contact.fromJson(value));
+        isar.contacts.put(Contact.fromJson(value).copyWith(
+            email: fernetEncrypt(Contact.fromJson(value).email, appKey),
+            name: fernetEncrypt(Contact.fromJson(value).name, appKey)));
       });
     }).onError((error, stackTrace) {
       if (error == 'No such contact request found') {
@@ -91,6 +97,8 @@ class ContactRequestService {
   void syncContactRequests(List<ContactRequest> contactRequests) async {
     final isar = Isar.getInstance();
 
+    final String appKey = await Auth.getAppKey;
+
     final List<ContactRequest> contactRequestsInDb =
         await isar!.contactRequests.where().findAll();
 
@@ -106,8 +114,15 @@ class ContactRequestService {
         .map((ContactRequest el) => el.id)
         .toList();
 
+    final toPut = contactRequestsToPut.map((e) {
+      return e.copyWith(
+          authorEmail: fernetEncrypt(e.authorEmail, appKey),
+          recipientEmail: fernetEncrypt(e.recipientEmail, appKey),
+          message: fernetEncrypt(e.message, appKey));
+    }).toList();
+
     await isar.writeTxn(() async {
-      await isar.contactRequests.putAll(contactRequestsToPut);
+      await isar.contactRequests.putAll(toPut);
       await isar.contactRequests.deleteAll(contactRequestsToDelete);
     });
   }

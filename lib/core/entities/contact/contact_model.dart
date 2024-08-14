@@ -51,4 +51,22 @@ class Contact {
         'avatar': avatar?.toJson(),
         'isFavorite': isFavorite,
       };
+
+  Contact copyWith({
+    String? uid,
+    String? email,
+    Avatar? avatar,
+    String? name,
+    String? contactPersonUid,
+    bool? isFavorite,
+  }) {
+    return Contact(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      avatar: avatar ?? this.avatar,
+      name: name ?? this.name,
+      contactPersonUid: contactPersonUid ?? this.contactPersonUid,
+      isFavorite: isFavorite ?? this.isFavorite,
+    );
+  }
 }

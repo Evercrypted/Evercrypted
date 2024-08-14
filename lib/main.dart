@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
@@ -46,6 +47,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  if (await Auth.appKeyFromStorage == null) {
+    await Auth.setAppKey();
+  }
 
   final dir = await getApplicationDocumentsDirectory();
   await Isar.open([
@@ -255,35 +260,63 @@ class AuthGateState extends ConsumerState<AuthGate> {
         'afterlaunch payload: ${notificationAppLaunchDetails.toString()}');
   }
 
-  void _syncIsarToRiverpod() {
+  void _syncIsarToRiverpod() async {
     final isar = Isar.getInstance();
+
+    final String appKey = await Auth.getAppKey;
 
     //profile
     final profile = isar?.profiles.where().build().findFirstSync();
-    if (profile != null) ref.read(profileProvider.notifier).setProfile(profile);
+    if (profile != null) {
+      ref.read(profileProvider.notifier).setProfile(profile.copyWith(
+          email: fernetDecrypt(profile.email, appKey),
+          name: fernetDecrypt(profile.name, appKey)));
+    }
 
     //contactRequests
     final contactRequests = isar?.contactRequests.where().build().findAllSync();
     if (contactRequests != null) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
-          contactRequests
-              .where((element) => element.recipientEmail == user!.email)
-              .toList());
+              contactRequests
+                  .where((element) => element.recipientEmail == user!.email)
+                  .map((c) {
+            return c.copyWith(
+                authorEmail: fernetDecrypt(c.authorEmail, appKey),
+                recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
+                message: fernetDecrypt(c.message, appKey));
+          }).toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-          .where((element) => element.authorId == user!.uid)
-          .toList());
+              .where((element) => element.authorId == user!.uid)
+              .map((c) {
+            return c.copyWith(
+                authorEmail: fernetDecrypt(c.authorEmail, appKey),
+                recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
+                message: fernetDecrypt(c.message, appKey));
+          }).toList());
     }
 
     //contacts
     final contacts = isar?.contacts.where().build().findAllSync();
     if (contacts != null) {
-      ref.read(contactsProvider.notifier).setContacts(contacts);
+      ref.read(contactsProvider.notifier).setContacts(contacts.map((c) {
+            return c.copyWith(
+                email: fernetDecrypt(c.email, appKey),
+                name: fernetDecrypt(c.name, appKey));
+          }).toList());
     }
 
     //chats
     final chats = isar?.chats.where().build().findAllSync();
+
     if (chats != null) {
-      ref.read(chatsProvider.notifier).setChats(chats);
+      ref.read(chatsProvider.notifier).setChats(chats.map((c) {
+            c.participants = c.participants.map((p) {
+              return p.copyWith(
+                  email: fernetDecrypt(p.email, appKey),
+                  name: fernetDecrypt(p.name, appKey));
+            }).toList();
+            return c;
+          }).toList());
     }
   }
 
@@ -294,37 +327,62 @@ class AuthGateState extends ConsumerState<AuthGate> {
     isarChatsListener?.cancel();
   }
 
-  void _setIsarWatchers() {
+  void _setIsarWatchers() async {
     final isar = Isar.getInstance();
 
     cancelIsarListeners();
+
+    final String appKey = await Auth.getAppKey;
 
     //profile
     isarProfileListener =
         isar?.profiles.where().build().watch().listen((profiles) {
       if (profiles.isNotEmpty) {
-        ref.read(profileProvider.notifier).setProfile(profiles.first);
+        ref.read(profileProvider.notifier).setProfile(profiles.first.copyWith(
+            email: fernetDecrypt(profiles.first.email, appKey),
+            name: fernetDecrypt(profiles.first.name, appKey)));
       }
     });
     //contactRequests
     isarContactRequestsListener =
         isar?.contactRequests.where().build().watch().listen((contactRequests) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
-          contactRequests
-              .where((element) => element.recipientEmail == user!.email)
-              .toList());
+              contactRequests
+                  .where((element) => element.recipientEmail == user!.email)
+                  .map((c) {
+            return c.copyWith(
+                authorEmail: fernetDecrypt(c.authorEmail, appKey),
+                recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
+                message: fernetDecrypt(c.message, appKey));
+          }).toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-          .where((element) => element.authorId == user!.uid)
-          .toList());
+              .where((element) => element.authorId == user!.uid)
+              .map((c) {
+            return c.copyWith(
+                authorEmail: fernetDecrypt(c.authorEmail, appKey),
+                recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
+                message: fernetDecrypt(c.message, appKey));
+          }).toList());
     });
     //contacts
     isarContactsListener =
         isar?.contacts.where().build().watch().listen((contacts) {
-      ref.read(contactsProvider.notifier).setContacts(contacts);
+      ref.read(contactsProvider.notifier).setContacts(contacts.map((c) {
+            return c.copyWith(
+                email: fernetDecrypt(c.email, appKey),
+                name: fernetDecrypt(c.name, appKey));
+          }).toList());
     });
     //chats
     isarChatsListener = isar?.chats.where().build().watch().listen((chats) {
-      ref.read(chatsProvider.notifier).setChats(chats);
+      ref.read(chatsProvider.notifier).setChats(chats.map((c) {
+            c.participants = c.participants.map((p) {
+              return p.copyWith(
+                  email: fernetDecrypt(p.email, appKey),
+                  name: fernetDecrypt(p.name, appKey));
+            }).toList();
+            return c;
+          }).toList());
     });
     //messages
   }

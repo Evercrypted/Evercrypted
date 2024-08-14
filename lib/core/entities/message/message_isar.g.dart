@@ -37,80 +37,100 @@ const MessageSchema = CollectionSchema(
       name: r'createdAtMSE',
       type: IsarType.long,
     ),
-    r'fileIds': PropertySchema(
+    r'durationIV': PropertySchema(
       id: 4,
+      name: r'durationIV',
+      type: IsarType.string,
+    ),
+    r'durationMAC': PropertySchema(
+      id: 5,
+      name: r'durationMAC',
+      type: IsarType.string,
+    ),
+    r'fileIds': PropertySchema(
+      id: 6,
       name: r'fileIds',
       type: IsarType.stringList,
     ),
     r'isEncrypted': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'isEncrypted',
       type: IsarType.bool,
     ),
     r'iv': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'iv',
       type: IsarType.string,
     ),
     r'localPinLabel': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'localPinLabel',
       type: IsarType.string,
     ),
     r'mac': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'mac',
       type: IsarType.string,
     ),
     r'messageType': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'messageType',
       type: IsarType.string,
     ),
     r'pinLabel': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'pinLabel',
       type: IsarType.string,
     ),
     r'pinnedByUid': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'pinnedByUid',
       type: IsarType.string,
     ),
     r'playbackDurationMicroSeconds': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'playbackDurationMicroSeconds',
       type: IsarType.long,
     ),
     r'queueId': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'queueId',
       type: IsarType.long,
     ),
     r'successfullySent': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'successfullySent',
       type: IsarType.bool,
     ),
     r'text': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'text',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'uid',
       type: IsarType.string,
     ),
     r'uniqueId': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'uniqueId',
       type: IsarType.string,
     ),
     r'waveData': PropertySchema(
-      id: 18,
+      id: 20,
       name: r'waveData',
       type: IsarType.doubleList,
+    ),
+    r'waveDataIV': PropertySchema(
+      id: 21,
+      name: r'waveDataIV',
+      type: IsarType.string,
+    ),
+    r'waveDataMAC': PropertySchema(
+      id: 22,
+      name: r'waveDataMAC',
+      type: IsarType.string,
     )
   },
   estimateSize: _messageEstimateSize,
@@ -202,6 +222,18 @@ int _messageEstimateSize(
   bytesCount += 3 + object.authorId.length * 3;
   bytesCount += 3 + object.chatUid.length * 3;
   {
+    final value = object.durationIV;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.durationMAC;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final list = object.fileIds;
     if (list != null) {
       bytesCount += 3 + list.length * 3;
@@ -268,6 +300,18 @@ int _messageEstimateSize(
       bytesCount += 3 + value.length * 8;
     }
   }
+  {
+    final value = object.waveDataIV;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.waveDataMAC;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -281,21 +325,25 @@ void _messageSerialize(
   writer.writeString(offsets[1], object.chatUid);
   writer.writeBool(offsets[2], object.couldNotSend);
   writer.writeLong(offsets[3], object.createdAtMSE);
-  writer.writeStringList(offsets[4], object.fileIds);
-  writer.writeBool(offsets[5], object.isEncrypted);
-  writer.writeString(offsets[6], object.iv);
-  writer.writeString(offsets[7], object.localPinLabel);
-  writer.writeString(offsets[8], object.mac);
-  writer.writeString(offsets[9], object.messageType);
-  writer.writeString(offsets[10], object.pinLabel);
-  writer.writeString(offsets[11], object.pinnedByUid);
-  writer.writeLong(offsets[12], object.playbackDurationMicroSeconds);
-  writer.writeLong(offsets[13], object.queueId);
-  writer.writeBool(offsets[14], object.successfullySent);
-  writer.writeString(offsets[15], object.text);
-  writer.writeString(offsets[16], object.uid);
-  writer.writeString(offsets[17], object.uniqueId);
-  writer.writeDoubleList(offsets[18], object.waveData);
+  writer.writeString(offsets[4], object.durationIV);
+  writer.writeString(offsets[5], object.durationMAC);
+  writer.writeStringList(offsets[6], object.fileIds);
+  writer.writeBool(offsets[7], object.isEncrypted);
+  writer.writeString(offsets[8], object.iv);
+  writer.writeString(offsets[9], object.localPinLabel);
+  writer.writeString(offsets[10], object.mac);
+  writer.writeString(offsets[11], object.messageType);
+  writer.writeString(offsets[12], object.pinLabel);
+  writer.writeString(offsets[13], object.pinnedByUid);
+  writer.writeLong(offsets[14], object.playbackDurationMicroSeconds);
+  writer.writeLong(offsets[15], object.queueId);
+  writer.writeBool(offsets[16], object.successfullySent);
+  writer.writeString(offsets[17], object.text);
+  writer.writeString(offsets[18], object.uid);
+  writer.writeString(offsets[19], object.uniqueId);
+  writer.writeDoubleList(offsets[20], object.waveData);
+  writer.writeString(offsets[21], object.waveDataIV);
+  writer.writeString(offsets[22], object.waveDataMAC);
 }
 
 Message _messageDeserialize(
@@ -309,21 +357,25 @@ Message _messageDeserialize(
     chatUid: reader.readString(offsets[1]),
     couldNotSend: reader.readBoolOrNull(offsets[2]) ?? false,
     createdAtMSE: reader.readLong(offsets[3]),
-    fileIds: reader.readStringList(offsets[4]),
-    isEncrypted: reader.readBoolOrNull(offsets[5]) ?? false,
-    iv: reader.readStringOrNull(offsets[6]),
-    localPinLabel: reader.readStringOrNull(offsets[7]),
-    mac: reader.readStringOrNull(offsets[8]),
-    messageType: reader.readStringOrNull(offsets[9]) ?? MessageTypes.text,
-    pinLabel: reader.readStringOrNull(offsets[10]),
-    pinnedByUid: reader.readStringOrNull(offsets[11]),
-    playbackDurationMicroSeconds: reader.readLongOrNull(offsets[12]),
-    queueId: reader.readLongOrNull(offsets[13]),
-    successfullySent: reader.readBoolOrNull(offsets[14]) ?? true,
-    text: reader.readStringOrNull(offsets[15]),
-    uid: reader.readStringOrNull(offsets[16]),
-    uniqueId: reader.readStringOrNull(offsets[17]),
-    waveData: reader.readDoubleList(offsets[18]),
+    durationIV: reader.readStringOrNull(offsets[4]),
+    durationMAC: reader.readStringOrNull(offsets[5]),
+    fileIds: reader.readStringList(offsets[6]),
+    isEncrypted: reader.readBoolOrNull(offsets[7]) ?? false,
+    iv: reader.readStringOrNull(offsets[8]),
+    localPinLabel: reader.readStringOrNull(offsets[9]),
+    mac: reader.readStringOrNull(offsets[10]),
+    messageType: reader.readStringOrNull(offsets[11]) ?? MessageTypes.text,
+    pinLabel: reader.readStringOrNull(offsets[12]),
+    pinnedByUid: reader.readStringOrNull(offsets[13]),
+    playbackDurationMicroSeconds: reader.readLongOrNull(offsets[14]),
+    queueId: reader.readLongOrNull(offsets[15]),
+    successfullySent: reader.readBoolOrNull(offsets[16]) ?? true,
+    text: reader.readStringOrNull(offsets[17]),
+    uid: reader.readStringOrNull(offsets[18]),
+    uniqueId: reader.readStringOrNull(offsets[19]),
+    waveData: reader.readDoubleList(offsets[20]),
+    waveDataIV: reader.readStringOrNull(offsets[21]),
+    waveDataMAC: reader.readStringOrNull(offsets[22]),
   );
   object.id = id;
   return object;
@@ -345,35 +397,43 @@ P _messageDeserializeProp<P>(
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readStringList(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readStringList(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readStringOrNull(offset) ?? MessageTypes.text) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readStringOrNull(offset)) as P;
     case 11:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? MessageTypes.text) as P;
     case 12:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readBoolOrNull(offset) ?? true) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 15:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 16:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 17:
       return (reader.readStringOrNull(offset)) as P;
     case 18:
+      return (reader.readStringOrNull(offset)) as P;
+    case 19:
+      return (reader.readStringOrNull(offset)) as P;
+    case 20:
       return (reader.readDoubleList(offset)) as P;
+    case 21:
+      return (reader.readStringOrNull(offset)) as P;
+    case 22:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1231,6 +1291,299 @@ extension MessageQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'durationIV',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'durationIV',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'durationIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'durationIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'durationIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'durationIV',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'durationIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'durationIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'durationIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'durationIV',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'durationIV',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationIVIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'durationIV',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'durationMAC',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'durationMAC',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'durationMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'durationMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'durationMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'durationMAC',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'durationMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'durationMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'durationMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'durationMAC',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> durationMACIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'durationMAC',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      durationMACIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'durationMAC',
+        value: '',
       ));
     });
   }
@@ -3150,6 +3503,299 @@ extension MessageQueryFilter
       );
     });
   }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'waveDataIV',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'waveDataIV',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'waveDataIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'waveDataIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'waveDataIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'waveDataIV',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'waveDataIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'waveDataIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'waveDataIV',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'waveDataIV',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'waveDataIV',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataIVIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'waveDataIV',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'waveDataMAC',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'waveDataMAC',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'waveDataMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'waveDataMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'waveDataMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'waveDataMAC',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'waveDataMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'waveDataMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'waveDataMAC',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'waveDataMAC',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> waveDataMACIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'waveDataMAC',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      waveDataMACIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'waveDataMAC',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension MessageQueryObject
@@ -3204,6 +3850,30 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
   QueryBuilder<Message, Message, QAfterSortBy> sortByCreatedAtMSEDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAtMSE', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByDurationIV() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationIV', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByDurationIVDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationIV', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByDurationMAC() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationMAC', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByDurationMACDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationMAC', Sort.desc);
     });
   }
 
@@ -3364,6 +4034,30 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
       return query.addSortBy(r'uniqueId', Sort.desc);
     });
   }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByWaveDataIV() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waveDataIV', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByWaveDataIVDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waveDataIV', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByWaveDataMAC() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waveDataMAC', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByWaveDataMACDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waveDataMAC', Sort.desc);
+    });
+  }
 }
 
 extension MessageQuerySortThenBy
@@ -3413,6 +4107,30 @@ extension MessageQuerySortThenBy
   QueryBuilder<Message, Message, QAfterSortBy> thenByCreatedAtMSEDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAtMSE', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByDurationIV() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationIV', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByDurationIVDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationIV', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByDurationMAC() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationMAC', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByDurationMACDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationMAC', Sort.desc);
     });
   }
 
@@ -3585,6 +4303,30 @@ extension MessageQuerySortThenBy
       return query.addSortBy(r'uniqueId', Sort.desc);
     });
   }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByWaveDataIV() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waveDataIV', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByWaveDataIVDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waveDataIV', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByWaveDataMAC() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waveDataMAC', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByWaveDataMACDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waveDataMAC', Sort.desc);
+    });
+  }
 }
 
 extension MessageQueryWhereDistinct
@@ -3612,6 +4354,20 @@ extension MessageQueryWhereDistinct
   QueryBuilder<Message, Message, QDistinct> distinctByCreatedAtMSE() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAtMSE');
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByDurationIV(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'durationIV', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByDurationMAC(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'durationMAC', caseSensitive: caseSensitive);
     });
   }
 
@@ -3715,6 +4471,20 @@ extension MessageQueryWhereDistinct
       return query.addDistinctBy(r'waveData');
     });
   }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByWaveDataIV(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'waveDataIV', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByWaveDataMAC(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'waveDataMAC', caseSensitive: caseSensitive);
+    });
+  }
 }
 
 extension MessageQueryProperty
@@ -3746,6 +4516,18 @@ extension MessageQueryProperty
   QueryBuilder<Message, int, QQueryOperations> createdAtMSEProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAtMSE');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> durationIVProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'durationIV');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> durationMACProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'durationMAC');
     });
   }
 
@@ -3837,6 +4619,18 @@ extension MessageQueryProperty
   QueryBuilder<Message, List<double>?, QQueryOperations> waveDataProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'waveData');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> waveDataIVProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'waveDataIV');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> waveDataMACProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'waveDataMAC');
     });
   }
 }

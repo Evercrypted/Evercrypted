@@ -1,3 +1,5 @@
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
@@ -11,8 +13,14 @@ class ContactService {
       Contact contact, String contactRequestUid) async {
     final isar = Isar.getInstance();
 
+    final String appKey = await Auth.getAppKey;
+
+    final Contact toPut = contact.copyWith(
+        email: fernetEncrypt(contact.email, appKey),
+        name: fernetEncrypt(contact.name, appKey));
+
     await isar?.writeTxn(() async {
-      await isar.contacts.put(contact);
+      await isar.contacts.put(toPut);
       await isar.contactRequests.deleteByUid(contactRequestUid);
     });
   }
@@ -44,10 +52,14 @@ class ContactService {
 
   void renameContact(String contactUid, String newName) async {
     final isar = Isar.getInstance();
+
+    final String appKey = await Auth.getAppKey;
+
     await isar?.writeTxn(() async {
       final contact =
           await isar.contacts.where().uidEqualTo(contactUid).findFirst();
       contact?.name = newName;
+      contact?.name = fernetEncrypt(newName, appKey);
       await isar.contacts.put(contact!);
     });
   }
@@ -68,8 +80,16 @@ class ContactService {
         .map((e) => e.id)
         .toList();
 
+    final String appKey = await Auth.getAppKey;
+
+    final toPut = contactsToPut
+        .map((contact) => contact.copyWith(
+            email: fernetEncrypt(contact.email, appKey),
+            name: fernetEncrypt(contact.name, appKey)))
+        .toList();
+
     await isar.writeTxn(() async {
-      await isar.contacts.putAll(contactsToPut);
+      await isar.contacts.putAll(toPut);
       await isar.contacts.deleteAll(contactsToDelete);
     });
   }

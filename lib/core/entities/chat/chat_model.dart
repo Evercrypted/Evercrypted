@@ -24,6 +24,10 @@ class Chat {
 
   Avatar? avatar;
 
+  bool? syncRequired;
+
+  int? syncTime;
+
   Chat({
     this.isOneToOne = true,
     required this.uid,
@@ -32,6 +36,8 @@ class Chat {
     required this.participants,
     required this.lastMessageTime,
     this.avatar,
+    this.syncRequired,
+    this.syncTime,
   });
 
   factory Chat.fromJson(Map<String, dynamic> json) => Chat(
@@ -48,6 +54,8 @@ class Chat {
               )
             : null,
         isOneToOne: json['isOneToOne'] as bool,
+        syncRequired: json['syncRequired'] as bool? ?? false,
+        syncTime: json['syncTime'] as int?,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -70,15 +78,20 @@ class Participant {
   final Avatar? avatar;
   final bool isCreator;
   final bool isAdmin;
+  final String? pubKey;
+  final bool gotPubKey;
 
-  Participant(
-      {this.uid,
-      this.email,
-      this.name,
-      this.lastSawChat,
-      this.avatar,
-      this.isCreator = false,
-      this.isAdmin = false});
+  Participant({
+    this.uid,
+    this.email,
+    this.name,
+    this.lastSawChat,
+    this.avatar,
+    this.isCreator = false,
+    this.isAdmin = false,
+    this.pubKey,
+    this.gotPubKey = false,
+  });
 
   factory Participant.fromContact(Contact contact) => Participant(
         uid: contact.contactPersonUid,
@@ -101,6 +114,8 @@ class Participant {
             : null,
         isCreator: json['is_creator'] as bool? ?? false,
         isAdmin: json['is_admin'] as bool? ?? false,
+        pubKey: json['pub_key'] as String?,
+        gotPubKey: json['got_pub_key'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -111,35 +126,41 @@ class Participant {
         'avatar': avatar?.toJson(),
         'is_creator': isCreator,
         'is_admin': isAdmin,
+        'pub_key': pubKey,
+        'got_pub_key': gotPubKey,
       };
 
-  Participant copyWith(
-          {String? uid,
-          String? email,
-          String? name,
-          DateTime? lastSawChat,
-          Avatar? avatar,
-          bool? isCreator,
-          bool? isAdmin}) =>
+  Participant copyWith({
+    String? uid,
+    String? email,
+    String? name,
+    DateTime? lastSawChat,
+    Avatar? avatar,
+    bool? isCreator,
+    bool? isAdmin,
+    String? pubKey,
+    bool? gotPubKey,
+  }) =>
       Participant(
-        uid: uid ?? this.uid,
-        email: email ?? this.email,
-        name: name ?? this.name,
-        lastSawChat: lastSawChat ?? this.lastSawChat,
-        avatar: avatar ?? this.avatar,
-        isCreator: isCreator ?? this.isCreator,
-        isAdmin: isAdmin ?? this.isAdmin,
-      );
+          uid: uid ?? this.uid,
+          email: email ?? this.email,
+          name: name ?? this.name,
+          lastSawChat: lastSawChat ?? this.lastSawChat,
+          avatar: avatar ?? this.avatar,
+          isCreator: isCreator ?? this.isCreator,
+          isAdmin: isAdmin ?? this.isAdmin,
+          pubKey: pubKey ?? this.pubKey,
+          gotPubKey: gotPubKey ?? this.gotPubKey);
 }
 
 class NewOneToOneChatDTO {
   String contact;
+  String? pubKey;
 
-  NewOneToOneChatDTO({required this.contact});
+  NewOneToOneChatDTO({required this.contact, this.pubKey});
 
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'contact': contact,
-      };
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'contact': contact, 'pubKey': pubKey};
 }
 
 class NewGroupChatDTO {

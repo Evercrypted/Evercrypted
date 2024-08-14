@@ -14,4 +14,6 @@ class ChatEventTypes {
   static const removedFromChat = 'removedFromChat';
   static const leaveChat = 'leaveChat';
   static const leftChat = 'leftChat';
+  static const updatePubKey = 'updatePubKey';
+  static const chatUpdated = 'chatUpdated';
 }

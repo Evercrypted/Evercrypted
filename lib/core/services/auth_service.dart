@@ -23,9 +23,7 @@ class AuthForm {
 class AuthService {
   Future<Map<String, dynamic>> loginHandshake(identifier) async {
     final algo = X25519();
-
-    // We need the private key pair of Alice.
-    final keyPair = await algo.newKeyPair();
+    final SimpleKeyPair keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
     final resp = await dio.post('/auth/handshake', data: {
       'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
@@ -39,8 +37,6 @@ class AuthService {
 
   Future<String> otpHandshake() async {
     final algo = X25519();
-
-    // We need the private key pair of Alice.
     final keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
     final resp = await dio.post('/auth/httpHandshake', data: {

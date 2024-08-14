@@ -50,4 +50,26 @@ class ContactRequest {
         'message': message,
         'timeSent': timeSent ?? DateTime.now().millisecondsSinceEpoch,
       };
+
+  ContactRequest copyWith({
+    String? uid,
+    String? authorId,
+    String? authorEmail,
+    String? recipientEmail,
+    String? message,
+    DateTime? timeSent,
+    int? queueId,
+    bool? unread,
+  }) {
+    return ContactRequest(
+      uid: uid ?? this.uid,
+      authorId: authorId ?? this.authorId,
+      authorEmail: authorEmail ?? this.authorEmail,
+      recipientEmail: recipientEmail ?? this.recipientEmail,
+      message: message ?? this.message,
+      timeSent: timeSent ?? this.timeSent,
+      queueId: queueId ?? this.queueId,
+      unread: unread ?? this.unread,
+    );
+  }
 }

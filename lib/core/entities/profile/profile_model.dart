@@ -34,11 +34,21 @@ class Profile {
               json['avatar'],
             ));
 
-  // Map<String, dynamic> toJson() => <String, dynamic>{
-  //       'name': name,
-  //       'email': email,
-  //       'avatar': avatar?.toJson(),
-  //     };
+  Profile copyWith({
+    String? uid,
+    String? name,
+    String? email,
+    bool? emailVerified,
+    Avatar? avatar,
+  }) {
+    return Profile(
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      emailVerified: emailVerified ?? this.emailVerified,
+      avatar: avatar ?? this.avatar,
+    );
+  }
 }
 
 @embedded

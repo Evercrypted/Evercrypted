@@ -13,7 +13,8 @@ fernetEncrypt(String? text, String secureKey) {
   return encrypted.base64;
 }
 
-fernetDecrypt(String base64cypher, String secureKey) {
+fernetDecrypt(String? base64cypher, String secureKey) {
+  if (base64cypher == null) return null;
   final key = Key.fromUtf8(secureKey);
 
   final b64key = Key.fromUtf8(base64Url.encode(key.bytes).substring(0, 32));

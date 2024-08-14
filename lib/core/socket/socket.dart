@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -137,8 +138,8 @@ class ChatSocket {
     });
 
     socket?.onError((data) {
-      print('data $data');
-      if (data['message'] == 'Connection refused') {
+      final message = data is SocketException ? data.message : data['message'];
+      if (data != null && message == 'Connection refused') {
         isConnected = false;
         isConnected = false;
         isConnectedSubject.add(isConnected!);

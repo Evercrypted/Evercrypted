@@ -10,7 +10,6 @@ import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:evercrypted/widgets/search_header.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'components/chat_list.dart';
 

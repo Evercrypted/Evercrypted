@@ -33,6 +33,10 @@ class Auth {
     return random;
   }
 
+  static Future<String?> get appKeyFromStorage async {
+    return await storage.read(key: 'appKey');
+  }
+
   static Future<String> get getAppKey async {
     if (appKey == null) {
       final fromStorage = await storage.read(key: 'appKey');

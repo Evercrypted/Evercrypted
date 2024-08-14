@@ -1,3 +1,5 @@
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:isar/isar.dart';
 
 import 'profile_model.dart';
@@ -5,9 +7,14 @@ import 'profile_model.dart';
 class ProfileService {
   void syncProfile(Profile profile) async {
     final isar = Isar.getInstance();
+
+    final String appKey = await Auth.getAppKey;
+
     return await isar?.writeTxn(() async {
       return isar.profiles.clear().then((value) async {
-        await isar.profiles.put(profile);
+        await isar.profiles.put(profile.copyWith(
+            email: fernetEncrypt(profile.email, appKey),
+            name: fernetEncrypt(profile.name, appKey)));
       });
     });
   }

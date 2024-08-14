@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/base_key.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
@@ -23,6 +26,17 @@ class ChatService {
 
   Future<void> addChat(Chat chat) async {
     final isar = Isar.getInstance();
+
+    final String appKey = await Auth.getAppKey;
+
+    _syncKeysIfSyncRequired(chat);
+
+    chat.participants = chat.participants.map((p) {
+      return p.copyWith(
+          email: fernetEncrypt(p.email, appKey),
+          name: fernetEncrypt(p.name, appKey));
+    }).toList();
+
     return isar?.writeTxn(() async {
       await isar.chats.put(chat);
     });
@@ -55,8 +69,21 @@ class ChatService {
       }
     }).toList();
 
+    final String appKey = await Auth.getAppKey;
+
+    List<Chat> allChats = [...chatsToUpdate, ...chatsToPut].map((Chat chat) {
+      chat.participants = chat.participants.map((Participant p) {
+        return p.copyWith(
+            email: fernetEncrypt(p.email, appKey),
+            name: fernetEncrypt(p.name, appKey));
+      }).toList();
+      return chat;
+    }).toList();
+
+    _doSyncForAllChats(allChats);
+
     await isar.writeTxn(() async {
-      await isar.chats.putAll([...chatsToUpdate, ...chatsToPut]);
+      await isar.chats.putAll(allChats);
       if (chatsToDelete.isNotEmpty) {
         for (var chat in chatsToDelete) {
           // delete all messages in chat
@@ -73,16 +100,46 @@ class ChatService {
 
   Future<Chat> createNewChat(NewOneToOneChatDTO newChatDTO) async {
     Completer<Chat> complete = Completer();
+
+    final String appKey = await Auth.getAppKey;
+
+    final Base64KeyData keys = await BaseKey.generateKeys();
+
+    newChatDTO.pubKey = keys.publicKey;
+
     ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createChat,
             newChatDTO.toJson())
-        .then((resp) {
-      final Chat returnedChat = Chat.fromJson(resp['chat']);
-      addChat(returnedChat).then((value) => complete.complete(returnedChat));
+        .then((resp) async {
+      Chat returnedChat = Chat.fromJson(resp['chat']);
+      returnedChat.participants = returnedChat.participants
+          .map((p) => p.copyWith(
+              email: fernetEncrypt(p.email, appKey),
+              name: fernetEncrypt(p.name, appKey)))
+          .toList();
+      await BaseKey.setPrivate(returnedChat.uid, keys.keyPair);
+      addChat(returnedChat).then((value) {
+        complete.complete(returnedChat);
+      });
+    });
+    return complete.future;
+  }
+
+  Future<Chat> updatePubKey(
+      {required String chatUid, String? pubKey, bool? gotPubKey}) async {
+    Completer<Chat> complete = Completer();
+    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.updatePubKey, {
+      'chatUid': chatUid,
+      'pubKey': pubKey,
+      'gotPubKey': gotPubKey
+    }).then((resp) async {
+      await updateChatFromResp(Chat.fromJson(resp['chat']));
+      complete.complete(Chat.fromJson(resp['chat']));
     });
     return complete.future;
   }
 
   Future<Chat> createNewGroupChat(NewGroupChatDTO newGroupChatDTO) async {
+    Completer<Chat> complete = Completer();
     final Profile? profile = profileService.getProfile();
     newGroupChatDTO.participants.add(Participant(
         uid: profile!.uid,
@@ -91,11 +148,18 @@ class ChatService {
         avatar: profile.avatar,
         isCreator: true,
         isAdmin: true));
-    Completer<Chat> complete = Completer();
+
+    final String appKey = await Auth.getAppKey;
+
     ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createGroupChat,
             newGroupChatDTO.toJson())
         .then((resp) {
-      final Chat returnedChat = Chat.fromJson(resp['chat']);
+      Chat returnedChat = Chat.fromJson(resp['chat']);
+      returnedChat.participants = returnedChat.participants
+          .map((p) => p.copyWith(
+              email: fernetEncrypt(p.email, appKey),
+              name: fernetEncrypt(p.name, appKey)))
+          .toList();
       addChat(returnedChat).then((value) => complete.complete(returnedChat));
     });
     return complete.future;
@@ -134,15 +198,23 @@ class ChatService {
   }
 
   addParticipantsToChat(
-      {required Chat chat, required List<Participant> participants}) {
+      {required Chat chat, required List<Participant> participants}) async {
     Completer<bool> completer = Completer();
+
+    final String appKey = await Auth.getAppKey;
+
     ChatSocket.emitWAck(
         SocketChannelTypes.chat, ChatEventTypes.addParticipants, {
       'chatUid': chat.uid,
       'contactUids': participants.map((p) => p.uid).toList()
     }).then((resp) {
       Chat updatedChat = chat;
-      updatedChat.participants = [...chat.participants, ...participants];
+      final participantsToAdd = participants.map((p) {
+        return p.copyWith(
+            email: fernetEncrypt(p.email, appKey),
+            name: fernetEncrypt(p.name, appKey));
+      }).toList();
+      updatedChat.participants = [...chat.participants, ...participantsToAdd];
       final isar = Isar.getInstance();
       isar?.writeTxn(() {
         return isar.chats.put(updatedChat);
@@ -171,7 +243,6 @@ class ChatService {
       });
       completer.complete(true);
     }).catchError((error) {
-      print(error);
       completer.completeError(false);
     });
   }
@@ -189,11 +260,77 @@ class ChatService {
     final Chat? chatInDb =
         isar?.chats.where().uidEqualTo(chat.uid).findFirstSync();
     if (chatInDb != null) {
+      if (chat.isOneToOne) {
+        _syncKeysIfSyncRequired(chat);
+      }
+      final String appKey = await Auth.getAppKey;
+      chat.participants = chat.participants.map((p) {
+        return p.copyWith(
+            email: fernetEncrypt(p.email, appKey),
+            name: fernetEncrypt(p.name, appKey));
+      }).toList();
       chat.id = chatInDb.id;
-      print(chat.toJson());
       return isar?.writeTxn(() {
         return isar.chats.put(chat);
       });
+    }
+  }
+
+  _doSyncForAllChats(List<Chat> chats) async {
+    for (var chat in chats) {
+      if (chat.isOneToOne) {
+        _syncKeysIfSyncRequired(chat);
+      }
+    }
+  }
+
+  _syncKeysIfSyncRequired(Chat chat) async {
+    final AuthUser? user = Auth.getUser;
+    if (user != null && chat.syncRequired == true) {
+      final Participant? thisParticipant = chat.participants
+          .firstWhereOrNull((element) => element.uid == user.uid);
+      final Participant? otherParticipant = chat.participants
+          .firstWhereOrNull((element) => element.uid != user.uid);
+      if (otherParticipant != null && thisParticipant != null) {
+        if (otherParticipant.pubKey != null) {
+          if (thisParticipant.pubKey != null) {
+            final private = await BaseKey.getPrivate(chat.uid);
+            if (private != null) {
+              BaseKey.combine(private, otherParticipant.pubKey!).then((key) {
+                if (key != null) {
+                  BaseKey.setBase(chat.uid, key);
+                  updatePubKey(chatUid: chat.uid, gotPubKey: true);
+                }
+              });
+            } else {
+              //reset sync
+            }
+          } else {
+            BaseKey.generateKeys().then((keys) {
+              BaseKey.combine(keys.keyPair, otherParticipant.pubKey!)
+                  .then((key) {
+                if (key != null) {
+                  BaseKey.setBase(chat.uid, key);
+                  updatePubKey(
+                      chatUid: chat.uid,
+                      pubKey: keys.publicKey,
+                      gotPubKey: true);
+                }
+              });
+            });
+          }
+        } else {
+          if (thisParticipant.pubKey == null) {
+            BaseKey.generateKeys().then((keys) {
+              BaseKey.setPrivate(chat.uid, keys.keyPair);
+              updatePubKey(
+                chatUid: chat.uid,
+                pubKey: keys.publicKey,
+              );
+            });
+          }
+        }
+      }
     }
   }
 

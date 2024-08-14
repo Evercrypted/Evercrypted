@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
@@ -43,6 +44,10 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   bool _passwordVisible = false;
   final TextEditingController _passController = TextEditingController();
   String? pass;
+  late Chat chat;
+  late String participantNames;
+
+  String? baseKey;
 
   static const _pageSize = 10;
 
@@ -54,6 +59,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   @override
   void initState() {
     super.initState();
+
+    chat = widget.chat;
+    participantNames =
+        chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
+    setBaseKey();
+
     AppState.setOpenedChatId(widget.chat.uid);
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -84,6 +95,15 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     _passController.dispose();
     _pagingController.dispose();
     super.dispose();
+  }
+
+  void setBaseKey() async {
+    BaseKey.getBase(chat.uid).then((key) {
+      setState(() {
+        baseKey = key;
+      });
+      print(baseKey);
+    });
   }
 
   Future openPasswordDialog(BuildContext context) {
@@ -270,13 +290,19 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Chat chat =
-        ref.watch(chatsProvider).firstWhere((c) => c.uid == widget.chat.uid);
-    String? participantNames;
-    if (chat.name == null) {
-      participantNames =
-          chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
-    }
+    ref.listen<List<Chat>>(chatsProvider, (prev, next) {
+      setState(() {
+        chat = next.firstWhere((c) => c.uid == widget.chat.uid);
+        if (chat.syncRequired == false) {
+          setBaseKey();
+        }
+      });
+
+      if (chat.name == null) {
+        participantNames =
+            chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
+      }
+    });
 
     return Scaffold(
         appBar: ConnectionStatusAppbar(
@@ -290,7 +316,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
               const SizedBox(width: defaultPadding * 0.5),
               Expanded(
                 child: Text(
-                  chat.name ?? participantNames!,
+                  chat.name ?? participantNames,
                   style: const TextStyle(fontSize: 16),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -308,13 +334,53 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         builder: (context) => ChatSettingsScreen(chat)));
               },
             ),
-            IconButton(
-                icon: Icon(Icons.security,
-                    color: pass == null ? Colors.redAccent : primaryColor),
-                onPressed: () {
-                  openPasswordDialog(context);
-                }),
-            const SizedBox(width: defaultPadding / 2),
+            SizedBox(
+              width: 34,
+              height: 34,
+              child: Stack(
+                children: [
+                  IconButton(
+                      visualDensity: VisualDensity.compact,
+                      style: ButtonStyle(
+                          padding: WidgetStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(0)),
+                          shape:
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                      side: BorderSide(
+                                          width: 2,
+                                          color: pass == null
+                                              ? Colors.redAccent
+                                              : primaryColor)))),
+                      icon: Icon(Icons.security,
+                          size: 22,
+                          color:
+                              pass == null ? Colors.redAccent : primaryColor),
+                      onPressed: () {
+                        openPasswordDialog(context);
+                      }),
+                  Positioned(
+                    right: 1,
+                    bottom: 1,
+                    child: Container(
+                      height: 12,
+                      width: 12,
+                      decoration: BoxDecoration(
+                        color: chat.syncRequired == true
+                            ? Colors.redAccent
+                            : primaryColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            width: 2),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+            SizedBox(width: defaultPadding / 4),
           ],
         ),
         body: Column(
