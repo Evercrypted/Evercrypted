@@ -15,10 +15,12 @@ class MessageWidget extends StatefulWidget {
     super.key,
     required this.message,
     this.sender,
+    required this.chat,
   });
 
   final ChatMessage message;
   final Participant? sender;
+  final Chat chat;
 
   @override
   State<MessageWidget> createState() => _MessageWidgetState();
@@ -30,30 +32,45 @@ class _MessageWidgetState extends State<MessageWidget> {
 
   @override
   void initState() {
-    message = widget.message;
-    if (widget.message.pass != null) {
-      message.pass = widget.message.pass;
-      decrypt();
-    }
+    checkAndDecrypt();
     super.initState();
   }
 
   // @override
   // didChangeDependencies() {
-  //   message = widget.message;
-  //   print('changedep' + ' ' + message.toJson().toString());
-  //   if (widget.message.pass != null) {
-  //     message.pass = widget.message.pass;
-  //     decrypt();
-  //   }
+  //   checkAndDecrypt();
   //   super.didChangeDependencies();
   // }
 
   @override
   didUpdateWidget(MessageWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    message.pass = widget.message.pass;
+    checkAndDecrypt();
     decrypt();
+  }
+
+  checkAndDecrypt() {
+    message = widget.message;
+    if (message.baseKey != null &&
+        widget.chat.syncTime != null &&
+        message.createdAtMSE > widget.chat.syncTime!) {
+      if (message.pass != null) {
+        message.pass =
+            message.baseKey!.substring(0, 32 - message.pass!.length) +
+                message.pass!;
+      } else {
+        message.pass = message.baseKey!;
+      }
+      decrypt();
+    } else {
+      if (message.pass != null) {
+        if (message.pass!.length < 32) {
+          message.pass = message.pass! + '0' * (32 - message.pass!.length);
+        }
+        message.pass = widget.message.pass;
+        decrypt();
+      }
+    }
   }
 
   decrypt() async {

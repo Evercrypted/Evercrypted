@@ -49,8 +49,18 @@ const ChatSchema = CollectionSchema(
       type: IsarType.objectList,
       target: r'Participant',
     ),
-    r'uid': PropertySchema(
+    r'syncRequired': PropertySchema(
       id: 6,
+      name: r'syncRequired',
+      type: IsarType.bool,
+    ),
+    r'syncTime': PropertySchema(
+      id: 7,
+      name: r'syncTime',
+      type: IsarType.long,
+    ),
+    r'uid': PropertySchema(
+      id: 8,
       name: r'uid',
       type: IsarType.string,
     )
@@ -149,7 +159,9 @@ void _chatSerialize(
     ParticipantSchema.serialize,
     object.participants,
   );
-  writer.writeString(offsets[6], object.uid);
+  writer.writeBool(offsets[6], object.syncRequired);
+  writer.writeLong(offsets[7], object.syncTime);
+  writer.writeString(offsets[8], object.uid);
 }
 
 Chat _chatDeserialize(
@@ -175,7 +187,9 @@ Chat _chatDeserialize(
           Participant(),
         ) ??
         [],
-    uid: reader.readString(offsets[6]),
+    syncRequired: reader.readBoolOrNull(offsets[6]),
+    syncTime: reader.readLongOrNull(offsets[7]),
+    uid: reader.readString(offsets[8]),
   );
   object.id = id;
   return object;
@@ -211,6 +225,10 @@ P _chatDeserializeProp<P>(
           ) ??
           []) as P;
     case 6:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 7:
+      return (reader.readLongOrNull(offset)) as P;
+    case 8:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -969,6 +987,100 @@ extension ChatQueryFilter on QueryBuilder<Chat, Chat, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncRequiredIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'syncRequired',
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncRequiredIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'syncRequired',
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncRequiredEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncRequired',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncTimeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'syncTime',
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncTimeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'syncTime',
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncTimeEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncTimeGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'syncTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncTimeLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'syncTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterFilterCondition> syncTimeBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'syncTime',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Chat, Chat, QAfterFilterCondition> uidEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1165,6 +1277,30 @@ extension ChatQuerySortBy on QueryBuilder<Chat, Chat, QSortBy> {
     });
   }
 
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortBySyncRequired() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncRequired', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortBySyncRequiredDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncRequired', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortBySyncTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterSortBy> sortBySyncTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncTime', Sort.desc);
+    });
+  }
+
   QueryBuilder<Chat, Chat, QAfterSortBy> sortByUid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.asc);
@@ -1239,6 +1375,30 @@ extension ChatQuerySortThenBy on QueryBuilder<Chat, Chat, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenBySyncRequired() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncRequired', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenBySyncRequiredDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncRequired', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenBySyncTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QAfterSortBy> thenBySyncTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncTime', Sort.desc);
+    });
+  }
+
   QueryBuilder<Chat, Chat, QAfterSortBy> thenByUid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'uid', Sort.asc);
@@ -1275,6 +1435,18 @@ extension ChatQueryWhereDistinct on QueryBuilder<Chat, Chat, QDistinct> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QDistinct> distinctBySyncRequired() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncRequired');
+    });
+  }
+
+  QueryBuilder<Chat, Chat, QDistinct> distinctBySyncTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncTime');
     });
   }
 
@@ -1330,6 +1502,18 @@ extension ChatQueryProperty on QueryBuilder<Chat, Chat, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Chat, bool?, QQueryOperations> syncRequiredProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncRequired');
+    });
+  }
+
+  QueryBuilder<Chat, int?, QQueryOperations> syncTimeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncTime');
+    });
+  }
+
   QueryBuilder<Chat, String, QQueryOperations> uidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'uid');
@@ -1359,28 +1543,38 @@ const ParticipantSchema = Schema(
       name: r'email',
       type: IsarType.string,
     ),
-    r'isAdmin': PropertySchema(
+    r'gotPubKey': PropertySchema(
       id: 2,
+      name: r'gotPubKey',
+      type: IsarType.bool,
+    ),
+    r'isAdmin': PropertySchema(
+      id: 3,
       name: r'isAdmin',
       type: IsarType.bool,
     ),
     r'isCreator': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isCreator',
       type: IsarType.bool,
     ),
     r'lastSawChat': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'lastSawChat',
       type: IsarType.dateTime,
     ),
     r'name': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'name',
       type: IsarType.string,
     ),
+    r'pubKey': PropertySchema(
+      id: 7,
+      name: r'pubKey',
+      type: IsarType.string,
+    ),
     r'uid': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'uid',
       type: IsarType.string,
     )
@@ -1417,6 +1611,12 @@ int _participantEstimateSize(
     }
   }
   {
+    final value = object.pubKey;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.uid;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -1438,11 +1638,13 @@ void _participantSerialize(
     object.avatar,
   );
   writer.writeString(offsets[1], object.email);
-  writer.writeBool(offsets[2], object.isAdmin);
-  writer.writeBool(offsets[3], object.isCreator);
-  writer.writeDateTime(offsets[4], object.lastSawChat);
-  writer.writeString(offsets[5], object.name);
-  writer.writeString(offsets[6], object.uid);
+  writer.writeBool(offsets[2], object.gotPubKey);
+  writer.writeBool(offsets[3], object.isAdmin);
+  writer.writeBool(offsets[4], object.isCreator);
+  writer.writeDateTime(offsets[5], object.lastSawChat);
+  writer.writeString(offsets[6], object.name);
+  writer.writeString(offsets[7], object.pubKey);
+  writer.writeString(offsets[8], object.uid);
 }
 
 Participant _participantDeserialize(
@@ -1458,11 +1660,13 @@ Participant _participantDeserialize(
       allOffsets,
     ),
     email: reader.readStringOrNull(offsets[1]),
-    isAdmin: reader.readBoolOrNull(offsets[2]) ?? false,
-    isCreator: reader.readBoolOrNull(offsets[3]) ?? false,
-    lastSawChat: reader.readDateTimeOrNull(offsets[4]),
-    name: reader.readStringOrNull(offsets[5]),
-    uid: reader.readStringOrNull(offsets[6]),
+    gotPubKey: reader.readBoolOrNull(offsets[2]) ?? false,
+    isAdmin: reader.readBoolOrNull(offsets[3]) ?? false,
+    isCreator: reader.readBoolOrNull(offsets[4]) ?? false,
+    lastSawChat: reader.readDateTimeOrNull(offsets[5]),
+    name: reader.readStringOrNull(offsets[6]),
+    pubKey: reader.readStringOrNull(offsets[7]),
+    uid: reader.readStringOrNull(offsets[8]),
   );
   return object;
 }
@@ -1487,10 +1691,14 @@ P _participantDeserializeProp<P>(
     case 3:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 4:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1661,6 +1869,16 @@ extension ParticipantQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'email',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition>
+      gotPubKeyEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'gotPubKey',
+        value: value,
       ));
     });
   }
@@ -1902,6 +2120,157 @@ extension ParticipantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition> pubKeyIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'pubKey',
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition>
+      pubKeyIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'pubKey',
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition> pubKeyEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pubKey',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition>
+      pubKeyGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'pubKey',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition> pubKeyLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'pubKey',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition> pubKeyBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'pubKey',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition>
+      pubKeyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'pubKey',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition> pubKeyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'pubKey',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition> pubKeyContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'pubKey',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition> pubKeyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'pubKey',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition>
+      pubKeyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pubKey',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Participant, Participant, QAfterFilterCondition>
+      pubKeyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'pubKey',
         value: '',
       ));
     });

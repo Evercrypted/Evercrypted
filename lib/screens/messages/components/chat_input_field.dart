@@ -10,7 +10,9 @@ import 'message_attachment.dart';
 class ChatInputField extends StatefulWidget {
   final String chatId;
   final String? pass;
-  const ChatInputField({super.key, required this.chatId, this.pass});
+  final String? baseKey;
+  const ChatInputField(
+      {super.key, required this.chatId, this.pass, this.baseKey});
 
   @override
   ChatInputFieldState createState() => ChatInputFieldState();
@@ -32,14 +34,23 @@ class ChatInputFieldState extends State<ChatInputField> {
       return;
     }
     dynamic encr = message;
-    if (widget.pass != null) {
-      if (widget.pass != null && widget.pass!.isNotEmpty == true) {
-        var fullKeyString = widget.pass;
-        if (fullKeyString!.length < 32) {
-          fullKeyString = fullKeyString + '0' * (32 - widget.pass!.length);
-        }
-        encr = await encodePayload(message, fullKeyString, true);
+    String? fullKeyString;
+    if (widget.baseKey != null) {
+      if (widget.pass != null) {
+        fullKeyString = widget.baseKey!.substring(0, 32 - widget.pass!.length) +
+            widget.pass!;
+      } else {
+        fullKeyString = widget.baseKey!;
       }
+    } else {
+      if (widget.pass != null) {
+        if (widget.pass!.length < 32) {
+          fullKeyString = widget.pass! + '0' * (32 - widget.pass!.length);
+        }
+      }
+    }
+    if (fullKeyString != null) {
+      encr = await encodePayload(message, fullKeyString, true);
     }
     _messageService.sendMessage(encr, widget.chatId);
     _messageField.clear();

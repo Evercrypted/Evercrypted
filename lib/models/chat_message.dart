@@ -9,16 +9,20 @@ class ChatMessage {
   MessageStatus messageStatus;
   final bool isSender;
   String? pass;
+  final String? baseKey;
   final String? iv;
   final String? mac;
   final bool isSystemMessage;
+  final int createdAtMSE;
   EncryptionStatus encryptionStatus;
 
   ChatMessage({
+    this.baseKey,
     this.pass,
     this.iv,
     this.mac,
     this.text = '',
+    required this.createdAtMSE,
     required this.messageType,
     required this.messageStatus,
     required this.isSender,

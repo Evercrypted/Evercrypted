@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
@@ -337,11 +338,13 @@ class SocketEventsService {
           if (chat.name != null && chat.name!.isNotEmpty) {
             chatname = chat.name!;
           } else {
+            final String appKey = await Auth.getAppKey;
             final userId = Auth.user?.uid;
-            chatname = chat.participants
-                    .firstWhere((element) => element.uid != userId)
-                    .email ??
-                '';
+            final otherParticipant = chat.participants
+                .firstWhere((element) => element.uid != userId);
+            chatname = otherParticipant.name != null
+                ? fernetDecrypt(otherParticipant.name, appKey)
+                : fernetDecrypt(otherParticipant.email, appKey);
           }
           LocalNotification.instance.displayNotification(
             'Message',

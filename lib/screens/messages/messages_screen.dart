@@ -102,7 +102,16 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       setState(() {
         baseKey = key;
       });
-      print(baseKey);
+    });
+  }
+
+  setPass(value) {
+    setState(() {
+      if (value == null || value.isEmpty) {
+        pass = null;
+      } else {
+        pass = value;
+      }
     });
   }
 
@@ -128,6 +137,35 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                     key: settingsForm,
                     child: Column(
                       children: [
+                        if (chat.isOneToOne)
+                          chat.syncRequired == true
+                              ? const Icon(Icons.security,
+                                  color: Colors.redAccent)
+                              : const Icon(Icons.security, color: Colors.white),
+                        if (chat.isOneToOne)
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                                vertical: defaultPadding / 2),
+                            child: Text(
+                              chat.syncRequired == true
+                                  ? 'Chat Base-Encryption-Key is not synchronized yet. The other party needs to open Evercrypted at least once to generate base encryption key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
+                                  : 'Base-Encryption-Key has successfully been synchronized. All the passwords less then 32 characters will automatically be reinforced with the synchronized key.',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        if (!chat.isOneToOne)
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                                vertical: defaultPadding / 2),
+                            child: const Text(
+                              'All the encryption in group chats is done with only the entered password. Make sure it is hard to guess.',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         const SizedBox(height: defaultPadding / 2),
                         TextFormField(
                           controller: _passController,
@@ -137,19 +175,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                             openSecretInput(
                                 context: context,
                                 controller: _passController,
-                                done: (val) => setState(() {
-                                      if (val.text == null ||
-                                          val.text.isEmpty) {
-                                        pass = null;
-                                      } else {
-                                        var fullKeyString = val.text as String;
-                                        if (fullKeyString.length < 32) {
-                                          fullKeyString = fullKeyString +
-                                              '0' * (32 - fullKeyString.length);
-                                        }
-                                        pass = fullKeyString;
-                                      }
-                                    }));
+                                done: (val) => setPass(val.text));
                           },
                           keyboardType: TextInputType.none,
                           obscureText: !_passwordVisible,
@@ -185,30 +211,17 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           margin: const EdgeInsets.symmetric(
                               vertical: defaultPadding / 2),
                           child: const Text(
-                            'Password can be Maximum 32 characters in Length',
+                            'Password can be Maximum 32 characters in Length.',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
+                        const SizedBox(height: defaultPadding / 2),
                         PrimaryButton(
                           text: 'DECRYPT',
                           press: () {
-                            setState(() {
-                              pass = _passController.text;
-                              setState(() {
-                                if (_passController.text.isEmpty) {
-                                  pass = null;
-                                } else {
-                                  var fullKeyString = _passController.text;
-                                  if (fullKeyString.length < 32) {
-                                    fullKeyString = fullKeyString +
-                                        '0' * (32 - fullKeyString.length);
-                                  }
-                                  pass = fullKeyString;
-                                }
-                              });
-                            });
+                            setPass(_passController.text);
                             Navigator.pop(context);
                           },
                           color: secondaryColor,
@@ -367,9 +380,11 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                       height: 12,
                       width: 12,
                       decoration: BoxDecoration(
-                        color: chat.syncRequired == true
-                            ? Colors.redAccent
-                            : primaryColor,
+                        color: !chat.isOneToOne
+                            ? Colors.grey
+                            : chat.syncRequired == true
+                                ? Colors.redAccent
+                                : primaryColor,
                         shape: BoxShape.circle,
                         border: Border.all(
                             color: Theme.of(context).scaffoldBackgroundColor,
@@ -380,7 +395,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                 ],
               ),
             ),
-            SizedBox(width: defaultPadding / 4),
+            const SizedBox(width: defaultPadding / 4),
           ],
         ),
         body: Column(
@@ -396,12 +411,14 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                       itemBuilder: (context, item, index) {
                         final chatMessage = ChatMessage(
                           text: item.text!,
+                          createdAtMSE: item.createdAtMSE,
                           messageType: MessageTypes.text,
                           isSender: item.authorId == userId,
                           isSystemMessage:
                               item.messageType == MessageTypes.system,
                           messageStatus: MessageStatus.successfullySent,
                           pass: pass,
+                          baseKey: baseKey,
                           iv: item.iv,
                           mac: item.mac,
                           encryptionStatus: item.iv != null && item.mac != null
@@ -410,6 +427,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         );
                         return MessageWidget(
                           key: ValueKey(item.id),
+                          chat: chat,
                           message: chatMessage,
                           sender: chat.participants.firstWhereOrNull(
                               (element) => element.uid == item.authorId),
@@ -420,6 +438,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             ),
             ChatInputField(
               chatId: chat.uid,
+              baseKey: baseKey,
               pass: pass,
             ),
           ],
