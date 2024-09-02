@@ -47,88 +47,93 @@ const MessageSchema = CollectionSchema(
       name: r'durationMAC',
       type: IsarType.string,
     ),
-    r'fileIds': PropertySchema(
+    r'error': PropertySchema(
       id: 6,
-      name: r'fileIds',
-      type: IsarType.stringList,
+      name: r'error',
+      type: IsarType.string,
+    ),
+    r'filepath': PropertySchema(
+      id: 7,
+      name: r'filepath',
+      type: IsarType.string,
     ),
     r'isEncrypted': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'isEncrypted',
       type: IsarType.bool,
     ),
     r'iv': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'iv',
       type: IsarType.string,
     ),
     r'localPinLabel': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'localPinLabel',
       type: IsarType.string,
     ),
     r'mac': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'mac',
       type: IsarType.string,
     ),
     r'messageType': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'messageType',
       type: IsarType.string,
     ),
     r'pinLabel': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'pinLabel',
       type: IsarType.string,
     ),
     r'pinnedByUid': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'pinnedByUid',
       type: IsarType.string,
     ),
     r'playbackDurationMicroSeconds': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'playbackDurationMicroSeconds',
-      type: IsarType.long,
+      type: IsarType.string,
     ),
     r'queueId': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'queueId',
       type: IsarType.long,
     ),
     r'successfullySent': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'successfullySent',
       type: IsarType.bool,
     ),
     r'text': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'text',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'uid',
       type: IsarType.string,
     ),
     r'uniqueId': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'uniqueId',
       type: IsarType.string,
     ),
     r'waveData': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'waveData',
       type: IsarType.doubleList,
     ),
     r'waveDataIV': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'waveDataIV',
       type: IsarType.string,
     ),
     r'waveDataMAC': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'waveDataMAC',
       type: IsarType.string,
     )
@@ -234,15 +239,15 @@ int _messageEstimateSize(
     }
   }
   {
-    final list = object.fileIds;
-    if (list != null) {
-      bytesCount += 3 + list.length * 3;
-      {
-        for (var i = 0; i < list.length; i++) {
-          final value = list[i];
-          bytesCount += value.length * 3;
-        }
-      }
+    final value = object.error;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.filepath;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   {
@@ -272,6 +277,12 @@ int _messageEstimateSize(
   }
   {
     final value = object.pinnedByUid;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.playbackDurationMicroSeconds;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -327,23 +338,24 @@ void _messageSerialize(
   writer.writeLong(offsets[3], object.createdAtMSE);
   writer.writeString(offsets[4], object.durationIV);
   writer.writeString(offsets[5], object.durationMAC);
-  writer.writeStringList(offsets[6], object.fileIds);
-  writer.writeBool(offsets[7], object.isEncrypted);
-  writer.writeString(offsets[8], object.iv);
-  writer.writeString(offsets[9], object.localPinLabel);
-  writer.writeString(offsets[10], object.mac);
-  writer.writeString(offsets[11], object.messageType);
-  writer.writeString(offsets[12], object.pinLabel);
-  writer.writeString(offsets[13], object.pinnedByUid);
-  writer.writeLong(offsets[14], object.playbackDurationMicroSeconds);
-  writer.writeLong(offsets[15], object.queueId);
-  writer.writeBool(offsets[16], object.successfullySent);
-  writer.writeString(offsets[17], object.text);
-  writer.writeString(offsets[18], object.uid);
-  writer.writeString(offsets[19], object.uniqueId);
-  writer.writeDoubleList(offsets[20], object.waveData);
-  writer.writeString(offsets[21], object.waveDataIV);
-  writer.writeString(offsets[22], object.waveDataMAC);
+  writer.writeString(offsets[6], object.error);
+  writer.writeString(offsets[7], object.filepath);
+  writer.writeBool(offsets[8], object.isEncrypted);
+  writer.writeString(offsets[9], object.iv);
+  writer.writeString(offsets[10], object.localPinLabel);
+  writer.writeString(offsets[11], object.mac);
+  writer.writeString(offsets[12], object.messageType);
+  writer.writeString(offsets[13], object.pinLabel);
+  writer.writeString(offsets[14], object.pinnedByUid);
+  writer.writeString(offsets[15], object.playbackDurationMicroSeconds);
+  writer.writeLong(offsets[16], object.queueId);
+  writer.writeBool(offsets[17], object.successfullySent);
+  writer.writeString(offsets[18], object.text);
+  writer.writeString(offsets[19], object.uid);
+  writer.writeString(offsets[20], object.uniqueId);
+  writer.writeDoubleList(offsets[21], object.waveData);
+  writer.writeString(offsets[22], object.waveDataIV);
+  writer.writeString(offsets[23], object.waveDataMAC);
 }
 
 Message _messageDeserialize(
@@ -359,23 +371,24 @@ Message _messageDeserialize(
     createdAtMSE: reader.readLong(offsets[3]),
     durationIV: reader.readStringOrNull(offsets[4]),
     durationMAC: reader.readStringOrNull(offsets[5]),
-    fileIds: reader.readStringList(offsets[6]),
-    isEncrypted: reader.readBoolOrNull(offsets[7]) ?? false,
-    iv: reader.readStringOrNull(offsets[8]),
-    localPinLabel: reader.readStringOrNull(offsets[9]),
-    mac: reader.readStringOrNull(offsets[10]),
-    messageType: reader.readStringOrNull(offsets[11]) ?? MessageTypes.text,
-    pinLabel: reader.readStringOrNull(offsets[12]),
-    pinnedByUid: reader.readStringOrNull(offsets[13]),
-    playbackDurationMicroSeconds: reader.readLongOrNull(offsets[14]),
-    queueId: reader.readLongOrNull(offsets[15]),
-    successfullySent: reader.readBoolOrNull(offsets[16]) ?? true,
-    text: reader.readStringOrNull(offsets[17]),
-    uid: reader.readStringOrNull(offsets[18]),
-    uniqueId: reader.readStringOrNull(offsets[19]),
-    waveData: reader.readDoubleList(offsets[20]),
-    waveDataIV: reader.readStringOrNull(offsets[21]),
-    waveDataMAC: reader.readStringOrNull(offsets[22]),
+    error: reader.readStringOrNull(offsets[6]),
+    filepath: reader.readStringOrNull(offsets[7]),
+    isEncrypted: reader.readBoolOrNull(offsets[8]) ?? false,
+    iv: reader.readStringOrNull(offsets[9]),
+    localPinLabel: reader.readStringOrNull(offsets[10]),
+    mac: reader.readStringOrNull(offsets[11]),
+    messageType: reader.readStringOrNull(offsets[12]) ?? MessageTypes.text,
+    pinLabel: reader.readStringOrNull(offsets[13]),
+    pinnedByUid: reader.readStringOrNull(offsets[14]),
+    playbackDurationMicroSeconds: reader.readStringOrNull(offsets[15]),
+    queueId: reader.readLongOrNull(offsets[16]),
+    successfullySent: reader.readBoolOrNull(offsets[17]) ?? true,
+    text: reader.readStringOrNull(offsets[18]),
+    uid: reader.readStringOrNull(offsets[19]),
+    uniqueId: reader.readStringOrNull(offsets[20]),
+    waveData: reader.readDoubleList(offsets[21]),
+    waveDataIV: reader.readStringOrNull(offsets[22]),
+    waveDataMAC: reader.readStringOrNull(offsets[23]),
   );
   object.id = id;
   return object;
@@ -401,38 +414,40 @@ P _messageDeserializeProp<P>(
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readStringList(offset)) as P;
-    case 7:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
-    case 8:
       return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readStringOrNull(offset)) as P;
     case 11:
-      return (reader.readStringOrNull(offset) ?? MessageTypes.text) as P;
-    case 12:
       return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readStringOrNull(offset) ?? MessageTypes.text) as P;
     case 13:
       return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readLongOrNull(offset)) as P;
-    case 15:
-      return (reader.readLongOrNull(offset)) as P;
-    case 16:
-      return (reader.readBoolOrNull(offset) ?? true) as P;
-    case 17:
       return (reader.readStringOrNull(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
+    case 16:
+      return (reader.readLongOrNull(offset)) as P;
+    case 17:
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 18:
       return (reader.readStringOrNull(offset)) as P;
     case 19:
       return (reader.readStringOrNull(offset)) as P;
     case 20:
-      return (reader.readDoubleList(offset)) as P;
-    case 21:
       return (reader.readStringOrNull(offset)) as P;
+    case 21:
+      return (reader.readDoubleList(offset)) as P;
     case 22:
+      return (reader.readStringOrNull(offset)) as P;
+    case 23:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1588,76 +1603,75 @@ extension MessageQueryFilter
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsIsNull() {
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'fileIds',
+        property: r'error',
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsIsNotNull() {
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'fileIds',
+        property: r'error',
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsElementEqualTo(
-    String value, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorEqualTo(
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'fileIds',
+        property: r'error',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition>
-      fileIdsElementGreaterThan(
-    String value, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorGreaterThan(
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'fileIds',
+        property: r'error',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsElementLessThan(
-    String value, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorLessThan(
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'fileIds',
+        property: r'error',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsElementBetween(
-    String lower,
-    String upper, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorBetween(
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'fileIds',
+        property: r'error',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1667,159 +1681,217 @@ extension MessageQueryFilter
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition>
-      fileIdsElementStartsWith(
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'fileIds',
+        property: r'error',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsElementEndsWith(
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'fileIds',
+        property: r'error',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsElementContains(
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'fileIds',
+        property: r'error',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsElementMatches(
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'fileIds',
+        property: r'error',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition>
-      fileIdsElementIsEmpty() {
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'fileIds',
+        property: r'error',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition>
-      fileIdsElementIsNotEmpty() {
+  QueryBuilder<Message, Message, QAfterFilterCondition> errorIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'fileIds',
+        property: r'error',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsLengthEqualTo(
-      int length) {
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'fileIds',
-        length,
-        true,
-        length,
-        true,
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'filepath',
+      ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsIsEmpty() {
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'fileIds',
-        0,
-        true,
-        0,
-        true,
-      );
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'filepath',
+      ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'fileIds',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsLengthLessThan(
-    int length, {
-    bool include = false,
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathEqualTo(
+    String? value, {
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'fileIds',
-        0,
-        true,
-        length,
-        include,
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'filepath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition>
-      fileIdsLengthGreaterThan(
-    int length, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathGreaterThan(
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'fileIds',
-        length,
-        include,
-        999999,
-        true,
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'filepath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Message, Message, QAfterFilterCondition> fileIdsLengthBetween(
-    int lower,
-    int upper, {
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'filepath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathBetween(
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'fileIds',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'filepath',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'filepath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'filepath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'filepath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'filepath',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'filepath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition> filepathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'filepath',
+        value: '',
+      ));
     });
   }
 
@@ -2768,49 +2840,58 @@ extension MessageQueryFilter
   }
 
   QueryBuilder<Message, Message, QAfterFilterCondition>
-      playbackDurationMicroSecondsEqualTo(int? value) {
+      playbackDurationMicroSecondsEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'playbackDurationMicroSeconds',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Message, Message, QAfterFilterCondition>
       playbackDurationMicroSecondsGreaterThan(
-    int? value, {
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'playbackDurationMicroSeconds',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Message, Message, QAfterFilterCondition>
       playbackDurationMicroSecondsLessThan(
-    int? value, {
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'playbackDurationMicroSeconds',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Message, Message, QAfterFilterCondition>
       playbackDurationMicroSecondsBetween(
-    int? lower,
-    int? upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2819,6 +2900,79 @@ extension MessageQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'playbackDurationMicroSeconds',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'playbackDurationMicroSeconds',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'playbackDurationMicroSeconds',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'playbackDurationMicroSeconds',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'playbackDurationMicroSeconds',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterFilterCondition>
+      playbackDurationMicroSecondsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'playbackDurationMicroSeconds',
+        value: '',
       ));
     });
   }
@@ -3877,6 +4031,30 @@ extension MessageQuerySortBy on QueryBuilder<Message, Message, QSortBy> {
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> sortByError() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'error', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByErrorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'error', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByFilepath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'filepath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> sortByFilepathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'filepath', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> sortByIsEncrypted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isEncrypted', Sort.asc);
@@ -4134,6 +4312,30 @@ extension MessageQuerySortThenBy
     });
   }
 
+  QueryBuilder<Message, Message, QAfterSortBy> thenByError() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'error', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByErrorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'error', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByFilepath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'filepath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Message, Message, QAfterSortBy> thenByFilepathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'filepath', Sort.desc);
+    });
+  }
+
   QueryBuilder<Message, Message, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -4371,9 +4573,17 @@ extension MessageQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Message, Message, QDistinct> distinctByFileIds() {
+  QueryBuilder<Message, Message, QDistinct> distinctByError(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'fileIds');
+      return query.addDistinctBy(r'error', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Message, Message, QDistinct> distinctByFilepath(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'filepath', caseSensitive: caseSensitive);
     });
   }
 
@@ -4427,9 +4637,10 @@ extension MessageQueryWhereDistinct
   }
 
   QueryBuilder<Message, Message, QDistinct>
-      distinctByPlaybackDurationMicroSeconds() {
+      distinctByPlaybackDurationMicroSeconds({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'playbackDurationMicroSeconds');
+      return query.addDistinctBy(r'playbackDurationMicroSeconds',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -4531,9 +4742,15 @@ extension MessageQueryProperty
     });
   }
 
-  QueryBuilder<Message, List<String>?, QQueryOperations> fileIdsProperty() {
+  QueryBuilder<Message, String?, QQueryOperations> errorProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'fileIds');
+      return query.addPropertyName(r'error');
+    });
+  }
+
+  QueryBuilder<Message, String?, QQueryOperations> filepathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'filepath');
     });
   }
 
@@ -4579,7 +4796,7 @@ extension MessageQueryProperty
     });
   }
 
-  QueryBuilder<Message, int?, QQueryOperations>
+  QueryBuilder<Message, String?, QQueryOperations>
       playbackDurationMicroSecondsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'playbackDurationMicroSeconds');

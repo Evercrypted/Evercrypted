@@ -30,7 +30,7 @@ Future<EncryptedFile?> encodeFile(key, filePath, [bool notHex = true]) async {
 
 Future<Uint8List> decodeFile(
     String key, String iv, String mac, List<int> cryptedFile,
-    [bool notHex = false]) async {
+    [bool notHex = true]) async {
   final algorithm = Chacha20.poly1305Aead();
   final secretBox = SecretBox(
     cryptedFile,

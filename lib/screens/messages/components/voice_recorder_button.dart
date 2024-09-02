@@ -1,20 +1,19 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:audio_waveforms/audio_waveforms.dart';
-import 'package:evercrypted/core/cryptography/file.dart';
-import 'package:evercrypted/core/cryptography/payload.dart';
-import 'package:evercrypted/core/helpers/get_random_string.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../ui_constants.dart';
 
 class VoiceRecorderButton extends StatefulWidget {
-  const VoiceRecorderButton({super.key, this.pass, required this.chatId});
+  const VoiceRecorderButton(
+      {super.key, this.pass, required this.chatId, required this.onRecord});
   final String? pass;
   final String chatId;
+  final Function onRecord;
 
   @override
   VoiceRecorderButtonState createState() => VoiceRecorderButtonState();
@@ -27,16 +26,17 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   bool recording = false;
   double progress = 0;
   FlutterSoundRecorder? _myRecorder = FlutterSoundRecorder();
-  FlutterSoundPlayer? _myPlayer = FlutterSoundPlayer();
-  RecorderController? waveFormController;
-  List<double>? waveData;
-  bool wavePlaying = false;
+
   DateTime? recordStartTime;
   DateTime? recordEndTime;
-  String? filePath;
   bool fileWritten = false;
   String? iv;
   String? mac;
+  StreamSubscription<Uint8List>? _mRecordingDataSubscription;
+  StreamController<Uint8List>? recordingDataController;
+  List<Uint8List> recordingData = [];
+  int? recordingMicroSeconds;
+  bool showPreviewButton = false;
 
   @override
   void initState() {
@@ -62,81 +62,95 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   }
 
   @override
-  void dispose() {
-    // closeRecorder();
-    // closePlayer();
+  void dispose() async {
+    if (_myRecorder != null) {
+      _myRecorder!.closeRecorder();
+      _myRecorder = null;
+    }
+    _mRecordingDataSubscription?.cancel();
+    recordingDataController?.close();
     controller.dispose();
     super.dispose();
   }
 
-  void closeRecorder() async {
-    _myRecorder?.closeRecorder();
-    _myRecorder = null;
-  }
+  Future<void> _openRecorder() async {
+    var status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      throw RecordingPermissionException('Microphone permission not granted');
+    }
+    await _myRecorder!.openRecorder();
 
-  void closePlayer() async {
-    await _myPlayer?.closePlayer();
-    _myPlayer = null;
+    final session = await AudioSession.instance;
+    await session.configure(AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+      avAudioSessionCategoryOptions:
+          AVAudioSessionCategoryOptions.allowBluetooth |
+              AVAudioSessionCategoryOptions.defaultToSpeaker,
+      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+      avAudioSessionRouteSharingPolicy:
+          AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+      androidAudioAttributes: const AndroidAudioAttributes(
+        contentType: AndroidAudioContentType.speech,
+        flags: AndroidAudioFlags.none,
+        usage: AndroidAudioUsage.voiceCommunication,
+      ),
+      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      androidWillPauseWhenDucked: true,
+    ));
   }
 
   Future<void> record() async {
-    waveFormController = RecorderController();
-    setState(() {
-      wavePlaying = true;
+    await _openRecorder();
+    recordingData = [];
+    recordingDataController = StreamController<Uint8List>();
+    _mRecordingDataSubscription =
+        recordingDataController?.stream.listen((data) {
+      recordingData.add(data);
+    }, onDone: () {
+      _mRecordingDataSubscription?.cancel();
+    }, onError: (error) {
+      _mRecordingDataSubscription?.cancel();
     });
-    await waveFormController?.record();
-    var tempDir = await getTemporaryDirectory();
-    filePath =
-        '${tempDir.path}/${widget.chatId}-${DateTime.now().millisecondsSinceEpoch}-${getRandomString(16)}.aac';
     await _myRecorder?.startRecorder(
-      toFile: filePath,
-      codec: Codec.aacADTS,
+      toStream: recordingDataController!.sink,
+      codec: Codec.pcm16,
+      numChannels: 1,
+      sampleRate: 16000,
     );
     recordStartTime = DateTime.now();
   }
 
   Future<void> stopRecorder() async {
-    waveFormController?.stop();
-    setState(() {
-      wavePlaying = false;
-    });
-    waveData = waveFormController?.waveData;
-    waveFormController?.dispose();
-    waveFormController = null;
-    final String? url = await _myRecorder?.stopRecorder();
+    await _myRecorder?.stopRecorder();
+    await _myRecorder?.closeRecorder();
+
+    recordingDataController?.close();
+    recordingDataController = null;
     recordEndTime = DateTime.now();
-    final int microSeconds =
+    recordingMicroSeconds =
         recordEndTime!.difference(recordStartTime!).inMicroseconds;
 
-    if (url != null) {
-      closeRecorder();
-      if (filePath != null) {
-        if (widget.pass != null && widget.pass!.isNotEmpty == true) {
-          final encrypted = await encodeFile(widget.pass!, filePath!);
-          final iv = encrypted!.iv;
-          final mac = encrypted.mac;
-          final ecnryptedMicroSeconds =
-              await encodePayload(microSeconds, widget.pass!);
-
-          final encryptedWaveData = await encodePayload(waveData, widget.pass!);
-          if (encrypted != null) {
-            await File(filePath!).delete();
-          }
-
-          final Directory appDocumentsDir =
-              await getApplicationDocumentsDirectory();
-          // iv = encrypted.iv;
-          // mac = encrypted.mac;
-          // var tempDir = await getTemporaryDirectory();
-          // await File('${tempDir.path}/crypted')
-          //     .writeAsBytes(encrypted.cryptedFile);
-          // setState(() {
-          //   fileWritten = true;
-          // });
-        } else {}
-      }
+    if (recordingData.isNotEmpty && recordingMicroSeconds != null) {
+      widget.onRecord(recordingData, recordingMicroSeconds);
     }
   }
+
+  // play() {
+  // final decryptedRecording =
+  //     await decodeRecording(widget.pass!, iv, mac, encrypted.cryptedFile);
+
+  // await _myPlayer.openPlayer();
+  // await _myPlayer.startPlayerFromStream(
+  //     codec: Codec.pcm16, numChannels: 1, sampleRate: 16000);
+
+  // for (final Uint8List data in decryptedRecording) {
+  //   await _myPlayer.feedFromStream(data);
+  // }
+  // await Future.delayed(Duration(microseconds: microSeconds));
+  // await _myPlayer.stopPlayer();
+  // await _myPlayer.closePlayer();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -145,14 +159,13 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
         controller.forward().then((value) {
           controller.reset();
         });
-        _myRecorder?.openRecorder();
-        await record();
+        record();
       },
-      onTapUp: (_) {
+      onTapUp: (_) async {
         stopRecorder();
         controller.reset();
       },
-      onTapCancel: () {
+      onTapCancel: () async {
         stopRecorder();
         controller.reset();
       },
@@ -179,44 +192,6 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
                 const Icon(Icons.mic, color: primaryColor),
             ],
           ),
-          if (wavePlaying)
-            AudioWaveforms(
-              enableGesture: true,
-              size: const Size(50, 50),
-              recorderController: waveFormController!,
-              waveStyle: const WaveStyle(
-                  spacing: 4,
-                  waveThickness: 3,
-                  waveColor: primaryColor,
-                  extendWaveform: true,
-                  showMiddleLine: false,
-                  scaleFactor: 100),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15.0),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              padding: const EdgeInsets.only(left: 10),
-              margin: const EdgeInsets.only(left: 10),
-            ),
-          // if (fileWritten)
-          //   IconButton(
-          //       onPressed: () async {
-          //         var tempDir = await getTemporaryDirectory();
-          //         final Uint8List file =
-          //             File('${tempDir.path}/crypted').readAsBytesSync();
-          //         final decrypted =
-          //             await decodeFile(widget.pass!, iv!, mac!, file, true);
-          //         print(decrypted);
-          //         await _myPlayer?.openPlayer();
-          //         final Duration? dur = await _myPlayer?.startPlayer(
-          //             fromDataBuffer: decrypted, codec: Codec.aacADTS);
-          //         if (dur != null) {
-          //           Future.delayed(dur, () {
-          //             closePlayer();
-          //           });
-          //         }
-          //       },
-          //       icon: const Icon(Icons.play_arrow))
         ],
       ),
     );

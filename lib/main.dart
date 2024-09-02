@@ -31,6 +31,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:rhttp/rhttp.dart';
 import 'core/entities/contact-request/contact_request_model.dart';
 import 'core/entities/contact-request/contact_request_riverpod.dart';
 import 'core/entities/contact/contact_model.dart';
@@ -43,7 +44,6 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  initializeDio();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -62,6 +62,8 @@ void main() async {
     ChatSchema
   ], directory: dir.path);
 
+  await Rhttp.init();
+  await HttpClient.initialize();
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -191,7 +193,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         user = Auth.getUser;
       });
       _connectIO(token);
-      addAuthInterceptor(token);
+      HttpClient.addAuth(token);
       final bool otpActive = await Auth.getIsOtpActive;
       final String? otpToken = await Auth.getOtpToken;
       setState(() {

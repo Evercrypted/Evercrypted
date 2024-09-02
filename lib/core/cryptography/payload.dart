@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
 
-dynamic decodePayload(resp, key, [bool notHex = false]) async {
+dynamic decodePayload(crypted, iv, mac, key, [bool notHex = false]) async {
   final algorithm = Chacha20.poly1305Aead();
   final secretBox = SecretBox(
-    base64.decode(resp['crypted']),
-    nonce: base64.decode(resp['iv']),
-    mac: Mac(base64.decode(resp['mac'])),
+    base64.decode(crypted),
+    nonce: base64.decode(iv),
+    mac: Mac(base64.decode(mac)),
   );
   final clearText = await algorithm.decrypt(secretBox,
       secretKey:

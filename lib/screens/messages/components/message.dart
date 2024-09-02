@@ -80,11 +80,9 @@ class _MessageWidgetState extends State<MessageWidget> {
               message.encryptionStatus == EncryptionStatus.encrypted ||
           message.encryptionStatus == EncryptionStatus.failed) {
         final String decrypted = await decodePayload(
-          {
-            'crypted': message.text,
-            'iv': message.iv,
-            'mac': message.mac,
-          },
+          message.text,
+          message.iv,
+          message.mac,
           message.pass,
           true,
         );

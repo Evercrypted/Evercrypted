@@ -1,12 +1,17 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
+import 'package:evercrypted/core/http.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'message_isar.dart';
 
@@ -58,58 +63,6 @@ class MessageService {
     }
   }
 
-  Future<Message> sendFile(
-      {required String chatUid,
-      required fileBuffer,
-      String? iv,
-      String? mac,
-      int? playbackDurationMicroSeconds,
-      String? durationIV,
-      String? durationMAC,
-      List<double>? waveData,
-      String? waveDataIV,
-      String? waveDataMAC}) async {
-    Message messageToSend = Message(
-      authorId: userId!,
-      createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-      chatUid: chatUid,
-      iv: iv,
-      mac: mac,
-      isEncrypted: iv != null && mac != null ? true : false,
-      playbackDurationMicroSeconds: playbackDurationMicroSeconds,
-      durationIV: durationIV,
-      durationMAC: durationMAC,
-      waveData: waveData,
-      waveDataIV: waveDataIV,
-      waveDataMAC: waveDataMAC,
-    );
-    Completer<Message> complete = Completer();
-    ChatSocket.emitWAck(SocketChannelTypes.message, MessageEventTypes.sendFile,
-            messageToSend.toJson())
-        .then((resp) {
-      if (resp['status'] == 'queued') {
-        messageToSend.successfullySent = false;
-        messageToSend.queueId = resp['queuedItemId'];
-        messageToSend.uid = DateTime.now().millisecondsSinceEpoch.toString() +
-            resp['queuedItemId'].toString();
-        messageToSend.uniqueId =
-            DateTime.now().millisecondsSinceEpoch.toString() +
-                chatUid +
-                resp['queuedItemId'].toString();
-      } else {
-        messageToSend.uid = resp['messageUid'];
-        messageToSend.uniqueId = chatUid + resp['messageUid'];
-        messageToSend.successfullySent = true;
-      }
-      writeNewMessageToIsar(messageToSend).then((value) {
-        complete.complete(messageToSend);
-      });
-    }).onError((error, stackTrace) {
-      complete.completeError(error!);
-    });
-    return complete.future;
-  }
-
   Future<Message> sendMessage(dynamic message, String chatUid) async {
     Message messageToSend;
     if (message is String) {
@@ -154,6 +107,122 @@ class MessageService {
     }).onError((error, stackTrace) {
       complete.completeError(error!);
     });
+    return complete.future;
+  }
+
+  dynamic checkIfSocketConnectedAndQueueIfNeeded(payload, isFromQueue) async {
+    final completer = Completer<dynamic>();
+    Future<int> saveActionForLater() async {
+      final writingToQueueCompleter = Completer<int>();
+      final action = ActionQueue(
+          channel: 'files',
+          type: MessageEventTypes.sendFile,
+          payload: json.encode(payload),
+          createdAtMSE: DateTime.now().millisecondsSinceEpoch);
+      final isar = Isar.getInstance();
+      isar?.writeTxn(() async {
+        final int queuedItemId = await isar.actionQueues.put(action);
+        writingToQueueCompleter.complete(queuedItemId);
+      });
+      return writingToQueueCompleter.future;
+    }
+
+    if (ChatSocket.socket?.connected != true ||
+        ChatSocket.isConnected == null ||
+        ChatSocket.isConnected == false) {
+      final int queuedItemId = await saveActionForLater();
+      completer.complete({'status': 'queued', 'queuedItemId': queuedItemId});
+    } else if (isFromQueue) {
+      completer.complete(true);
+    } else {
+      completer.complete(false);
+    }
+    return completer.future;
+  }
+
+  getMessageFile(msgUniqID) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/$msgUniqID';
+  }
+
+  saveFile(file, messageUniqueId) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/${messageUniqueId!}';
+    final fileAtPath = File(path);
+    await fileAtPath.writeAsString(file!);
+    return path;
+  }
+
+  Future<dynamic> sendFile(
+      {Message? message,
+      String? file,
+      dynamic payload,
+      bool isFromQueue = false}) async {
+    Completer<Message> complete = Completer();
+    dynamic crypted;
+    if (isFromQueue) {
+      final decoded = json.decode(payload);
+      crypted = encodePayload(decoded, ChatSocket.key);
+      dio
+          .post('/files/${MessageEventTypes.sendFile}', data: crypted)
+          .then((resp) async {
+        final msg = Message.fromJson(decoded['message']);
+        msg.uid = resp.data['messageUid'];
+        msg.uniqueId = msg.chatUid + resp.data['messageUid'];
+        msg.successfullySent = true;
+        msg.filepath = await saveFile(decoded['file'], msg.uniqueId);
+        writeNewMessageToIsar(msg).then((value) {
+          complete.complete(message);
+        });
+      }).onError((error, stackTrace) {
+        complete.completeError(error!);
+      });
+    } else {
+      final payload = {
+        'message': message!.toJson(),
+        'file': file,
+      };
+      crypted = await encodePayload(payload, ChatSocket.key);
+      final saveToQueueIfNeeded = await checkIfSocketConnectedAndQueueIfNeeded(
+          json.encode(payload), isFromQueue);
+      if (saveToQueueIfNeeded == true) {
+        complete.completeError(
+            'Could not connect to server, please check your internet connection.');
+      } else if (saveToQueueIfNeeded == false) {
+        dio
+            .post('/files/${MessageEventTypes.sendFile}', data: crypted)
+            .then((resp) async {
+          final payload = await decodePayload(
+            resp.data['crypted'],
+            resp.data['iv'],
+            resp.data['mac'],
+            ChatSocket.key,
+          );
+          if (payload['status'] == 'ok') {
+            message.uid = resp.data['messageUid'];
+            message.uniqueId = message.chatUid + resp.data['messageUid'];
+            message.successfullySent = true;
+            message.filepath = await saveFile(file, message.uniqueId);
+            writeNewMessageToIsar(message).then((value) {
+              complete.complete(message);
+            });
+          }
+        }).onError((error, stackTrace) {
+          complete.completeError(error!);
+        });
+      } else if (saveToQueueIfNeeded['status'] == 'queued') {
+        message.successfullySent = false;
+        message.queueId = saveToQueueIfNeeded['queuedItemId'];
+        message.uid = DateTime.now().millisecondsSinceEpoch.toString() +
+            saveToQueueIfNeeded['queuedItemId'].toString();
+        message.uniqueId = DateTime.now().millisecondsSinceEpoch.toString() +
+            message.chatUid +
+            saveToQueueIfNeeded['queuedItemId'].toString();
+        writeNewMessageToIsar(message).then((value) {
+          complete.complete(message);
+        });
+      }
+    }
     return complete.future;
   }
 

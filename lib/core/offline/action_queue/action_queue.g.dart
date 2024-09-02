@@ -27,13 +27,18 @@ const ActionQueueSchema = CollectionSchema(
       name: r'createdAtMSE',
       type: IsarType.long,
     ),
-    r'payload': PropertySchema(
+    r'isHttp': PropertySchema(
       id: 2,
+      name: r'isHttp',
+      type: IsarType.bool,
+    ),
+    r'payload': PropertySchema(
+      id: 3,
       name: r'payload',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'type',
       type: IsarType.string,
     )
@@ -82,6 +87,19 @@ const ActionQueueSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'isHttp': IndexSchema(
+      id: -7941613516223964438,
+      name: r'isHttp',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isHttp',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -112,8 +130,9 @@ void _actionQueueSerialize(
 ) {
   writer.writeString(offsets[0], object.channel);
   writer.writeLong(offsets[1], object.createdAtMSE);
-  writer.writeString(offsets[2], object.payload);
-  writer.writeString(offsets[3], object.type);
+  writer.writeBool(offsets[2], object.isHttp);
+  writer.writeString(offsets[3], object.payload);
+  writer.writeString(offsets[4], object.type);
 }
 
 ActionQueue _actionQueueDeserialize(
@@ -125,8 +144,9 @@ ActionQueue _actionQueueDeserialize(
   final object = ActionQueue(
     channel: reader.readString(offsets[0]),
     createdAtMSE: reader.readLong(offsets[1]),
-    payload: reader.readString(offsets[2]),
-    type: reader.readString(offsets[3]),
+    isHttp: reader.readBoolOrNull(offsets[2]) ?? false,
+    payload: reader.readString(offsets[3]),
+    type: reader.readString(offsets[4]),
   );
   object.id = id;
   return object;
@@ -144,8 +164,10 @@ P _actionQueueDeserializeProp<P>(
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -177,6 +199,14 @@ extension ActionQueueQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'createdAtMSE'),
+      );
+    });
+  }
+
+  QueryBuilder<ActionQueue, ActionQueue, QAfterWhere> anyIsHttp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isHttp'),
       );
     });
   }
@@ -431,6 +461,51 @@ extension ActionQueueQueryWhere
       ));
     });
   }
+
+  QueryBuilder<ActionQueue, ActionQueue, QAfterWhereClause> isHttpEqualTo(
+      bool isHttp) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isHttp',
+        value: [isHttp],
+      ));
+    });
+  }
+
+  QueryBuilder<ActionQueue, ActionQueue, QAfterWhereClause> isHttpNotEqualTo(
+      bool isHttp) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isHttp',
+              lower: [],
+              upper: [isHttp],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isHttp',
+              lower: [isHttp],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isHttp',
+              lower: [isHttp],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isHttp',
+              lower: [],
+              upper: [isHttp],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension ActionQueueQueryFilter
@@ -674,6 +749,16 @@ extension ActionQueueQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ActionQueue, ActionQueue, QAfterFilterCondition> isHttpEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isHttp',
+        value: value,
       ));
     });
   }
@@ -977,6 +1062,18 @@ extension ActionQueueQuerySortBy
     });
   }
 
+  QueryBuilder<ActionQueue, ActionQueue, QAfterSortBy> sortByIsHttp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isHttp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ActionQueue, ActionQueue, QAfterSortBy> sortByIsHttpDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isHttp', Sort.desc);
+    });
+  }
+
   QueryBuilder<ActionQueue, ActionQueue, QAfterSortBy> sortByPayload() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'payload', Sort.asc);
@@ -1041,6 +1138,18 @@ extension ActionQueueQuerySortThenBy
     });
   }
 
+  QueryBuilder<ActionQueue, ActionQueue, QAfterSortBy> thenByIsHttp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isHttp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ActionQueue, ActionQueue, QAfterSortBy> thenByIsHttpDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isHttp', Sort.desc);
+    });
+  }
+
   QueryBuilder<ActionQueue, ActionQueue, QAfterSortBy> thenByPayload() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'payload', Sort.asc);
@@ -1081,6 +1190,12 @@ extension ActionQueueQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ActionQueue, ActionQueue, QDistinct> distinctByIsHttp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isHttp');
+    });
+  }
+
   QueryBuilder<ActionQueue, ActionQueue, QDistinct> distinctByPayload(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1113,6 +1228,12 @@ extension ActionQueueQueryProperty
   QueryBuilder<ActionQueue, int, QQueryOperations> createdAtMSEProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAtMSE');
+    });
+  }
+
+  QueryBuilder<ActionQueue, bool, QQueryOperations> isHttpProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isHttp');
     });
   }
 

@@ -17,12 +17,16 @@ class ActionQueue {
   @Index()
   int createdAtMSE;
 
+  @Index()
+  bool isHttp;
+
   @ignore
   get createdAt {
     return DateTime.fromMillisecondsSinceEpoch(createdAtMSE);
   }
 
   ActionQueue({
+    this.isHttp = false,
     required this.type,
     required this.channel,
     required this.payload,

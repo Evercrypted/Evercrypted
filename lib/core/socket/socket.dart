@@ -71,7 +71,9 @@ class ChatSocket {
       keyCompleter.complete(true);
       if (key != null) {
         final payload = await decodePayload(
-          resp,
+          resp['crypted'],
+          resp['iv'],
+          resp['mac'],
           key,
         );
         socketEventsService.handleGeneralEvent('getInitialData', payload);
@@ -181,7 +183,9 @@ class ChatSocket {
         dynamic payload;
         if (key != null) {
           payload = await decodePayload(
-            data,
+            data['crypted'],
+            data['iv'],
+            data['mac'],
             key,
           );
         } else {
@@ -228,7 +232,9 @@ class ChatSocket {
           await encodePayload({'type': type, 'payload': payload}, key);
       socket?.emitWithAck(channel, crypted, ack: (resp) async {
         payload = await decodePayload(
-          resp,
+          resp['crypted'],
+          resp['iv'],
+          resp['mac'],
           key,
         );
         print(payload);

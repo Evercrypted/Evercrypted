@@ -27,7 +27,7 @@ class Message {
   String messageType;
   bool isEncrypted;
 
-  List<String>? fileIds;
+  String? error;
 
   @Index()
   int createdAtMSE;
@@ -51,7 +51,7 @@ class Message {
 
   String? localPinLabel;
 
-  int? playbackDurationMicroSeconds;
+  String? playbackDurationMicroSeconds;
   String? durationIV;
   String? durationMAC;
 
@@ -59,12 +59,13 @@ class Message {
   String? waveDataIV;
   String? waveDataMAC;
 
+  String? filepath;
+
   Message({
     this.uid,
     required this.authorId,
     this.text,
     this.messageType = MessageTypes.text,
-    this.fileIds,
     required this.createdAtMSE,
     this.iv,
     this.mac,
@@ -83,14 +84,14 @@ class Message {
     this.waveData,
     this.waveDataIV,
     this.waveDataMAC,
+    this.filepath,
+    this.error,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         uid: json['uid'] as String,
         authorId: json['authorId'] as String,
         text: json['text'] as String?,
-        fileIds:
-            (json['fileIds'] as List<dynamic>).map((e) => e as String).toList(),
         createdAtMSE: DateTime.parse(json['createdAt']).millisecondsSinceEpoch,
         chatUid: json['chatUid'] as String,
         uniqueId: json['chatUid'] + json['uid'],
@@ -100,7 +101,8 @@ class Message {
         messageType: json['messageType'] as String,
         pinnedByUid: json['pinnedByUid'] as String?,
         pinLabel: json['pinLabel'] as String?,
-        playbackDurationMicroSeconds: json['playbackDuration'] as int?,
+        playbackDurationMicroSeconds:
+            json['playbackDurationMicroSeconds'] as String?,
         durationIV: json['durationIV'] as String?,
         durationMAC: json['durationMAC'] as String?,
         waveData: (json['waveData'] as List<dynamic>)
@@ -114,7 +116,6 @@ class Message {
         'uid': uid,
         'authorId': authorId,
         'text': text,
-        'fileIds': fileIds,
         'createdAt': createdAtMSE,
         'chatUid': chatUid,
         'isEncrypted': isEncrypted,
