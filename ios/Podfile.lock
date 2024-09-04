@@ -88,6 +88,8 @@ PODS:
   - permission_handler_apple (9.3.0):
     - Flutter
   - PromisesObjC (2.4.0)
+  - rhttp (0.0.1):
+    - Flutter
   - smart_auth (0.0.1):
     - Flutter
   - url_launcher_ios (0.0.1):
@@ -106,6 +108,7 @@ DEPENDENCIES:
   - isar_flutter_libs (from `.symlinks/plugins/isar_flutter_libs/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - rhttp (from `.symlinks/plugins/rhttp/ios`)
   - smart_auth (from `.symlinks/plugins/smart_auth/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
@@ -147,6 +150,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  rhttp:
+    :path: ".symlinks/plugins/rhttp/ios"
   smart_auth:
     :path: ".symlinks/plugins/smart_auth/ios"
   url_launcher_ios:
@@ -175,6 +180,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  rhttp: 367a8162e63311c6dde543169b591cc04454dcd6
   smart_auth: 4bedbc118723912d0e45a07e8ab34039c19e04f2
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
 

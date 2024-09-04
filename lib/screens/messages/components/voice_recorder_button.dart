@@ -136,22 +136,6 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     }
   }
 
-  // play() {
-  // final decryptedRecording =
-  //     await decodeRecording(widget.pass!, iv, mac, encrypted.cryptedFile);
-
-  // await _myPlayer.openPlayer();
-  // await _myPlayer.startPlayerFromStream(
-  //     codec: Codec.pcm16, numChannels: 1, sampleRate: 16000);
-
-  // for (final Uint8List data in decryptedRecording) {
-  //   await _myPlayer.feedFromStream(data);
-  // }
-  // await Future.delayed(Duration(microseconds: microSeconds));
-  // await _myPlayer.stopPlayer();
-  // await _myPlayer.closePlayer();
-  // }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

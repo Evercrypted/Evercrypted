@@ -12,6 +12,7 @@ import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jwk/jwk.dart';
 import 'package:retry/retry.dart';
+import 'package:rhttp/rhttp.dart';
 
 class AuthForm {
   String? email;
@@ -25,13 +26,16 @@ class AuthService {
     final algo = X25519();
     final SimpleKeyPair keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
-    final resp = await dio.post('/auth/handshake', data: {
-      'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
-      'identifier': identifier,
-    });
+    final resp = await HttpClient.client.post(
+      '/auth/handshake',
+      body: HttpBody.json({
+        'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+        'identifier': identifier,
+      }),
+    );
     return {
-      'key': await combineKeys(algo, keyPair, resp.data['publicKey']),
-      'publicKey': resp.data['publicKey'],
+      'key': await combineKeys(algo, keyPair, resp.bodyToJson['publicKey']),
+      'publicKey': resp.bodyToJson['publicKey'],
     };
   }
 
@@ -39,10 +43,13 @@ class AuthService {
     final algo = X25519();
     final keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
-    final resp = await dio.post('/auth/httpHandshake', data: {
-      'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
-    });
-    return combineKeys(algo, keyPair, resp.data['publicKey']);
+    final resp = await HttpClient.client.post(
+      '/auth/httpHandshake',
+      body: HttpBody.json({
+        'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+      }),
+    );
+    return combineKeys(algo, keyPair, resp.bodyToJson['publicKey']);
   }
 
   Future<Map<String, dynamic>> getLoginEncKey(identifier) async {
@@ -64,11 +71,15 @@ class AuthService {
       'email': formValues.email,
       'password': formValues.password,
     }, keys['key']);
-    return dio.post('/auth/register',
-        data: {'crypted': crypted, 'identifier': identifier}).then(
+    return HttpClient.client
+        .post('/auth/register',
+            body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
+        .then(
       (value) async {
         final payload = await decodePayload(
-          value.data,
+          value.bodyToJson['crypted'],
+          value.bodyToJson['iv'],
+          value.bodyToJson['mac'],
           keys['key'],
         );
         Auth.setAuth(
@@ -94,11 +105,15 @@ class AuthService {
       'email': formValues.email,
       'password': formValues.password,
     }, keys['key']);
-    return dio.post('/auth/login',
-        data: {'crypted': crypted, 'identifier': identifier}).then(
+    return HttpClient.client
+        .post('/auth/login',
+            body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
+        .then(
       (value) async {
         final payload = await decodePayload(
-          value.data,
+          value.bodyToJson['crypted'],
+          value.bodyToJson['iv'],
+          value.bodyToJson['mac'],
           keys['key'],
         );
         if (payload['error'] != null) {
@@ -131,11 +146,15 @@ class AuthService {
     print('otpTkn $otptkn');
     final crypted = await encodePayload(
         {'type': SettingsEventTypes.login2FA, 'code': code}, keys['key']);
-    return dio.post('/auth/login2fa',
-        data: {'crypted': crypted, 'identifier': identifier}).then(
+    return HttpClient.client
+        .post('/auth/login2fa',
+            body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
+        .then(
       (value) async {
         final payload = await decodePayload(
-          value.data,
+          value.bodyToJson['crypted'],
+          value.bodyToJson['iv'],
+          value.bodyToJson['mac'],
           keys['key'],
         );
         if (payload['status'] == 'ok') {

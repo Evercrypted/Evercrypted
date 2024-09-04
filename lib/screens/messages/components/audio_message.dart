@@ -1,12 +1,131 @@
+import 'dart:typed_data';
+
+import 'package:evercrypted/core/cryptography/voice_message.dart';
+import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 
 import '../../../ui_constants.dart';
 import '../../../models/chat_message.dart';
 
-class AudioMessage extends StatelessWidget {
-  final ChatMessage? message;
+class AudioMessage extends StatefulWidget {
+  final ChatMessage message;
+  final FlutterSoundPlayer player;
 
-  const AudioMessage({super.key, this.message});
+  const AudioMessage({super.key, required this.message, required this.player});
+
+  @override
+  State<AudioMessage> createState() => _AudioMessageState();
+}
+
+class _AudioMessageState extends State<AudioMessage>
+    with SingleTickerProviderStateMixin {
+  AnimationController? controller;
+  int? durationLeft;
+  String? fileString;
+
+  MessageService messageService = MessageService();
+
+  @override
+  void initState() {
+    super.initState();
+
+    setFile();
+
+    if (widget.message.decodedDuration != null) {
+      controller = AnimationController(
+          vsync: this,
+          duration: Duration(microseconds: widget.message.decodedDuration!));
+
+      controller!.addListener(() {
+        setDurationLeft(controller!.value);
+      });
+    }
+  }
+
+  @override
+  didUpdateWidget(AudioMessage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.message.decodedDuration != null) {
+      durationLeft = widget.message.decodedDuration!;
+      if (controller != null) {
+        controller!.duration =
+            Duration(microseconds: widget.message.decodedDuration!);
+      } else {
+        controller = AnimationController(
+            vsync: this,
+            duration: Duration(microseconds: widget.message.decodedDuration!));
+
+        controller!.addListener(() {
+          setDurationLeft(controller!.value);
+        });
+      }
+    }
+  }
+
+  setFile() async {
+    fileString = await messageService.getMessageFile(widget.message.uniqueId);
+  }
+
+  playFile() async {
+    if (fileString == null) {
+      return;
+    }
+    late final List<Uint8List> recording;
+    if (widget.message.pass != null &&
+        widget.message.iv != null &&
+        widget.message.mac != null) {
+      recording = await decodeRecording(widget.message.pass!,
+          widget.message.iv!, widget.message.mac!, fileString!, true);
+    } else {
+      recording = await decodeRecording(widget.message.pass!,
+          widget.message.iv!, widget.message.mac!, fileString!, true, false);
+    }
+    await widget.player.openPlayer();
+    await widget.player.startPlayerFromStream(
+        codec: Codec.pcm16, numChannels: 1, sampleRate: 16000);
+
+    Future.delayed(Duration(microseconds: widget.message.decodedDuration!))
+        .then((dur) async {
+      await widget.player.stopPlayer();
+      await widget.player.closePlayer();
+    });
+    for (final Uint8List data in recording) {
+      await widget.player.feedFromStream(data);
+    }
+  }
+
+  setDurationLeft(controllerValue) {
+    setState(() {
+      if (controllerValue > 0 && controllerValue < 1) {
+        durationLeft = (durationLeft! - controllerValue * durationLeft).round();
+      } else {
+        durationLeft = widget.message.decodedDuration!;
+      }
+    });
+  }
+
+  play() {
+    playFile();
+    controller!.reset();
+    controller!.forward();
+  }
+
+  stop() async {
+    await widget.player.stopPlayer();
+    await widget.player.closePlayer();
+    controller!.stop();
+    controller!.reset();
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    controller = null;
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -17,13 +136,26 @@ class AudioMessage extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        color: primaryColor.withOpacity(message!.isSender ? 1 : 0.1),
+        color: primaryColor.withOpacity(widget.message.isSender ? 1 : 0.1),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.play_arrow,
-            color: message!.isSender ? Colors.white : primaryColor,
+          IconButton(
+            onPressed: () {
+              if (controller != null) {
+                if (controller!.isAnimating) {
+                  stop();
+                } else {
+                  play();
+                }
+              }
+            },
+            icon: Icon(
+              controller != null && controller!.isAnimating
+                  ? Icons.stop
+                  : Icons.play_arrow,
+              color: widget.message.isSender ? Colors.white : primaryColor,
+            ),
           ),
           Expanded(
             child: Padding(
@@ -36,17 +168,26 @@ class AudioMessage extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     height: 2,
-                    color: message!.isSender
+                    color: widget.message.isSender
                         ? Colors.white
                         : primaryColor.withOpacity(0.4),
                   ),
                   Positioned(
-                    left: 0,
+                    left: controller == null
+                        ? 0
+                        : controller!.value == 1
+                            ? 0
+                            : MediaQuery.of(context).size.width *
+                                0.55 *
+                                0.5 *
+                                controller!.value,
                     child: Container(
                       height: 8,
                       width: 8,
                       decoration: BoxDecoration(
-                        color: message!.isSender ? Colors.white : primaryColor,
+                        color: widget.message.isSender
+                            ? Colors.white
+                            : primaryColor,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -55,11 +196,13 @@ class AudioMessage extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            "0.37",
-            style: TextStyle(
-                fontSize: 12, color: message!.isSender ? Colors.white : null),
-          ),
+          if (durationLeft != null)
+            Text(
+              "${(Duration(microseconds: durationLeft!).inMilliseconds / 1000).round()}s",
+              style: TextStyle(
+                  fontSize: 12,
+                  color: widget.message.isSender ? Colors.white : null),
+            ),
         ],
       ),
     );

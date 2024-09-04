@@ -1,6 +1,7 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:jwk/jwk.dart';
+import 'package:rhttp/rhttp.dart';
 
 import '../cryptography/combine_keys.dart';
 import '../http.dart';
@@ -16,9 +17,10 @@ class SettingsService {
     // We need the private key pair of Alice.
     final keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
-    final resp = await dio.post('/settings/httpHandshake', data: {
-      'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
-    });
-    return combineKeys(algo, keyPair, resp.data['publicKey']);
+    final resp = await HttpClient.client.post('/settings/httpHandshake',
+        body: HttpBody.json({
+          'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+        }));
+    return combineKeys(algo, keyPair, resp.bodyToJson['publicKey']);
   }
 }

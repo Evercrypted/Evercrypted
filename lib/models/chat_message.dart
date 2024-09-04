@@ -3,7 +3,7 @@ enum MessageStatus { successfullySent, queued, couldNotSend }
 enum EncryptionStatus { encrypted, notEncrypted, decrypted, failed }
 
 class ChatMessage {
-  final String text;
+  final String? text;
   String? decrypted;
   final String messageType;
   MessageStatus messageStatus;
@@ -12,6 +12,13 @@ class ChatMessage {
   final String? baseKey;
   final String? iv;
   final String? mac;
+  final String? error;
+  final String? filePath;
+  final String? duration;
+  final String? durationIV;
+  final String? durationMAC;
+  final String? uniqueId;
+  int? decodedDuration;
   final bool isSystemMessage;
   final int createdAtMSE;
   EncryptionStatus encryptionStatus;
@@ -21,7 +28,14 @@ class ChatMessage {
     this.pass,
     this.iv,
     this.mac,
+    this.error,
+    this.duration,
+    this.durationIV,
+    this.durationMAC,
+    this.decodedDuration,
+    this.filePath,
     this.text = '',
+    required this.uniqueId,
     required this.createdAtMSE,
     required this.messageType,
     required this.messageStatus,
@@ -39,5 +53,9 @@ class ChatMessage {
         'iv': iv,
         'mac': mac,
         'encryptionStatus': encryptionStatus.toString(),
+        'error': error,
+        'isSystemMessage': isSystemMessage,
+        'createdAtMSE': createdAtMSE,
+        'duration': duration
       };
 }

@@ -3,6 +3,7 @@ import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/public/flutter_sound_player.dart';
 
 import '../../../ui_constants.dart';
 import '../../../models/chat_message.dart';
@@ -16,11 +17,14 @@ class MessageWidget extends StatefulWidget {
     required this.message,
     this.sender,
     required this.chat,
+    required this.player,
   });
 
   final ChatMessage message;
   final Participant? sender;
   final Chat chat;
+
+  final FlutterSoundPlayer player;
 
   @override
   State<MessageWidget> createState() => _MessageWidgetState();
@@ -75,19 +79,30 @@ class _MessageWidgetState extends State<MessageWidget> {
 
   decrypt() async {
     try {
-      if (message.pass != null &&
-              message.pass!.isNotEmpty &&
-              message.encryptionStatus == EncryptionStatus.encrypted ||
-          message.encryptionStatus == EncryptionStatus.failed) {
-        final String decrypted = await decodePayload(
-          message.text,
-          message.iv,
-          message.mac,
-          message.pass,
-          true,
-        );
+      if (message.pass != null) {
+        String? decrypted;
+        int? decryptedDuration;
+        if (message.text != null) {
+          decrypted = await decodePayload(
+            message.text,
+            message.iv,
+            message.mac,
+            message.pass,
+            true,
+          );
+        }
+        if (message.duration != null && message.decodedDuration == null) {
+          decryptedDuration = await decodePayload(
+            message.duration,
+            message.durationIV,
+            message.durationMAC,
+            message.pass,
+            true,
+          );
+        }
         setState(() {
-          message.decrypted = decrypted;
+          message.decodedDuration = decryptedDuration ?? 0;
+          message.decrypted = decrypted ?? message.text;
           message.encryptionStatus = EncryptionStatus.decrypted;
         });
       }
@@ -105,7 +120,10 @@ class _MessageWidgetState extends State<MessageWidget> {
         case MessageTypes.text:
           return TextMessage(message: message);
         case MessageTypes.audio:
-          return AudioMessage(message: message);
+          return AudioMessage(
+            message: message,
+            player: widget.player,
+          );
         case MessageTypes.video:
           return const VideoMessage();
         default:
@@ -124,7 +142,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                 ),
                 padding: const EdgeInsets.symmetric(
                     horizontal: defaultPadding, vertical: defaultPadding),
-                child: Text(message.text),
+                child: Text(message.text!),
               ),
             )
           : Row(

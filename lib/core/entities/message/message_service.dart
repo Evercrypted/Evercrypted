@@ -12,6 +12,7 @@ import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:rhttp/rhttp.dart';
 
 import 'message_isar.dart';
 
@@ -143,6 +144,8 @@ class MessageService {
   getMessageFile(msgUniqID) async {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/$msgUniqID';
+    final fileAtPath = File(path);
+    return await fileAtPath.readAsString();
   }
 
   saveFile(file, messageUniqueId) async {
@@ -163,12 +166,19 @@ class MessageService {
     if (isFromQueue) {
       final decoded = json.decode(payload);
       crypted = encodePayload(decoded, ChatSocket.key);
-      dio
-          .post('/files/${MessageEventTypes.sendFile}', data: crypted)
+      HttpClient.client
+          .post('/files/${MessageEventTypes.sendFile}',
+              body: HttpBody.json(crypted))
           .then((resp) async {
+        final payload = await decodePayload(
+          resp.bodyToJson['crypted'],
+          resp.bodyToJson['iv'],
+          resp.bodyToJson['mac'],
+          ChatSocket.key,
+        );
         final msg = Message.fromJson(decoded['message']);
-        msg.uid = resp.data['messageUid'];
-        msg.uniqueId = msg.chatUid + resp.data['messageUid'];
+        msg.uid = payload['payload']['messageUid'];
+        msg.uniqueId = msg.chatUid + payload['payload']['messageUid'];
         msg.successfullySent = true;
         msg.filepath = await saveFile(decoded['file'], msg.uniqueId);
         writeNewMessageToIsar(msg).then((value) {
@@ -189,18 +199,20 @@ class MessageService {
         complete.completeError(
             'Could not connect to server, please check your internet connection.');
       } else if (saveToQueueIfNeeded == false) {
-        dio
-            .post('/files/${MessageEventTypes.sendFile}', data: crypted)
+        HttpClient.client
+            .post('/files/${MessageEventTypes.sendFile}',
+                body: HttpBody.json(crypted))
             .then((resp) async {
           final payload = await decodePayload(
-            resp.data['crypted'],
-            resp.data['iv'],
-            resp.data['mac'],
+            resp.bodyToJson['crypted'],
+            resp.bodyToJson['iv'],
+            resp.bodyToJson['mac'],
             ChatSocket.key,
           );
           if (payload['status'] == 'ok') {
-            message.uid = resp.data['messageUid'];
-            message.uniqueId = message.chatUid + resp.data['messageUid'];
+            message.uid = payload['payload']['messageUid'];
+            message.uniqueId =
+                message.chatUid + payload['payload']['messageUid'];
             message.successfullySent = true;
             message.filepath = await saveFile(file, message.uniqueId);
             writeNewMessageToIsar(message).then((value) {

@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -32,17 +31,22 @@ Future<EncryptedRecording?> encodeRecording(key, List<Uint8List> recording,
 
 Future<List<Uint8List>> decodeRecording(
     String key, String iv, String mac, String cryptedRecording,
-    [bool notHex = true]) async {
-  final algorithm = Chacha20.poly1305Aead();
-  final secretBox = SecretBox(
-    base64.decode(cryptedRecording),
-    nonce: base64.decode(iv),
-    mac: Mac(base64.decode(mac)),
-  );
-  final decrypted = await algorithm.decrypt(secretBox,
-      secretKey:
-          SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
-  final String stringList = utf8.decode(decrypted);
+    [bool notHex = true, bool isEncrypted = true]) async {
+  late final String stringList;
+  if (isEncrypted) {
+    final algorithm = Chacha20.poly1305Aead();
+    final secretBox = SecretBox(
+      base64.decode(cryptedRecording),
+      nonce: base64.decode(iv),
+      mac: Mac(base64.decode(mac)),
+    );
+    final decrypted = await algorithm.decrypt(secretBox,
+        secretKey:
+            SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
+    stringList = utf8.decode(decrypted);
+  } else {
+    stringList = cryptedRecording;
+  }
   final List<String> listString =
       stringList.substring(1, stringList.length - 1).split('],');
   final List<String> modified = listString

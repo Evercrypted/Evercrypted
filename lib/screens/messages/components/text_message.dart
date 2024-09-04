@@ -22,7 +22,7 @@ class TextMessage extends StatelessWidget {
       child: Text(
         message.encryptionStatus == EncryptionStatus.decrypted
             ? message.decrypted!
-            : message.text,
+            : message.text!,
         style: TextStyle(
           color: message.isSender
               ? Colors.white

@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_sound/public/flutter_sound_player.dart';
 import 'package:isar/isar.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -46,8 +47,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   String? pass;
   late Chat chat;
   late String participantNames;
-
   String? baseKey;
+
+  final FlutterSoundPlayer player = FlutterSoundPlayer();
 
   static const _pageSize = 10;
 
@@ -410,17 +412,28 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                       newPageProgressIndicatorBuilder: (context) => Container(),
                       itemBuilder: (context, item, index) {
                         final chatMessage = ChatMessage(
-                          text: item.text!,
+                          uniqueId: item.uniqueId,
+                          text: item.text,
                           createdAtMSE: item.createdAtMSE,
-                          messageType: MessageTypes.text,
+                          messageType: item.messageType,
                           isSender: item.authorId == userId,
                           isSystemMessage:
                               item.messageType == MessageTypes.system,
-                          messageStatus: MessageStatus.successfullySent,
+                          messageStatus: item.successfullySent
+                              ? MessageStatus.successfullySent
+                              : item.queueId != null
+                                  ? MessageStatus.queued
+                                  : item.couldNotSend
+                                      ? MessageStatus.couldNotSend
+                                      : MessageStatus.successfullySent,
                           pass: pass,
                           baseKey: baseKey,
                           iv: item.iv,
+                          error: item.error,
                           mac: item.mac,
+                          duration: item.playbackDurationMicroSeconds,
+                          durationIV: item.durationIV,
+                          durationMAC: item.durationMAC,
                           encryptionStatus: item.iv != null && item.mac != null
                               ? EncryptionStatus.encrypted
                               : EncryptionStatus.notEncrypted,
@@ -431,16 +444,14 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           message: chatMessage,
                           sender: chat.participants.firstWhereOrNull(
                               (element) => element.uid == item.authorId),
+                          player: player,
                         );
                       }),
                 ),
               ),
             ),
             ChatInputField(
-              chatId: chat.uid,
-              baseKey: baseKey,
-              pass: pass,
-            ),
+                chatId: chat.uid, baseKey: baseKey, pass: pass, player: player),
           ],
         ));
   }

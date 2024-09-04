@@ -19,8 +19,13 @@ class ChatInputField extends StatefulWidget {
   final String chatId;
   final String? pass;
   final String? baseKey;
+  final FlutterSoundPlayer player;
   const ChatInputField(
-      {super.key, required this.chatId, this.pass, this.baseKey});
+      {super.key,
+      required this.chatId,
+      required this.player,
+      this.pass,
+      this.baseKey});
 
   @override
   ChatInputFieldState createState() => ChatInputFieldState();
@@ -31,8 +36,6 @@ class ChatInputFieldState extends State<ChatInputField> {
   final TextEditingController _messageField = TextEditingController();
   final MessageService _messageService = MessageService();
   String? fullKey;
-
-  final FlutterSoundPlayer _myPlayer = FlutterSoundPlayer();
   int? recordingMicroSeconds;
   List<Uint8List>? recordingData;
   bool recordingPlaying = false;
@@ -109,25 +112,27 @@ class ChatInputFieldState extends State<ChatInputField> {
         recordingMicroSeconds == null) {
       return;
     }
-    await _myPlayer.openPlayer();
-    await _myPlayer.startPlayerFromStream(
+    await widget.player.openPlayer();
+    await widget.player.startPlayerFromStream(
         codec: Codec.pcm16, numChannels: 1, sampleRate: 16000);
 
-    for (final Uint8List data in recordingData!) {
-      await _myPlayer.feedFromStream(data);
-    }
-    await Future.delayed(Duration(microseconds: recordingMicroSeconds!));
-    await _myPlayer.stopPlayer();
-    await _myPlayer.closePlayer();
-    setState(() {
-      recordingPlaying = false;
-      waveFromController = IOS7SiriWaveformController(
-        amplitude: 0,
-        color: primaryColor,
-        frequency: 15,
-        speed: 0.15,
-      );
+    Future.delayed(Duration(microseconds: recordingMicroSeconds!))
+        .then((dur) async {
+      await widget.player.stopPlayer();
+      await widget.player.closePlayer();
+      setState(() {
+        recordingPlaying = false;
+        waveFromController = IOS7SiriWaveformController(
+          amplitude: 0,
+          color: primaryColor,
+          frequency: 15,
+          speed: 0.15,
+        );
+      });
     });
+    for (final Uint8List data in recordingData!) {
+      await widget.player.feedFromStream(data);
+    }
   }
 
   sendFile() async {
@@ -139,11 +144,11 @@ class ChatInputFieldState extends State<ChatInputField> {
     String? userId = Auth.user?.uid;
     late Message messageToSend;
     late String fileToSend;
-    if (widget.pass != null && widget.pass!.isNotEmpty) {
-      final encrypted = await encodeRecording(widget.pass!, recordingData!);
+    if (fullKey != null && fullKey!.isNotEmpty) {
+      final encrypted = await encodeRecording(fullKey!, recordingData!);
 
       final ecnryptedMicroSeconds =
-          await encodePayload(recordingMicroSeconds, widget.pass!, true);
+          await encodePayload(recordingMicroSeconds, fullKey!, true);
 
       if (encrypted != null && ecnryptedMicroSeconds != null) {
         messageToSend = Message(
@@ -192,7 +197,7 @@ class ChatInputFieldState extends State<ChatInputField> {
   @override
   void dispose() {
     _messageField.dispose();
-    _myPlayer.closePlayer();
+    widget.player.closePlayer();
     super.dispose();
   }
 
@@ -250,8 +255,8 @@ class ChatInputFieldState extends State<ChatInputField> {
                                           frequency: 15,
                                           speed: 0.15,
                                         );
-                                        _myPlayer.stopPlayer();
-                                        _myPlayer.closePlayer();
+                                        widget.player.stopPlayer();
+                                        widget.player.closePlayer();
                                       }
                                     });
                                   },
