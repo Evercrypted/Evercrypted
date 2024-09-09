@@ -6,6 +6,7 @@ import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
+import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
@@ -58,9 +59,19 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   final PagingController<int, Message> _pagingController =
       PagingController(firstPageKey: 1);
 
+  late StreamSubscription isConnectedListener;
+  bool isConnected = ChatSocket.isConnectedSubject.value;
+
   @override
   void initState() {
     super.initState();
+
+    isConnectedListener =
+        ChatSocket.isConnectedSubject.stream.listen((isConnected) async {
+      setState(() {
+        this.isConnected = isConnected;
+      });
+    });
 
     chat = widget.chat;
     participantNames =
@@ -93,6 +104,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   void dispose() async {
+    isConnectedListener.cancel();
     _isarSubscription?.cancel();
     _passController.dispose();
     _pagingController.dispose();
@@ -321,11 +333,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     return Scaffold(
         appBar: ConnectionStatusAppbar(
+          isConnected: isConnected,
           title: Row(
             children: [
               CircleAvatarWithActiveIndicator(
                 image: chat.avatar?.pic,
-                radius: 28,
+                radius: isConnected ? 28 : 14,
                 name: (chat.name ?? participantNames),
               ),
               const SizedBox(width: defaultPadding * 0.5),
@@ -412,13 +425,15 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                       newPageProgressIndicatorBuilder: (context) => Container(),
                       itemBuilder: (context, item, index) {
                         final chatMessage = ChatMessage(
-                          uniqueId: item.uniqueId,
+                          uid: item.uid,
+                          chatUid: widget.chat.uid,
                           text: item.text,
                           createdAtMSE: item.createdAtMSE,
                           messageType: item.messageType,
                           isSender: item.authorId == userId,
                           isSystemMessage:
                               item.messageType == MessageTypes.system,
+                          queueId: item.queueId,
                           messageStatus: item.successfullySent
                               ? MessageStatus.successfullySent
                               : item.queueId != null

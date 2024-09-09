@@ -65,7 +65,13 @@ class _AudioMessageState extends State<AudioMessage>
   }
 
   setFile() async {
-    fileString = await messageService.getMessageFile(widget.message.uniqueId);
+    if (widget.message.queueId != null) {
+      fileString =
+          await messageService.getMessageFile(queueId: widget.message.queueId);
+    } else {
+      fileString = await messageService.getMessageFile(
+          chatUid: widget.message.chatUid, msgUid: widget.message.uid);
+    }
   }
 
   playFile() async {

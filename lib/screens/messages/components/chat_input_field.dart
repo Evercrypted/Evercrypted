@@ -5,6 +5,7 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/widgets/fade_icon.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -39,6 +40,7 @@ class ChatInputFieldState extends State<ChatInputField> {
   int? recordingMicroSeconds;
   List<Uint8List>? recordingData;
   bool recordingPlaying = false;
+  bool sendingFile = false;
 
   IOS7SiriWaveformController waveFromController = IOS7SiriWaveformController(
     amplitude: 0,
@@ -175,9 +177,27 @@ class ChatInputFieldState extends State<ChatInputField> {
       );
       fileToSend = base64.encode(utf8.encode(recordingData.toString()));
     }
-    dropRecording();
-    final result = await _messageService.sendFile(
-        message: messageToSend, file: fileToSend);
+    setState(() {
+      sendingFile = true;
+    });
+    _messageService
+        .sendFile(message: messageToSend, file: fileToSend)
+        .then((msg) {
+      setState(() {
+        sendingFile = false;
+        dropRecording();
+      });
+    }).onError((e, s) {
+      setState(() {
+        sendingFile = false;
+        dropRecording();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content:
+            Text('Could not send file', style: TextStyle(color: Colors.white)),
+        backgroundColor: errorColor,
+      ));
+    });
   }
 
   dropRecording() {
@@ -211,11 +231,19 @@ class ChatInputFieldState extends State<ChatInputField> {
             child: Row(
               children: [
                 const SizedBox(width: defaultPadding / 2),
-                VoiceRecorderButton(
-                  pass: fullKey,
-                  chatId: widget.chatId,
-                  onRecord: onRecording,
-                ),
+                if (sendingFile)
+                  const FadeIcon(
+                      icon: Icon(
+                    Icons.upload,
+                    color: primaryColor,
+                    size: 30,
+                  ))
+                else
+                  VoiceRecorderButton(
+                    pass: fullKey,
+                    chatId: widget.chatId,
+                    onRecord: onRecording,
+                  ),
                 const SizedBox(width: defaultPadding / 4),
                 recordingData != null
                     ? Row(

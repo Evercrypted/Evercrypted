@@ -19,10 +19,15 @@ class ActionQueueService {
         if (action.isHttp) {
           if (action.channel == 'files') {
             if (action.type == MessageEventTypes.sendFile) {
-              result = messageService.sendFile(
-                isFromQueue: true,
-                payload: action.payload,
-              );
+              final String? file =
+                  await messageService.getMessageFile(queueId: action.id);
+              if (file != null) {
+                result = await messageService.sendFile(
+                  isFromQueue: true,
+                  file: file,
+                  payload: action.payload,
+                );
+              }
             }
           }
         } else {

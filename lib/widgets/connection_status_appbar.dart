@@ -6,8 +6,10 @@ class ConnectionStatusAppbar extends StatefulWidget
     implements PreferredSizeWidget {
   final Widget? title;
   final List<Widget>? actions;
+  final bool? isConnected;
 
-  const ConnectionStatusAppbar({super.key, this.title, this.actions});
+  const ConnectionStatusAppbar(
+      {super.key, this.title, this.actions, this.isConnected});
 
   @override
   Size get preferredSize => title != null || actions != null
@@ -20,23 +22,37 @@ class ConnectionStatusAppbar extends StatefulWidget
 
 class _ConnectionStatusAppbarState extends State<ConnectionStatusAppbar> {
   bool isConnected = true;
-  late StreamSubscription isConnectedListener;
+  StreamSubscription? isConnectedListener;
 
   @override
   void initState() {
     super.initState();
 
-    isConnectedListener =
-        ChatSocket.isConnectedSubject.stream.listen((isConnected) async {
+    if (widget.isConnected != null) {
       setState(() {
-        this.isConnected = isConnected;
+        isConnected = widget.isConnected!;
       });
+    } else {
+      isConnectedListener =
+          ChatSocket.isConnectedSubject.stream.listen((isConnected) async {
+        setState(() {
+          this.isConnected = isConnected;
+        });
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ConnectionStatusAppbar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    setState(() {
+      isConnected = widget.isConnected!;
     });
   }
 
   @override
   void dispose() {
-    isConnectedListener.cancel();
+    isConnectedListener?.cancel();
     super.dispose();
   }
 

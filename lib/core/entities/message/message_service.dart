@@ -111,11 +111,13 @@ class MessageService {
     return complete.future;
   }
 
-  dynamic checkIfSocketConnectedAndQueueIfNeeded(payload, isFromQueue) async {
+  dynamic checkIfSocketConnectedAndQueueIfNeeded(
+      payload, file, isFromQueue) async {
     final completer = Completer<dynamic>();
     Future<int> saveActionForLater() async {
       final writingToQueueCompleter = Completer<int>();
       final action = ActionQueue(
+          isHttp: true,
           channel: 'files',
           type: MessageEventTypes.sendFile,
           payload: json.encode(payload),
@@ -123,6 +125,7 @@ class MessageService {
       final isar = Isar.getInstance();
       isar?.writeTxn(() async {
         final int queuedItemId = await isar.actionQueues.put(action);
+        await saveFile(file: file, queueId: queuedItemId);
         writingToQueueCompleter.complete(queuedItemId);
       });
       return writingToQueueCompleter.future;
@@ -141,24 +144,32 @@ class MessageService {
     return completer.future;
   }
 
-  getMessageFile(msgUniqID) async {
+  getMessageFile({String? chatUid, String? msgUid, int? queueId}) async {
     final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/$msgUniqID';
+    final path = queueId != null
+        ? '${directory.path}/$queueId'
+        : '${directory.path}/$chatUid/$msgUid';
     final fileAtPath = File(path);
     return await fileAtPath.readAsString();
   }
 
-  saveFile(file, messageUniqueId) async {
+  saveFile(
+      {required String file,
+      String? chatUid,
+      String? msgUid,
+      int? queueId}) async {
     final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/${messageUniqueId!}';
+    final path = queueId != null
+        ? '${directory.path}/$queueId'
+        : '${directory.path}/$chatUid/$msgUid';
     final fileAtPath = File(path);
-    await fileAtPath.writeAsString(file!);
+    await fileAtPath.writeAsString(file);
     return path;
   }
 
   Future<dynamic> sendFile(
       {Message? message,
-      String? file,
+      required String file,
       dynamic payload,
       bool isFromQueue = false}) async {
     Completer<Message> complete = Completer();
@@ -180,7 +191,8 @@ class MessageService {
         msg.uid = payload['payload']['messageUid'];
         msg.uniqueId = msg.chatUid + payload['payload']['messageUid'];
         msg.successfullySent = true;
-        msg.filepath = await saveFile(decoded['file'], msg.uniqueId);
+        msg.filepath = await saveFile(
+            file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
         writeNewMessageToIsar(msg).then((value) {
           complete.complete(message);
         });
@@ -190,15 +202,14 @@ class MessageService {
     } else {
       final payload = {
         'message': message!.toJson(),
-        'file': file,
       };
-      crypted = await encodePayload(payload, ChatSocket.key);
       final saveToQueueIfNeeded = await checkIfSocketConnectedAndQueueIfNeeded(
-          json.encode(payload), isFromQueue);
+          json.encode(payload), file, isFromQueue);
       if (saveToQueueIfNeeded == true) {
         complete.completeError(
             'Could not connect to server, please check your internet connection.');
       } else if (saveToQueueIfNeeded == false) {
+        crypted = await encodePayload(payload, ChatSocket.key);
         HttpClient.client
             .post('/files/${MessageEventTypes.sendFile}',
                 body: HttpBody.json(crypted))
@@ -214,7 +225,8 @@ class MessageService {
             message.uniqueId =
                 message.chatUid + payload['payload']['messageUid'];
             message.successfullySent = true;
-            message.filepath = await saveFile(file, message.uniqueId);
+            message.filepath = await saveFile(
+                file: file, chatUid: message.chatUid, msgUid: message.uid);
             writeNewMessageToIsar(message).then((value) {
               complete.complete(message);
             });

@@ -17,7 +17,9 @@ class ChatMessage {
   final String? duration;
   final String? durationIV;
   final String? durationMAC;
-  final String? uniqueId;
+  final String? uid;
+  final String chatUid;
+  final int? queueId;
   int? decodedDuration;
   final bool isSystemMessage;
   final int createdAtMSE;
@@ -35,7 +37,9 @@ class ChatMessage {
     this.decodedDuration,
     this.filePath,
     this.text = '',
-    required this.uniqueId,
+    this.uid,
+    this.queueId,
+    required this.chatUid,
     required this.createdAtMSE,
     required this.messageType,
     required this.messageStatus,
