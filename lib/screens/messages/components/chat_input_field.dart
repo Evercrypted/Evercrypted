@@ -137,7 +137,7 @@ class ChatInputFieldState extends State<ChatInputField> {
     }
   }
 
-  sendFile() async {
+  sendFile(context) async {
     if (recordingData == null ||
         recordingData!.isEmpty ||
         recordingMicroSeconds == null) {
@@ -192,11 +192,13 @@ class ChatInputFieldState extends State<ChatInputField> {
         sendingFile = false;
         dropRecording();
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content:
-            Text('Could not send file', style: TextStyle(color: Colors.white)),
-        backgroundColor: errorColor,
-      ));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not send file',
+              style: TextStyle(color: Colors.white)),
+          backgroundColor: errorColor,
+        ));
+      }
     });
   }
 
@@ -320,7 +322,7 @@ class ChatInputFieldState extends State<ChatInputField> {
                           ),
                           IconButton(
                             onPressed: () {
-                              sendFile();
+                              sendFile(context);
                             },
                             icon: const Icon(
                               Icons.send,

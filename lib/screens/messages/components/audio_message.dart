@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
+import 'package:evercrypted/widgets/fade_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 
@@ -23,6 +24,8 @@ class _AudioMessageState extends State<AudioMessage>
   AnimationController? controller;
   int? durationLeft;
   String? fileString;
+  bool needDownload = false;
+  bool downloadInProgress = false;
 
   MessageService messageService = MessageService();
 
@@ -71,6 +74,11 @@ class _AudioMessageState extends State<AudioMessage>
     } else {
       fileString = await messageService.getMessageFile(
           chatUid: widget.message.chatUid, msgUid: widget.message.uid);
+      if (fileString == null) {
+        setState(() {
+          needDownload = true;
+        });
+      }
     }
   }
 
@@ -146,23 +154,43 @@ class _AudioMessageState extends State<AudioMessage>
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () {
-              if (controller != null) {
-                if (controller!.isAnimating) {
-                  stop();
-                } else {
-                  play();
+          if (needDownload)
+            if (downloadInProgress)
+              FadeIcon(
+                  icon: Icon(
+                Icons.download,
+                color: widget.message.isSender ? Colors.white : primaryColor,
+              ))
+            else
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    downloadInProgress = true;
+                  });
+                },
+                icon: Icon(
+                  Icons.download,
+                  color: widget.message.isSender ? Colors.white : primaryColor,
+                ),
+              )
+          else
+            IconButton(
+              onPressed: () {
+                if (controller != null) {
+                  if (controller!.isAnimating) {
+                    stop();
+                  } else {
+                    play();
+                  }
                 }
-              }
-            },
-            icon: Icon(
-              controller != null && controller!.isAnimating
-                  ? Icons.stop
-                  : Icons.play_arrow,
-              color: widget.message.isSender ? Colors.white : primaryColor,
+              },
+              icon: Icon(
+                controller != null && controller!.isAnimating
+                    ? Icons.stop
+                    : Icons.play_arrow,
+                color: widget.message.isSender ? Colors.white : primaryColor,
+              ),
             ),
-          ),
           Expanded(
             child: Padding(
               padding:

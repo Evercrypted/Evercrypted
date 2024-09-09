@@ -149,8 +149,12 @@ class MessageService {
     final path = queueId != null
         ? '${directory.path}/$queueId'
         : '${directory.path}/$chatUid/$msgUid';
-    final fileAtPath = File(path);
-    return await fileAtPath.readAsString();
+    if (await File(path).exists()) {
+      final fileAtPath = File(path);
+      return await fileAtPath.readAsString();
+    } else {
+      return null;
+    }
   }
 
   saveFile(
@@ -248,6 +252,25 @@ class MessageService {
       }
     }
     return complete.future;
+  }
+
+  downloadFile(String chatUid, String messageUid) {
+    final completer = Completer();
+    HttpClient.client.get('/files/${MessageEventTypes.downloadFile}', query: {
+      'chatUid': chatUid,
+      'messageUid': messageUid
+    }).then((resp) async {
+      print(resp);
+      // final payload = await decodePayload(
+      //   resp.bodyToJson['crypted'],
+      //   resp.bodyToJson['iv'],
+      //   resp.bodyToJson['mac'],
+      //   ChatSocket.key,
+      // );
+    }).onError((error, stackTrace) {
+      completer.completeError(error!);
+    });
+    return completer.future;
   }
 
   writeNewMessageToIsar(Message message) async {
