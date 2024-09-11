@@ -24,6 +24,7 @@ class ActionQueueService {
               if (file != null) {
                 result = await messageService.sendFile(
                   isFromQueue: true,
+                  queueId: action.id,
                   file: file,
                   payload: action.payload,
                 );
@@ -39,8 +40,7 @@ class ActionQueueService {
           );
         }
         if (result != null) {
-          if ((action.channel == SocketChannelTypes.message ||
-                  action.channel == 'files') &&
+          if ((action.channel == SocketChannelTypes.message) &&
               result['messageUid'] != null) {
             Message? msg = isar?.messages
                 .where()

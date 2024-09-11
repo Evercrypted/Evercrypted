@@ -144,6 +144,16 @@ class MessageService {
     return completer.future;
   }
 
+  deleteFile({String? chatUid, String? msgUid, int? queueId}) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = queueId != null
+        ? '${directory.path}/$queueId'
+        : '${directory.path}/$chatUid/$msgUid';
+    if (File(path).existsSync()) {
+      File(path).deleteSync();
+    }
+  }
+
   getMessageFile({String? chatUid, String? msgUid, int? queueId}) async {
     final directory = await getApplicationDocumentsDirectory();
     final path = queueId != null
@@ -175,7 +185,8 @@ class MessageService {
       {Message? message,
       required String file,
       dynamic payload,
-      bool isFromQueue = false}) async {
+      bool isFromQueue = false,
+      int? queueId}) async {
     Completer<Message> complete = Completer();
     dynamic crypted;
     if (isFromQueue) {
@@ -195,8 +206,10 @@ class MessageService {
         msg.uid = payload['payload']['messageUid'];
         msg.uniqueId = msg.chatUid + payload['payload']['messageUid'];
         msg.successfullySent = true;
+        msg.queueId = null;
         msg.filepath = await saveFile(
             file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
+        deleteFile(queueId: queueId!);
         writeNewMessageToIsar(msg).then((value) {
           complete.complete(message);
         });
