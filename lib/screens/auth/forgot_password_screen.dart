@@ -24,22 +24,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() {
       _shouldShowLoading = true;
     });
-    //firebaseauth
-    // FirebaseAuth.instance.sendPasswordResetEmail(email: email).then((value) {
-    //   setState(() {
-    //     _shouldShowLoading = false;
-    //   });
-    //   Navigator.pop(context);
-    // }).catchError((e) {
-    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //     content:
-    //         Text(e.toString(), style: const TextStyle(color: Colors.white)),
-    //     backgroundColor: errorColor,
-    //   ));
-    //   setState(() {
-    //     _shouldShowLoading = false;
-    //   });
-    // });
   }
 
   @override

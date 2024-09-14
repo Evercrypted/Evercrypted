@@ -267,19 +267,23 @@ class MessageService {
     return complete.future;
   }
 
-  downloadFile(String chatUid, String messageUid) {
+  downloadFile(String chatUid, String messageUid) async {
     final completer = Completer();
-    HttpClient.client.get('/files/${MessageEventTypes.downloadFile}', query: {
+    final payload = await encodePayload({
       'chatUid': chatUid,
-      'messageUid': messageUid
-    }).then((resp) async {
-      print(resp);
-      // final payload = await decodePayload(
-      //   resp.bodyToJson['crypted'],
-      //   resp.bodyToJson['iv'],
-      //   resp.bodyToJson['mac'],
-      //   ChatSocket.key,
-      // );
+      'messageUid': messageUid,
+    }, ChatSocket.key);
+    HttpClient.client
+        .post('/files/${MessageEventTypes.downloadFile}',
+            body: HttpBody.json(payload))
+        .then((resp) async {
+      final respPayload = await decodePayload(
+        resp.bodyToJson['crypted'],
+        resp.bodyToJson['iv'],
+        resp.bodyToJson['mac'],
+        ChatSocket.key,
+      );
+      print(respPayload);
     }).onError((error, stackTrace) {
       completer.completeError(error!);
     });

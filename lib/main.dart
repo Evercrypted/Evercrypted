@@ -39,7 +39,6 @@ import 'core/entities/contact/contact_riverpod.dart';
 import 'core/socket/socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
-import 'core/interceptors/auth_interceptor.dart';
 import 'firebase_options.dart';
 
 void main() async {

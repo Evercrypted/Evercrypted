@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
