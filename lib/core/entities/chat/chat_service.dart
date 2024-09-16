@@ -140,27 +140,31 @@ class ChatService {
 
   Future<Chat> createNewGroupChat(NewGroupChatDTO newGroupChatDTO) async {
     Completer<Chat> complete = Completer();
+
+    final String appKey = await Auth.getAppKey;
+
     final Profile? profile = profileService.getProfile();
+
     newGroupChatDTO.participants.add(Participant(
         uid: profile!.uid,
-        email: profile.email,
-        name: profile.name,
+        email: fernetDecrypt(profile.email, appKey),
+        name: fernetDecrypt(profile.name, appKey),
         avatar: profile.avatar,
         isCreator: true,
         isAdmin: true));
-
-    final String appKey = await Auth.getAppKey;
 
     ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createGroupChat,
             newGroupChatDTO.toJson())
         .then((resp) {
       Chat returnedChat = Chat.fromJson(resp['chat']);
-      returnedChat.participants = returnedChat.participants
-          .map((p) => p.copyWith(
-              email: fernetEncrypt(p.email, appKey),
-              name: fernetEncrypt(p.name, appKey)))
-          .toList();
-      addChat(returnedChat).then((value) => complete.complete(returnedChat));
+      addChat(returnedChat).then((value) {
+        returnedChat.participants = returnedChat.participants
+            .map((p) => p.copyWith(
+                email: fernetEncrypt(p.email, appKey),
+                name: fernetEncrypt(p.name, appKey)))
+            .toList();
+        return complete.complete(returnedChat);
+      });
     });
     return complete.future;
   }
@@ -186,13 +190,15 @@ class ChatService {
       NewOneToOneChatDTO newChat =
           NewOneToOneChatDTO(contact: contact.contactPersonUid!);
       createNewChat(newChat).then((Chat returnedChat) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MessagesScreen(chat: returnedChat),
-          ),
-          (route) => route.isFirst,
-        );
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MessagesScreen(chat: returnedChat),
+            ),
+            (route) => route.isFirst,
+          );
+        }
       });
     }
   }

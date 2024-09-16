@@ -376,14 +376,15 @@ class AuthGateState extends ConsumerState<AuthGate> {
     });
     //chats
     isarChatsListener = isar?.chats.where().build().watch().listen((chats) {
-      ref.read(chatsProvider.notifier).setChats(chats.map((c) {
-            c.participants = c.participants.map((p) {
-              return p.copyWith(
-                  email: fernetDecrypt(p.email, appKey),
-                  name: fernetDecrypt(p.name, appKey));
-            }).toList();
-            return c;
-          }).toList());
+      final decr = chats.map((c) {
+        c.participants = c.participants.map((p) {
+          return p.copyWith(
+              email: fernetDecrypt(p.email, appKey),
+              name: fernetDecrypt(p.name, appKey));
+        }).toList();
+        return c;
+      }).toList();
+      ref.read(chatsProvider.notifier).setChats(decr);
     });
     //messages
   }

@@ -9,6 +9,7 @@ import 'package:evercrypted/widgets/fade_icon.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:siri_wave/siri_wave.dart';
 
 import '../../../core/entities/message/message_service.dart';
@@ -141,6 +142,13 @@ class ChatInputFieldState extends State<ChatInputField> {
     if (recordingData == null ||
         recordingData!.isEmpty ||
         recordingMicroSeconds == null) {
+      return;
+    }
+    if (sendingFile) {
+      return;
+    }
+    final storageStatus = await Permission.storage.request();
+    if (storageStatus != PermissionStatus.granted) {
       return;
     }
     String? userId = Auth.user?.uid;

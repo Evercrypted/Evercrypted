@@ -28,6 +28,16 @@ class _ConnectionStatusAppbarState extends State<ConnectionStatusAppbar> {
   void initState() {
     super.initState();
 
+    setIsConnected();
+  }
+
+  @override
+  void didUpdateWidget(covariant ConnectionStatusAppbar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    setIsConnected();
+  }
+
+  setIsConnected() {
     if (widget.isConnected != null) {
       setState(() {
         isConnected = widget.isConnected!;
@@ -40,14 +50,6 @@ class _ConnectionStatusAppbarState extends State<ConnectionStatusAppbar> {
         });
       });
     }
-  }
-
-  @override
-  void didUpdateWidget(covariant ConnectionStatusAppbar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    setState(() {
-      isConnected = widget.isConnected!;
-    });
   }
 
   @override

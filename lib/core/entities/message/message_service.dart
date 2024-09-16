@@ -106,13 +106,17 @@ class MessageService {
         complete.complete(messageToSend);
       });
     }).onError((error, stackTrace) {
+      messageToSend.successfullySent = false;
+      messageToSend.error = 'Could not send message';
+      writeNewMessageToIsar(messageToSend).then((value) {
+        complete.complete(messageToSend);
+      });
       complete.completeError(error!);
     });
     return complete.future;
   }
 
-  dynamic checkIfSocketConnectedAndQueueIfNeeded(
-      payload, file, isFromQueue) async {
+  dynamic checkIfSocketConnectedAndQueueIfNeeded(payload, file) async {
     final completer = Completer<dynamic>();
     Future<int> saveActionForLater() async {
       final writingToQueueCompleter = Completer<int>();
@@ -136,8 +140,6 @@ class MessageService {
         ChatSocket.isConnected == false) {
       final int queuedItemId = await saveActionForLater();
       completer.complete({'status': 'queued', 'queuedItemId': queuedItemId});
-    } else if (isFromQueue) {
-      completer.complete(true);
     } else {
       completer.complete(false);
     }
@@ -176,6 +178,7 @@ class MessageService {
     final path = queueId != null
         ? '${directory.path}/$queueId'
         : '${directory.path}/$chatUid/$msgUid';
+    File(path).createSync(recursive: true);
     final fileAtPath = File(path);
     await fileAtPath.writeAsString(file);
     return path;
@@ -191,6 +194,7 @@ class MessageService {
     dynamic crypted;
     if (isFromQueue) {
       final decoded = json.decode(payload);
+      final msg = Message.fromJson(decoded['message']);
       crypted = encodePayload(decoded, ChatSocket.key);
       HttpClient.client
           .post('/files/${MessageEventTypes.sendFile}',
@@ -202,31 +206,48 @@ class MessageService {
           resp.bodyToJson['mac'],
           ChatSocket.key,
         );
-        final msg = Message.fromJson(decoded['message']);
-        msg.uid = payload['payload']['messageUid'];
-        msg.uniqueId = msg.chatUid + payload['payload']['messageUid'];
-        msg.successfullySent = true;
-        msg.queueId = null;
-        msg.filepath = await saveFile(
-            file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
+        if (payload['status'] == 'ok') {
+          msg.uid = payload['payload']['messageUid'];
+          msg.uniqueId = msg.chatUid + payload['payload']['messageUid'];
+          msg.successfullySent = true;
+          msg.queueId = null;
+          msg.filepath = await saveFile(
+              file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
+        } else {
+          msg.successfullySent = false;
+          msg.error = 'Could not send file';
+          msg.filepath = await saveFile(
+              file: decoded['file'],
+              chatUid: msg.chatUid,
+              msgUid: DateTime.now().microsecondsSinceEpoch.toString());
+        }
         deleteFile(queueId: queueId!);
         writeNewMessageToIsar(msg).then((value) {
           complete.complete(message);
         });
-      }).onError((error, stackTrace) {
-        complete.completeError(error!);
+      }).onError((error, stackTrace) async {
+        msg.successfullySent = false;
+        msg.error = 'Could not send file';
+        msg.filepath = await saveFile(
+            file: decoded['file'],
+            chatUid: msg.chatUid,
+            msgUid: DateTime.now().microsecondsSinceEpoch.toString());
+        deleteFile(queueId: queueId!);
+        writeNewMessageToIsar(msg).then((value) {
+          complete.complete(message);
+        });
       });
     } else {
       final payload = {
         'message': message!.toJson(),
       };
       final saveToQueueIfNeeded = await checkIfSocketConnectedAndQueueIfNeeded(
-          json.encode(payload), file, isFromQueue);
-      if (saveToQueueIfNeeded == true) {
-        complete.completeError(
-            'Could not connect to server, please check your internet connection.');
-      } else if (saveToQueueIfNeeded == false) {
-        crypted = await encodePayload(payload, ChatSocket.key);
+          json.encode(payload), file);
+      if (saveToQueueIfNeeded == false) {
+        crypted = await encodePayload({
+          ...payload,
+          'file': file,
+        }, ChatSocket.key);
         HttpClient.client
             .post('/files/${MessageEventTypes.sendFile}',
                 body: HttpBody.json(crypted))
@@ -244,12 +265,27 @@ class MessageService {
             message.successfullySent = true;
             message.filepath = await saveFile(
                 file: file, chatUid: message.chatUid, msgUid: message.uid);
-            writeNewMessageToIsar(message).then((value) {
-              complete.complete(message);
-            });
+          } else {
+            message.successfullySent = false;
+            message.error = 'Could not send file';
+            message.filepath = await saveFile(
+                file: file,
+                chatUid: message.chatUid,
+                msgUid: DateTime.now().microsecondsSinceEpoch.toString());
           }
-        }).onError((error, stackTrace) {
-          complete.completeError(error!);
+          writeNewMessageToIsar(message).then((value) {
+            complete.complete(message);
+          });
+        }).onError((error, stackTrace) async {
+          message.successfullySent = false;
+          message.error = 'Could not send file';
+          message.filepath = await saveFile(
+              file: file,
+              chatUid: message.chatUid,
+              msgUid: DateTime.now().microsecondsSinceEpoch.toString());
+          writeNewMessageToIsar(message).then((value) {
+            complete.complete(message);
+          });
         });
       } else if (saveToQueueIfNeeded['status'] == 'queued') {
         message.successfullySent = false;
@@ -267,8 +303,8 @@ class MessageService {
     return complete.future;
   }
 
-  downloadFile(String chatUid, String messageUid) async {
-    final completer = Completer();
+  Future<String> downloadFile(String chatUid, String messageUid) async {
+    final Completer<String> completer = Completer();
     final payload = await encodePayload({
       'chatUid': chatUid,
       'messageUid': messageUid,
@@ -283,11 +319,37 @@ class MessageService {
         resp.bodyToJson['mac'],
         ChatSocket.key,
       );
-      print(respPayload);
+      if (respPayload['status'] != 'success') {
+        completer.completeError('Could not download file');
+      } else {
+        final Message message = getMessage(chatUid, messageUid);
+        message.filepath = await saveFile(
+            file: respPayload['file'], chatUid: chatUid, msgUid: messageUid);
+        updateMessage(message).then((value) {
+          completer.complete(respPayload['file']);
+        });
+      }
     }).onError((error, stackTrace) {
-      completer.completeError(error!);
+      completer.completeError('Could not download file');
     });
     return completer.future;
+  }
+
+  getMessage(String chatUid, String messageUid) {
+    final isar = Isar.getInstance();
+    return isar!.messages
+        .where()
+        .chatUidEqualTo(chatUid)
+        .filter()
+        .uidEqualTo(messageUid)
+        .findFirstSync();
+  }
+
+  updateMessage(Message message) async {
+    final isar = Isar.getInstance();
+    return isar!.writeTxn(() async {
+      await isar.messages.put(message);
+    });
   }
 
   writeNewMessageToIsar(Message message) async {

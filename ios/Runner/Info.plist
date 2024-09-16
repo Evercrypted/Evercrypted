@@ -64,5 +64,9 @@
 		<key>NSAllowsArbitraryLoadsForMedia</key>
     	<true/>
 	</dict>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
 </dict>
 </plist>

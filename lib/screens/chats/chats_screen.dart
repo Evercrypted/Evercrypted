@@ -111,257 +111,270 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
               newGroupChatDTO = NewGroupChatDTO(
                 participants: val,
               );
-              showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (BuildContext context) {
-                    return StatefulBuilder(builder: (context, setModalState) {
-                      bool isEmpty = newGroupName.text.isEmpty;
-                      return Wrap(
-                        children: [
-                          Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.all(defaultPadding),
-                            child: Stack(
-                              alignment: Alignment.bottomRight,
-                              children: [
-                                CircleAvatarWithActiveIndicator(
-                                  image: newGroupChatDTO?.avatar?.pic,
-                                  radius: 50,
-                                  name: newGroupChatDTO?.name ??
-                                      chatParticipantNames(
-                                              chat: newGroupChatDTO,
-                                              widgetRef: ref)
-                                          .join(', '),
-                                ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.only(left: 5, top: 5),
-                                  child: InkWell(
-                                    onTap: () {},
-                                    child: const CircleAvatar(
-                                      backgroundColor: Colors.white,
-                                      radius: 17,
-                                      child: CircleAvatar(
-                                        radius: 15,
-                                        backgroundColor: lightGrey,
-                                        child: Icon(
-                                          Icons.file_upload_outlined,
-                                          color: Colors.white,
-                                          size: 24,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: defaultPadding * 2),
-                            child: Row(
-                              children: [
-                                const Text(
-                                  'Enter Group Name:',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black87,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Expanded(
-                                  child: TextFormField(
-                                    autofocus: true,
-                                    controller: newGroupName,
-                                    onTap: () {
-                                      openSecretInput(
-                                          context: context,
-                                          controller: newGroupName,
-                                          done: (val) {
-                                            setModalState(() {
-                                              isEmpty = val.text.isEmpty;
-                                            });
-                                          });
-                                    },
-                                    keyboardType: TextInputType.none,
-                                    decoration: InputDecoration(
-                                      border: const UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Colors.grey,
-                                          width: 1,
-                                        ),
-                                      ),
-                                      focusedBorder: const UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Colors.grey,
-                                          width: 1,
-                                        ),
-                                      ),
-                                      fillColor: Colors.white,
-                                      hintStyle: TextStyle(
-                                        color: contentColorLightTheme
-                                            .withOpacity(0.64),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            margin: const EdgeInsets.only(
-                              top: defaultPadding * 2,
-                              left: defaultPadding,
-                              right: defaultPadding,
-                            ),
-                            padding: const EdgeInsets.only(
-                                bottom: defaultPadding / 4),
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                    color: Colors.grey.shade300, width: 1),
-                              ),
-                            ),
-                            child: const Text(
-                              'Participants',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 300,
-                            child: ListView(
+              if (context.mounted) {
+                showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (BuildContext context) {
+                      return StatefulBuilder(builder: (context, setModalState) {
+                        bool isEmpty = newGroupName.text.isEmpty;
+                        return Wrap(
+                          children: [
+                            Container(
+                              alignment: Alignment.center,
                               padding: const EdgeInsets.all(defaultPadding),
-                              shrinkWrap: true,
-                              children: [
-                                for (var contact in val)
-                                  Container(
-                                    margin: const EdgeInsets.only(
-                                        bottom: defaultPadding / 3),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatarWithActiveIndicator(
-                                          image: contact.avatar?.pic,
-                                          radius: 24,
-                                          name: contact.name ?? contact.email,
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: defaultPadding),
-                                          child: SizedBox(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width -
-                                                4 * defaultPadding -
-                                                130,
-                                            child: Text(
-                                              contact.name ?? contact.email!,
-                                              style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w500),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                            ),
+                              child: Stack(
+                                alignment: Alignment.bottomRight,
+                                children: [
+                                  CircleAvatarWithActiveIndicator(
+                                    image: newGroupChatDTO?.avatar?.pic,
+                                    radius: 50,
+                                    name: newGroupChatDTO?.name ??
+                                        chatParticipantNames(
+                                                chat: newGroupChatDTO,
+                                                widgetRef: ref)
+                                            .join(', '),
+                                  ),
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.only(left: 5, top: 5),
+                                    child: InkWell(
+                                      onTap: () {},
+                                      child: const CircleAvatar(
+                                        backgroundColor: Colors.white,
+                                        radius: 17,
+                                        child: CircleAvatar(
+                                          radius: 15,
+                                          backgroundColor: lightGrey,
+                                          child: Icon(
+                                            Icons.file_upload_outlined,
+                                            color: Colors.white,
+                                            size: 24,
                                           ),
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                              ],
+                                  )
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: defaultPadding,
-                                vertical: defaultPadding * 2),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  width: MediaQuery.of(context).size.width / 2 -
-                                      2 * defaultPadding,
-                                  child: PrimaryButton(
-                                    color: lightGrey,
-                                    press: () {
-                                      Navigator.pop(context, false);
-                                    },
-                                    child: const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.close, color: Colors.white),
-                                        SizedBox(width: 10),
-                                        Text('Cancel',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold))
-                                      ],
+                            const SizedBox(height: 20),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: defaultPadding * 2),
+                              child: Row(
+                                children: [
+                                  const Text(
+                                    'Enter Group Name:',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Expanded(
+                                    child: TextFormField(
+                                      autofocus: true,
+                                      controller: newGroupName,
+                                      onTap: () {
+                                        openSecretInput(
+                                            context: context,
+                                            controller: newGroupName,
+                                            done: (val) {
+                                              setModalState(() {
+                                                isEmpty = val.text.isEmpty;
+                                              });
+                                            });
+                                      },
+                                      keyboardType: TextInputType.none,
+                                      decoration: InputDecoration(
+                                        border: const UnderlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Colors.grey,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        focusedBorder:
+                                            const UnderlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Colors.grey,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        fillColor: Colors.white,
+                                        hintStyle: TextStyle(
+                                          color: contentColorLightTheme
+                                              .withOpacity(0.64),
+                                        ),
+                                      ),
                                     ),
                                   ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Container(
+                              margin: const EdgeInsets.only(
+                                top: defaultPadding * 2,
+                                left: defaultPadding,
+                                right: defaultPadding,
+                              ),
+                              padding: const EdgeInsets.only(
+                                  bottom: defaultPadding / 4),
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                      color: Colors.grey.shade300, width: 1),
                                 ),
-                                SizedBox(
+                              ),
+                              child: const Text(
+                                'Participants',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 300,
+                              child: ListView(
+                                padding: const EdgeInsets.all(defaultPadding),
+                                shrinkWrap: true,
+                                children: [
+                                  for (var contact in val)
+                                    Container(
+                                      margin: const EdgeInsets.only(
+                                          bottom: defaultPadding / 3),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatarWithActiveIndicator(
+                                            image: contact.avatar?.pic,
+                                            radius: 24,
+                                            name: contact.name ?? contact.email,
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: defaultPadding),
+                                            child: SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width -
+                                                  4 * defaultPadding -
+                                                  130,
+                                              child: Text(
+                                                contact.name ?? contact.email!,
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: defaultPadding,
+                                  vertical: defaultPadding * 2),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
                                     width:
                                         MediaQuery.of(context).size.width / 2 -
                                             2 * defaultPadding,
                                     child: PrimaryButton(
-                                        disabled: isEmpty,
-                                        press: () {
-                                          if (newGroupName.text.isEmpty) {
-                                            setModalState(() {
-                                              isEmpty = true;
-                                            });
-                                            return;
-                                          }
-                                          newGroupChatDTO = newGroupChatDTO!
-                                              .copyWith(
-                                                  name: newGroupName.text);
-                                          Navigator.pop(context, true);
-                                        },
-                                        child: const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.check,
-                                                color: Colors.white),
-                                            SizedBox(width: 10),
-                                            Text('Create Group',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight:
-                                                        FontWeight.bold))
-                                          ],
-                                        ))),
-                              ],
+                                      color: lightGrey,
+                                      press: () {
+                                        Navigator.pop(context, false);
+                                      },
+                                      child: const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.close,
+                                              color: Colors.white),
+                                          SizedBox(width: 10),
+                                          Text('Cancel',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold))
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                      width: MediaQuery.of(context).size.width /
+                                              2 -
+                                          2 * defaultPadding,
+                                      child: PrimaryButton(
+                                          disabled: isEmpty,
+                                          press: () {
+                                            if (newGroupName.text.isEmpty) {
+                                              setModalState(() {
+                                                isEmpty = true;
+                                              });
+                                              return;
+                                            }
+                                            newGroupChatDTO = newGroupChatDTO!
+                                                .copyWith(
+                                                    name: newGroupName.text);
+                                            Navigator.pop(context, true);
+                                          },
+                                          child: const Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.check,
+                                                  color: Colors.white),
+                                              SizedBox(width: 10),
+                                              Text('Create Group',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold))
+                                            ],
+                                          ))),
+                                ],
+                              ),
+                            )
+                          ],
+                        );
+                      });
+                    }).then((val) {
+                  if (val != null && val) {
+                    chatService
+                        .createNewGroupChat(newGroupChatDTO!)
+                        .then((Chat chat) {
+                      if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MessagesScreen(
+                              chat: chat,
                             ),
-                          )
-                        ],
-                      );
+                          ),
+                        );
+                      }
+                    }).catchError((error) {
+                      if (context.mounted) {
+                        showErrorSnackBar(context, error.toString());
+                      }
                     });
-                  }).then((val) {
-                chatService
-                    .createNewGroupChat(newGroupChatDTO!)
-                    .then((Chat val) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MessagesScreen(
-                        chat: val,
-                      ),
-                    ),
-                  );
-                }).catchError((error) {
-                  showErrorSnackBar(context, error.toString());
+                  }
+                  newGroupName.clear();
                 });
-                newGroupName.clear();
-              });
+              }
             });
           },
           backgroundColor: primaryColor,

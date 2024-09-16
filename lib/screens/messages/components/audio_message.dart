@@ -35,6 +35,8 @@ class _AudioMessageState extends State<AudioMessage>
 
     setFile();
 
+    setDurationLeft(0);
+
     if (widget.message.decodedDuration != null) {
       controller = AnimationController(
           vsync: this,
@@ -49,6 +51,10 @@ class _AudioMessageState extends State<AudioMessage>
   @override
   didUpdateWidget(AudioMessage oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    setFile();
+
+    setDurationLeft(0);
 
     if (widget.message.decodedDuration != null) {
       durationLeft = widget.message.decodedDuration!;
@@ -111,9 +117,14 @@ class _AudioMessageState extends State<AudioMessage>
   }
 
   setDurationLeft(controllerValue) {
+    if (widget.message.decodedDuration == null) {
+      return;
+    }
     setState(() {
       if (controllerValue > 0 && controllerValue < 1) {
-        durationLeft = (durationLeft! - controllerValue * durationLeft).round();
+        durationLeft =
+            (widget.message.decodedDuration! - (controllerValue * durationLeft))
+                .round();
       } else {
         durationLeft = widget.message.decodedDuration!;
       }
@@ -131,6 +142,36 @@ class _AudioMessageState extends State<AudioMessage>
     await widget.player.closePlayer();
     controller!.stop();
     controller!.reset();
+  }
+
+  downloadFile(context) {
+    setState(() {
+      downloadInProgress = true;
+    });
+    if (widget.message.uid == null) {
+      return;
+    }
+    messageService
+        .downloadFile(widget.message.chatUid, widget.message.uid!)
+        .then((resp) {
+      fileString = resp;
+      setState(() {
+        downloadInProgress = false;
+
+        needDownload = false;
+      });
+    }).catchError((error) {
+      setState(() {
+        downloadInProgress = false;
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not download file',
+              style: TextStyle(color: Colors.white)),
+          backgroundColor: errorColor,
+        ));
+      }
+    });
   }
 
   @override
@@ -157,16 +198,17 @@ class _AudioMessageState extends State<AudioMessage>
           if (needDownload)
             if (downloadInProgress)
               FadeIcon(
-                  icon: Icon(
-                Icons.download,
-                color: widget.message.isSender ? Colors.white : primaryColor,
+                  icon: Container(
+                margin: const EdgeInsets.all(12),
+                child: Icon(
+                  Icons.download,
+                  color: widget.message.isSender ? Colors.white : primaryColor,
+                ),
               ))
             else
               IconButton(
                 onPressed: () {
-                  setState(() {
-                    downloadInProgress = true;
-                  });
+                  downloadFile(context);
                 },
                 icon: Icon(
                   Icons.download,

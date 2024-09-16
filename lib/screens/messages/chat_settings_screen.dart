@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
@@ -26,8 +28,6 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
 
   @override
   void initState() {
-    user = widget.chat.participants
-        .firstWhere((p) => p.email == Auth.getUser!.email);
     super.initState();
   }
 
@@ -35,6 +35,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
   Widget build(BuildContext context) {
     Chat chat =
         ref.watch(chatsProvider).firstWhere((c) => c.uid == widget.chat.uid);
+    user = chat.participants.firstWhere((p) => p.email == Auth.getUser!.email);
     return Scaffold(
         appBar: AppBar(
           title: const Text('Chat Settings'),

@@ -50,7 +50,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
     });
   }
 
-  _deleteContact() {
+  _deleteContact(context) {
     showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -72,7 +72,9 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
       if (value == null) return;
       if (value) {
         contactService.deleteContact(widget.contact.uid!);
-        Navigator.pop(context);
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
       }
     });
   }
@@ -210,7 +212,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
               const SizedBox(height: 5),
               TextButton.icon(
                   onPressed: () {
-                    _deleteContact();
+                    _deleteContact(context);
                   },
                   icon: const Icon(
                     Icons.delete,

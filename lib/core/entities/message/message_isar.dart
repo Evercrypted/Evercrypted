@@ -124,7 +124,7 @@ class Message {
         'messageType': messageType,
         'pinnedByUid': pinnedByUid,
         'pinLabel': pinLabel,
-        'playbackDuration': playbackDurationMicroSeconds,
+        'playbackDurationMicroSeconds': playbackDurationMicroSeconds,
         'durationIV': durationIV,
         'durationMAC': durationMAC,
         'waveData': waveData,
