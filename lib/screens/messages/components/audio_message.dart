@@ -169,6 +169,8 @@ class _AudioMessageState extends State<AudioMessage>
           content: Text('Could not download file',
               style: TextStyle(color: Colors.white)),
           backgroundColor: errorColor,
+          dismissDirection: DismissDirection.horizontal,
+          showCloseIcon: true,
         ));
       }
     });

@@ -28,7 +28,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   final AuthService _authService = AuthService();
 
-  void submitForm() async {
+  void submitForm(BuildContext context) async {
     FocusManager.instance.primaryFocus?.unfocus();
     formValues = AuthForm();
 
@@ -46,23 +46,30 @@ class _SignInScreenState extends State<SignInScreen> {
               _shouldShowLoading = false;
             });
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  result == null ? 'Could not login' : result['error'],
-                  style: const TextStyle(color: Colors.white)),
-              backgroundColor: errorColor,
-            ));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    result == null ? 'Could not login' : result['error'],
+                    style: const TextStyle(color: Colors.white)),
+                backgroundColor: errorColor,
+                dismissDirection: DismissDirection.horizontal,
+                showCloseIcon: true,
+              ));
+            }
             setState(() {
               _shouldShowLoading = false;
             });
           }
         }).catchError((e) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content:
-                Text(e.toString(), style: const TextStyle(color: Colors.white)),
-            backgroundColor: errorColor,
-          ));
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(e.toString(),
+                  style: const TextStyle(color: Colors.white)),
+              backgroundColor: errorColor,
+              dismissDirection: DismissDirection.horizontal,
+              showCloseIcon: true,
+            ));
+          }
           setState(() {
             _shouldShowLoading = false;
           });
@@ -134,7 +141,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                         PrimaryButton(
                           text: 'Sign In',
-                          press: submitForm,
+                          press: () => submitForm(context),
                           child: _shouldShowLoading
                               ? const SpinKitThreeBounce(
                                   color: Colors.white,

@@ -15,7 +15,7 @@ openSecretInput({required context, required controller, done}) {
     if (value?.text.isNotEmpty ?? false) {
       controller.text = value.text;
     }
-    if (done != null && value?.done) {
+    if (done != null && (value?.done != null && value?.done)) {
       done(value);
     }
   });

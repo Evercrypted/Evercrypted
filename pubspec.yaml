@@ -78,6 +78,7 @@ dependencies:
   flutter_sound: ^9.15.61
   audio_session: ^0.1.21
   siri_wave: ^2.0.0+1
+  file_picker: ^8.1.2
 
   collection: any
 dependency_overrides:

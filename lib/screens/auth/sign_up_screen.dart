@@ -30,7 +30,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   AuthForm formValues = AuthForm();
 
-  void submitForm() async {
+  void submitForm(BuildContext context) async {
     FocusManager.instance.primaryFocus?.unfocus();
     formValues = AuthForm();
 
@@ -47,23 +47,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
             setState(() {
               _shouldShowLoading = false;
             });
-            Navigator.pop(context);
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(result['message'],
-                  style: const TextStyle(color: Colors.white)),
-              backgroundColor: errorColor,
-            ));
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(result['message'],
+                    style: const TextStyle(color: Colors.white)),
+                backgroundColor: errorColor,
+                dismissDirection: DismissDirection.horizontal,
+                showCloseIcon: true,
+              ));
+            }
             setState(() {
               _shouldShowLoading = false;
             });
           }
         }).catchError((e) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content:
-                Text(e.toString(), style: const TextStyle(color: Colors.white)),
-            backgroundColor: errorColor,
-          ));
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(e.toString(),
+                  style: const TextStyle(color: Colors.white)),
+              backgroundColor: errorColor,
+              dismissDirection: DismissDirection.horizontal,
+              showCloseIcon: true,
+            ));
+          }
           setState(() {
             _shouldShowLoading = false;
           });
@@ -172,7 +182,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                           obscureText: !_confirmPasswordVisible,
                           onFieldSubmitted: (_) {
-                            submitForm();
+                            submitForm(context);
                           },
                         ),
                       ),
@@ -181,7 +191,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             vertical: defaultPadding),
                         child: PrimaryButton(
                             text: 'Sign up',
-                            press: submitForm,
+                            press: () => submitForm(context),
                             child: _shouldShowLoading
                                 ? const SpinKitThreeBounce(
                                     color: Colors.white,

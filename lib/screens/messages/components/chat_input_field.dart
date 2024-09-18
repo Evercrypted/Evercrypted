@@ -7,6 +7,7 @@ import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
 import 'package:evercrypted/widgets/fade_icon.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -15,7 +16,6 @@ import 'package:siri_wave/siri_wave.dart';
 import '../../../core/entities/message/message_service.dart';
 import '../../../ui_constants.dart';
 import 'voice_recorder_button.dart';
-import 'message_attachment.dart';
 
 class ChatInputField extends StatefulWidget {
   final String chatId;
@@ -83,10 +83,24 @@ class ChatInputFieldState extends State<ChatInputField> {
     }
   }
 
-  void _updateAttachmentState() {
-    setState(() {
-      _showAttachment = !_showAttachment;
-    });
+  _selectFile(BuildContext context) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      final PlatformFile file = result.files.single;
+      if (file.size > (50 * 1000 * 1000)) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('File size should be less than 50MB',
+                style: TextStyle(color: Colors.white)),
+            dismissDirection: DismissDirection.horizontal,
+            showCloseIcon: true,
+            backgroundColor: errorColor,
+          ));
+        }
+      } else {
+        print(file);
+      }
+    }
   }
 
   void sendMessage(String message) async {
@@ -138,7 +152,7 @@ class ChatInputFieldState extends State<ChatInputField> {
     }
   }
 
-  sendFile(context) async {
+  sendAudio(context) async {
     if (recordingData == null ||
         recordingData!.isEmpty ||
         recordingMicroSeconds == null) {
@@ -330,7 +344,7 @@ class ChatInputFieldState extends State<ChatInputField> {
                           ),
                           IconButton(
                             onPressed: () {
-                              sendFile(context);
+                              sendAudio(context);
                             },
                             icon: const Icon(
                               Icons.send,
@@ -353,7 +367,7 @@ class ChatInputFieldState extends State<ChatInputField> {
                                     child: Row(
                                       children: [
                                         InkWell(
-                                          onTap: _updateAttachmentState,
+                                          onTap: () => _selectFile(context),
                                           child: Icon(
                                             Icons.attach_file,
                                             color: _showAttachment
@@ -399,7 +413,6 @@ class ChatInputFieldState extends State<ChatInputField> {
                           ],
                         ),
                       ),
-                if (_showAttachment) const MessageAttachment(),
               ],
             ),
           ),
