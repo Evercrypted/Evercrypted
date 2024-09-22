@@ -34,7 +34,6 @@ class ChatInputField extends StatefulWidget {
 }
 
 class ChatInputFieldState extends State<ChatInputField> {
-  bool _showAttachment = false;
   final TextEditingController _messageField = TextEditingController();
   final MessageService _messageService = MessageService();
   String? fullKey;
@@ -42,6 +41,7 @@ class ChatInputFieldState extends State<ChatInputField> {
   List<Uint8List>? recordingData;
   bool recordingPlaying = false;
   bool sendingFile = false;
+  PlatformFile? file;
 
   IOS7SiriWaveformController waveFromController = IOS7SiriWaveformController(
     amplitude: 0,
@@ -79,26 +79,6 @@ class ChatInputFieldState extends State<ChatInputField> {
         }
       } else {
         fullKey = null;
-      }
-    }
-  }
-
-  _selectFile(BuildContext context) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      final PlatformFile file = result.files.single;
-      if (file.size > (50 * 1000 * 1000)) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('File size should be less than 50MB',
-                style: TextStyle(color: Colors.white)),
-            dismissDirection: DismissDirection.horizontal,
-            showCloseIcon: true,
-            backgroundColor: errorColor,
-          ));
-        }
-      } else {
-        print(file);
       }
     }
   }
@@ -238,6 +218,31 @@ class ChatInputFieldState extends State<ChatInputField> {
     });
   }
 
+  _selectFile(BuildContext context) async {
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(withData: true);
+    if (result != null) {
+      final PlatformFile selectedFile = result.files.single;
+      if (selectedFile.size > (50 * 1000 * 1000)) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('File size should be less than 50MB',
+                style: TextStyle(color: Colors.white)),
+            dismissDirection: DismissDirection.horizontal,
+            showCloseIcon: true,
+            backgroundColor: errorColor,
+          ));
+        }
+      } else {
+        setState(() {
+          file = selectedFile;
+        });
+      }
+    }
+  }
+
+  sendFile(context) {}
+
   @override
   void dispose() {
     _messageField.dispose();
@@ -248,175 +253,233 @@ class ChatInputFieldState extends State<ChatInputField> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Column(
-        children: [
-          Material(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: Row(
-              children: [
-                const SizedBox(width: defaultPadding / 2),
-                if (sendingFile)
-                  const FadeIcon(
-                      icon: Icon(
-                    Icons.upload,
-                    color: primaryColor,
-                    size: 30,
-                  ))
-                else
-                  VoiceRecorderButton(
-                    pass: fullKey,
-                    chatId: widget.chatId,
-                    onRecord: onRecording,
-                  ),
-                const SizedBox(width: defaultPadding / 4),
-                recordingData != null
-                    ? Row(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: defaultPadding / 2),
-                            padding: const EdgeInsets.only(
-                                right: defaultPadding / 2),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: primaryColor.withOpacity(0.1),
-                            ),
-                            width: MediaQuery.of(context).size.width - 115,
-                            height: 50,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      recordingPlaying = !recordingPlaying;
-                                      if (recordingPlaying) {
-                                        waveFromController =
-                                            IOS7SiriWaveformController(
-                                          amplitude: 0.7,
-                                          color: primaryColor,
-                                          frequency: 15,
-                                          speed: 0.15,
-                                        );
-                                        playRecording();
-                                      } else {
-                                        waveFromController =
-                                            IOS7SiriWaveformController(
-                                          amplitude: 0,
-                                          color: primaryColor,
-                                          frequency: 15,
-                                          speed: 0.15,
-                                        );
-                                        widget.player.stopPlayer();
-                                        widget.player.closePlayer();
-                                      }
-                                    });
-                                  },
-                                  child: recordingPlaying
-                                      ? const Icon(
-                                          Icons.stop,
-                                          color: primaryColor,
-                                          size: 36,
-                                        )
-                                      : const Icon(
-                                          Icons.play_arrow,
-                                          color: primaryColor,
-                                          size: 36,
-                                        ),
-                                ),
-                                SiriWaveform.ios7(
-                                  controller: waveFromController,
-                                  options: IOS7SiriWaveformOptions(
-                                    height: 50,
-                                    width:
-                                        MediaQuery.of(context).size.width - 210,
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    dropRecording();
-                                  },
-                                  child: Icon(Icons.cancel,
-                                      color: Colors.red[400]),
-                                ),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              sendAudio(context);
-                            },
-                            icon: const Icon(
-                              Icons.send,
-                              color: primaryColor,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Expanded(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 5),
+        child: Row(
+          children: [
+            const SizedBox(width: defaultPadding / 2),
+            if (sendingFile)
+              const FadeIcon(
+                  icon: Icon(
+                Icons.upload,
+                color: primaryColor,
+                size: 30,
+              ))
+            else if (file != null)
+              const Icon(Icons.attach_file, color: primaryColor)
+            else if (file == null)
+              VoiceRecorderButton(
+                pass: fullKey,
+                chatId: widget.chatId,
+                onRecord: onRecording,
+              ),
+            const SizedBox(width: defaultPadding / 4),
+            recordingData != null
+                ? Row(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: defaultPadding / 2),
+                        padding:
+                            const EdgeInsets.only(right: defaultPadding / 2),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: primaryColor.withOpacity(0.1),
+                        ),
+                        width: MediaQuery.of(context).size.width - 115,
+                        height: 50,
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const SizedBox(width: defaultPadding / 4),
-                            Expanded(
-                              child: TextField(
-                                controller: _messageField,
-                                decoration: InputDecoration(
-                                  hintText: "Type message",
-                                  suffixIcon: SizedBox(
-                                    width: 65,
-                                    child: Row(
-                                      children: [
-                                        InkWell(
-                                          onTap: () => _selectFile(context),
-                                          child: Icon(
-                                            Icons.attach_file,
-                                            color: _showAttachment
-                                                ? primaryColor
-                                                : Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge!
-                                                    .color!
-                                                    .withOpacity(0.64),
-                                          ),
-                                        ),
-                                        Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: defaultPadding / 2),
-                                            child: InkWell(
-                                              onTap: () {
-                                                sendMessage(_messageField.text);
-                                              },
-                                              child: const Icon(
-                                                Icons.send,
-                                                color: primaryColor,
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                onTap: () {
-                                  openSecretInput(
-                                      context: context,
-                                      controller: _messageField,
-                                      done: (val) => sendMessage(val.text));
-                                },
-                                keyboardType: TextInputType.none,
-                                onSubmitted: (value) {
-                                  if (value.isNotEmpty) {
-                                    sendMessage(value);
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  recordingPlaying = !recordingPlaying;
+                                  if (recordingPlaying) {
+                                    waveFromController =
+                                        IOS7SiriWaveformController(
+                                      amplitude: 0.7,
+                                      color: primaryColor,
+                                      frequency: 15,
+                                      speed: 0.15,
+                                    );
+                                    playRecording();
+                                  } else {
+                                    waveFromController =
+                                        IOS7SiriWaveformController(
+                                      amplitude: 0,
+                                      color: primaryColor,
+                                      frequency: 15,
+                                      speed: 0.15,
+                                    );
+                                    widget.player.stopPlayer();
+                                    widget.player.closePlayer();
                                   }
-                                },
+                                });
+                              },
+                              child: recordingPlaying
+                                  ? const Icon(
+                                      Icons.stop,
+                                      color: primaryColor,
+                                      size: 36,
+                                    )
+                                  : const Icon(
+                                      Icons.play_arrow,
+                                      color: primaryColor,
+                                      size: 36,
+                                    ),
+                            ),
+                            SiriWaveform.ios7(
+                              controller: waveFromController,
+                              options: IOS7SiriWaveformOptions(
+                                height: 50,
+                                width: MediaQuery.of(context).size.width - 210,
                               ),
                             ),
-                            const SizedBox(width: defaultPadding / 2),
+                            InkWell(
+                              onTap: () {
+                                dropRecording();
+                              },
+                              child: Icon(Icons.cancel, color: Colors.red[400]),
+                            ),
                           ],
                         ),
                       ),
-              ],
-            ),
-          ),
-        ],
+                      IconButton(
+                        onPressed: () {
+                          sendAudio(context);
+                        },
+                        icon: const Icon(
+                          Icons.send,
+                          color: primaryColor,
+                        ),
+                      ),
+                    ],
+                  )
+                : Expanded(
+                    child: Row(
+                      children: [
+                        const SizedBox(width: defaultPadding / 4),
+                        if (file == null)
+                          Expanded(
+                            child: TextField(
+                              controller: _messageField,
+                              decoration: InputDecoration(
+                                hintText: "Type message",
+                                suffixIcon: SizedBox(
+                                  width: 96,
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: () => _selectFile(context),
+                                        icon: Icon(
+                                          Icons.attach_file,
+                                          color: file != null
+                                              ? primaryColor
+                                              : Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge!
+                                                  .color!
+                                                  .withOpacity(0.64),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          sendMessage(_messageField.text);
+                                        },
+                                        icon: const Icon(
+                                          Icons.send,
+                                          color: primaryColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              onTap: () {
+                                openSecretInput(
+                                    context: context,
+                                    controller: _messageField,
+                                    done: (val) => sendMessage(val.text));
+                              },
+                              keyboardType: TextInputType.none,
+                              onSubmitted: (value) {
+                                if (value.isNotEmpty) {
+                                  sendMessage(value);
+                                }
+                              },
+                            ),
+                          )
+                        else ...[
+                          Expanded(
+                            child: Expanded(
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: defaultPadding / 2),
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          color: primaryColor.withOpacity(0.1)),
+                                      padding: const EdgeInsets.only(
+                                          top: defaultPadding / 4,
+                                          bottom: defaultPadding / 4,
+                                          left: defaultPadding),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  file!.name,
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      file = null;
+                                                    });
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.cancel,
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              sendFile(context);
+                                            },
+                                            icon: const Icon(
+                                              Icons.send,
+                                              color: primaryColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(width: defaultPadding / 2),
+                      ],
+                    ),
+                  ),
+          ],
+        ),
       ),
     );
   }

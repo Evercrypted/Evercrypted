@@ -38,12 +38,12 @@
             "request": "launch",
             "type": "dart",
             "deviceId": "DCE72BD3-5274-444F-A619-ED59F2CA45A5"
+        },
+        {
+            "name": "Pixel 6",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5554"
         }
     ],
-    "compounds": [
-		{
-			"name": "All Devices",
-			"configurations": ["iPhone 15", "iPhone 15 Pro", "iPhone 15 Plus"],
-		}
-	]
 }

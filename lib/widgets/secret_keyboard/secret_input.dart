@@ -130,11 +130,11 @@ class SecretInputState extends State<SecretInput>
     return FadeTransition(
         opacity: _animation,
         child: Center(
-            child: Column(
-          mainAxisSize: MainAxisSize.max,
+            child: Stack(
+          alignment: AlignmentDirectional.bottomCenter,
           children: [
             Container(
-              height: MediaQuery.of(context).size.height - 300 - 93,
+              height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
               color: Colors.black.withOpacity(0.5),
               child: Container(
