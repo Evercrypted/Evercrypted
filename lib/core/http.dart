@@ -9,8 +9,8 @@ class HttpClient {
     client = await RhttpClient.create(
         settings: const ClientSettings(
       // baseUrl: 'http://10.0.2.2:3001',
-      baseUrl: 'http://localhost:3001',
-      //baseUrl: 'http://49.13.136.216',
+      // baseUrl: 'http://localhost:3001',
+      baseUrl: 'http://49.13.136.216',
     ));
   }
 
@@ -18,9 +18,9 @@ class HttpClient {
     client.dispose();
     client = await RhttpClient.create(
       settings: const ClientSettings(
-        baseUrl: 'http://10.0.2.2:3001',
+        // baseUrl: 'http://10.0.2.2:3001',
         // baseUrl: 'http://localhost:3001',
-        //baseUrl: 'http://49.13.136.216',
+        baseUrl: 'http://49.13.136.216',
       ),
       interceptors: [
         SimpleInterceptor(

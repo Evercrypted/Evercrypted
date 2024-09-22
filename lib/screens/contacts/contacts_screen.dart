@@ -160,7 +160,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                         : FontWeight.bold,
                     color: widget.isParticipantSelect
                         ? Colors.black54
-                        : Colors.black),
+                        : Colors.white),
               ),
               searching: searching,
               searchFocus: searchFocus,

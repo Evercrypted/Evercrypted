@@ -107,8 +107,8 @@ class ChatSocket {
 
     io.cache.clear();
     // socket = io.io('http://10.0.2.2:4000', options.build());
-    socket = io.io('http://localhost:4000', options.build());
-    // socket = io.io('http://49.13.136.216:8080', options.build());
+    // socket = io.io('http://localhost:4000', options.build());
+    socket = io.io('http://49.13.136.216:8080', options.build());
 
     if (socket?.connected != true) {
       socket?.connect();
