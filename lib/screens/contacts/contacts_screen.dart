@@ -154,13 +154,11 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
               label: Text(
                 widget.isParticipantSelect ? 'Search' : 'Contacts',
                 style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: widget.isParticipantSelect
-                        ? FontWeight.normal
-                        : FontWeight.bold,
-                    color: widget.isParticipantSelect
-                        ? Colors.black54
-                        : Colors.white),
+                  fontSize: 24,
+                  fontWeight: widget.isParticipantSelect
+                      ? FontWeight.normal
+                      : FontWeight.bold,
+                ),
               ),
               searching: searching,
               searchFocus: searchFocus,
