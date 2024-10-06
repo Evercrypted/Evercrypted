@@ -200,13 +200,13 @@ class _AudioMessageState extends State<AudioMessage>
           if (needDownload)
             if (downloadInProgress)
               FadeIcon(
-                  icon: Container(
-                margin: const EdgeInsets.all(12),
-                child: Icon(
+                position: Position(top: 7.5, left: 7.2),
+                icon: Icon(
                   Icons.download,
                   color: widget.message.isSender ? Colors.white : primaryColor,
+                  size: 24,
                 ),
-              ))
+              )
             else
               IconButton(
                 onPressed: () {
@@ -215,6 +215,7 @@ class _AudioMessageState extends State<AudioMessage>
                 icon: Icon(
                   Icons.download,
                   color: widget.message.isSender ? Colors.white : primaryColor,
+                  size: 30,
                 ),
               )
           else
@@ -243,6 +244,18 @@ class _AudioMessageState extends State<AudioMessage>
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
+                  if (needDownload)
+                    Positioned(
+                      bottom: 5,
+                      child: Text(
+                        downloadInProgress ? "Downloading..." : "Download",
+                        style: TextStyle(
+                            color: widget.message.isSender
+                                ? Colors.white
+                                : Colors.black54,
+                            fontSize: 12),
+                      ),
+                    ),
                   Container(
                     width: double.infinity,
                     height: 2,

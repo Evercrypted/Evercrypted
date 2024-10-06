@@ -1,6 +1,7 @@
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/screens/messages/components/file_message.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
@@ -82,7 +83,7 @@ class _MessageWidgetState extends State<MessageWidget> {
       if (message.pass != null) {
         String? decrypted;
         int? decryptedDuration;
-        if (message.text != null) {
+        if (message.messageType == MessageTypes.text && message.text != null) {
           decrypted = await decodePayload(
             message.text,
             message.iv,
@@ -91,7 +92,9 @@ class _MessageWidgetState extends State<MessageWidget> {
             true,
           );
         }
-        if (message.duration != null && message.decodedDuration == null) {
+        if (message.messageType == MessageTypes.audio &&
+            message.duration != null &&
+            message.decodedDuration == null) {
           decryptedDuration = await decodePayload(
             message.duration,
             message.durationIV,
@@ -124,8 +127,8 @@ class _MessageWidgetState extends State<MessageWidget> {
             message: message,
             player: widget.player,
           );
-        case MessageTypes.video:
-          return const VideoMessage();
+        case MessageTypes.file:
+          return FileMessage(message: message);
         default:
           return const SizedBox();
       }

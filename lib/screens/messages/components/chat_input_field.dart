@@ -182,30 +182,31 @@ class ChatInputFieldState extends State<ChatInputField> {
     setState(() {
       sendingFile = true;
     });
-    _messageService
-        .sendFile(message: messageToSend, file: fileToSend)
-        .then((msg) {
-      setState(() {
-        sendingFile = false;
-        dropRecording();
-      });
-    }).onError((e, s) {
-      setState(() {
-        sendingFile = false;
-        dropRecording();
-      });
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Could not send file',
-              style: TextStyle(color: Colors.white)),
-          backgroundColor: errorColor,
-        ));
-      }
-    });
+    // _messageService
+    //     .sendFile(message: messageToSend, file: fileToSend)
+    //     .then((msg) {
+    //   setState(() {
+    //     sendingFile = false;
+    //     dropRecording();
+    //   });
+    // }).onError((e, s) {
+    //   setState(() {
+    //     sendingFile = false;
+    //     dropRecording();
+    //   });
+    //   if (context.mounted) {
+    //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+    //       content: Text('Could not send file',
+    //           style: TextStyle(color: Colors.white)),
+    //       backgroundColor: errorColor,
+    //     ));
+    //   }
+    // });
   }
 
   dropRecording() {
     setState(() {
+      sendingFile = false;
       recordingData = null;
       recordingMicroSeconds = null;
       recordingPlaying = false;
@@ -241,7 +242,63 @@ class ChatInputFieldState extends State<ChatInputField> {
     }
   }
 
-  sendFile(context) {}
+  sendFile(context) async {
+    if (file == null || file!.bytes == null || file!.bytes!.isEmpty) {
+      return;
+    }
+
+    String? userId = Auth.user?.uid;
+    late Message messageToSend;
+    late String fileToSend;
+    if (fullKey != null && fullKey!.isNotEmpty) {
+      final ecnrypted = await encodePayload({
+        'name': file!.name,
+        'bytes': file!.bytes,
+      }, fullKey!, true);
+      messageToSend = Message(
+        authorId: userId!,
+        messageType: MessageTypes.file,
+        iv: ecnrypted['iv'],
+        mac: ecnrypted['mac'],
+        isEncrypted: true,
+        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+        chatUid: widget.chatId,
+      );
+      fileToSend = ecnrypted['crypted'];
+    } else {
+      messageToSend = Message(
+        authorId: userId!,
+        messageType: MessageTypes.file,
+        text: file!.name,
+        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+        chatUid: widget.chatId,
+      );
+      fileToSend = base64.encode(utf8.encode(file!.bytes.toString()));
+    }
+    setState(() {
+      sendingFile = true;
+    });
+    _messageService
+        .sendFile(message: messageToSend, file: fileToSend)
+        .then((msg) {
+      setState(() {
+        sendingFile = false;
+        file = null;
+      });
+    }).onError((e, s) {
+      setState(() {
+        sendingFile = false;
+        file = null;
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not send file',
+              style: TextStyle(color: Colors.white)),
+          backgroundColor: errorColor,
+        ));
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -259,12 +316,13 @@ class ChatInputFieldState extends State<ChatInputField> {
           children: [
             const SizedBox(width: defaultPadding / 2),
             if (sendingFile)
-              const FadeIcon(
-                  icon: Icon(
-                Icons.upload,
-                color: primaryColor,
-                size: 30,
-              ))
+              FadeIcon(
+                  position: Position(top: 4, left: 5),
+                  icon: const Icon(
+                    Icons.upload,
+                    color: primaryColor,
+                    size: 28,
+                  ))
             else if (file != null)
               const Icon(Icons.attach_file, color: primaryColor)
             else if (file == null)

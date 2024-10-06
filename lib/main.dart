@@ -40,6 +40,7 @@ import 'core/socket/socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'firebase_options.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +64,19 @@ void main() async {
 
   await Rhttp.init();
   await HttpClient.initialize();
-  runApp(const ProviderScope(child: MyApp()));
+  await SentryFlutter.init(
+    (options) {
+      options.dsn =
+          'https://e8035b86b950aadbfb29164b99cc0a2e@o4508054021210112.ingest.de.sentry.io/4508077446529104';
+      // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
+      // We recommend adjusting this value in production.
+      options.tracesSampleRate = 1.0;
+      // The sampling rate for profiling is relative to tracesSampleRate
+      // Setting to 1.0 will profile 100% of sampled transactions:
+      options.profilesSampleRate = 1.0;
+    },
+    appRunner: () => runApp(const ProviderScope(child: MyApp())),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -105,8 +118,8 @@ class AuthGateState extends ConsumerState<AuthGate> {
   Timer? userReloadTimer;
   Timer? ioConnectionTimer;
   final ProfileService profileService = ProfileService();
-  final NotifiacationEventsService notifiacationEventsService =
-      NotifiacationEventsService();
+  final NotificationEventsService notificationEventsService =
+      NotificationEventsService();
 
   bool isOtpActiveAndNoToken = false;
   bool tokenAndUserNotLoaded = false;
@@ -122,7 +135,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   void initState() {
     super.initState();
 
-    _checkAndroidNotifications();
+    _checkNotifications();
 
     authListener = Auth.authSubject.stream.listen((shouldFire) async {
       _authFlow();
@@ -205,58 +218,52 @@ class AuthGateState extends ConsumerState<AuthGate> {
     }
   }
 
-  void _checkAndroidNotifications() async {
+  void _checkNotifications() async {
     void onDidReceiveNotificationResponse(
         NotificationResponse notificationResponse) async {
       final String? payload = notificationResponse.payload;
       if (payload != null) {
-        notifiacationEventsService.handleNotification(
+        notificationEventsService.handleNotification(
             context, json.decode(payload));
       }
     }
 
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        LocalNotification.instance.plugin;
+        FlutterLocalNotificationsPlugin();
 
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-    if (Platform.isAndroid) {
-      const AndroidInitializationSettings initializationSettingsAndroid =
-          AndroidInitializationSettings('app_icon');
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('app_icon');
 
-      const InitializationSettings initializationSettings =
-          InitializationSettings(android: initializationSettingsAndroid);
-
-      flutterLocalNotificationsPlugin.initialize(initializationSettings,
-          onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
-
-      bool? areNotifsEnabled = await flutterLocalNotificationsPlugin
+    bool? areNotifsEnabled = await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.areNotificationsEnabled();
+    if (areNotifsEnabled != true) {
+      flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
-          ?.areNotificationsEnabled();
-      if (areNotifsEnabled != true) {
-        flutterLocalNotificationsPlugin
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestNotificationsPermission();
-      }
+          ?.requestNotificationsPermission();
     }
 
-    if (Platform.isIOS) {
-      const DarwinInitializationSettings initializationSettingsDarwin =
-          DarwinInitializationSettings(
-              requestSoundPermission: true,
-              requestBadgePermission: true,
-              requestAlertPermission: true);
+    const DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings(
+            requestSoundPermission: true,
+            requestBadgePermission: true,
+            requestAlertPermission: true);
 
-      const InitializationSettings initializationSettings =
-          InitializationSettings(iOS: initializationSettingsDarwin);
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsDarwin,
+    );
 
-      flutterLocalNotificationsPlugin.initialize(initializationSettings,
-          onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
-    }
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
 
     final NotificationAppLaunchDetails? notificationAppLaunchDetails =
         await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+
     debugPrint(
         'afterlaunch payload: ${notificationAppLaunchDetails.toString()}');
   }
@@ -277,17 +284,20 @@ class AuthGateState extends ConsumerState<AuthGate> {
     //contactRequests
     final contactRequests = isar?.contactRequests.where().build().findAllSync();
     if (contactRequests != null) {
-      ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
-              contactRequests
-                  .where((element) => element.recipientEmail == user!.email)
-                  .map((c) {
+      ref
+          .read(receivedRequestsProvider.notifier)
+          .setReceivedRequests(contactRequests
+              .where((element) =>
+                  fernetDecrypt(element.recipientEmail, appKey) == user!.email)
+              .map((c) {
             return c.copyWith(
                 authorEmail: fernetDecrypt(c.authorEmail, appKey),
                 recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
                 message: fernetDecrypt(c.message, appKey));
           }).toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-              .where((element) => element.authorId == user!.uid)
+              .where((element) =>
+                  fernetDecrypt(element.authorId, appKey) == user!.uid)
               .map((c) {
             return c.copyWith(
                 authorEmail: fernetDecrypt(c.authorEmail, appKey),

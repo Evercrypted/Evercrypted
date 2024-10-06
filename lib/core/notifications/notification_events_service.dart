@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../screens/contacts/add_new_contact_screen.dart';
 
-class NotifiacationEventsService {
+class NotificationEventsService {
   handleNotification(context, payload) {
     switch (payload['type']) {
       case NotificationEventTypes.goToReceivedContactRequestPage:
