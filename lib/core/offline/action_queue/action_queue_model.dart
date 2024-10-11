@@ -1,10 +1,9 @@
-import 'package:isar/isar.dart';
+import 'package:objectbox/objectbox.dart';
 
-part 'action_queue.g.dart';
-
-@collection
+@Entity()
 class ActionQueue {
-  Id id = Isar.autoIncrement; // you can also use id = null to auto increment
+  @Id()
+  int id = 0; // you can also use id = null to auto increment
 
   @Index()
   String channel;
@@ -20,7 +19,7 @@ class ActionQueue {
   @Index()
   bool isHttp;
 
-  @ignore
+  @Transient()
   get createdAt {
     return DateTime.fromMillisecondsSinceEpoch(createdAtMSE);
   }

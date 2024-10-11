@@ -6,22 +6,19 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/http.dart';
-import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rhttp/rhttp.dart';
 
-import 'message_isar.dart';
+import 'message_model.dart';
 
 class MessageService {
   String? userId = Auth.user?.uid;
 
   void syncMessages(List<Message> messages) async {
-    final isar = Isar.getInstance();
-
     try {
       await isar?.writeTxn(() async {
         await isar.messages.putAll(messages);

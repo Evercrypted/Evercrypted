@@ -1,15 +1,15 @@
-import 'package:evercrypted/core/entities/contact/contact_model.dart';
-import 'package:isar/isar.dart';
+import 'package:evercrypted/core/entities/chat/participant_model.dart';
+import 'package:evercrypted/core/entities/message/message_model.dart';
+import 'package:objectbox/objectbox.dart';
 
 import '../profile/profile_model.dart';
 
-part 'chat_model.g.dart';
-
-@collection
+@Entity()
 class Chat {
-  Id id = Isar.autoIncrement;
+  @Id()
+  int id = 0;
 
-  @Index(unique: true)
+  @Unique()
   final String uid;
 
   final int? messageLongevitySeconds;
@@ -17,12 +17,25 @@ class Chat {
 
   final bool isOneToOne;
 
-  List<Participant> participants;
+  @Backlink('chat')
+  final participants = ToMany<Participant>();
+
+  @Transient()
+  List<Participant> participantsList;
+
+  @Backlink('chat')
+  final messages = ToMany<Message>();
+
+  @Transient()
+  List<Message> messagesList;
 
   @Index()
+  @Property(type: PropertyType.date)
   DateTime? lastMessageTime;
 
-  Avatar? avatar;
+  String? avatarColor;
+  String? avatarIcon;
+  String? avatarPic;
 
   bool? syncRequired;
 
@@ -33,9 +46,12 @@ class Chat {
     required this.uid,
     this.messageLongevitySeconds,
     this.name,
-    required this.participants,
     required this.lastMessageTime,
-    this.avatar,
+    this.participantsList = const [],
+    this.messagesList = const [],
+    this.avatarColor,
+    this.avatarIcon,
+    this.avatarPic,
     this.syncRequired,
     this.syncTime,
   });
@@ -44,15 +60,22 @@ class Chat {
         uid: json['uid'] as String,
         messageLongevitySeconds: json['messageLongevitySeconds'] as int?,
         name: json['name'] as String?,
-        participants: (json['participants'] as List<dynamic>)
+        participantsList: (json['participants'] as List<dynamic>)
             .map((e) => Participant.fromJson(e))
             .toList(),
+        messagesList: (json['messages'] as List<dynamic>)
+            .map((e) => Message.fromJson(e))
+            .toList(),
         lastMessageTime: DateTime.parse(json['lastMessageTime']),
-        avatar: json['avatar'] != null
-            ? Avatar.fromJson(
-                json['avatar'],
-              )
-            : null,
+        avatarColor: Avatar.fromJson(
+          json['avatar'],
+        ).color,
+        avatarIcon: Avatar.fromJson(
+          json['avatar'],
+        ).icon,
+        avatarPic: Avatar.fromJson(
+          json['avatar'],
+        ).pic,
         isOneToOne: json['isOneToOne'] as bool,
         syncRequired: json['syncRequired'] as bool? ?? false,
         syncTime: json['syncTime'] as int?,
@@ -62,95 +85,12 @@ class Chat {
         'uid': uid,
         'name': name,
         'messageLongevitySeconds': messageLongevitySeconds,
-        'participants': participants,
+        'participants': participantsList,
         'lastMessageTime': lastMessageTime,
-        'avatar': avatar?.toJson(),
+        'avatar': Avatar(color: avatarColor, icon: avatarIcon, pic: avatarPic)
+            .toJson(),
         'isOneToOne': isOneToOne,
       };
-}
-
-@embedded
-class Participant {
-  final String? uid;
-  final String? email;
-  final String? name;
-  final DateTime? lastSawChat;
-  final Avatar? avatar;
-  final bool isCreator;
-  final bool isAdmin;
-  final String? pubKey;
-  final bool gotPubKey;
-
-  Participant({
-    this.uid,
-    this.email,
-    this.name,
-    this.lastSawChat,
-    this.avatar,
-    this.isCreator = false,
-    this.isAdmin = false,
-    this.pubKey,
-    this.gotPubKey = false,
-  });
-
-  factory Participant.fromContact(Contact contact) => Participant(
-        uid: contact.contactPersonUid,
-        email: contact.email,
-        name: contact.name,
-        avatar: contact.avatar,
-      );
-
-  factory Participant.fromJson(Map<String, dynamic> json) => Participant(
-        uid: json['uid'] as String?,
-        email: json['email'] as String?,
-        name: json['name'] as String?,
-        lastSawChat: json['last_saw_chat'] != null
-            ? DateTime.parse(json['last_saw_chat'])
-            : null,
-        avatar: json['avatar'] != null
-            ? Avatar.fromJson(
-                json['avatar'],
-              )
-            : null,
-        isCreator: json['is_creator'] as bool? ?? false,
-        isAdmin: json['is_admin'] as bool? ?? false,
-        pubKey: json['pub_key'] as String?,
-        gotPubKey: json['got_pub_key'] as bool? ?? false,
-      );
-
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'uid': uid,
-        'email': email,
-        'name': name,
-        'last_saw_chat': lastSawChat,
-        'avatar': avatar?.toJson(),
-        'is_creator': isCreator,
-        'is_admin': isAdmin,
-        'pub_key': pubKey,
-        'got_pub_key': gotPubKey,
-      };
-
-  Participant copyWith({
-    String? uid,
-    String? email,
-    String? name,
-    DateTime? lastSawChat,
-    Avatar? avatar,
-    bool? isCreator,
-    bool? isAdmin,
-    String? pubKey,
-    bool? gotPubKey,
-  }) =>
-      Participant(
-          uid: uid ?? this.uid,
-          email: email ?? this.email,
-          name: name ?? this.name,
-          lastSawChat: lastSawChat ?? this.lastSawChat,
-          avatar: avatar ?? this.avatar,
-          isCreator: isCreator ?? this.isCreator,
-          isAdmin: isAdmin ?? this.isAdmin,
-          pubKey: pubKey ?? this.pubKey,
-          gotPubKey: gotPubKey ?? this.gotPubKey);
 }
 
 class NewOneToOneChatDTO {

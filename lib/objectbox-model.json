@@ -1,0 +1,525 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:372937194368687323",
+      "lastPropertyId": "11:3257620050611006191",
+      "name": "Chat",
+      "properties": [
+        {
+          "id": "1:496066587075907108",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1797603169474254040",
+          "name": "uid",
+          "type": 9,
+          "flags": 2080,
+          "indexId": "1:7417568637899194392"
+        },
+        {
+          "id": "3:1796389544038958094",
+          "name": "messageLongevitySeconds",
+          "type": 6
+        },
+        {
+          "id": "4:2224808748892177155",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "5:3639087631448733413",
+          "name": "isOneToOne",
+          "type": 1
+        },
+        {
+          "id": "6:7848993481254013620",
+          "name": "lastMessageTime",
+          "type": 10,
+          "flags": 8,
+          "indexId": "2:7828957042644059983"
+        },
+        {
+          "id": "7:6446550641835797971",
+          "name": "syncRequired",
+          "type": 1
+        },
+        {
+          "id": "8:6509457711126745653",
+          "name": "syncTime",
+          "type": 6
+        },
+        {
+          "id": "9:7132724385097852729",
+          "name": "avatarColor",
+          "type": 9
+        },
+        {
+          "id": "10:4960301968854219286",
+          "name": "avatarIcon",
+          "type": 9
+        },
+        {
+          "id": "11:3257620050611006191",
+          "name": "avatarPic",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:8395604750634349924",
+      "lastPropertyId": "13:2538485000514319932",
+      "name": "Participant",
+      "properties": [
+        {
+          "id": "1:3140738347883873507",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7306573019829737168",
+          "name": "uid",
+          "type": 9
+        },
+        {
+          "id": "3:5157245019723225303",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "4:7222374184870975437",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "5:2758979418291972671",
+          "name": "lastSawChat",
+          "type": 10
+        },
+        {
+          "id": "6:1310858162911504798",
+          "name": "isCreator",
+          "type": 1
+        },
+        {
+          "id": "7:2403685613991470062",
+          "name": "isAdmin",
+          "type": 1
+        },
+        {
+          "id": "8:8946033037738850628",
+          "name": "pubKey",
+          "type": 9
+        },
+        {
+          "id": "9:7411497473296940744",
+          "name": "gotPubKey",
+          "type": 1
+        },
+        {
+          "id": "10:237801397465781866",
+          "name": "chatId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "3:5562927964059586425",
+          "relationTarget": "Chat"
+        },
+        {
+          "id": "11:5610687627734890430",
+          "name": "avatarColor",
+          "type": 9
+        },
+        {
+          "id": "12:4281053167053723617",
+          "name": "avatarIcon",
+          "type": 9
+        },
+        {
+          "id": "13:2538485000514319932",
+          "name": "avatarPic",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:174085889404853842",
+      "lastPropertyId": "6:1207935701358571007",
+      "name": "ActionQueue",
+      "properties": [
+        {
+          "id": "1:3878610403772081266",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:518932676002101658",
+          "name": "channel",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "4:4858392141036813653"
+        },
+        {
+          "id": "3:5899978974047599556",
+          "name": "type",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "5:4631410448222255127"
+        },
+        {
+          "id": "4:4734700568557422587",
+          "name": "payload",
+          "type": 9
+        },
+        {
+          "id": "5:6861900140166326899",
+          "name": "createdAtMSE",
+          "type": 6,
+          "flags": 8,
+          "indexId": "6:966174557015596344"
+        },
+        {
+          "id": "6:1207935701358571007",
+          "name": "isHttp",
+          "type": 1,
+          "flags": 8,
+          "indexId": "7:2788847655698301832"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:3256006726252938619",
+      "lastPropertyId": "9:3254574943619528517",
+      "name": "Contact",
+      "properties": [
+        {
+          "id": "1:3835001356443603724",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:4363879514860275686",
+          "name": "uid",
+          "type": 9,
+          "flags": 2080,
+          "indexId": "8:8283532152140517817"
+        },
+        {
+          "id": "3:3925708090378952839",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "4:195948196470593874",
+          "name": "contactPersonUid",
+          "type": 9,
+          "flags": 2080,
+          "indexId": "9:2298344643898579565"
+        },
+        {
+          "id": "5:5844032266063413579",
+          "name": "avatarColor",
+          "type": 9
+        },
+        {
+          "id": "6:6141076677251091088",
+          "name": "avatarIcon",
+          "type": 9
+        },
+        {
+          "id": "7:5835449303478586129",
+          "name": "avatarPic",
+          "type": 9
+        },
+        {
+          "id": "8:9208670894667018502",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "9:3254574943619528517",
+          "name": "isFavorite",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:1055908107619857269",
+      "lastPropertyId": "9:3115437306457613564",
+      "name": "ContactRequest",
+      "properties": [
+        {
+          "id": "1:6791634532749002900",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3276126211965268815",
+          "name": "uid",
+          "type": 9,
+          "flags": 2080,
+          "indexId": "10:7726567333746624721"
+        },
+        {
+          "id": "3:1935783775396277350",
+          "name": "authorId",
+          "type": 9
+        },
+        {
+          "id": "4:572032084140616956",
+          "name": "authorEmail",
+          "type": 9
+        },
+        {
+          "id": "5:4835332164262847696",
+          "name": "recipientEmail",
+          "type": 9
+        },
+        {
+          "id": "6:8315176908039517271",
+          "name": "message",
+          "type": 9
+        },
+        {
+          "id": "7:7096519126674163652",
+          "name": "timeSent",
+          "type": 10
+        },
+        {
+          "id": "8:7307497832114457014",
+          "name": "queueId",
+          "type": 6
+        },
+        {
+          "id": "9:3115437306457613564",
+          "name": "unread",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "6:7715411867423381034",
+      "lastPropertyId": "26:1292397910085762565",
+      "name": "Message",
+      "properties": [
+        {
+          "id": "1:6193219001936189086",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3205564614717453819",
+          "name": "uid",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "11:743172683645461739"
+        },
+        {
+          "id": "3:9016633602216037609",
+          "name": "authorId",
+          "type": 9
+        },
+        {
+          "id": "4:3764813623545403712",
+          "name": "text",
+          "type": 9
+        },
+        {
+          "id": "5:3382277886679507558",
+          "name": "iv",
+          "type": 9
+        },
+        {
+          "id": "6:788932041372978895",
+          "name": "mac",
+          "type": 9
+        },
+        {
+          "id": "7:6418039618855054199",
+          "name": "messageType",
+          "type": 9
+        },
+        {
+          "id": "8:8549032723976726060",
+          "name": "isEncrypted",
+          "type": 1
+        },
+        {
+          "id": "9:1490993974120651898",
+          "name": "error",
+          "type": 9
+        },
+        {
+          "id": "10:6667188206186250816",
+          "name": "createdAtMSE",
+          "type": 6,
+          "flags": 8,
+          "indexId": "12:6637692378027186109"
+        },
+        {
+          "id": "11:3461459293206068546",
+          "name": "chatUid",
+          "type": 9,
+          "flags": 2048,
+          "indexId": "13:6483001927584970615"
+        },
+        {
+          "id": "12:664550285312468086",
+          "name": "uniqueId",
+          "type": 9,
+          "flags": 2080,
+          "indexId": "14:3773916419867091184"
+        },
+        {
+          "id": "13:4553521238696558945",
+          "name": "queueId",
+          "type": 6,
+          "flags": 8,
+          "indexId": "15:8830306294288428295"
+        },
+        {
+          "id": "14:2531272398137520313",
+          "name": "successfullySent",
+          "type": 1
+        },
+        {
+          "id": "15:7330385604614663633",
+          "name": "couldNotSend",
+          "type": 1
+        },
+        {
+          "id": "16:1916166604082151460",
+          "name": "pinnedByUid",
+          "type": 9
+        },
+        {
+          "id": "17:5634263819453511024",
+          "name": "pinLabel",
+          "type": 9
+        },
+        {
+          "id": "18:391861716434374612",
+          "name": "localPinLabel",
+          "type": 9
+        },
+        {
+          "id": "19:4570918027248575059",
+          "name": "playbackDurationMicroSeconds",
+          "type": 9
+        },
+        {
+          "id": "20:6280780047733528053",
+          "name": "durationIV",
+          "type": 9
+        },
+        {
+          "id": "21:130692958726001767",
+          "name": "durationMAC",
+          "type": 9
+        },
+        {
+          "id": "22:2701256056088093950",
+          "name": "waveData",
+          "type": 29
+        },
+        {
+          "id": "23:6500048009962098964",
+          "name": "waveDataIV",
+          "type": 9
+        },
+        {
+          "id": "24:204193618581195447",
+          "name": "waveDataMAC",
+          "type": 9
+        },
+        {
+          "id": "25:7295736734398325549",
+          "name": "filepath",
+          "type": 9
+        },
+        {
+          "id": "26:1292397910085762565",
+          "name": "chatId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "16:6632583265886720074",
+          "relationTarget": "Chat"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:6001606463237092560",
+      "lastPropertyId": "8:2502079331924638241",
+      "name": "Profile",
+      "properties": [
+        {
+          "id": "1:5240065712646817761",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1965452599062366425",
+          "name": "uid",
+          "type": 9
+        },
+        {
+          "id": "3:1054598126959679408",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "4:8716255141686264958",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "5:3163325898660752283",
+          "name": "emailVerified",
+          "type": 1
+        },
+        {
+          "id": "6:2089415412449252355",
+          "name": "avatarColor",
+          "type": 9
+        },
+        {
+          "id": "7:2675422248412665265",
+          "name": "avatarIcon",
+          "type": 9
+        },
+        {
+          "id": "8:2502079331924638241",
+          "name": "avatarPic",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "7:6001606463237092560",
+  "lastIndexId": "16:6632583265886720074",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

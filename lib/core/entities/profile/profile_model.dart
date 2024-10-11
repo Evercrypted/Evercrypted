@@ -1,10 +1,9 @@
-import 'package:isar/isar.dart';
+import 'package:objectbox/objectbox.dart';
 
-part 'profile_model.g.dart';
-
-@collection
+@Entity()
 class Profile {
-  Id id = Isar.autoIncrement;
+  @Id()
+  int id = 0;
 
   final String uid;
 
@@ -14,44 +13,61 @@ class Profile {
 
   bool emailVerified;
 
-  Avatar? avatar;
+  String? avatarColor;
+  String? avatarIcon;
+  String? avatarPic;
 
   Profile(
       {required this.uid,
       this.name,
       required this.email,
-      this.avatar,
+      this.avatarColor,
+      this.avatarIcon,
+      this.avatarPic,
       this.emailVerified = false});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
-      uid: json['uid'] as String,
-      name: json['name'] as String?,
-      email: (json['email'] ?? json['preverified_email']) as String,
-      emailVerified: json['email_verified'] as bool,
-      avatar: json['avatar'] == null
-          ? null
-          : Avatar.fromJson(
-              json['avatar'],
-            ));
+        uid: json['uid'] as String,
+        name: json['name'] as String?,
+        email: (json['email'] ?? json['preverified_email']) as String,
+        emailVerified: json['email_verified'] as bool,
+        avatarColor: json['avatar'] == null
+            ? null
+            : Avatar.fromJson(
+                json['avatar'],
+              ).color,
+        avatarIcon: json['avatar'] == null
+            ? null
+            : Avatar.fromJson(
+                json['avatar'],
+              ).icon,
+        avatarPic: json['avatar'] == null
+            ? null
+            : Avatar.fromJson(
+                json['avatar'],
+              ).pic,
+      );
 
   Profile copyWith({
     String? uid,
     String? name,
     String? email,
     bool? emailVerified,
-    Avatar? avatar,
+    String? avatarColor,
+    String? avatarIcon,
+    String? avatarPic,
   }) {
     return Profile(
-      uid: uid ?? this.uid,
-      name: name ?? this.name,
-      email: email ?? this.email,
-      emailVerified: emailVerified ?? this.emailVerified,
-      avatar: avatar ?? this.avatar,
-    );
+        uid: uid ?? this.uid,
+        name: name ?? this.name,
+        email: email ?? this.email,
+        emailVerified: emailVerified ?? this.emailVerified,
+        avatarColor: avatarColor ?? this.avatarColor,
+        avatarIcon: avatarIcon ?? this.avatarIcon,
+        avatarPic: avatarPic ?? this.avatarPic);
   }
 }
 
-@embedded
 class Avatar {
   final String? color;
   final String? icon;

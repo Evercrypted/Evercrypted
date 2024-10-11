@@ -7,7 +7,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 import 'package:evercrypted/core/auth.dart';
 
-import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';

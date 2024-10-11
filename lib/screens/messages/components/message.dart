@@ -1,6 +1,7 @@
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
-import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/core/entities/chat/participant_model.dart';
+import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/screens/messages/components/file_message.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import '../../../ui_constants.dart';
 import '../../../models/chat_message.dart';
 import 'audio_message.dart';
 import 'text_message.dart';
-import 'video_message.dart';
 
 class MessageWidget extends StatefulWidget {
   const MessageWidget({

@@ -1,6 +1,5 @@
-import 'package:isar/isar.dart';
-
-part 'message_isar.g.dart';
+import 'package:evercrypted/core/entities/chat/chat_model.dart';
+import 'package:objectbox/objectbox.dart';
 
 class MessageTypes {
   MessageTypes._();
@@ -12,9 +11,10 @@ class MessageTypes {
   static const system = 'system';
 }
 
-@collection
+@Entity()
 class Message {
-  Id id = Isar.autoIncrement;
+  @Id()
+  int id = 0;
 
   @Index()
   String? uid;
@@ -35,7 +35,7 @@ class Message {
   @Index()
   String chatUid;
 
-  @Index(unique: true)
+  @Unique()
   String? uniqueId;
 
   @Index()
@@ -60,6 +60,9 @@ class Message {
   String? waveDataMAC;
 
   String? filepath;
+
+  @Index()
+  final chat = ToOne<Chat>();
 
   Message({
     this.uid,

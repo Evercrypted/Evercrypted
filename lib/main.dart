@@ -6,11 +6,12 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
-import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/core/entities/message/message_model.dart';
+import 'package:evercrypted/core/entities/objectbox.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/notifications/notification.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
-import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
@@ -28,7 +29,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rhttp/rhttp.dart';
@@ -42,6 +42,8 @@ import 'core/http.dart';
 import 'firebase_options.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+late ObjectBox objectbox;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -52,15 +54,7 @@ void main() async {
     await Auth.setAppKey();
   }
 
-  final dir = await getApplicationDocumentsDirectory();
-  await Isar.open([
-    ProfileSchema,
-    ContactRequestSchema,
-    ContactSchema,
-    MessageSchema,
-    ActionQueueSchema,
-    ChatSchema
-  ], directory: dir.path);
+  objectbox = await ObjectBox.create();
 
   await Rhttp.init();
   await HttpClient.initialize();

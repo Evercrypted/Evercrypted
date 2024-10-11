@@ -5,7 +5,7 @@ import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
-import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
 import 'package:evercrypted/core/socket/event_types/auth_event_types.dart';
@@ -18,7 +18,6 @@ import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import 'package:isar/isar.dart';
 
 import '../entities/chat/chat_model.dart';
 import '../entities/chat/chat_service.dart';
@@ -112,9 +111,9 @@ class SocketEventsService {
         chatService.syncChats((payload['chats'] as List<dynamic>)
             .map((chatData) => Chat.fromJson(chatData))
             .toList());
-        messageService.syncMessages((payload['unreadMessages'] as List<dynamic>)
-            .map((messageData) => Message.fromJson(messageData))
-            .toList());
+        // messageService.syncMessages((payload['unreadMessages'] as List<dynamic>)
+        //     .map((messageData) => Message.fromJson(messageData))
+        //     .toList());
         break;
       default:
         print('Unknown General Event');
@@ -166,7 +165,6 @@ class SocketEventsService {
   handleContactEvent(String type, dynamic payload) {
     switch (type) {
       case ContactEventTypes.contactDeleted:
-        final isar = Isar.getInstance();
         List<Contact> contacts = isar!.contacts.where().findAllSync();
         String? contactEmail = contacts
             .firstWhere(

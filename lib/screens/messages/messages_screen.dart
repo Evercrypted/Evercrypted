@@ -18,10 +18,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
-import 'package:isar/isar.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
-import '../../core/entities/message/message_isar.dart';
+import '../../core/entities/message/message_model.dart';
 import '../../ui_constants.dart';
 import '../../widgets/primary_button.dart';
 import 'components/chat_input_field.dart';

@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
-import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/widgets/fade_icon.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:file_picker/file_picker.dart';

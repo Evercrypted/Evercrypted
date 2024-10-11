@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'package:evercrypted/core/entities/message/message_isar.dart';
+import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
-import 'package:evercrypted/core/offline/action_queue/action_queue.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:isar/isar.dart';
 
 class ActionQueueService {
   MessageService messageService = MessageService();

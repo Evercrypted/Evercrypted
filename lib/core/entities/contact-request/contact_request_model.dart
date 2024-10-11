@@ -1,12 +1,11 @@
-import 'package:isar/isar.dart';
+import 'package:objectbox/objectbox.dart';
 
-part 'contact_request_model.g.dart';
-
-@collection
+@Entity()
 class ContactRequest {
-  Id id = Isar.autoIncrement;
+  @Id()
+  int id = 0;
 
-  @Index(unique: true)
+  @Unique()
   final String? uid;
 
   final String? authorId;
@@ -16,6 +15,7 @@ class ContactRequest {
 
   final String? message;
 
+  @Property(type: PropertyType.date)
   final DateTime? timeSent;
 
   final int? queueId;

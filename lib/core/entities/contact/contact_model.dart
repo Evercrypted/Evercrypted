@@ -1,22 +1,23 @@
-import 'package:isar/isar.dart';
+import 'package:objectbox/objectbox.dart';
 
 import '../profile/profile_model.dart';
 
-part 'contact_model.g.dart';
-
-@collection
+@Entity()
 class Contact {
-  Id id = Isar.autoIncrement;
+  @Id()
+  int id = 0;
 
-  @Index(unique: true)
+  @Unique()
   final String? uid;
 
   final String? email;
 
-  @Index(unique: true)
+  @Unique()
   final String? contactPersonUid;
 
-  Avatar? avatar;
+  String? avatarColor;
+  String? avatarIcon;
+  String? avatarPic;
 
   String? name;
 
@@ -25,7 +26,9 @@ class Contact {
   Contact(
       {this.uid,
       this.email,
-      this.avatar,
+      this.avatarColor,
+      this.avatarIcon,
+      this.avatarPic,
       this.name,
       this.contactPersonUid,
       this.isFavorite = false});
@@ -33,11 +36,15 @@ class Contact {
   factory Contact.fromJson(Map<String, dynamic> json) => Contact(
         uid: json['uid'] as String?,
         email: json['email'] as String?,
-        avatar: json['avatar'] != null
-            ? Avatar.fromJson(
-                json['avatar'],
-              )
-            : null,
+        avatarColor: Avatar.fromJson(
+          json['avatar'],
+        ).color,
+        avatarIcon: Avatar.fromJson(
+          json['avatar'],
+        ).icon,
+        avatarPic: Avatar.fromJson(
+          json['avatar'],
+        ).pic,
         name: json['name'] as String?,
         contactPersonUid: json['contactPersonUid'] as String?,
         isFavorite: json['isFavorite'] as bool? ?? false,
@@ -48,22 +55,27 @@ class Contact {
         'email': email,
         'name': name,
         'contactPersonUid': contactPersonUid,
-        'avatar': avatar?.toJson(),
+        'avatar': Avatar(color: avatarColor, icon: avatarIcon, pic: avatarPic)
+            .toJson(),
         'isFavorite': isFavorite,
       };
 
   Contact copyWith({
     String? uid,
     String? email,
-    Avatar? avatar,
     String? name,
     String? contactPersonUid,
     bool? isFavorite,
+    String? avatarColor,
+    String? avatarIcon,
+    String? avatarPic,
   }) {
     return Contact(
       uid: uid ?? this.uid,
       email: email ?? this.email,
-      avatar: avatar ?? this.avatar,
+      avatarColor: avatarColor ?? this.avatarColor,
+      avatarIcon: avatarIcon ?? this.avatarIcon,
+      avatarPic: avatarPic ?? this.avatarPic,
       name: name ?? this.name,
       contactPersonUid: contactPersonUid ?? this.contactPersonUid,
       isFavorite: isFavorite ?? this.isFavorite,
