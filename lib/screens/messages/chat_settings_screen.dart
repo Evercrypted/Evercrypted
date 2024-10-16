@@ -1,9 +1,8 @@
-import 'dart:math';
-
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
+import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/messages/components/participant_card.dart';

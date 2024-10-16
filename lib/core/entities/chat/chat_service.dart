@@ -4,10 +4,10 @@ import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/fernet.dart';
+import 'package:evercrypted/core/cryptography/one_to_one_pubkey_comb.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
-import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
@@ -15,6 +15,7 @@ import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
+import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,25 +26,18 @@ class ChatService {
   ProfileService profileService = ProfileService();
   MessageService messageService = MessageService();
 
-  Future<Chat> addChat(Chat chat) async {
-    final String appKey = await Auth.getAppKey;
-
+  Chat addChat(Chat chat) {
     _syncKeysIfSyncRequired(chat);
 
-    chat.participants.addAll(chat.participantsList.map((p) {
-      return p.copyWith(
-          email: fernetEncrypt(p.email, appKey),
-          name: fernetEncrypt(p.name, appKey));
-    }));
-
-    objectbox.chats.put(chat);
+    final int id = obx.chats.put(chat);
+    chat.id = id;
     return chat;
   }
 
   Future<void> syncChats(List<Chat> chats) async {
     Completer<void> completer = Completer();
 
-    final List<Chat> chatsInDb = objectbox.chats.getAll();
+    final List<Chat> chatsInDb = obx.chats.getAll();
 
     final Iterable<Chat> chatsToPut = chats.where((element) =>
         chatsInDb.where((dbEl) => dbEl.uid == element.uid).isEmpty);
@@ -61,30 +55,20 @@ class ChatService {
       }
     });
 
-    final String appKey = await Auth.getAppKey;
-
     List<Chat> allChats = [...chatsToUpdate, ...chatsToPut];
     for (var chat in allChats) {
-      final List<int> particiapantIds =
-          chat.participants.map((p) => p.id).toList();
-      objectbox.participants.removeMany(particiapantIds);
-      chat.participants.addAll(chat.participantsList.map((Participant p) {
-        return p.copyWith(
-            email: fernetEncrypt(p.email, appKey),
-            name: fernetEncrypt(p.name, appKey));
-      }));
-      objectbox.messages.putMany(chat.messages);
+      obx.messages.putMany(chat.messages);
     }
 
     _doSyncForAllChats(allChats);
 
-    objectbox.chats.putMany(allChats);
+    obx.chats.putMany(allChats);
 
     if (chatsToDelete.isNotEmpty) {
       for (var chat in chatsToDelete) {
         final List<int> messageIds = chat.messages.map((m) => m.id).toList();
-        objectbox.messages.removeMany(messageIds);
-        objectbox.chats.remove(chat.id);
+        obx.messages.removeMany(messageIds);
+        obx.chats.remove(chat.id);
       }
     }
 
@@ -101,11 +85,10 @@ class ChatService {
     ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createChat,
             newChatDTO.toJson())
         .then((resp) async {
-      Chat returnedChat = Chat.fromJson(resp['chat']);
+      final Chat returnedChat = Chat.fromJson(resp['chat']);
       await BaseKey.setPrivate(returnedChat.uid, keys.keyPair);
-      addChat(returnedChat).then((chat) {
-        complete.complete(chat);
-      });
+      final Chat chat = addChat(returnedChat);
+      complete.complete(chat);
     });
     return complete.future;
   }
@@ -135,18 +118,15 @@ class ChatService {
         uid: profile!.uid,
         email: fernetDecrypt(profile.email, appKey),
         name: fernetDecrypt(profile.name, appKey),
-        avatarColor: profile.avatarColor,
-        avatarIcon: profile.avatarIcon,
-        avatarPic: profile.avatarPic,
+        avatar: profile.avatar,
         isCreator: true,
         isAdmin: true));
 
     ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createGroupChat,
             newGroupChatDTO.toJson())
         .then((resp) {
-      addChat(Chat.fromJson(resp['chat'])).then((chat) {
-        return complete.complete(chat);
-      });
+      final Chat chat = addChat(Chat.fromJson(resp['chat']));
+      return complete.complete(chat);
     });
     return complete.future;
   }
@@ -189,21 +169,14 @@ class ChatService {
       {required Chat chat, required List<Participant> participants}) async {
     Completer<bool> completer = Completer();
 
-    final String appKey = await Auth.getAppKey;
-
     ChatSocket.emitWAck(
         SocketChannelTypes.chat, ChatEventTypes.addParticipants, {
       'chatUid': chat.uid,
       'contactUids': participants.map((p) => p.uid).toList()
     }).then((resp) {
-      final participantsToAdd = participants.map((p) {
-        return p.copyWith(
-            email: fernetEncrypt(p.email, appKey),
-            name: fernetEncrypt(p.name, appKey));
-      }).toList();
-      final chatFromDb = objectbox.chats.get(chat.id);
-      chatFromDb?.participants.addAll(participantsToAdd);
-      objectbox.chats.put(chatFromDb!);
+      final chatFromDb = obx.chats.get(chat.id);
+      chatFromDb?.participants.addAll(participants);
+      obx.chats.put(chatFromDb!);
       completer.complete(true);
     }).catchError((error) {
       completer.completeError(false);
@@ -218,14 +191,12 @@ class ChatService {
         SocketChannelTypes.chat,
         ChatEventTypes.removeParticipant,
         {'chatUid': chat.uid, 'participantUid': participant.uid}).then((resp) {
-      Chat updatedChat = chat;
-      updatedChat.participants = updatedChat.participants
-          .where((element) => element.uid != participant.uid)
-          .toList();
-      final isar = Isar.getInstance();
-      isar?.writeTxn(() {
-        return isar.chats.put(updatedChat);
-      });
+      final chatFromDb = obx.chats.get(chat.id);
+      if (chatFromDb == null) {
+        completer.completeError(false);
+      }
+      chatFromDb!.participants.remove(participant);
+      obx.chats.put(chatFromDb);
       completer.complete(true);
     }).catchError((error) {
       completer.completeError(false);
@@ -241,23 +212,16 @@ class ChatService {
   }
 
   updateChatFromResp(Chat chat) async {
-    final isar = Isar.getInstance();
-    final Chat? chatInDb =
-        isar?.chats.where().uidEqualTo(chat.uid).findFirstSync();
+    final query = obx.chats.query(Chat_.uid.equals(chat.uid)).build();
+    final Chat? chatInDb = query.findFirst();
+    query.close();
+
     if (chatInDb != null) {
       if (chat.isOneToOne) {
         _syncKeysIfSyncRequired(chat);
       }
-      final String appKey = await Auth.getAppKey;
-      chat.participants = chat.participants.map((p) {
-        return p.copyWith(
-            email: fernetEncrypt(p.email, appKey),
-            name: fernetEncrypt(p.name, appKey));
-      }).toList();
       chat.id = chatInDb.id;
-      return isar?.writeTxn(() {
-        return isar.chats.put(chat);
-      });
+      obx.chats.put(chat);
     }
   }
 
@@ -269,9 +233,18 @@ class ChatService {
     }
   }
 
+  _checkKeys(Chat chat) async {
+    if (chat.participants.length > 2) {
+      return;
+    } else {
+      final String? pubKeyComb = oneToOnePubkeyComb(chat.participants);
+      if (pubKeyComb != null) {}
+    }
+  }
+
   _syncKeysIfSyncRequired(Chat chat) async {
-    final AuthUser? user = Auth.getUser;
-    if (user != null && chat.syncRequired == true) {
+    final AuthUser user = Auth.getUser!;
+    if (chat.syncRequired == true) {
       final Participant? thisParticipant = chat.participants
           .firstWhereOrNull((element) => element.uid == user.uid);
       final Participant? otherParticipant = chat.participants
@@ -321,8 +294,7 @@ class ChatService {
 
   Future<bool> findContactChatAndDelete(
       {required String contactUid, bool skipNotify = false}) async {
-    final isar = Isar.getInstance();
-    final chats = isar!.chats.where().findAllSync();
+    final chats = obx.chats.getAll();
     final chat = chats.firstWhereOrNull((chat) {
       return chat.participants.length == 2 &&
           chat.participants.any((participant) => participant.uid == contactUid);
@@ -336,28 +308,29 @@ class ChatService {
   }
 
   deleteChat({required String chatUid, bool? skipNotify = false}) async {
-    final isar = Isar.getInstance();
+    delete() {
+      final query = obx.chats.query(Chat_.uid.equals(chatUid)).build();
+      final chatInDb = query.findFirst();
+      query.close();
+      if (chatInDb != null) {
+        chatInDb.messages.clear();
+        chatInDb.messages.applyToDb();
+        obx.chats.remove(chatInDb.id);
+      }
+    }
+
     if (skipNotify == false) {
       return ChatSocket.emitWAck(
               SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid)
           .then((resp) {
-        isar?.writeTxn(() async {
-          isar.chats.deleteByUid(chatUid);
-        });
+        delete();
       }).onError((error, stackTrace) {
         if (error == 'No such chat found') {
-          isar?.writeTxn(() async {
-            isar.chats.deleteByUid(chatUid);
-          });
+          delete();
         }
       });
     } else {
-      isar?.writeTxn(() async {
-        final messages =
-            await isar.messages.where().chatUidEqualTo(chatUid).findAll();
-        await isar.messages.deleteAll(messages.map((e) => e.id).toList());
-        isar.chats.deleteByUid(chatUid);
-      });
+      delete();
     }
   }
 

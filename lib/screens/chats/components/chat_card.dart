@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:flutter/material.dart';

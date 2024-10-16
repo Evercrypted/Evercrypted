@@ -7,6 +7,8 @@ import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
 import 'package:evercrypted/core/socket/socket.dart';
+import 'package:evercrypted/main.dart';
+import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
@@ -37,7 +39,6 @@ class MessagesScreen extends ConsumerStatefulWidget {
 class MessagesScreenState extends ConsumerState<MessagesScreen> {
   final settingsForm = GlobalKey<FormState>();
   final MessageService _messageService = MessageService();
-  late Isar? isar = Isar.getInstance();
   final userId = Auth.user?.uid;
   late int startingCreatedAtMSE;
   int nextPageKey = 1;
@@ -112,6 +113,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   void setBaseKey() async {
     BaseKey.getBase(chat.uid).then((key) {
+      print('baseKey ' + key.toString());
       setState(() {
         baseKey = key;
       });
@@ -248,30 +250,28 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   Future<int?> getlastMessageCreatedAtMSE() async {
-    final lastMessageCreatedAtMSE = isar?.messages
-        .where()
-        .chatUidEqualTo(widget.chat.uid)
-        .sortByCreatedAtMSE()
-        .findFirstSync()
-        ?.createdAtMSE;
+    final query = obx.messages
+        .query(Message_.chatUid.equals(widget.chat.uid))
+        .order(Message_.createdAtMSE)
+        .build();
+    final message = query.findFirst();
+    query.close();
+    final lastMessageCreatedAtMSE = message?.createdAtMSE;
     return lastMessageCreatedAtMSE;
   }
 
   void listenToIsarChanges() {
     startedListeningToIsar = true;
-    Query<Message>? messagesQuery = isar?.messages
-        .where()
-        .chatUidEqualTo(widget.chat.uid)
-        .filter()
-        .createdAtMSEGreaterThan(startingCreatedAtMSE)
-        .sortByCreatedAtMSEDesc()
-        .limit(1)
-        .build();
+    final query = obx.messages
+        .query(Message_.chatUid
+            .equals(widget.chat.uid)
+            .and(Message_.createdAtMSE.greaterThan(startingCreatedAtMSE)))
+        .order(Message_.createdAtMSE, flags: Order.descending);
 
     Stream<List<Message>>? queryChanged =
-        messagesQuery?.watch(fireImmediately: true);
+        query.watch(triggerImmediately: true).map((query) => query.find());
     _isarSubscription?.cancel();
-    _isarSubscription = queryChanged?.listen((messages) {
+    _isarSubscription = queryChanged.listen((messages) {
       messages.retainWhere((element) =>
           _pagingController.itemList
               ?.firstWhereOrNull((el) => el.id == element.id) ==
@@ -286,7 +286,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   Future<void> _fetchPage(int pageKey) async {
     try {
       final newItems = await _messageService.getMessagesFromDB(
-          widget.chat.uid, pageKey, _pageSize);
+          widget.chat.id, pageKey, _pageSize);
       newItems.retainWhere((element) =>
           _pagingController.itemList
               ?.firstWhereOrNull((el) => el.id == element.id) ==

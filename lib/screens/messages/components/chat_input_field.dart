@@ -81,6 +81,7 @@ class ChatInputFieldState extends State<ChatInputField> {
         fullKey = null;
       }
     }
+    print('fullKey ' + fullKey.toString());
   }
 
   void sendMessage(String message) async {

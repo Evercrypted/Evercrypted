@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
@@ -16,6 +17,8 @@ import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
+import 'package:evercrypted/main.dart';
+import 'package:evercrypted/objectbox.g.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 
@@ -165,7 +168,7 @@ class SocketEventsService {
   handleContactEvent(String type, dynamic payload) {
     switch (type) {
       case ContactEventTypes.contactDeleted:
-        List<Contact> contacts = isar!.contacts.where().findAllSync();
+        List<Contact> contacts = obx.contacts.getAll();
         String? contactEmail = contacts
             .firstWhere(
               (element) => element.uid == payload['contactUid'],
@@ -219,12 +222,10 @@ class SocketEventsService {
         );
         break;
       case ChatEventTypes.chatDeleted:
-        final isar = Isar.getInstance();
-        final Chat? chat = isar!.chats
-            .where()
-            .uidEqualTo(payload['chatUid'])
-            .findAllSync()
-            .firstOrNull;
+        final query =
+            obx.chats.query(Chat_.uid.equals(payload['chatUid'])).build();
+        final Chat? chat = query.findFirst();
+        query.close();
         if (chat != null) {
           chatService.deleteChat(chatUid: payload['chatUid'], skipNotify: true);
           LocalNotification.instance.displayNotification(
@@ -326,8 +327,7 @@ class SocketEventsService {
         Message message = Message.fromJson(payload['message']);
         await messageService.writeNewMessageToIsar(message);
 
-        final isar = Isar.getInstance();
-        List<Chat> chats = isar!.chats.where().findAllSync();
+        List<Chat> chats = obx.chats.getAll();
         Chat? chat =
             chats.firstWhereOrNull((element) => element.uid == message.chatUid);
 

@@ -1,3 +1,5 @@
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -9,11 +11,14 @@ class ContactRequest {
   final String? uid;
 
   final String? authorId;
-  final String? authorEmail;
 
-  final String? recipientEmail;
+  @Transient()
+  String? authorEmail;
+  @Transient()
+  String? recipientEmail;
 
-  final String? message;
+  @Transient()
+  String? message;
 
   @Property(type: PropertyType.date)
   final DateTime? timeSent;
@@ -21,6 +26,63 @@ class ContactRequest {
   final int? queueId;
 
   bool? unread;
+
+  String? get dbAuthorEmail {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      return authorEmail;
+    } else {
+      return fernetEncrypt(authorEmail, appKey);
+    }
+  }
+
+  set dbAuthorEmail(String? value) {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      authorEmail = value;
+      return;
+    } else {
+      authorEmail = fernetDecrypt(value, appKey);
+    }
+  }
+
+  String? get dbRecipientEmail {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      return recipientEmail;
+    } else {
+      return fernetEncrypt(recipientEmail, appKey);
+    }
+  }
+
+  set dbRecipientEmail(String? value) {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      recipientEmail = value;
+      return;
+    } else {
+      recipientEmail = fernetDecrypt(value, appKey);
+    }
+  }
+
+  String? get dbMessage {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      return message;
+    } else {
+      return fernetEncrypt(message, appKey);
+    }
+  }
+
+  set dbMessage(String? value) {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      message = value;
+      return;
+    } else {
+      message = fernetDecrypt(value, appKey);
+    }
+  }
 
   ContactRequest(
       {this.uid,

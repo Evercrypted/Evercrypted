@@ -10,55 +10,53 @@ import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
+import 'package:evercrypted/objectbox.g.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rhttp/rhttp.dart';
 
 import 'message_model.dart';
 
+import 'package:evercrypted/main.dart';
+
 class MessageService {
   String? userId = Auth.user?.uid;
 
-  void syncMessages(List<Message> messages) async {
-    try {
-      await isar?.writeTxn(() async {
-        await isar.messages.putAll(messages);
-      });
-    } catch (e) {
-      //couldn't batch put, put one by one
-    }
+  // void syncMessages(List<Message> messages) async {
+  //   try {
+  //     await isar?.writeTxn(() async {
+  //       await isar.messages.putAll(messages);
+  //     });
+  //   } catch (e) {
+  //     //couldn't batch put, put one by one
+  //   }
 
-    for (var element in messages) {
-      try {
-        await isar?.writeTxn(() async {
-          await isar.messages.put(element);
-        });
-      } catch (e) {
-        //there is already a message with this uniqueid
-      }
-    }
-  }
+  //   for (var element in messages) {
+  //     try {
+  //       await isar?.writeTxn(() async {
+  //         await isar.messages.put(element);
+  //       });
+  //     } catch (e) {
+  //       //there is already a message with this uniqueid
+  //     }
+  //   }
+  // }
 
   Future<List<Message>> getMessagesFromDB(
-      String chatUid, int pageKey, int pageSize) async {
-    final isar = Isar.getInstance();
+      int chatId, int pageKey, int pageSize) async {
+    final query = obx.messages
+        .query(Message_.chat.equals(chatId))
+        .order(Message_.createdAtMSE, flags: Order.descending)
+        .build();
+    query.limit = pageSize;
+    List<Message> result;
     if (pageKey == 0) {
-      return isar!.messages
-          .where()
-          .chatUidEqualTo(chatUid)
-          .sortByCreatedAtMSEDesc()
-          .limit(pageSize)
-          .findAllSync()
-          .toList();
+      result = query.find();
     } else {
-      return isar!.messages
-          .where()
-          .chatUidEqualTo(chatUid)
-          .sortByCreatedAtMSEDesc()
-          .offset(pageKey * pageSize)
-          .limit(pageSize)
-          .findAllSync()
-          .toList();
+      query.offset = pageKey * pageSize;
+      result = query.find();
     }
+    query.close();
+    return result;
   }
 
   Future<Message> sendMessage(dynamic message, String chatUid) async {
@@ -123,12 +121,9 @@ class MessageService {
           type: MessageEventTypes.sendFile,
           payload: json.encode(payload),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch);
-      final isar = Isar.getInstance();
-      isar?.writeTxn(() async {
-        final int queuedItemId = await isar.actionQueues.put(action);
-        await saveFile(file: file, queueId: queuedItemId);
-        writingToQueueCompleter.complete(queuedItemId);
-      });
+      final int id = obx.actionQueues.put(action);
+      await saveFile(file: file, queueId: id);
+      writingToQueueCompleter.complete(id);
       return writingToQueueCompleter.future;
     }
 
@@ -322,9 +317,8 @@ class MessageService {
         final Message message = getMessage(chatUid, messageUid);
         message.filepath = await saveFile(
             file: respPayload['file'], chatUid: chatUid, msgUid: messageUid);
-        updateMessage(message).then((value) {
-          completer.complete(respPayload['file']);
-        });
+        obx.messages.put(message);
+        completer.complete(respPayload['file']);
       }
     }).onError((error, stackTrace) {
       completer.completeError('Could not download file');
@@ -333,33 +327,22 @@ class MessageService {
   }
 
   getMessage(String chatUid, String messageUid) {
-    final isar = Isar.getInstance();
-    return isar!.messages
-        .where()
-        .chatUidEqualTo(chatUid)
-        .filter()
-        .uidEqualTo(messageUid)
-        .findFirstSync();
-  }
-
-  updateMessage(Message message) async {
-    final isar = Isar.getInstance();
-    return isar!.writeTxn(() async {
-      await isar.messages.put(message);
-    });
+    final query = obx.messages
+        .query(Message_.chatUid
+            .equals(chatUid)
+            .and(Message_.uid.equals(messageUid)))
+        .build();
+    final Message message = query.findFirst()!;
+    query.close();
+    return message;
   }
 
   writeNewMessageToIsar(Message message) async {
-    final isar = Isar.getInstance();
-    Chat chat = isar!.chats
-        .where()
-        .filter()
-        .uidEqualTo(message.chatUid)
-        .findFirstSync()!;
+    final query = obx.chats.query(Chat_.uid.equals(message.chatUid)).build();
+    final Chat chat = query.findFirst()!;
+    query.close();
     chat.lastMessageTime = DateTime.now();
-    return isar.writeTxn(() async {
-      await isar.messages.put(message);
-      await isar.chats.put(chat);
-    });
+    obx.messages.put(message);
+    obx.chats.put(chat);
   }
 }

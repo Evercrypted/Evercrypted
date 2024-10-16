@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
-import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
+import 'package:evercrypted/main.dart';
+import 'package:evercrypted/objectbox.g.dart';
 
 class ActionQueueService {
   MessageService messageService = MessageService();
 
   processQueue() async {
-    final isar = Isar.getInstance();
-    final queue = await isar?.actionQueues.where().findAll();
-    if (queue != null) {
+    final queue = obx.actionQueues.getAll();
+    if (queue.isNotEmpty) {
       dynamic result;
       for (var action in queue) {
         if (action.isHttp) {
@@ -41,21 +41,18 @@ class ActionQueueService {
         if (result != null) {
           if ((action.channel == SocketChannelTypes.message) &&
               result['messageUid'] != null) {
-            Message? msg = isar?.messages
-                .where()
-                .queueIdEqualTo(action.id)
-                .findFirstSync();
+            final query =
+                obx.messages.query(Message_.queueId.equals(action.id)).build();
+            final Message? msg = query.findFirst();
+            query.close();
             if (msg != null) {
-              await isar?.writeTxn(() async {
-                msg.successfullySent = true;
-                msg.uid = result['messageUid'];
-                await isar.messages.put(msg);
-              });
+              msg.successfullySent = true;
+              msg.uid = result['messageUid'];
+              obx.messages.put(msg);
+              obx.actionQueues.remove(action.id);
             }
           } else {
-            await isar?.writeTxn(() async {
-              await isar.actionQueues.delete(action.id);
-            });
+            obx.actionQueues.remove(action.id);
           }
         }
       }

@@ -43,13 +43,13 @@
             "name": "Pixel 6",
             "request": "launch",
             "type": "dart",
-            "deviceId": "emulator-5554"
+            "deviceId": "emulator-5556"
         },
         {
             "name": "Pixel 8",
             "request": "launch",
             "type": "dart",
-            "deviceId": "emulator-5556"
+            "deviceId": "emulator-5554"
         }
     ],
 }

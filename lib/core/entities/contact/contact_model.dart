@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:objectbox/objectbox.dart';
 
 import '../profile/profile_model.dart';
@@ -10,25 +14,71 @@ class Contact {
   @Unique()
   final String? uid;
 
-  final String? email;
+  @Transient()
+  String? email;
+
+  @Transient()
+  String? name;
 
   @Unique()
   final String? contactPersonUid;
 
-  String? avatarColor;
-  String? avatarIcon;
-  String? avatarPic;
+  Avatar? avatar;
 
-  String? name;
+  String? get dbAvatar => avatar == null ? null : jsonEncode(avatar?.toJson());
+
+  set dbAvatar(String? value) {
+    if (value == null || value == 'null') {
+      avatar = null;
+    } else {
+      avatar = Avatar.fromJson(jsonDecode(value));
+    }
+  }
 
   bool isFavorite;
+
+  String? get dbEmail {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      return email;
+    } else {
+      return fernetEncrypt(email, appKey);
+    }
+  }
+
+  set dbEmail(String? value) {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      email = value;
+      return;
+    } else {
+      email = fernetDecrypt(value, appKey);
+    }
+  }
+
+  String? get dbName {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      return name;
+    } else {
+      return fernetEncrypt(name, appKey);
+    }
+  }
+
+  set dbName(String? value) {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      name = value;
+      return;
+    } else {
+      name = fernetDecrypt(value, appKey);
+    }
+  }
 
   Contact(
       {this.uid,
       this.email,
-      this.avatarColor,
-      this.avatarIcon,
-      this.avatarPic,
+      this.avatar,
       this.name,
       this.contactPersonUid,
       this.isFavorite = false});
@@ -36,15 +86,11 @@ class Contact {
   factory Contact.fromJson(Map<String, dynamic> json) => Contact(
         uid: json['uid'] as String?,
         email: json['email'] as String?,
-        avatarColor: Avatar.fromJson(
-          json['avatar'],
-        ).color,
-        avatarIcon: Avatar.fromJson(
-          json['avatar'],
-        ).icon,
-        avatarPic: Avatar.fromJson(
-          json['avatar'],
-        ).pic,
+        avatar: json['avatar'] != null
+            ? Avatar.fromJson(
+                json['avatar'],
+              )
+            : null,
         name: json['name'] as String?,
         contactPersonUid: json['contactPersonUid'] as String?,
         isFavorite: json['isFavorite'] as bool? ?? false,
@@ -55,8 +101,7 @@ class Contact {
         'email': email,
         'name': name,
         'contactPersonUid': contactPersonUid,
-        'avatar': Avatar(color: avatarColor, icon: avatarIcon, pic: avatarPic)
-            .toJson(),
+        'avatar': avatar?.toJson(),
         'isFavorite': isFavorite,
       };
 
@@ -66,16 +111,12 @@ class Contact {
     String? name,
     String? contactPersonUid,
     bool? isFavorite,
-    String? avatarColor,
-    String? avatarIcon,
-    String? avatarPic,
+    Avatar? avatar,
   }) {
     return Contact(
       uid: uid ?? this.uid,
       email: email ?? this.email,
-      avatarColor: avatarColor ?? this.avatarColor,
-      avatarIcon: avatarIcon ?? this.avatarIcon,
-      avatarPic: avatarPic ?? this.avatarPic,
+      avatar: avatar ?? this.avatar,
       name: name ?? this.name,
       contactPersonUid: contactPersonUid ?? this.contactPersonUid,
       isFavorite: isFavorite ?? this.isFavorite,

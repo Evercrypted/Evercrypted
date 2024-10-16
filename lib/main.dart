@@ -1,17 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
+// import 'dart:io' show Platform;
 
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/fernet.dart';
-import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
-import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/objectbox.dart';
-import 'package:evercrypted/core/entities/profile/profile_model.dart';
-import 'package:evercrypted/core/notifications/notification.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
-import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
+import 'package:evercrypted/objectbox.g.dart';
+// import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
@@ -30,11 +26,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:rhttp/rhttp.dart';
-import 'core/entities/contact-request/contact_request_model.dart';
 import 'core/entities/contact-request/contact_request_riverpod.dart';
-import 'core/entities/contact/contact_model.dart';
 import 'core/entities/contact/contact_riverpod.dart';
 import 'core/socket/socket.dart';
 import 'core/entities/profile/profile_service.dart';
@@ -42,7 +35,7 @@ import 'core/http.dart';
 import 'firebase_options.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-late ObjectBox objectbox;
+late ObjectBox obx;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,7 +47,9 @@ void main() async {
     await Auth.setAppKey();
   }
 
-  objectbox = await ObjectBox.create();
+  await Auth.getAppKey;
+
+  obx = await ObjectBox.create();
 
   await Rhttp.init();
   await HttpClient.initialize();
@@ -68,6 +63,7 @@ void main() async {
       // The sampling rate for profiling is relative to tracesSampleRate
       // Setting to 1.0 will profile 100% of sampled transactions:
       options.profilesSampleRate = 1.0;
+      options.debug = true;
     },
     appRunner: () => runApp(const ProviderScope(child: MyApp())),
   );
@@ -120,10 +116,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   late StreamSubscription authListener;
   late StreamSubscription resetConnectionListener;
-  StreamSubscription? isarProfileListener;
-  StreamSubscription? isarContactRequestsListener;
-  StreamSubscription? isarContactsListener;
-  StreamSubscription? isarChatsListener;
+  StreamSubscription? profileListener;
+  StreamSubscription? contactRequestsListener;
+  StreamSubscription? contactsListener;
+  StreamSubscription? chatsListener;
+  Admin? admin;
 
   @override
   void initState() {
@@ -142,6 +139,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
     );
 
     _authFlow();
+
+    if (Admin.isAvailable()) {
+      // Keep a reference until no longer needed or manually closed.
+      admin = Admin(obx.store);
+    }
   }
 
   @override
@@ -150,8 +152,9 @@ class AuthGateState extends ConsumerState<AuthGate> {
     ioConnectionTimer?.cancel();
     authListener.cancel();
     resetConnectionListener.cancel();
-    cancelIsarListeners();
+    cancelListeners();
     ChatSocket.disconnectWS();
+    admin?.close();
     super.dispose();
   }
 
@@ -192,7 +195,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         });
         Future.delayed(Duration.zero, () {
           _syncIsarToRiverpod();
-          _setIsarWatchers();
+          _setWatchers();
         });
       }
       setState(() {
@@ -263,132 +266,83 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   void _syncIsarToRiverpod() async {
-    final isar = Isar.getInstance();
-
-    final String appKey = await Auth.getAppKey;
-
     //profile
-    final profile = isar?.profiles.where().build().findFirstSync();
+    final profile = obx.profiles.getAll().firstOrNull;
     if (profile != null) {
-      ref.read(profileProvider.notifier).setProfile(profile.copyWith(
-          email: fernetDecrypt(profile.email, appKey),
-          name: fernetDecrypt(profile.name, appKey)));
+      ref.read(profileProvider.notifier).setProfile(profile);
     }
 
     //contactRequests
-    final contactRequests = isar?.contactRequests.where().build().findAllSync();
-    if (contactRequests != null) {
-      ref
-          .read(receivedRequestsProvider.notifier)
-          .setReceivedRequests(contactRequests
-              .where((element) =>
-                  fernetDecrypt(element.recipientEmail, appKey) == user!.email)
-              .map((c) {
-            return c.copyWith(
-                authorEmail: fernetDecrypt(c.authorEmail, appKey),
-                recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
-                message: fernetDecrypt(c.message, appKey));
-          }).toList());
+    final contactRequests = obx.contactRequests.getAll();
+    if (contactRequests.isNotEmpty) {
+      ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
+          contactRequests
+              .where((element) => element.recipientEmail == user!.email)
+              .toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-              .where((element) =>
-                  fernetDecrypt(element.authorId, appKey) == user!.uid)
-              .map((c) {
-            return c.copyWith(
-                authorEmail: fernetDecrypt(c.authorEmail, appKey),
-                recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
-                message: fernetDecrypt(c.message, appKey));
-          }).toList());
+          .where((element) => element.authorId == user!.uid)
+          .toList());
     }
 
     //contacts
-    final contacts = isar?.contacts.where().build().findAllSync();
-    if (contacts != null) {
-      ref.read(contactsProvider.notifier).setContacts(contacts.map((c) {
-            return c.copyWith(
-                email: fernetDecrypt(c.email, appKey),
-                name: fernetDecrypt(c.name, appKey));
-          }).toList());
+    final contacts = obx.contacts.getAll();
+    if (contacts.isNotEmpty) {
+      ref.read(contactsProvider.notifier).setContacts(contacts);
     }
 
     //chats
-    final chats = isar?.chats.where().build().findAllSync();
+    final chats = obx.chats.getAll();
 
-    if (chats != null) {
-      ref.read(chatsProvider.notifier).setChats(chats.map((c) {
-            c.participants = c.participants.map((p) {
-              return p.copyWith(
-                  email: fernetDecrypt(p.email, appKey),
-                  name: fernetDecrypt(p.name, appKey));
-            }).toList();
-            return c;
-          }).toList());
+    if (chats.isNotEmpty) {
+      ref.read(chatsProvider.notifier).setChats(chats);
     }
   }
 
-  void cancelIsarListeners() {
-    isarProfileListener?.cancel();
-    isarContactRequestsListener?.cancel();
-    isarContactsListener?.cancel();
-    isarChatsListener?.cancel();
+  void cancelListeners() {
+    profileListener?.cancel();
+    contactRequestsListener?.cancel();
+    contactsListener?.cancel();
+    chatsListener?.cancel();
   }
 
-  void _setIsarWatchers() async {
-    final isar = Isar.getInstance();
-
-    cancelIsarListeners();
-
-    final String appKey = await Auth.getAppKey;
-
+  void _setWatchers() async {
+    cancelListeners();
     //profile
-    isarProfileListener =
-        isar?.profiles.where().build().watch().listen((profiles) {
+    profileListener = obx.profiles
+        .query()
+        .watch()
+        .map((query) => query.find())
+        .listen((profiles) {
       if (profiles.isNotEmpty) {
-        ref.read(profileProvider.notifier).setProfile(profiles.first.copyWith(
-            email: fernetDecrypt(profiles.first.email, appKey),
-            name: fernetDecrypt(profiles.first.name, appKey)));
+        ref.read(profileProvider.notifier).setProfile(profiles.first);
       }
     });
     //contactRequests
-    isarContactRequestsListener =
-        isar?.contactRequests.where().build().watch().listen((contactRequests) {
+    contactRequestsListener = obx.contactRequests
+        .query()
+        .watch()
+        .map((query) => query.find())
+        .listen((contactRequests) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
-              contactRequests
-                  .where((element) => element.recipientEmail == user!.email)
-                  .map((c) {
-            return c.copyWith(
-                authorEmail: fernetDecrypt(c.authorEmail, appKey),
-                recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
-                message: fernetDecrypt(c.message, appKey));
-          }).toList());
+          contactRequests
+              .where((element) => element.recipientEmail == user!.email)
+              .toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
-              .where((element) => element.authorId == user!.uid)
-              .map((c) {
-            return c.copyWith(
-                authorEmail: fernetDecrypt(c.authorEmail, appKey),
-                recipientEmail: fernetDecrypt(c.recipientEmail, appKey),
-                message: fernetDecrypt(c.message, appKey));
-          }).toList());
+          .where((element) => element.authorId == user!.uid)
+          .toList());
     });
     //contacts
-    isarContactsListener =
-        isar?.contacts.where().build().watch().listen((contacts) {
-      ref.read(contactsProvider.notifier).setContacts(contacts.map((c) {
-            return c.copyWith(
-                email: fernetDecrypt(c.email, appKey),
-                name: fernetDecrypt(c.name, appKey));
-          }).toList());
+    contactsListener = obx.contacts
+        .query()
+        .watch()
+        .map((query) => query.find())
+        .listen((contacts) {
+      ref.read(contactsProvider.notifier).setContacts(contacts);
     });
     //chats
-    isarChatsListener = isar?.chats.where().build().watch().listen((chats) {
-      final decr = chats.map((c) {
-        c.participants = c.participants.map((p) {
-          return p.copyWith(
-              email: fernetDecrypt(p.email, appKey),
-              name: fernetDecrypt(p.name, appKey));
-        }).toList();
-        return c;
-      }).toList();
-      ref.read(chatsProvider.notifier).setChats(decr);
+    chatsListener =
+        obx.chats.query().watch().map((query) => query.find()).listen((chats) {
+      ref.read(chatsProvider.notifier).setChats(chats);
     });
     //messages
   }

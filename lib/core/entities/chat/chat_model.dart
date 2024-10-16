@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:objectbox/objectbox.dart';
@@ -17,14 +21,11 @@ class Chat {
 
   final bool isOneToOne;
 
-  @Backlink('chat')
-  final participants = ToMany<Participant>();
-
   @Transient()
-  List<Participant> participantsList;
+  List<Participant> participants;
 
   @Backlink('chat')
-  final messages = ToMany<Message>();
+  final ToMany<Message> messages = ToMany<Message>();
 
   @Transient()
   List<Message> messagesList;
@@ -33,13 +34,56 @@ class Chat {
   @Property(type: PropertyType.date)
   DateTime? lastMessageTime;
 
-  String? avatarColor;
-  String? avatarIcon;
-  String? avatarPic;
+  @Transient()
+  Avatar? avatar;
 
   bool? syncRequired;
 
   int? syncTime;
+
+  String? get dbAvatar => avatar == null ? null : jsonEncode(avatar?.toJson());
+
+  set dbAvatar(String? value) {
+    if (value == null) {
+      avatar = null;
+    } else {
+      avatar = Avatar.fromJson(jsonDecode(value));
+    }
+  }
+
+  String? get dbParticipants => jsonEncode(participants.map((e) {
+        final String? appKey = Auth.appKey;
+        if (appKey == null) {
+          return e.toJson(lastSawChatInMiliseconds: true);
+        } else {
+          return e
+              .copyWith(
+                  email: fernetEncrypt(e.email, appKey),
+                  name: fernetEncrypt(e.name, appKey))
+              .toJson(lastSawChatInMiliseconds: true);
+        }
+      }).toList());
+
+  set dbParticipants(String? value) {
+    if (value == null) {
+      participants = [];
+    } else {
+      final String? appKey = Auth.appKey;
+      if (appKey == null) {
+        participants = (jsonDecode(value) as List<dynamic>)
+            .map((e) => Participant.fromJson(e, lastSawChatInMiliseconds: true))
+            .toList();
+      } else {
+        participants = (jsonDecode(value) as List<dynamic>).map((e) {
+          return Participant.fromJson(e, lastSawChatInMiliseconds: true)
+              .copyWith(
+            email: fernetDecrypt(e['email'], appKey),
+            name: fernetDecrypt(e['name'], appKey),
+          );
+        }).toList();
+      }
+    }
+  }
 
   Chat({
     this.isOneToOne = true,
@@ -47,11 +91,9 @@ class Chat {
     this.messageLongevitySeconds,
     this.name,
     required this.lastMessageTime,
-    this.participantsList = const [],
+    this.participants = const [],
     this.messagesList = const [],
-    this.avatarColor,
-    this.avatarIcon,
-    this.avatarPic,
+    this.avatar,
     this.syncRequired,
     this.syncTime,
   });
@@ -60,22 +102,14 @@ class Chat {
         uid: json['uid'] as String,
         messageLongevitySeconds: json['messageLongevitySeconds'] as int?,
         name: json['name'] as String?,
-        participantsList: (json['participants'] as List<dynamic>)
+        participants: (json['participants'] as List<dynamic>)
             .map((e) => Participant.fromJson(e))
             .toList(),
         messagesList: (json['messages'] as List<dynamic>)
             .map((e) => Message.fromJson(e))
             .toList(),
         lastMessageTime: DateTime.parse(json['lastMessageTime']),
-        avatarColor: Avatar.fromJson(
-          json['avatar'],
-        ).color,
-        avatarIcon: Avatar.fromJson(
-          json['avatar'],
-        ).icon,
-        avatarPic: Avatar.fromJson(
-          json['avatar'],
-        ).pic,
+        avatar: json['avatar'] != null ? Avatar.fromJson(json['avatar']) : null,
         isOneToOne: json['isOneToOne'] as bool,
         syncRequired: json['syncRequired'] as bool? ?? false,
         syncTime: json['syncTime'] as int?,
@@ -85,10 +119,9 @@ class Chat {
         'uid': uid,
         'name': name,
         'messageLongevitySeconds': messageLongevitySeconds,
-        'participants': participantsList,
+        'participants': participants,
         'lastMessageTime': lastMessageTime,
-        'avatar': Avatar(color: avatarColor, icon: avatarIcon, pic: avatarPic)
-            .toJson(),
+        'avatar': avatar?.toJson(),
         'isOneToOne': isOneToOne,
       };
 }

@@ -1,5 +1,5 @@
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/entities/chat/chat_model.dart';
+import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';

@@ -1,73 +1,72 @@
-import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:isar/isar.dart';
+import 'package:evercrypted/main.dart';
+import 'package:evercrypted/objectbox.g.dart';
 
 import 'contact_model.dart';
 
 class ContactService {
+  Contact? findContactByUid(String uid) {
+    final query = obx.contacts.query(Contact_.uid.equals(uid)).build();
+    final Contact? contact = query.findFirst();
+    query.close();
+    return contact;
+  }
+
   void createContactAndRemoveContactRequest(
       Contact contact, String contactRequestUid) async {
-    final isar = Isar.getInstance();
-
-    final String appKey = await Auth.getAppKey;
-
-    final Contact toPut = contact.copyWith(
-        email: fernetEncrypt(contact.email, appKey),
-        name: fernetEncrypt(contact.name, appKey));
-
-    await isar?.writeTxn(() async {
-      await isar.contacts.put(toPut);
-      await isar.contactRequests.deleteByUid(contactRequestUid);
-    });
+    obx.contacts.put(contact);
+    final query = obx.contactRequests
+        .query(ContactRequest_.uid.equals(contactRequestUid))
+        .build();
+    final ContactRequest? crInDB = query.findFirst();
+    query.close();
+    if (crInDB != null) {
+      obx.contactRequests.remove(crInDB.id);
+    }
   }
 
   void deleteContact(String contactUid) async {
-    final isar = Isar.getInstance();
+    delete() {
+      final contact = findContactByUid(contactUid);
+      if (contact != null) {
+        obx.contacts.remove(contact.id);
+      }
+    }
+
     return ChatSocket.emitWAck(
         SocketChannelTypes.contact,
         ContactEventTypes.deleteContact,
         {'contactUid': contactUid}).then((value) {
-      isar?.writeTxn(() async {
-        isar.contacts.deleteByUid(contactUid);
-      });
+      delete();
     }).onError((error, stackTrace) {
       if (error == 'No such contact found') {
-        isar?.writeTxn(() async {
-          isar.contacts.deleteByUid(contactUid);
-        });
+        delete();
       }
     });
   }
 
   void handleDeletedContact(String contactUid) {
-    final isar = Isar.getInstance();
-    isar?.writeTxn(() async {
-      isar.contacts.deleteByUid(contactUid);
-    });
+    final contact = findContactByUid(contactUid);
+    if (contact != null) {
+      obx.contacts.remove(contact.id);
+    }
   }
 
   void renameContact(String contactUid, String newName) async {
-    final isar = Isar.getInstance();
-
-    final String appKey = await Auth.getAppKey;
-
-    await isar?.writeTxn(() async {
-      final contact =
-          await isar.contacts.where().uidEqualTo(contactUid).findFirst();
-      contact?.name = newName;
-      contact?.name = fernetEncrypt(newName, appKey);
-      await isar.contacts.put(contact!);
-    });
+    final contact = findContactByUid(contactUid);
+    if (contact == null) {
+      return;
+    } else {
+      contact.name = newName;
+      obx.contacts.put(contact);
+    }
   }
 
   void syncContacts(List<Contact> contacts) async {
-    final isar = Isar.getInstance();
-
-    final List<Contact> contactsInDb = await isar!.contacts.where().findAll();
+    final List<Contact> contactsInDb = obx.contacts.getAll();
 
     final List<Contact> contactsToPut = contacts
         .where((element) =>
@@ -80,18 +79,8 @@ class ContactService {
         .map((e) => e.id)
         .toList();
 
-    final String appKey = await Auth.getAppKey;
-
-    final toPut = contactsToPut
-        .map((contact) => contact.copyWith(
-            email: fernetEncrypt(contact.email, appKey),
-            name: fernetEncrypt(contact.name, appKey)))
-        .toList();
-
-    await isar.writeTxn(() async {
-      await isar.contacts.putAll(toPut);
-      await isar.contacts.deleteAll(contactsToDelete);
-    });
+    obx.contacts.removeMany(contactsToDelete);
+    obx.contacts.putMany(contactsToPut);
   }
 
   toggleFavorite(String contactUid) async {
@@ -99,13 +88,11 @@ class ContactService {
         SocketChannelTypes.contact,
         ContactEventTypes.toggleFavorite,
         {'contactUid': contactUid}).then((resp) async {
-      final isar = Isar.getInstance();
-      final contact =
-          await isar?.contacts.where().uidEqualTo(contactUid).findFirst();
-      contact?.isFavorite = !contact.isFavorite;
-      await isar?.writeTxn(() async {
-        await isar.contacts.put(contact!);
-      });
+      final contact = findContactByUid(contactUid);
+      if (contact != null) {
+        contact.isFavorite = !contact.isFavorite;
+        obx.contacts.put(contact);
+      }
     });
   }
 }

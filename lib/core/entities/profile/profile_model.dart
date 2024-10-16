@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -7,23 +11,70 @@ class Profile {
 
   final String uid;
 
+  @Transient()
   String? name;
 
-  final String email;
+  @Transient()
+  String? email;
 
   bool emailVerified;
 
-  String? avatarColor;
-  String? avatarIcon;
-  String? avatarPic;
+  @Transient()
+  Avatar? avatar;
+
+  String? get dbAvatar => avatar == null ? null : jsonEncode(avatar?.toJson());
+
+  set dbAvatar(String? value) {
+    if (value == null) {
+      avatar = null;
+    } else {
+      avatar = Avatar.fromJson(jsonDecode(value));
+    }
+  }
+
+  String? get dbEmail {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      return email;
+    } else {
+      return fernetEncrypt(email, appKey);
+    }
+  }
+
+  set dbEmail(String? value) {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      email = value;
+      return;
+    } else {
+      email = fernetDecrypt(value, appKey);
+    }
+  }
+
+  String? get dbName {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      return name;
+    } else {
+      return fernetEncrypt(name, appKey);
+    }
+  }
+
+  set dbName(String? value) {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      name = value;
+      return;
+    } else {
+      name = fernetDecrypt(value, appKey);
+    }
+  }
 
   Profile(
       {required this.uid,
       this.name,
-      required this.email,
-      this.avatarColor,
-      this.avatarIcon,
-      this.avatarPic,
+      this.email,
+      this.avatar,
       this.emailVerified = false});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
@@ -31,40 +82,33 @@ class Profile {
         name: json['name'] as String?,
         email: (json['email'] ?? json['preverified_email']) as String,
         emailVerified: json['email_verified'] as bool,
-        avatarColor: json['avatar'] == null
-            ? null
-            : Avatar.fromJson(
-                json['avatar'],
-              ).color,
-        avatarIcon: json['avatar'] == null
-            ? null
-            : Avatar.fromJson(
-                json['avatar'],
-              ).icon,
-        avatarPic: json['avatar'] == null
-            ? null
-            : Avatar.fromJson(
-                json['avatar'],
-              ).pic,
+        avatar: json['avatar'] != null ? Avatar.fromJson(json['avatar']) : null,
       );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'uid': uid,
+        'name': name,
+        'email': email,
+        'email_verified': emailVerified,
+        'avatar': avatar?.toJson(),
+      };
 
   Profile copyWith({
     String? uid,
     String? name,
     String? email,
     bool? emailVerified,
-    String? avatarColor,
+    Avatar? avatar,
     String? avatarIcon,
     String? avatarPic,
   }) {
     return Profile(
-        uid: uid ?? this.uid,
-        name: name ?? this.name,
-        email: email ?? this.email,
-        emailVerified: emailVerified ?? this.emailVerified,
-        avatarColor: avatarColor ?? this.avatarColor,
-        avatarIcon: avatarIcon ?? this.avatarIcon,
-        avatarPic: avatarPic ?? this.avatarPic);
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      emailVerified: emailVerified ?? this.emailVerified,
+      avatar: avatar ?? this.avatar,
+    );
   }
 }
 

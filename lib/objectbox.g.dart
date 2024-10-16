@@ -15,7 +15,6 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'core/entities/chat/chat_model.dart';
-import 'core/entities/chat/participant_model.dart';
 import 'core/entities/contact-request/contact_request_model.dart';
 import 'core/entities/contact/contact_model.dart';
 import 'core/entities/message/message_model.dart';
@@ -26,496 +25,393 @@ export 'package:objectbox/objectbox.dart'; // so that callers only have to impor
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(1, 372937194368687323),
-      name: 'Chat',
-      lastPropertyId: const obx_int.IdUid(11, 3257620050611006191),
+      id: const obx_int.IdUid(1, 7487111806360095820),
+      name: 'ActionQueue',
+      lastPropertyId: const obx_int.IdUid(6, 4754212375464421841),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 496066587075907108),
+            id: const obx_int.IdUid(1, 8239763993323197381),
             name: 'id',
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 1797603169474254040),
+            id: const obx_int.IdUid(2, 690479852803398016),
+            name: 'channel',
+            type: 9,
+            flags: 2048,
+            indexId: const obx_int.IdUid(1, 2367665306712672765)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 483958376259245357),
+            name: 'type',
+            type: 9,
+            flags: 2048,
+            indexId: const obx_int.IdUid(2, 4598511463896116981)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 7050138920754006587),
+            name: 'payload',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 7312930574812592345),
+            name: 'createdAtMSE',
+            type: 6,
+            flags: 8,
+            indexId: const obx_int.IdUid(3, 4604200442593361385)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 4754212375464421841),
+            name: 'isHttp',
+            type: 1,
+            flags: 8,
+            indexId: const obx_int.IdUid(4, 2614295064311538260))
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(2, 4934236275453594928),
+      name: 'Chat',
+      lastPropertyId: const obx_int.IdUid(13, 2068263901901510012),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 6486707834580304457),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 656111012043342354),
             name: 'uid',
             type: 9,
             flags: 2080,
-            indexId: const obx_int.IdUid(1, 7417568637899194392)),
+            indexId: const obx_int.IdUid(5, 5803319743859834340)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 1796389544038958094),
+            id: const obx_int.IdUid(3, 4606661306709619937),
             name: 'messageLongevitySeconds',
             type: 6,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 2224808748892177155),
+            id: const obx_int.IdUid(4, 2029482861924784145),
             name: 'name',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 3639087631448733413),
+            id: const obx_int.IdUid(5, 9170616575184317232),
             name: 'isOneToOne',
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 7848993481254013620),
+            id: const obx_int.IdUid(6, 8930679822022987204),
             name: 'lastMessageTime',
             type: 10,
             flags: 8,
-            indexId: const obx_int.IdUid(2, 7828957042644059983)),
+            indexId: const obx_int.IdUid(6, 7287894361137119830)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 6446550641835797971),
+            id: const obx_int.IdUid(10, 2127959347323040075),
             name: 'syncRequired',
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 6509457711126745653),
+            id: const obx_int.IdUid(11, 4218787220005735299),
             name: 'syncTime',
             type: 6,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 7132724385097852729),
-            name: 'avatarColor',
+            id: const obx_int.IdUid(12, 201237813563152278),
+            name: 'dbParticipants',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 4960301968854219286),
-            name: 'avatarIcon',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 3257620050611006191),
-            name: 'avatarPic',
+            id: const obx_int.IdUid(13, 2068263901901510012),
+            name: 'dbAvatar',
             type: 9,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[
         obx_int.ModelBacklink(
-            name: 'participants', srcEntity: 'Participant', srcField: 'chat'),
-        obx_int.ModelBacklink(
             name: 'messages', srcEntity: 'Message', srcField: 'chat')
       ]),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(2, 8395604750634349924),
-      name: 'Participant',
-      lastPropertyId: const obx_int.IdUid(13, 2538485000514319932),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 3140738347883873507),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 7306573019829737168),
-            name: 'uid',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 5157245019723225303),
-            name: 'email',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 7222374184870975437),
-            name: 'name',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 2758979418291972671),
-            name: 'lastSawChat',
-            type: 10,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 1310858162911504798),
-            name: 'isCreator',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 2403685613991470062),
-            name: 'isAdmin',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 8946033037738850628),
-            name: 'pubKey',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 7411497473296940744),
-            name: 'gotPubKey',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 237801397465781866),
-            name: 'chatId',
-            type: 11,
-            flags: 520,
-            indexId: const obx_int.IdUid(3, 5562927964059586425),
-            relationTarget: 'Chat'),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 5610687627734890430),
-            name: 'avatarColor',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(12, 4281053167053723617),
-            name: 'avatarIcon',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(13, 2538485000514319932),
-            name: 'avatarPic',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
-  obx_int.ModelEntity(
-      id: const obx_int.IdUid(3, 174085889404853842),
-      name: 'ActionQueue',
-      lastPropertyId: const obx_int.IdUid(6, 1207935701358571007),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 3878610403772081266),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 518932676002101658),
-            name: 'channel',
-            type: 9,
-            flags: 2048,
-            indexId: const obx_int.IdUid(4, 4858392141036813653)),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 5899978974047599556),
-            name: 'type',
-            type: 9,
-            flags: 2048,
-            indexId: const obx_int.IdUid(5, 4631410448222255127)),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 4734700568557422587),
-            name: 'payload',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 6861900140166326899),
-            name: 'createdAtMSE',
-            type: 6,
-            flags: 8,
-            indexId: const obx_int.IdUid(6, 966174557015596344)),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 1207935701358571007),
-            name: 'isHttp',
-            type: 1,
-            flags: 8,
-            indexId: const obx_int.IdUid(7, 2788847655698301832))
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
-  obx_int.ModelEntity(
-      id: const obx_int.IdUid(4, 3256006726252938619),
+      id: const obx_int.IdUid(3, 7148624292586029034),
       name: 'Contact',
-      lastPropertyId: const obx_int.IdUid(9, 3254574943619528517),
+      lastPropertyId: const obx_int.IdUid(10, 7238459386756531859),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 3835001356443603724),
+            id: const obx_int.IdUid(1, 1247578593209639621),
             name: 'id',
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 4363879514860275686),
+            id: const obx_int.IdUid(2, 6833401543929471773),
             name: 'uid',
             type: 9,
             flags: 2080,
-            indexId: const obx_int.IdUid(8, 8283532152140517817)),
+            indexId: const obx_int.IdUid(7, 6512763104715792486)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 3925708090378952839),
-            name: 'email',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 195948196470593874),
+            id: const obx_int.IdUid(3, 8844021827370748834),
             name: 'contactPersonUid',
             type: 9,
             flags: 2080,
-            indexId: const obx_int.IdUid(9, 2298344643898579565)),
+            indexId: const obx_int.IdUid(8, 5028288654426969847)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 5844032266063413579),
-            name: 'avatarColor',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 6141076677251091088),
-            name: 'avatarIcon',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 5835449303478586129),
-            name: 'avatarPic',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 9208670894667018502),
-            name: 'name',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 3254574943619528517),
+            id: const obx_int.IdUid(7, 193509392944045675),
             name: 'isFavorite',
             type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 7762219272507949255),
+            name: 'dbEmail',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 2918173606827731348),
+            name: 'dbName',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(10, 7238459386756531859),
+            name: 'dbAvatar',
+            type: 9,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[]),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(5, 1055908107619857269),
+      id: const obx_int.IdUid(4, 6760790405012068576),
       name: 'ContactRequest',
-      lastPropertyId: const obx_int.IdUid(9, 3115437306457613564),
+      lastPropertyId: const obx_int.IdUid(9, 2817621961955455994),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 6791634532749002900),
+            id: const obx_int.IdUid(1, 5037324725429711374),
             name: 'id',
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 3276126211965268815),
+            id: const obx_int.IdUid(2, 8947553945876478858),
             name: 'uid',
             type: 9,
             flags: 2080,
-            indexId: const obx_int.IdUid(10, 7726567333746624721)),
+            indexId: const obx_int.IdUid(9, 3331959130986894236)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 1935783775396277350),
+            id: const obx_int.IdUid(3, 5212761415579411406),
             name: 'authorId',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 572032084140616956),
-            name: 'authorEmail',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 4835332164262847696),
-            name: 'recipientEmail',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 8315176908039517271),
-            name: 'message',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 7096519126674163652),
+            id: const obx_int.IdUid(4, 8049173938413990109),
             name: 'timeSent',
             type: 10,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 7307497832114457014),
+            id: const obx_int.IdUid(5, 2105300816109284026),
             name: 'queueId',
             type: 6,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 3115437306457613564),
+            id: const obx_int.IdUid(6, 8678275304045222073),
             name: 'unread',
             type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 2899439410822472811),
+            name: 'dbAuthorEmail',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 5748556791059750445),
+            name: 'dbRecipientEmail',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 2817621961955455994),
+            name: 'dbMessage',
+            type: 9,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[]),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(6, 7715411867423381034),
+      id: const obx_int.IdUid(5, 381058101701020443),
       name: 'Message',
-      lastPropertyId: const obx_int.IdUid(26, 1292397910085762565),
+      lastPropertyId: const obx_int.IdUid(26, 2351030150897239413),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 6193219001936189086),
+            id: const obx_int.IdUid(1, 3952563326947658844),
             name: 'id',
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 3205564614717453819),
+            id: const obx_int.IdUid(2, 8662750028911330852),
             name: 'uid',
             type: 9,
             flags: 2048,
-            indexId: const obx_int.IdUid(11, 743172683645461739)),
+            indexId: const obx_int.IdUid(10, 4040468722249693246)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 9016633602216037609),
+            id: const obx_int.IdUid(3, 9212520839608594301),
             name: 'authorId',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 3764813623545403712),
+            id: const obx_int.IdUid(4, 9153146802384130062),
             name: 'text',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 3382277886679507558),
+            id: const obx_int.IdUid(5, 4601824737137532922),
             name: 'iv',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 788932041372978895),
+            id: const obx_int.IdUid(6, 2353089289933740830),
             name: 'mac',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 6418039618855054199),
+            id: const obx_int.IdUid(7, 1108318621376269907),
             name: 'messageType',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 8549032723976726060),
+            id: const obx_int.IdUid(8, 3044645396781897445),
             name: 'isEncrypted',
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 1490993974120651898),
+            id: const obx_int.IdUid(9, 807929896576633867),
             name: 'error',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 6667188206186250816),
+            id: const obx_int.IdUid(10, 1497640284054738262),
             name: 'createdAtMSE',
             type: 6,
             flags: 8,
-            indexId: const obx_int.IdUid(12, 6637692378027186109)),
+            indexId: const obx_int.IdUid(11, 7304875084129610887)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 3461459293206068546),
+            id: const obx_int.IdUid(11, 1422397920563944577),
             name: 'chatUid',
             type: 9,
             flags: 2048,
-            indexId: const obx_int.IdUid(13, 6483001927584970615)),
+            indexId: const obx_int.IdUid(12, 4138430278846091102)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(12, 664550285312468086),
+            id: const obx_int.IdUid(12, 8330516458240674433),
             name: 'uniqueId',
             type: 9,
             flags: 2080,
-            indexId: const obx_int.IdUid(14, 3773916419867091184)),
+            indexId: const obx_int.IdUid(13, 3010882102138979692)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(13, 4553521238696558945),
+            id: const obx_int.IdUid(13, 5954424922960054149),
             name: 'queueId',
             type: 6,
             flags: 8,
-            indexId: const obx_int.IdUid(15, 8830306294288428295)),
+            indexId: const obx_int.IdUid(14, 3415797849604489796)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(14, 2531272398137520313),
+            id: const obx_int.IdUid(14, 5713832454761188830),
             name: 'successfullySent',
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(15, 7330385604614663633),
+            id: const obx_int.IdUid(15, 462558363230263634),
             name: 'couldNotSend',
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(16, 1916166604082151460),
+            id: const obx_int.IdUid(16, 6497439646944604993),
             name: 'pinnedByUid',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(17, 5634263819453511024),
+            id: const obx_int.IdUid(17, 3745722604837756605),
             name: 'pinLabel',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(18, 391861716434374612),
+            id: const obx_int.IdUid(18, 6701595478137728348),
             name: 'localPinLabel',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(19, 4570918027248575059),
+            id: const obx_int.IdUid(19, 3433434423123337237),
             name: 'playbackDurationMicroSeconds',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(20, 6280780047733528053),
+            id: const obx_int.IdUid(20, 6904491804263907457),
             name: 'durationIV',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(21, 130692958726001767),
+            id: const obx_int.IdUid(21, 3907965061856847723),
             name: 'durationMAC',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(22, 2701256056088093950),
+            id: const obx_int.IdUid(22, 5370432915039729472),
             name: 'waveData',
             type: 29,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(23, 6500048009962098964),
+            id: const obx_int.IdUid(23, 6775449061246249269),
             name: 'waveDataIV',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(24, 204193618581195447),
+            id: const obx_int.IdUid(24, 479224839574502712),
             name: 'waveDataMAC',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(25, 7295736734398325549),
+            id: const obx_int.IdUid(25, 1484385213805686655),
             name: 'filepath',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(26, 1292397910085762565),
+            id: const obx_int.IdUid(26, 2351030150897239413),
             name: 'chatId',
             type: 11,
             flags: 520,
-            indexId: const obx_int.IdUid(16, 6632583265886720074),
+            indexId: const obx_int.IdUid(15, 3591098884062730065),
             relationTarget: 'Chat')
       ],
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[]),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(7, 6001606463237092560),
+      id: const obx_int.IdUid(6, 1841315404041682912),
       name: 'Profile',
-      lastPropertyId: const obx_int.IdUid(8, 2502079331924638241),
+      lastPropertyId: const obx_int.IdUid(9, 1648743164420436572),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 5240065712646817761),
+            id: const obx_int.IdUid(1, 1399551549574408378),
             name: 'id',
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 1965452599062366425),
+            id: const obx_int.IdUid(2, 8970355402467754909),
             name: 'uid',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 1054598126959679408),
-            name: 'name',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 8716255141686264958),
-            name: 'email',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 3163325898660752283),
+            id: const obx_int.IdUid(3, 5295812081720355906),
             name: 'emailVerified',
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 2089415412449252355),
-            name: 'avatarColor',
+            id: const obx_int.IdUid(7, 4562658611018631840),
+            name: 'dbEmail',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 2675422248412665265),
-            name: 'avatarIcon',
+            id: const obx_int.IdUid(8, 4680063880309910063),
+            name: 'dbName',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 2502079331924638241),
-            name: 'avatarPic',
+            id: const obx_int.IdUid(9, 1648743164420436572),
+            name: 'dbAvatar',
             type: 9,
             flags: 0)
       ],
@@ -558,205 +454,31 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(7, 6001606463237092560),
-      lastIndexId: const obx_int.IdUid(16, 6632583265886720074),
+      lastEntityId: const obx_int.IdUid(6, 1841315404041682912),
+      lastIndexId: const obx_int.IdUid(15, 3591098884062730065),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [],
       retiredIndexUids: const [],
-      retiredPropertyUids: const [],
+      retiredPropertyUids: const [
+        6734011593400551567,
+        7993653510705270865,
+        4257462892048941265,
+        3830611589558590494,
+        1058202039493849258,
+        4793705789827528373,
+        3770371504673206710,
+        3556369180048710603,
+        8177402884606386942
+      ],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
       version: 1);
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    Chat: obx_int.EntityDefinition<Chat>(
-        model: _entities[0],
-        toOneRelations: (Chat object) => [],
-        toManyRelations: (Chat object) => {
-              obx_int.RelInfo<Participant>.toOneBacklink(
-                      10, object.id, (Participant srcObject) => srcObject.chat):
-                  object.participants,
-              obx_int.RelInfo<Message>.toOneBacklink(
-                      26, object.id, (Message srcObject) => srcObject.chat):
-                  object.messages
-            },
-        getId: (Chat object) => object.id,
-        setId: (Chat object, int id) {
-          object.id = id;
-        },
-        objectToFB: (Chat object, fb.Builder fbb) {
-          final uidOffset = fbb.writeString(object.uid);
-          final nameOffset =
-              object.name == null ? null : fbb.writeString(object.name!);
-          final avatarColorOffset = object.avatarColor == null
-              ? null
-              : fbb.writeString(object.avatarColor!);
-          final avatarIconOffset = object.avatarIcon == null
-              ? null
-              : fbb.writeString(object.avatarIcon!);
-          final avatarPicOffset = object.avatarPic == null
-              ? null
-              : fbb.writeString(object.avatarPic!);
-          fbb.startTable(12);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, uidOffset);
-          fbb.addInt64(2, object.messageLongevitySeconds);
-          fbb.addOffset(3, nameOffset);
-          fbb.addBool(4, object.isOneToOne);
-          fbb.addInt64(5, object.lastMessageTime?.millisecondsSinceEpoch);
-          fbb.addBool(6, object.syncRequired);
-          fbb.addInt64(7, object.syncTime);
-          fbb.addOffset(8, avatarColorOffset);
-          fbb.addOffset(9, avatarIconOffset);
-          fbb.addOffset(10, avatarPicOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final lastMessageTimeValue =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 14);
-          final isOneToOneParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 12, false);
-          final uidParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final messageLongevitySecondsParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 8);
-          final nameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 10);
-          final lastMessageTimeParam = lastMessageTimeValue == null
-              ? null
-              : DateTime.fromMillisecondsSinceEpoch(lastMessageTimeValue);
-          final avatarColorParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 20);
-          final avatarIconParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 22);
-          final avatarPicParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 24);
-          final syncRequiredParam =
-              const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 16);
-          final syncTimeParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 18);
-          final object = Chat(
-              isOneToOne: isOneToOneParam,
-              uid: uidParam,
-              messageLongevitySeconds: messageLongevitySecondsParam,
-              name: nameParam,
-              lastMessageTime: lastMessageTimeParam,
-              avatarColor: avatarColorParam,
-              avatarIcon: avatarIconParam,
-              avatarPic: avatarPicParam,
-              syncRequired: syncRequiredParam,
-              syncTime: syncTimeParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          obx_int.InternalToManyAccess.setRelInfo<Chat>(
-              object.participants,
-              store,
-              obx_int.RelInfo<Participant>.toOneBacklink(
-                  10, object.id, (Participant srcObject) => srcObject.chat));
-          obx_int.InternalToManyAccess.setRelInfo<Chat>(
-              object.messages,
-              store,
-              obx_int.RelInfo<Message>.toOneBacklink(
-                  26, object.id, (Message srcObject) => srcObject.chat));
-          return object;
-        }),
-    Participant: obx_int.EntityDefinition<Participant>(
-        model: _entities[1],
-        toOneRelations: (Participant object) => [object.chat],
-        toManyRelations: (Participant object) => {},
-        getId: (Participant object) => object.id,
-        setId: (Participant object, int id) {
-          object.id = id;
-        },
-        objectToFB: (Participant object, fb.Builder fbb) {
-          final uidOffset =
-              object.uid == null ? null : fbb.writeString(object.uid!);
-          final emailOffset =
-              object.email == null ? null : fbb.writeString(object.email!);
-          final nameOffset =
-              object.name == null ? null : fbb.writeString(object.name!);
-          final pubKeyOffset =
-              object.pubKey == null ? null : fbb.writeString(object.pubKey!);
-          final avatarColorOffset = object.avatarColor == null
-              ? null
-              : fbb.writeString(object.avatarColor!);
-          final avatarIconOffset = object.avatarIcon == null
-              ? null
-              : fbb.writeString(object.avatarIcon!);
-          final avatarPicOffset = object.avatarPic == null
-              ? null
-              : fbb.writeString(object.avatarPic!);
-          fbb.startTable(14);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, uidOffset);
-          fbb.addOffset(2, emailOffset);
-          fbb.addOffset(3, nameOffset);
-          fbb.addInt64(4, object.lastSawChat?.millisecondsSinceEpoch);
-          fbb.addBool(5, object.isCreator);
-          fbb.addBool(6, object.isAdmin);
-          fbb.addOffset(7, pubKeyOffset);
-          fbb.addBool(8, object.gotPubKey);
-          fbb.addInt64(9, object.chat.targetId);
-          fbb.addOffset(10, avatarColorOffset);
-          fbb.addOffset(11, avatarIconOffset);
-          fbb.addOffset(12, avatarPicOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final lastSawChatValue =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 12);
-          final uidParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 6);
-          final emailParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 8);
-          final nameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 10);
-          final lastSawChatParam = lastSawChatValue == null
-              ? null
-              : DateTime.fromMillisecondsSinceEpoch(lastSawChatValue);
-          final avatarColorParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 24);
-          final avatarIconParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 26);
-          final avatarPicParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 28);
-          final isCreatorParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 14, false);
-          final isAdminParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 16, false);
-          final pubKeyParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 18);
-          final gotPubKeyParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 20, false);
-          final object = Participant(
-              uid: uidParam,
-              email: emailParam,
-              name: nameParam,
-              lastSawChat: lastSawChatParam,
-              avatarColor: avatarColorParam,
-              avatarIcon: avatarIconParam,
-              avatarPic: avatarPicParam,
-              isCreator: isCreatorParam,
-              isAdmin: isAdminParam,
-              pubKey: pubKeyParam,
-              gotPubKey: gotPubKeyParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          object.chat.targetId =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0);
-          object.chat.attach(store);
-          return object;
-        }),
     ActionQueue: obx_int.EntityDefinition<ActionQueue>(
-        model: _entities[2],
+        model: _entities[0],
         toOneRelations: (ActionQueue object) => [],
         toManyRelations: (ActionQueue object) => {},
         getId: (ActionQueue object) => object.id,
@@ -800,8 +522,84 @@ obx_int.ModelDefinition getObjectBoxModel() {
 
           return object;
         }),
+    Chat: obx_int.EntityDefinition<Chat>(
+        model: _entities[1],
+        toOneRelations: (Chat object) => [],
+        toManyRelations: (Chat object) => {
+              obx_int.RelInfo<Message>.toOneBacklink(
+                      26, object.id, (Message srcObject) => srcObject.chat):
+                  object.messages
+            },
+        getId: (Chat object) => object.id,
+        setId: (Chat object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Chat object, fb.Builder fbb) {
+          final uidOffset = fbb.writeString(object.uid);
+          final nameOffset =
+              object.name == null ? null : fbb.writeString(object.name!);
+          final dbParticipantsOffset = object.dbParticipants == null
+              ? null
+              : fbb.writeString(object.dbParticipants!);
+          final dbAvatarOffset = object.dbAvatar == null
+              ? null
+              : fbb.writeString(object.dbAvatar!);
+          fbb.startTable(14);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, uidOffset);
+          fbb.addInt64(2, object.messageLongevitySeconds);
+          fbb.addOffset(3, nameOffset);
+          fbb.addBool(4, object.isOneToOne);
+          fbb.addInt64(5, object.lastMessageTime?.millisecondsSinceEpoch);
+          fbb.addBool(9, object.syncRequired);
+          fbb.addInt64(10, object.syncTime);
+          fbb.addOffset(11, dbParticipantsOffset);
+          fbb.addOffset(12, dbAvatarOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final lastMessageTimeValue =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 14);
+          final isOneToOneParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 12, false);
+          final uidParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final messageLongevitySecondsParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 8);
+          final nameParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGetNullable(buffer, rootOffset, 10);
+          final lastMessageTimeParam = lastMessageTimeValue == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(lastMessageTimeValue);
+          final syncRequiredParam =
+              const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 22);
+          final syncTimeParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 24);
+          final object = Chat(
+              isOneToOne: isOneToOneParam,
+              uid: uidParam,
+              messageLongevitySeconds: messageLongevitySecondsParam,
+              name: nameParam,
+              lastMessageTime: lastMessageTimeParam,
+              syncRequired: syncRequiredParam,
+              syncTime: syncTimeParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+            ..dbParticipants = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 26)
+            ..dbAvatar = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 28);
+          obx_int.InternalToManyAccess.setRelInfo<Chat>(
+              object.messages,
+              store,
+              obx_int.RelInfo<Message>.toOneBacklink(
+                  26, object.id, (Message srcObject) => srcObject.chat));
+          return object;
+        }),
     Contact: obx_int.EntityDefinition<Contact>(
-        model: _entities[3],
+        model: _entities[2],
         toOneRelations: (Contact object) => [],
         toManyRelations: (Contact object) => {},
         getId: (Contact object) => object.id,
@@ -811,32 +609,24 @@ obx_int.ModelDefinition getObjectBoxModel() {
         objectToFB: (Contact object, fb.Builder fbb) {
           final uidOffset =
               object.uid == null ? null : fbb.writeString(object.uid!);
-          final emailOffset =
-              object.email == null ? null : fbb.writeString(object.email!);
           final contactPersonUidOffset = object.contactPersonUid == null
               ? null
               : fbb.writeString(object.contactPersonUid!);
-          final avatarColorOffset = object.avatarColor == null
+          final dbEmailOffset =
+              object.dbEmail == null ? null : fbb.writeString(object.dbEmail!);
+          final dbNameOffset =
+              object.dbName == null ? null : fbb.writeString(object.dbName!);
+          final dbAvatarOffset = object.dbAvatar == null
               ? null
-              : fbb.writeString(object.avatarColor!);
-          final avatarIconOffset = object.avatarIcon == null
-              ? null
-              : fbb.writeString(object.avatarIcon!);
-          final avatarPicOffset = object.avatarPic == null
-              ? null
-              : fbb.writeString(object.avatarPic!);
-          final nameOffset =
-              object.name == null ? null : fbb.writeString(object.name!);
-          fbb.startTable(10);
+              : fbb.writeString(object.dbAvatar!);
+          fbb.startTable(11);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, uidOffset);
-          fbb.addOffset(2, emailOffset);
-          fbb.addOffset(3, contactPersonUidOffset);
-          fbb.addOffset(4, avatarColorOffset);
-          fbb.addOffset(5, avatarIconOffset);
-          fbb.addOffset(6, avatarPicOffset);
-          fbb.addOffset(7, nameOffset);
-          fbb.addBool(8, object.isFavorite);
+          fbb.addOffset(2, contactPersonUidOffset);
+          fbb.addBool(6, object.isFavorite);
+          fbb.addOffset(7, dbEmailOffset);
+          fbb.addOffset(8, dbNameOffset);
+          fbb.addOffset(9, dbAvatarOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -845,37 +635,27 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final rootOffset = buffer.derefObject(0);
           final uidParam = const fb.StringReader(asciiOptimization: true)
               .vTableGetNullable(buffer, rootOffset, 6);
-          final emailParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 8);
-          final avatarColorParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 12);
-          final avatarIconParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 14);
-          final avatarPicParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 16);
-          final nameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 18);
           final contactPersonUidParam =
               const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 10);
+                  .vTableGetNullable(buffer, rootOffset, 8);
           final isFavoriteParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 20, false);
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 16, false);
           final object = Contact(
               uid: uidParam,
-              email: emailParam,
-              avatarColor: avatarColorParam,
-              avatarIcon: avatarIconParam,
-              avatarPic: avatarPicParam,
-              name: nameParam,
               contactPersonUid: contactPersonUidParam,
               isFavorite: isFavoriteParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+            ..dbEmail = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 18)
+            ..dbName = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 20)
+            ..dbAvatar = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 22);
 
           return object;
         }),
     ContactRequest: obx_int.EntityDefinition<ContactRequest>(
-        model: _entities[4],
+        model: _entities[3],
         toOneRelations: (ContactRequest object) => [],
         toManyRelations: (ContactRequest object) => {},
         getId: (ContactRequest object) => object.id,
@@ -888,24 +668,25 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final authorIdOffset = object.authorId == null
               ? null
               : fbb.writeString(object.authorId!);
-          final authorEmailOffset = object.authorEmail == null
+          final dbAuthorEmailOffset = object.dbAuthorEmail == null
               ? null
-              : fbb.writeString(object.authorEmail!);
-          final recipientEmailOffset = object.recipientEmail == null
+              : fbb.writeString(object.dbAuthorEmail!);
+          final dbRecipientEmailOffset = object.dbRecipientEmail == null
               ? null
-              : fbb.writeString(object.recipientEmail!);
-          final messageOffset =
-              object.message == null ? null : fbb.writeString(object.message!);
+              : fbb.writeString(object.dbRecipientEmail!);
+          final dbMessageOffset = object.dbMessage == null
+              ? null
+              : fbb.writeString(object.dbMessage!);
           fbb.startTable(10);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, uidOffset);
           fbb.addOffset(2, authorIdOffset);
-          fbb.addOffset(3, authorEmailOffset);
-          fbb.addOffset(4, recipientEmailOffset);
-          fbb.addOffset(5, messageOffset);
-          fbb.addInt64(6, object.timeSent?.millisecondsSinceEpoch);
-          fbb.addInt64(7, object.queueId);
-          fbb.addBool(8, object.unread);
+          fbb.addInt64(3, object.timeSent?.millisecondsSinceEpoch);
+          fbb.addInt64(4, object.queueId);
+          fbb.addBool(5, object.unread);
+          fbb.addOffset(6, dbAuthorEmailOffset);
+          fbb.addOffset(7, dbRecipientEmailOffset);
+          fbb.addOffset(8, dbMessageOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -913,41 +694,36 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final buffer = fb.BufferContext(fbData);
           final rootOffset = buffer.derefObject(0);
           final timeSentValue =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 16);
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 10);
           final uidParam = const fb.StringReader(asciiOptimization: true)
               .vTableGetNullable(buffer, rootOffset, 6);
           final authorIdParam = const fb.StringReader(asciiOptimization: true)
               .vTableGetNullable(buffer, rootOffset, 8);
-          final authorEmailParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 10);
-          final recipientEmailParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 12);
-          final messageParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 14);
           final timeSentParam = timeSentValue == null
               ? null
               : DateTime.fromMillisecondsSinceEpoch(timeSentValue);
           final queueIdParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 18);
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 12);
           final unreadParam =
-              const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 20);
+              const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 14);
           final object = ContactRequest(
               uid: uidParam,
               authorId: authorIdParam,
-              authorEmail: authorEmailParam,
-              recipientEmail: recipientEmailParam,
-              message: messageParam,
               timeSent: timeSentParam,
               queueId: queueIdParam,
               unread: unreadParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+            ..dbAuthorEmail = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 16)
+            ..dbRecipientEmail = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 18)
+            ..dbMessage = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 20);
 
           return object;
         }),
     Message: obx_int.EntityDefinition<Message>(
-        model: _entities[5],
+        model: _entities[4],
         toOneRelations: (Message object) => [object.chat],
         toManyRelations: (Message object) => {},
         getId: (Message object) => object.id,
@@ -1122,7 +898,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           return object;
         }),
     Profile: obx_int.EntityDefinition<Profile>(
-        model: _entities[6],
+        model: _entities[5],
         toOneRelations: (Profile object) => [],
         toManyRelations: (Profile object) => {},
         getId: (Profile object) => object.id,
@@ -1131,27 +907,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
         },
         objectToFB: (Profile object, fb.Builder fbb) {
           final uidOffset = fbb.writeString(object.uid);
-          final nameOffset =
-              object.name == null ? null : fbb.writeString(object.name!);
-          final emailOffset = fbb.writeString(object.email);
-          final avatarColorOffset = object.avatarColor == null
+          final dbEmailOffset =
+              object.dbEmail == null ? null : fbb.writeString(object.dbEmail!);
+          final dbNameOffset =
+              object.dbName == null ? null : fbb.writeString(object.dbName!);
+          final dbAvatarOffset = object.dbAvatar == null
               ? null
-              : fbb.writeString(object.avatarColor!);
-          final avatarIconOffset = object.avatarIcon == null
-              ? null
-              : fbb.writeString(object.avatarIcon!);
-          final avatarPicOffset = object.avatarPic == null
-              ? null
-              : fbb.writeString(object.avatarPic!);
-          fbb.startTable(9);
+              : fbb.writeString(object.dbAvatar!);
+          fbb.startTable(10);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, uidOffset);
-          fbb.addOffset(2, nameOffset);
-          fbb.addOffset(3, emailOffset);
-          fbb.addBool(4, object.emailVerified);
-          fbb.addOffset(5, avatarColorOffset);
-          fbb.addOffset(6, avatarIconOffset);
-          fbb.addOffset(7, avatarPicOffset);
+          fbb.addBool(2, object.emailVerified);
+          fbb.addOffset(6, dbEmailOffset);
+          fbb.addOffset(7, dbNameOffset);
+          fbb.addOffset(8, dbAvatarOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1160,28 +929,17 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final rootOffset = buffer.derefObject(0);
           final uidParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 6, '');
-          final nameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 8);
-          final emailParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
-          final avatarColorParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 14);
-          final avatarIconParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 16);
-          final avatarPicParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 18);
           final emailVerifiedParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 12, false);
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false);
           final object = Profile(
-              uid: uidParam,
-              name: nameParam,
-              email: emailParam,
-              avatarColor: avatarColorParam,
-              avatarIcon: avatarIconParam,
-              avatarPic: avatarPicParam,
-              emailVerified: emailVerifiedParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+              uid: uidParam, emailVerified: emailVerifiedParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+            ..dbEmail = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 16)
+            ..dbName = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 18)
+            ..dbAvatar = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 20);
 
           return object;
         })
@@ -1190,355 +948,276 @@ obx_int.ModelDefinition getObjectBoxModel() {
   return obx_int.ModelDefinition(model, bindings);
 }
 
-/// [Chat] entity fields to define ObjectBox queries.
-class Chat_ {
-  /// See [Chat.id].
-  static final id = obx.QueryIntegerProperty<Chat>(_entities[0].properties[0]);
-
-  /// See [Chat.uid].
-  static final uid = obx.QueryStringProperty<Chat>(_entities[0].properties[1]);
-
-  /// See [Chat.messageLongevitySeconds].
-  static final messageLongevitySeconds =
-      obx.QueryIntegerProperty<Chat>(_entities[0].properties[2]);
-
-  /// See [Chat.name].
-  static final name = obx.QueryStringProperty<Chat>(_entities[0].properties[3]);
-
-  /// See [Chat.isOneToOne].
-  static final isOneToOne =
-      obx.QueryBooleanProperty<Chat>(_entities[0].properties[4]);
-
-  /// See [Chat.lastMessageTime].
-  static final lastMessageTime =
-      obx.QueryDateProperty<Chat>(_entities[0].properties[5]);
-
-  /// See [Chat.syncRequired].
-  static final syncRequired =
-      obx.QueryBooleanProperty<Chat>(_entities[0].properties[6]);
-
-  /// See [Chat.syncTime].
-  static final syncTime =
-      obx.QueryIntegerProperty<Chat>(_entities[0].properties[7]);
-
-  /// See [Chat.avatarColor].
-  static final avatarColor =
-      obx.QueryStringProperty<Chat>(_entities[0].properties[8]);
-
-  /// See [Chat.avatarIcon].
-  static final avatarIcon =
-      obx.QueryStringProperty<Chat>(_entities[0].properties[9]);
-
-  /// See [Chat.avatarPic].
-  static final avatarPic =
-      obx.QueryStringProperty<Chat>(_entities[0].properties[10]);
-
-  /// see [Chat.participants]
-  static final participants =
-      obx.QueryBacklinkToMany<Participant, Chat>(Participant_.chat);
-
-  /// see [Chat.messages]
-  static final messages = obx.QueryBacklinkToMany<Message, Chat>(Message_.chat);
-}
-
-/// [Participant] entity fields to define ObjectBox queries.
-class Participant_ {
-  /// See [Participant.id].
-  static final id =
-      obx.QueryIntegerProperty<Participant>(_entities[1].properties[0]);
-
-  /// See [Participant.uid].
-  static final uid =
-      obx.QueryStringProperty<Participant>(_entities[1].properties[1]);
-
-  /// See [Participant.email].
-  static final email =
-      obx.QueryStringProperty<Participant>(_entities[1].properties[2]);
-
-  /// See [Participant.name].
-  static final name =
-      obx.QueryStringProperty<Participant>(_entities[1].properties[3]);
-
-  /// See [Participant.lastSawChat].
-  static final lastSawChat =
-      obx.QueryDateProperty<Participant>(_entities[1].properties[4]);
-
-  /// See [Participant.isCreator].
-  static final isCreator =
-      obx.QueryBooleanProperty<Participant>(_entities[1].properties[5]);
-
-  /// See [Participant.isAdmin].
-  static final isAdmin =
-      obx.QueryBooleanProperty<Participant>(_entities[1].properties[6]);
-
-  /// See [Participant.pubKey].
-  static final pubKey =
-      obx.QueryStringProperty<Participant>(_entities[1].properties[7]);
-
-  /// See [Participant.gotPubKey].
-  static final gotPubKey =
-      obx.QueryBooleanProperty<Participant>(_entities[1].properties[8]);
-
-  /// See [Participant.chat].
-  static final chat =
-      obx.QueryRelationToOne<Participant, Chat>(_entities[1].properties[9]);
-
-  /// See [Participant.avatarColor].
-  static final avatarColor =
-      obx.QueryStringProperty<Participant>(_entities[1].properties[10]);
-
-  /// See [Participant.avatarIcon].
-  static final avatarIcon =
-      obx.QueryStringProperty<Participant>(_entities[1].properties[11]);
-
-  /// See [Participant.avatarPic].
-  static final avatarPic =
-      obx.QueryStringProperty<Participant>(_entities[1].properties[12]);
-}
-
 /// [ActionQueue] entity fields to define ObjectBox queries.
 class ActionQueue_ {
   /// See [ActionQueue.id].
   static final id =
-      obx.QueryIntegerProperty<ActionQueue>(_entities[2].properties[0]);
+      obx.QueryIntegerProperty<ActionQueue>(_entities[0].properties[0]);
 
   /// See [ActionQueue.channel].
   static final channel =
-      obx.QueryStringProperty<ActionQueue>(_entities[2].properties[1]);
+      obx.QueryStringProperty<ActionQueue>(_entities[0].properties[1]);
 
   /// See [ActionQueue.type].
   static final type =
-      obx.QueryStringProperty<ActionQueue>(_entities[2].properties[2]);
+      obx.QueryStringProperty<ActionQueue>(_entities[0].properties[2]);
 
   /// See [ActionQueue.payload].
   static final payload =
-      obx.QueryStringProperty<ActionQueue>(_entities[2].properties[3]);
+      obx.QueryStringProperty<ActionQueue>(_entities[0].properties[3]);
 
   /// See [ActionQueue.createdAtMSE].
   static final createdAtMSE =
-      obx.QueryIntegerProperty<ActionQueue>(_entities[2].properties[4]);
+      obx.QueryIntegerProperty<ActionQueue>(_entities[0].properties[4]);
 
   /// See [ActionQueue.isHttp].
   static final isHttp =
-      obx.QueryBooleanProperty<ActionQueue>(_entities[2].properties[5]);
+      obx.QueryBooleanProperty<ActionQueue>(_entities[0].properties[5]);
+}
+
+/// [Chat] entity fields to define ObjectBox queries.
+class Chat_ {
+  /// See [Chat.id].
+  static final id = obx.QueryIntegerProperty<Chat>(_entities[1].properties[0]);
+
+  /// See [Chat.uid].
+  static final uid = obx.QueryStringProperty<Chat>(_entities[1].properties[1]);
+
+  /// See [Chat.messageLongevitySeconds].
+  static final messageLongevitySeconds =
+      obx.QueryIntegerProperty<Chat>(_entities[1].properties[2]);
+
+  /// See [Chat.name].
+  static final name = obx.QueryStringProperty<Chat>(_entities[1].properties[3]);
+
+  /// See [Chat.isOneToOne].
+  static final isOneToOne =
+      obx.QueryBooleanProperty<Chat>(_entities[1].properties[4]);
+
+  /// See [Chat.lastMessageTime].
+  static final lastMessageTime =
+      obx.QueryDateProperty<Chat>(_entities[1].properties[5]);
+
+  /// See [Chat.syncRequired].
+  static final syncRequired =
+      obx.QueryBooleanProperty<Chat>(_entities[1].properties[6]);
+
+  /// See [Chat.syncTime].
+  static final syncTime =
+      obx.QueryIntegerProperty<Chat>(_entities[1].properties[7]);
+
+  /// See [Chat.dbParticipants].
+  static final dbParticipants =
+      obx.QueryStringProperty<Chat>(_entities[1].properties[8]);
+
+  /// See [Chat.dbAvatar].
+  static final dbAvatar =
+      obx.QueryStringProperty<Chat>(_entities[1].properties[9]);
+
+  /// see [Chat.messages]
+  static final messages = obx.QueryBacklinkToMany<Message, Chat>(Message_.chat);
 }
 
 /// [Contact] entity fields to define ObjectBox queries.
 class Contact_ {
   /// See [Contact.id].
   static final id =
-      obx.QueryIntegerProperty<Contact>(_entities[3].properties[0]);
+      obx.QueryIntegerProperty<Contact>(_entities[2].properties[0]);
 
   /// See [Contact.uid].
   static final uid =
-      obx.QueryStringProperty<Contact>(_entities[3].properties[1]);
-
-  /// See [Contact.email].
-  static final email =
-      obx.QueryStringProperty<Contact>(_entities[3].properties[2]);
+      obx.QueryStringProperty<Contact>(_entities[2].properties[1]);
 
   /// See [Contact.contactPersonUid].
   static final contactPersonUid =
-      obx.QueryStringProperty<Contact>(_entities[3].properties[3]);
-
-  /// See [Contact.avatarColor].
-  static final avatarColor =
-      obx.QueryStringProperty<Contact>(_entities[3].properties[4]);
-
-  /// See [Contact.avatarIcon].
-  static final avatarIcon =
-      obx.QueryStringProperty<Contact>(_entities[3].properties[5]);
-
-  /// See [Contact.avatarPic].
-  static final avatarPic =
-      obx.QueryStringProperty<Contact>(_entities[3].properties[6]);
-
-  /// See [Contact.name].
-  static final name =
-      obx.QueryStringProperty<Contact>(_entities[3].properties[7]);
+      obx.QueryStringProperty<Contact>(_entities[2].properties[2]);
 
   /// See [Contact.isFavorite].
   static final isFavorite =
-      obx.QueryBooleanProperty<Contact>(_entities[3].properties[8]);
+      obx.QueryBooleanProperty<Contact>(_entities[2].properties[3]);
+
+  /// See [Contact.dbEmail].
+  static final dbEmail =
+      obx.QueryStringProperty<Contact>(_entities[2].properties[4]);
+
+  /// See [Contact.dbName].
+  static final dbName =
+      obx.QueryStringProperty<Contact>(_entities[2].properties[5]);
+
+  /// See [Contact.dbAvatar].
+  static final dbAvatar =
+      obx.QueryStringProperty<Contact>(_entities[2].properties[6]);
 }
 
 /// [ContactRequest] entity fields to define ObjectBox queries.
 class ContactRequest_ {
   /// See [ContactRequest.id].
   static final id =
-      obx.QueryIntegerProperty<ContactRequest>(_entities[4].properties[0]);
+      obx.QueryIntegerProperty<ContactRequest>(_entities[3].properties[0]);
 
   /// See [ContactRequest.uid].
   static final uid =
-      obx.QueryStringProperty<ContactRequest>(_entities[4].properties[1]);
+      obx.QueryStringProperty<ContactRequest>(_entities[3].properties[1]);
 
   /// See [ContactRequest.authorId].
   static final authorId =
-      obx.QueryStringProperty<ContactRequest>(_entities[4].properties[2]);
-
-  /// See [ContactRequest.authorEmail].
-  static final authorEmail =
-      obx.QueryStringProperty<ContactRequest>(_entities[4].properties[3]);
-
-  /// See [ContactRequest.recipientEmail].
-  static final recipientEmail =
-      obx.QueryStringProperty<ContactRequest>(_entities[4].properties[4]);
-
-  /// See [ContactRequest.message].
-  static final message =
-      obx.QueryStringProperty<ContactRequest>(_entities[4].properties[5]);
+      obx.QueryStringProperty<ContactRequest>(_entities[3].properties[2]);
 
   /// See [ContactRequest.timeSent].
   static final timeSent =
-      obx.QueryDateProperty<ContactRequest>(_entities[4].properties[6]);
+      obx.QueryDateProperty<ContactRequest>(_entities[3].properties[3]);
 
   /// See [ContactRequest.queueId].
   static final queueId =
-      obx.QueryIntegerProperty<ContactRequest>(_entities[4].properties[7]);
+      obx.QueryIntegerProperty<ContactRequest>(_entities[3].properties[4]);
 
   /// See [ContactRequest.unread].
   static final unread =
-      obx.QueryBooleanProperty<ContactRequest>(_entities[4].properties[8]);
+      obx.QueryBooleanProperty<ContactRequest>(_entities[3].properties[5]);
+
+  /// See [ContactRequest.dbAuthorEmail].
+  static final dbAuthorEmail =
+      obx.QueryStringProperty<ContactRequest>(_entities[3].properties[6]);
+
+  /// See [ContactRequest.dbRecipientEmail].
+  static final dbRecipientEmail =
+      obx.QueryStringProperty<ContactRequest>(_entities[3].properties[7]);
+
+  /// See [ContactRequest.dbMessage].
+  static final dbMessage =
+      obx.QueryStringProperty<ContactRequest>(_entities[3].properties[8]);
 }
 
 /// [Message] entity fields to define ObjectBox queries.
 class Message_ {
   /// See [Message.id].
   static final id =
-      obx.QueryIntegerProperty<Message>(_entities[5].properties[0]);
+      obx.QueryIntegerProperty<Message>(_entities[4].properties[0]);
 
   /// See [Message.uid].
   static final uid =
-      obx.QueryStringProperty<Message>(_entities[5].properties[1]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[1]);
 
   /// See [Message.authorId].
   static final authorId =
-      obx.QueryStringProperty<Message>(_entities[5].properties[2]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[2]);
 
   /// See [Message.text].
   static final text =
-      obx.QueryStringProperty<Message>(_entities[5].properties[3]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[3]);
 
   /// See [Message.iv].
   static final iv =
-      obx.QueryStringProperty<Message>(_entities[5].properties[4]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[4]);
 
   /// See [Message.mac].
   static final mac =
-      obx.QueryStringProperty<Message>(_entities[5].properties[5]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[5]);
 
   /// See [Message.messageType].
   static final messageType =
-      obx.QueryStringProperty<Message>(_entities[5].properties[6]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[6]);
 
   /// See [Message.isEncrypted].
   static final isEncrypted =
-      obx.QueryBooleanProperty<Message>(_entities[5].properties[7]);
+      obx.QueryBooleanProperty<Message>(_entities[4].properties[7]);
 
   /// See [Message.error].
   static final error =
-      obx.QueryStringProperty<Message>(_entities[5].properties[8]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[8]);
 
   /// See [Message.createdAtMSE].
   static final createdAtMSE =
-      obx.QueryIntegerProperty<Message>(_entities[5].properties[9]);
+      obx.QueryIntegerProperty<Message>(_entities[4].properties[9]);
 
   /// See [Message.chatUid].
   static final chatUid =
-      obx.QueryStringProperty<Message>(_entities[5].properties[10]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[10]);
 
   /// See [Message.uniqueId].
   static final uniqueId =
-      obx.QueryStringProperty<Message>(_entities[5].properties[11]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[11]);
 
   /// See [Message.queueId].
   static final queueId =
-      obx.QueryIntegerProperty<Message>(_entities[5].properties[12]);
+      obx.QueryIntegerProperty<Message>(_entities[4].properties[12]);
 
   /// See [Message.successfullySent].
   static final successfullySent =
-      obx.QueryBooleanProperty<Message>(_entities[5].properties[13]);
+      obx.QueryBooleanProperty<Message>(_entities[4].properties[13]);
 
   /// See [Message.couldNotSend].
   static final couldNotSend =
-      obx.QueryBooleanProperty<Message>(_entities[5].properties[14]);
+      obx.QueryBooleanProperty<Message>(_entities[4].properties[14]);
 
   /// See [Message.pinnedByUid].
   static final pinnedByUid =
-      obx.QueryStringProperty<Message>(_entities[5].properties[15]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[15]);
 
   /// See [Message.pinLabel].
   static final pinLabel =
-      obx.QueryStringProperty<Message>(_entities[5].properties[16]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[16]);
 
   /// See [Message.localPinLabel].
   static final localPinLabel =
-      obx.QueryStringProperty<Message>(_entities[5].properties[17]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[17]);
 
   /// See [Message.playbackDurationMicroSeconds].
   static final playbackDurationMicroSeconds =
-      obx.QueryStringProperty<Message>(_entities[5].properties[18]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[18]);
 
   /// See [Message.durationIV].
   static final durationIV =
-      obx.QueryStringProperty<Message>(_entities[5].properties[19]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[19]);
 
   /// See [Message.durationMAC].
   static final durationMAC =
-      obx.QueryStringProperty<Message>(_entities[5].properties[20]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[20]);
 
   /// See [Message.waveData].
   static final waveData =
-      obx.QueryDoubleVectorProperty<Message>(_entities[5].properties[21]);
+      obx.QueryDoubleVectorProperty<Message>(_entities[4].properties[21]);
 
   /// See [Message.waveDataIV].
   static final waveDataIV =
-      obx.QueryStringProperty<Message>(_entities[5].properties[22]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[22]);
 
   /// See [Message.waveDataMAC].
   static final waveDataMAC =
-      obx.QueryStringProperty<Message>(_entities[5].properties[23]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[23]);
 
   /// See [Message.filepath].
   static final filepath =
-      obx.QueryStringProperty<Message>(_entities[5].properties[24]);
+      obx.QueryStringProperty<Message>(_entities[4].properties[24]);
 
   /// See [Message.chat].
   static final chat =
-      obx.QueryRelationToOne<Message, Chat>(_entities[5].properties[25]);
+      obx.QueryRelationToOne<Message, Chat>(_entities[4].properties[25]);
 }
 
 /// [Profile] entity fields to define ObjectBox queries.
 class Profile_ {
   /// See [Profile.id].
   static final id =
-      obx.QueryIntegerProperty<Profile>(_entities[6].properties[0]);
+      obx.QueryIntegerProperty<Profile>(_entities[5].properties[0]);
 
   /// See [Profile.uid].
   static final uid =
-      obx.QueryStringProperty<Profile>(_entities[6].properties[1]);
-
-  /// See [Profile.name].
-  static final name =
-      obx.QueryStringProperty<Profile>(_entities[6].properties[2]);
-
-  /// See [Profile.email].
-  static final email =
-      obx.QueryStringProperty<Profile>(_entities[6].properties[3]);
+      obx.QueryStringProperty<Profile>(_entities[5].properties[1]);
 
   /// See [Profile.emailVerified].
   static final emailVerified =
-      obx.QueryBooleanProperty<Profile>(_entities[6].properties[4]);
+      obx.QueryBooleanProperty<Profile>(_entities[5].properties[2]);
 
-  /// See [Profile.avatarColor].
-  static final avatarColor =
-      obx.QueryStringProperty<Profile>(_entities[6].properties[5]);
+  /// See [Profile.dbEmail].
+  static final dbEmail =
+      obx.QueryStringProperty<Profile>(_entities[5].properties[3]);
 
-  /// See [Profile.avatarIcon].
-  static final avatarIcon =
-      obx.QueryStringProperty<Profile>(_entities[6].properties[6]);
+  /// See [Profile.dbName].
+  static final dbName =
+      obx.QueryStringProperty<Profile>(_entities[5].properties[4]);
 
-  /// See [Profile.avatarPic].
-  static final avatarPic =
-      obx.QueryStringProperty<Profile>(_entities[6].properties[7]);
+  /// See [Profile.dbAvatar].
+  static final dbAvatar =
+      obx.QueryStringProperty<Profile>(_entities[5].properties[5]);
 }

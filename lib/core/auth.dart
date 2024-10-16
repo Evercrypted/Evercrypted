@@ -2,9 +2,9 @@ import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/socket/socket.dart';
+import 'package:evercrypted/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:isar/isar.dart';
 import 'package:rxdart/subjects.dart';
 
 class Auth {
@@ -30,6 +30,7 @@ class Auth {
   static setAppKey() async {
     final random = getRandomString(32);
     await storage.write(key: 'appKey', value: random);
+    appKey = random;
     return random;
   }
 
@@ -48,9 +49,10 @@ class Auth {
   static setAuth(
       {Profile? profile, String? newToken, bool? newIsOtpActive}) async {
     if (profile != null) {
+      print(profile.toJson());
       profileService.syncProfile(profile);
       Auth.user = AuthUser(
-          email: profile.email,
+          email: profile.email!,
           uid: profile.uid,
           emailVerified: profile.emailVerified);
     }
@@ -71,10 +73,9 @@ class Auth {
 
   static AuthUser? get getUser {
     if (Auth.user == null) {
-      final isar = Isar.getInstance();
-      final Profile profile = isar!.profiles.where().findFirstSync()!;
+      final Profile profile = obx.profiles.getAll().first;
       Auth.user = AuthUser(
-          email: profile.email,
+          email: profile.email!,
           uid: profile.uid,
           emailVerified: profile.emailVerified);
     }

@@ -11,7 +11,7 @@ import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:isar/isar.dart';
+import 'package:evercrypted/main.dart';
 import 'package:jwk/jwk.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -106,8 +106,8 @@ class ChatSocket {
     options = options.setExtraHeaders(headers);
 
     io.cache.clear();
-    // socket = io.io('http://10.0.2.2:4000', options.build());
-    socket = io.io('http://localhost:4000', options.build());
+    socket = io.io('http://10.0.2.2:4000', options.build());
+    // socket = io.io('http://localhost:4000', options.build());
     // socket = io.io('http://49.13.136.216:8080', options.build());
 
     if (socket?.connected != true) {
@@ -210,11 +210,8 @@ class ChatSocket {
           type: type,
           payload: json.encode(payload),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch);
-      final isar = Isar.getInstance();
-      isar?.writeTxn(() async {
-        final int queuedItemId = await isar.actionQueues.put(action);
-        writingToQueueCompleter.complete(queuedItemId);
-      });
+      final int id = obx.actionQueues.put(action);
+      writingToQueueCompleter.complete(id);
       return writingToQueueCompleter.future;
     }
 

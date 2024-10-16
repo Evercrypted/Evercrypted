@@ -1,6 +1,5 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
-import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +40,7 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             ProfilePic(
               image: profile?.avatar?.pic,
-              name: profile?.name ?? profile?.email.split('@')[0],
+              name: profile?.name ?? profile?.email?.split('@')[0],
               btnPress: () {},
             ),
             Text(

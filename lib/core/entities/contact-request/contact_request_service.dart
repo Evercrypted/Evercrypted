@@ -3,15 +3,24 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
-import 'package:isar/isar.dart';
+import 'package:evercrypted/objectbox.g.dart';
 
 import '../../socket/socket.dart';
 import '../../socket/socket_channels.dart';
 import '../contact/contact_service.dart';
 import '../../socket/event_types/contact_request_event_types.dart';
+import 'package:evercrypted/main.dart';
 
 class ContactRequestService {
   final ContactService contactService = ContactService();
+
+  findByUid(String uid) {
+    final query =
+        obx.contactRequests.query(ContactRequest_.uid.equals(uid)).build();
+    final ContactRequest? contactRequest = query.findFirst();
+    query.close();
+    return contactRequest;
+  }
 
   Future<dynamic> createContactRequest(ContactRequest cRequest) {
     return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
@@ -24,83 +33,59 @@ class ContactRequestService {
     });
   }
 
-  Future<dynamic> acceptContactRequest(ContactRequest cRequest) async {
-    final isar = Isar.getInstance();
-    final String appKey = await Auth.getAppKey;
-
+  Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
     return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
             ContactRequestEventTypes.acceptContactRequest, cRequest.uid)
         .then((value) {
-      isar?.writeTxn(() async {
-        isar.contactRequests.deleteByUid(cRequest.uid);
-        isar.contacts.put(Contact.fromJson(value).copyWith(
-            email: fernetEncrypt(Contact.fromJson(value).email, appKey),
-            name: fernetEncrypt(Contact.fromJson(value).name, appKey)));
-      });
+      obx.contacts.put(Contact.fromJson(value));
+      obx.contactRequests.remove(cRequest.id);
     }).onError((error, stackTrace) {
       if (error == 'No such contact request found') {
-        isar?.writeTxn(() async {
-          isar.contactRequests.deleteByUid(cRequest.uid);
-        });
+        obx.contactRequests.remove(cRequest.id);
       }
     });
   }
 
   Future<dynamic> cancelContactReqeuest(ContactRequest cRequest) {
-    final isar = Isar.getInstance();
     return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
             ContactRequestEventTypes.cancelContactRequest, cRequest.uid)
         .then((value) {
-      isar?.writeTxn(() async {
-        isar.contactRequests.deleteByUid(cRequest.uid);
-      });
+      deleteContactRequest(cRequest.uid!);
     }).onError((error, stackTrace) {
-      if (error == 'No such contact request found') {
-        isar?.writeTxn(() async {
-          isar.contactRequests.deleteByUid(cRequest.uid);
-        });
-      }
+      deleteContactRequest(cRequest.uid!);
     });
   }
 
   Future<dynamic> declineContactRequest(ContactRequest cRequest) {
-    final isar = Isar.getInstance();
     return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
             ContactRequestEventTypes.declineContactRequest, cRequest.uid)
         .then((value) {
-      isar?.writeTxn(() async {
-        isar.contactRequests.deleteByUid(cRequest.uid);
-      });
+      deleteContactRequest(cRequest.uid!);
     }).onError((error, stackTrace) {
       if (error == 'No such contact request found') {
-        isar?.writeTxn(() async {
-          isar.contactRequests.deleteByUid(cRequest.uid);
-        });
+        deleteContactRequest(cRequest.uid!);
       }
     });
   }
 
   deleteContactRequest(String uid) {
-    final isar = Isar.getInstance();
-    isar?.writeTxn(() async {
-      isar.contactRequests.deleteByUid(uid);
-    });
+    final crInDb = findByUid(uid);
+    if (crInDb != null) {
+      obx.contactRequests.remove(crInDb.id);
+    }
   }
 
   updateUnread(ContactRequest cRequest) {
-    final isar = Isar.getInstance();
-    isar?.writeTxn(() async {
-      isar.contactRequests.putByUid(cRequest);
-    });
+    final crInDb = findByUid(cRequest.uid!);
+    if (crInDb != null) {
+      cRequest.id = crInDb.id;
+      obx.contactRequests.put(cRequest);
+    }
   }
 
-  void syncContactRequests(List<ContactRequest> contactRequests) async {
-    final isar = Isar.getInstance();
-
-    final String appKey = await Auth.getAppKey;
-
+  void syncContactRequests(List<ContactRequest> contactRequests) {
     final List<ContactRequest> contactRequestsInDb =
-        await isar!.contactRequests.where().findAll();
+        obx.contactRequests.getAll();
 
     final List<ContactRequest> contactRequestsToPut = contactRequests
         .where((element) => contactRequestsInDb
@@ -114,16 +99,7 @@ class ContactRequestService {
         .map((ContactRequest el) => el.id)
         .toList();
 
-    final toPut = contactRequestsToPut.map((e) {
-      return e.copyWith(
-          authorEmail: fernetEncrypt(e.authorEmail, appKey),
-          recipientEmail: fernetEncrypt(e.recipientEmail, appKey),
-          message: fernetEncrypt(e.message, appKey));
-    }).toList();
-
-    await isar.writeTxn(() async {
-      await isar.contactRequests.putAll(toPut);
-      await isar.contactRequests.deleteAll(contactRequestsToDelete);
-    });
+    obx.contactRequests.removeMany(contactRequestsToDelete);
+    obx.contactRequests.putMany(contactRequestsToPut);
   }
 }
