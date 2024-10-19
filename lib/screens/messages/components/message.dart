@@ -55,18 +55,19 @@ class _MessageWidgetState extends State<MessageWidget> {
   }
 
   checkAndDecrypt() {
+    if (message.iv == null || message.mac == null) return;
     message = widget.message;
-    if (message.baseKey != null &&
-        widget.chat.syncTime != null &&
-        message.createdAtMSE > widget.chat.syncTime!) {
-      if (message.pass != null) {
-        message.pass =
-            message.baseKey!.substring(0, 32 - message.pass!.length) +
-                message.pass!;
-      } else {
-        message.pass = message.baseKey!;
+    if (message.withBaseKey) {
+      if (message.baseKey != null) {
+        if (message.pass != null) {
+          message.pass =
+              message.baseKey!.substring(0, 32 - message.pass!.length) +
+                  message.pass!;
+        } else {
+          message.pass = message.baseKey!;
+        }
+        decrypt();
       }
-      decrypt();
     } else {
       if (message.pass != null) {
         if (message.pass!.length < 32) {

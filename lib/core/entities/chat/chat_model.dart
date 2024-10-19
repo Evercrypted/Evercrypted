@@ -37,10 +37,6 @@ class Chat {
   @Transient()
   Avatar? avatar;
 
-  bool? syncRequired;
-
-  int? syncTime;
-
   String? get dbAvatar => avatar == null ? null : jsonEncode(avatar?.toJson());
 
   set dbAvatar(String? value) {
@@ -94,8 +90,6 @@ class Chat {
     this.participants = const [],
     this.messagesList = const [],
     this.avatar,
-    this.syncRequired,
-    this.syncTime,
   });
 
   factory Chat.fromJson(Map<String, dynamic> json) => Chat(
@@ -111,8 +105,6 @@ class Chat {
         lastMessageTime: DateTime.parse(json['lastMessageTime']),
         avatar: json['avatar'] != null ? Avatar.fromJson(json['avatar']) : null,
         isOneToOne: json['isOneToOne'] as bool,
-        syncRequired: json['syncRequired'] as bool? ?? false,
-        syncTime: json['syncTime'] as int?,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{

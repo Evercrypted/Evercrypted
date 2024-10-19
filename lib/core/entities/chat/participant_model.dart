@@ -8,8 +8,7 @@ class Participant {
   final DateTime? lastSawChat;
   final bool isCreator;
   final bool isAdmin;
-  final String? pubKey;
-  final bool gotPubKey;
+  String? pubKey;
 
   final Avatar? avatar;
 
@@ -22,7 +21,6 @@ class Participant {
     this.isCreator = false,
     this.isAdmin = false,
     this.pubKey,
-    this.gotPubKey = false,
   });
 
   factory Participant.fromContact(Contact contact) => Participant(
@@ -47,7 +45,6 @@ class Participant {
         isCreator: json['is_creator'] as bool? ?? false,
         isAdmin: json['is_admin'] as bool? ?? false,
         pubKey: json['pub_key'] as String?,
-        gotPubKey: json['got_pub_key'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson({lastSawChatInMiliseconds = false}) =>
@@ -62,7 +59,6 @@ class Participant {
         'is_creator': isCreator,
         'is_admin': isAdmin,
         'pub_key': pubKey,
-        'got_pub_key': gotPubKey,
       };
 
   Participant copyWith({
@@ -73,17 +69,16 @@ class Participant {
     bool? isCreator,
     bool? isAdmin,
     String? pubKey,
-    bool? gotPubKey,
     Avatar? avatar,
   }) =>
       Participant(
-          uid: uid ?? this.uid,
-          email: email ?? this.email,
-          name: name ?? this.name,
-          lastSawChat: lastSawChat ?? this.lastSawChat,
-          avatar: avatar ?? this.avatar,
-          isCreator: isCreator ?? this.isCreator,
-          isAdmin: isAdmin ?? this.isAdmin,
-          pubKey: pubKey ?? this.pubKey,
-          gotPubKey: gotPubKey ?? this.gotPubKey);
+        uid: uid ?? this.uid,
+        email: email ?? this.email,
+        name: name ?? this.name,
+        lastSawChat: lastSawChat ?? this.lastSawChat,
+        avatar: avatar ?? this.avatar,
+        isCreator: isCreator ?? this.isCreator,
+        isAdmin: isAdmin ?? this.isAdmin,
+        pubKey: pubKey ?? this.pubKey,
+      );
 }

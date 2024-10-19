@@ -23,6 +23,7 @@ class ChatMessage {
   int? decodedDuration;
   final bool isSystemMessage;
   final int createdAtMSE;
+  final bool withBaseKey;
   EncryptionStatus encryptionStatus;
 
   ChatMessage({
@@ -39,6 +40,7 @@ class ChatMessage {
     this.text = '',
     this.uid,
     this.queueId,
+    this.withBaseKey = false,
     required this.chatUid,
     required this.createdAtMSE,
     required this.messageType,
@@ -60,6 +62,7 @@ class ChatMessage {
         'error': error,
         'isSystemMessage': isSystemMessage,
         'createdAtMSE': createdAtMSE,
-        'duration': duration
+        'duration': duration,
+        'withBaseKey': withBaseKey,
       };
 }

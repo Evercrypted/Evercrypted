@@ -106,16 +106,6 @@ final _entities = <obx_int.ModelEntity>[
             flags: 8,
             indexId: const obx_int.IdUid(6, 7287894361137119830)),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 2127959347323040075),
-            name: 'syncRequired',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 4218787220005735299),
-            name: 'syncTime',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
             id: const obx_int.IdUid(12, 201237813563152278),
             name: 'dbParticipants',
             type: 9,
@@ -235,7 +225,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(5, 381058101701020443),
       name: 'Message',
-      lastPropertyId: const obx_int.IdUid(26, 2351030150897239413),
+      lastPropertyId: const obx_int.IdUid(27, 7083915981674476184),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -374,7 +364,12 @@ final _entities = <obx_int.ModelEntity>[
             type: 11,
             flags: 520,
             indexId: const obx_int.IdUid(15, 3591098884062730065),
-            relationTarget: 'Chat')
+            relationTarget: 'Chat'),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(27, 7083915981674476184),
+            name: 'withBaseKey',
+            type: 1,
+            flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[]),
@@ -469,7 +464,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         4793705789827528373,
         3770371504673206710,
         3556369180048710603,
-        8177402884606386942
+        8177402884606386942,
+        2127959347323040075,
+        4218787220005735299
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -551,8 +548,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(3, nameOffset);
           fbb.addBool(4, object.isOneToOne);
           fbb.addInt64(5, object.lastMessageTime?.millisecondsSinceEpoch);
-          fbb.addBool(9, object.syncRequired);
-          fbb.addInt64(10, object.syncTime);
           fbb.addOffset(11, dbParticipantsOffset);
           fbb.addOffset(12, dbAvatarOffset);
           fbb.finish(fbb.endTable());
@@ -574,18 +569,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final lastMessageTimeParam = lastMessageTimeValue == null
               ? null
               : DateTime.fromMillisecondsSinceEpoch(lastMessageTimeValue);
-          final syncRequiredParam =
-              const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 22);
-          final syncTimeParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 24);
           final object = Chat(
               isOneToOne: isOneToOneParam,
               uid: uidParam,
               messageLongevitySeconds: messageLongevitySecondsParam,
               name: nameParam,
-              lastMessageTime: lastMessageTimeParam,
-              syncRequired: syncRequiredParam,
-              syncTime: syncTimeParam)
+              lastMessageTime: lastMessageTimeParam)
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
             ..dbParticipants = const fb.StringReader(asciiOptimization: true)
                 .vTableGetNullable(buffer, rootOffset, 26)
@@ -778,7 +767,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final filepathOffset = object.filepath == null
               ? null
               : fbb.writeString(object.filepath!);
-          fbb.startTable(27);
+          fbb.startTable(28);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, uidOffset);
           fbb.addOffset(2, authorIdOffset);
@@ -805,6 +794,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(23, waveDataMACOffset);
           fbb.addOffset(24, filepathOffset);
           fbb.addInt64(25, object.chat.targetId);
+          fbb.addBool(26, object.withBaseKey);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -866,6 +856,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .vTableGetNullable(buffer, rootOffset, 52);
           final errorParam = const fb.StringReader(asciiOptimization: true)
               .vTableGetNullable(buffer, rootOffset, 20);
+          final withBaseKeyParam =
+              const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 56);
           final object = Message(
               uid: uidParam,
               authorId: authorIdParam,
@@ -890,7 +882,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               waveDataIV: waveDataIVParam,
               waveDataMAC: waveDataMACParam,
               filepath: filepathParam,
-              error: errorParam)
+              error: errorParam,
+              withBaseKey: withBaseKeyParam)
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
           object.chat.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 54, 0);
@@ -998,21 +991,13 @@ class Chat_ {
   static final lastMessageTime =
       obx.QueryDateProperty<Chat>(_entities[1].properties[5]);
 
-  /// See [Chat.syncRequired].
-  static final syncRequired =
-      obx.QueryBooleanProperty<Chat>(_entities[1].properties[6]);
-
-  /// See [Chat.syncTime].
-  static final syncTime =
-      obx.QueryIntegerProperty<Chat>(_entities[1].properties[7]);
-
   /// See [Chat.dbParticipants].
   static final dbParticipants =
-      obx.QueryStringProperty<Chat>(_entities[1].properties[8]);
+      obx.QueryStringProperty<Chat>(_entities[1].properties[6]);
 
   /// See [Chat.dbAvatar].
   static final dbAvatar =
-      obx.QueryStringProperty<Chat>(_entities[1].properties[9]);
+      obx.QueryStringProperty<Chat>(_entities[1].properties[7]);
 
   /// see [Chat.messages]
   static final messages = obx.QueryBacklinkToMany<Message, Chat>(Message_.chat);
@@ -1193,6 +1178,10 @@ class Message_ {
   /// See [Message.chat].
   static final chat =
       obx.QueryRelationToOne<Message, Chat>(_entities[4].properties[25]);
+
+  /// See [Message.withBaseKey].
+  static final withBaseKey =
+      obx.QueryBooleanProperty<Message>(_entities[4].properties[26]);
 }
 
 /// [Profile] entity fields to define ObjectBox queries.

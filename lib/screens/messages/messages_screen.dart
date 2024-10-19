@@ -112,10 +112,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   void setBaseKey() async {
-    BaseKey.getBase(chat.uid).then((key) {
-      print('baseKey ' + key.toString());
+    BaseKey.getKeys(chat.uid).then((keys) {
       setState(() {
-        baseKey = key;
+        baseKey = keys?.baseKey;
       });
     });
   }
@@ -153,7 +152,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                     child: Column(
                       children: [
                         if (chat.isOneToOne)
-                          chat.syncRequired == true
+                          baseKey == null
                               ? const Icon(Icons.security,
                                   color: Colors.redAccent)
                               : const Icon(Icons.security, color: Colors.white),
@@ -162,7 +161,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                             margin: const EdgeInsets.symmetric(
                                 vertical: defaultPadding / 2),
                             child: Text(
-                              chat.syncRequired == true
+                              baseKey == null
                                   ? 'Chat Base-Encryption-Key is not synchronized yet. The other party needs to open Evercrypted at least once to generate base encryption key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
                                   : 'Base-Encryption-Key has successfully been synchronized. All the passwords less then 32 characters will automatically be reinforced with the synchronized key.',
                               style: const TextStyle(
@@ -319,9 +318,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     ref.listen<List<Chat>>(chatsProvider, (prev, next) {
       setState(() {
         chat = next.firstWhere((c) => c.uid == widget.chat.uid);
-        if (chat.syncRequired == false) {
-          setBaseKey();
-        }
+        setBaseKey();
       });
 
       if (chat.name == null) {
@@ -396,7 +393,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                       decoration: BoxDecoration(
                         color: !chat.isOneToOne
                             ? Colors.grey
-                            : chat.syncRequired == true
+                            : baseKey == null
                                 ? Colors.redAccent
                                 : primaryColor,
                         shape: BoxShape.circle,
@@ -448,6 +445,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           duration: item.playbackDurationMicroSeconds,
                           durationIV: item.durationIV,
                           durationMAC: item.durationMAC,
+                          withBaseKey: item.withBaseKey ?? false,
                           decodedDuration: (item.durationIV == null ||
                                       item.durationMAC == null) &&
                                   item.playbackDurationMicroSeconds != null

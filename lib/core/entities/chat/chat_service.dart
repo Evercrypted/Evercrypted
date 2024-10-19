@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/fernet.dart';
-import 'package:evercrypted/core/cryptography/one_to_one_pubkey_comb.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
@@ -27,7 +26,7 @@ class ChatService {
   MessageService messageService = MessageService();
 
   Chat addChat(Chat chat) {
-    _syncKeysIfSyncRequired(chat);
+    _checkKeys(chat);
 
     final int id = obx.chats.put(chat);
     chat.id = id;
@@ -86,20 +85,18 @@ class ChatService {
             newChatDTO.toJson())
         .then((resp) async {
       final Chat returnedChat = Chat.fromJson(resp['chat']);
-      await BaseKey.setPrivate(returnedChat.uid, keys.keyPair);
+      await BaseKey.setKeys(chatUid: returnedChat.uid, private: keys.keyPair);
       final Chat chat = addChat(returnedChat);
       complete.complete(chat);
     });
     return complete.future;
   }
 
-  Future<Chat> updatePubKey(
-      {required String chatUid, String? pubKey, bool? gotPubKey}) async {
+  Future<Chat> updatePubKey({required String chatUid, String? pubKey}) async {
     Completer<Chat> complete = Completer();
     ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.updatePubKey, {
       'chatUid': chatUid,
       'pubKey': pubKey,
-      'gotPubKey': gotPubKey
     }).then((resp) async {
       await updateChatFromResp(Chat.fromJson(resp['chat']));
       complete.complete(Chat.fromJson(resp['chat']));
@@ -217,9 +214,7 @@ class ChatService {
     query.close();
 
     if (chatInDb != null) {
-      if (chat.isOneToOne) {
-        _syncKeysIfSyncRequired(chat);
-      }
+      _checkKeys(chat);
       chat.id = chatInDb.id;
       obx.chats.put(chat);
     }
@@ -227,67 +222,73 @@ class ChatService {
 
   _doSyncForAllChats(List<Chat> chats) async {
     for (var chat in chats) {
-      if (chat.isOneToOne) {
-        _syncKeysIfSyncRequired(chat);
-      }
+      _checkKeys(chat);
     }
   }
 
   _checkKeys(Chat chat) async {
-    if (chat.participants.length > 2) {
+    generateKeys(thisParticipant, otherParticipant) {
+      BaseKey.generateKeys().then((generatedKeys) {
+        thisParticipant.pubKey = generatedKeys.publicKey;
+        final generatedPubKeyComb =
+            BaseKey.pubkeyComb([thisParticipant, otherParticipant]);
+        BaseKey.setKeys(
+          chatUid: chat.uid,
+          pubCombo: generatedPubKeyComb,
+        );
+        updatePubKey(
+          chatUid: chat.uid,
+          pubKey: generatedKeys.publicKey,
+        ).then((chat) {
+          if (generatedPubKeyComb != null) {
+            BaseKey.combine(generatedKeys.keyPair, otherParticipant.pubKey!)
+                .then((baseKey) {
+              if (baseKey != null) {
+                BaseKey.setKeys(
+                    chatUid: chat.uid,
+                    baseKey: baseKey,
+                    private: generatedKeys.keyPair);
+              }
+            });
+          } else {
+            //means that the other participant has not yet shared their key yet and we should only set private key
+            BaseKey.setKeys(chatUid: chat.uid, private: generatedKeys.keyPair);
+          }
+        });
+      });
+    }
+
+    //only check for oneToOne chats
+    if (!chat.isOneToOne || chat.participants.length != 2) {
       return;
     } else {
-      final String? pubKeyComb = oneToOnePubkeyComb(chat.participants);
-      if (pubKeyComb != null) {}
-    }
-  }
-
-  _syncKeysIfSyncRequired(Chat chat) async {
-    final AuthUser user = Auth.getUser!;
-    if (chat.syncRequired == true) {
-      final Participant? thisParticipant = chat.participants
-          .firstWhereOrNull((element) => element.uid == user.uid);
-      final Participant? otherParticipant = chat.participants
-          .firstWhereOrNull((element) => element.uid != user.uid);
-      if (otherParticipant != null && thisParticipant != null) {
-        if (otherParticipant.pubKey != null) {
-          if (thisParticipant.pubKey != null) {
-            final private = await BaseKey.getPrivate(chat.uid);
-            if (private != null) {
-              BaseKey.combine(private, otherParticipant.pubKey!).then((key) {
-                if (key != null) {
-                  BaseKey.setBase(chat.uid, key);
-                  updatePubKey(chatUid: chat.uid, gotPubKey: true);
-                }
-              });
-            } else {
-              //reset sync
-            }
-          } else {
-            BaseKey.generateKeys().then((keys) {
-              BaseKey.combine(keys.keyPair, otherParticipant.pubKey!)
-                  .then((key) {
-                if (key != null) {
-                  BaseKey.setBase(chat.uid, key);
-                  updatePubKey(
-                      chatUid: chat.uid,
-                      pubKey: keys.publicKey,
-                      gotPubKey: true);
-                }
-              });
-            });
-          }
+      final thisParticipant = chat.participants
+          .firstWhere((element) => element.uid == Auth.getUser!.uid);
+      final otherParticipant = chat.participants
+          .firstWhere((element) => element.uid != Auth.getUser!.uid);
+      String? pubKeyComb =
+          BaseKey.pubkeyComb([thisParticipant, otherParticipant]);
+      final ChatKeys? keys = await BaseKey.getKeys(chat.uid);
+      if (pubKeyComb != null) {
+        //if not null, both participants have shared their keys
+        if (keys == null || keys.private == null) {
+          //if keys is null or private is null then this device is not yet synced and we should generate a new key
+          generateKeys(thisParticipant, otherParticipant);
         } else {
-          if (thisParticipant.pubKey == null) {
-            BaseKey.generateKeys().then((keys) {
-              BaseKey.setPrivate(chat.uid, keys.keyPair);
-              updatePubKey(
-                chatUid: chat.uid,
-                pubKey: keys.publicKey,
-              );
-            });
+          //means that both participants have shared their keys and we should check if pubKeys match
+          if (keys.pubCombo != pubKeyComb) {
+            //if pubKeys do not match then we should reset the sync
+            generateKeys(thisParticipant, otherParticipant);
           }
+          //else all is good
         }
+      } else {
+        //if pubKeyComb is null one of the participant has not yet shared their key
+        if (keys == null || keys.private == null) {
+          //if keys is null or private is null then this device is not yet synced and we should generate a new key
+          generateKeys(thisParticipant, otherParticipant);
+        }
+        //else it means that the other participant has not yet shared their key and we should wait
       }
     }
   }

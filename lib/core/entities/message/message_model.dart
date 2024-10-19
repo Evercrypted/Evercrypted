@@ -60,36 +60,37 @@ class Message {
   String? waveDataMAC;
 
   String? filepath;
+  bool? withBaseKey;
 
   @Index()
   final chat = ToOne<Chat>();
 
-  Message({
-    this.uid,
-    required this.authorId,
-    this.text,
-    this.messageType = MessageTypes.text,
-    required this.createdAtMSE,
-    this.iv,
-    this.mac,
-    this.isEncrypted = false,
-    required this.chatUid,
-    this.uniqueId,
-    this.successfullySent = true,
-    this.couldNotSend = false,
-    this.queueId,
-    this.pinnedByUid,
-    this.pinLabel,
-    this.localPinLabel,
-    this.playbackDurationMicroSeconds,
-    this.durationIV,
-    this.durationMAC,
-    this.waveData,
-    this.waveDataIV,
-    this.waveDataMAC,
-    this.filepath,
-    this.error,
-  });
+  Message(
+      {this.uid,
+      required this.authorId,
+      this.text,
+      this.messageType = MessageTypes.text,
+      required this.createdAtMSE,
+      this.iv,
+      this.mac,
+      this.isEncrypted = false,
+      required this.chatUid,
+      this.uniqueId,
+      this.successfullySent = true,
+      this.couldNotSend = false,
+      this.queueId,
+      this.pinnedByUid,
+      this.pinLabel,
+      this.localPinLabel,
+      this.playbackDurationMicroSeconds,
+      this.durationIV,
+      this.durationMAC,
+      this.waveData,
+      this.waveDataIV,
+      this.waveDataMAC,
+      this.filepath,
+      this.error,
+      this.withBaseKey});
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         uid: json['uid'] as String,
@@ -113,6 +114,7 @@ class Message {
             .toList(),
         waveDataIV: json['waveDataIV'] as String?,
         waveDataMAC: json['waveDataMAC'] as String?,
+        withBaseKey: json['withBaseKey'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -133,5 +135,6 @@ class Message {
         'waveData': waveData,
         'waveDataIV': waveDataIV,
         'waveDataMAC': waveDataMAC,
+        'withBaseKey': withBaseKey,
       };
 }

@@ -1,8 +1,33 @@
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwk/jwk.dart';
+
+class ChatKeys {
+  final String chatUid;
+  final String? baseKey;
+  final String? private;
+  final String? pubCombo;
+
+  ChatKeys({required this.chatUid, this.baseKey, this.private, this.pubCombo});
+
+  ChatKeys.fromJson(Map<String, dynamic> json)
+      : chatUid = json['chatUid'],
+        baseKey = json['baseKey'],
+        private = json['private'],
+        pubCombo = json['pubCombo'];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'chatUid': chatUid,
+      'baseKey': baseKey,
+      'private': private,
+      'pubCombo': pubCombo,
+    };
+  }
+}
 
 class BaseKey {
   BaseKey._();
@@ -43,20 +68,42 @@ class BaseKey {
     return base64Encode(secretKeyData.bytes);
   }
 
-  static setBase(String chatUid, String shared) async {
-    await storage.write(key: 'base-$chatUid', value: shared.substring(0, 32));
+  static String? pubkeyComb(List<Participant> participants) {
+    if (participants.any((p) => p.pubKey == null)) {
+      return null;
+    }
+    final List<String> pubKeys = participants.map((e) => e.pubKey!).toList();
+    pubKeys.sort();
+    return pubKeys.join();
   }
 
-  static setPrivate(String chatUid, String keyPairBase64) async {
-    await storage.write(key: 'private-$chatUid', value: keyPairBase64);
+  static Future<ChatKeys> setKeys(
+      {required String chatUid,
+      String? baseKey,
+      String? private,
+      String? pubCombo}) async {
+    ChatKeys? current = await getKeys(chatUid);
+    late ChatKeys keys;
+    if (current != null) {
+      keys = ChatKeys(
+          chatUid: chatUid,
+          baseKey: baseKey ?? current.baseKey,
+          private: private ?? current.private,
+          pubCombo: pubCombo ?? current.pubCombo);
+    } else {
+      keys = ChatKeys(
+          chatUid: chatUid,
+          baseKey: baseKey,
+          private: private,
+          pubCombo: pubCombo);
+    }
+    await storage.write(key: 'keys-$chatUid', value: jsonEncode(keys.toJson()));
+    return keys;
   }
 
-  static Future<String?> getBase(String chatUid) async {
-    return await storage.read(key: 'base-$chatUid');
-  }
-
-  static Future<String?> getPrivate(String chatUid) async {
-    return await storage.read(key: 'private-$chatUid');
+  static Future<ChatKeys?> getKeys(String chatUid) async {
+    final String? string = await storage.read(key: 'keys-$chatUid');
+    return string != null ? ChatKeys.fromJson(jsonDecode(string)) : null;
   }
 }
 
