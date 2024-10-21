@@ -96,11 +96,14 @@ class _AudioMessageState extends State<AudioMessage>
     if (widget.message.pass != null &&
         widget.message.iv != null &&
         widget.message.mac != null) {
-      recording = await decodeRecording(widget.message.pass!,
-          widget.message.iv!, widget.message.mac!, fileString!, true);
+      recording = await decodeRecording(
+          key: widget.message.pass!,
+          iv: widget.message.iv!,
+          mac: widget.message.mac!,
+          cryptedRecording: fileString!);
     } else {
-      recording = await decodeRecording(widget.message.pass!,
-          widget.message.iv!, widget.message.mac!, fileString!, true, false);
+      recording = await decodeRecording(
+          cryptedRecording: fileString!, isEncrypted: false);
     }
     await widget.player.openPlayer();
     await widget.player.startPlayerFromStream(

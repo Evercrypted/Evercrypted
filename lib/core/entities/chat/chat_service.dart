@@ -246,7 +246,7 @@ class ChatService {
               if (baseKey != null) {
                 BaseKey.setKeys(
                     chatUid: chat.uid,
-                    baseKey: baseKey,
+                    baseKey: baseKey.substring(0, 32),
                     private: generatedKeys.keyPair);
               }
             });

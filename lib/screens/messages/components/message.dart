@@ -55,8 +55,8 @@ class _MessageWidgetState extends State<MessageWidget> {
   }
 
   checkAndDecrypt() {
-    if (message.iv == null || message.mac == null) return;
     message = widget.message;
+    if (message.iv == null || message.mac == null) return;
     if (message.withBaseKey) {
       if (message.baseKey != null) {
         if (message.pass != null) {

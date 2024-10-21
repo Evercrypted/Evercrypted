@@ -27,8 +27,7 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   double progress = 0;
   FlutterSoundRecorder? _myRecorder = FlutterSoundRecorder();
 
-  DateTime? recordStartTime;
-  DateTime? recordEndTime;
+  int? recordStartTime;
   bool fileWritten = false;
   String? iv;
   String? mac;
@@ -118,7 +117,7 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
       numChannels: 1,
       sampleRate: 16000,
     );
-    recordStartTime = DateTime.now();
+    recordStartTime = DateTime.now().microsecondsSinceEpoch;
   }
 
   Future<void> stopRecorder() async {
@@ -127,9 +126,8 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
 
     recordingDataController?.close();
     recordingDataController = null;
-    recordEndTime = DateTime.now();
-    recordingMicroSeconds =
-        recordEndTime!.difference(recordStartTime!).inMicroseconds;
+    final recordEndTime = DateTime.now().microsecondsSinceEpoch;
+    recordingMicroSeconds = recordEndTime - recordStartTime!;
 
     if (recordingData.isNotEmpty && recordingMicroSeconds != null) {
       widget.onRecord(recordingData, recordingMicroSeconds);

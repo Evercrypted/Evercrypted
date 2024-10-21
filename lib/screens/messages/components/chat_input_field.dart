@@ -81,7 +81,6 @@ class ChatInputFieldState extends State<ChatInputField> {
         fullKey = null;
       }
     }
-    print('fullKey ' + fullKey.toString());
   }
 
   void sendMessage(String message) async {
@@ -114,6 +113,10 @@ class ChatInputFieldState extends State<ChatInputField> {
     await widget.player.startPlayerFromStream(
         codec: Codec.pcm16, numChannels: 1, sampleRate: 16000);
 
+    for (final Uint8List data in recordingData!) {
+      await widget.player.feedFromStream(data);
+    }
+
     Future.delayed(Duration(microseconds: recordingMicroSeconds!))
         .then((dur) async {
       await widget.player.stopPlayer();
@@ -128,9 +131,6 @@ class ChatInputFieldState extends State<ChatInputField> {
         );
       });
     });
-    for (final Uint8List data in recordingData!) {
-      await widget.player.feedFromStream(data);
-    }
   }
 
   sendAudio(context) async {
@@ -142,10 +142,11 @@ class ChatInputFieldState extends State<ChatInputField> {
     if (sendingFile) {
       return;
     }
-    final storageStatus = await Permission.storage.request();
-    if (storageStatus != PermissionStatus.granted) {
-      return;
-    }
+    // probably only needed for iOS
+    // final storageStatus = await Permission.storage.request();
+    // if (storageStatus != PermissionStatus.granted) {
+    //   return;
+    // }
     String? userId = Auth.user?.uid;
     late Message messageToSend;
     late String fileToSend;
@@ -183,26 +184,26 @@ class ChatInputFieldState extends State<ChatInputField> {
     setState(() {
       sendingFile = true;
     });
-    // _messageService
-    //     .sendFile(message: messageToSend, file: fileToSend)
-    //     .then((msg) {
-    //   setState(() {
-    //     sendingFile = false;
-    //     dropRecording();
-    //   });
-    // }).onError((e, s) {
-    //   setState(() {
-    //     sendingFile = false;
-    //     dropRecording();
-    //   });
-    //   if (context.mounted) {
-    //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-    //       content: Text('Could not send file',
-    //           style: TextStyle(color: Colors.white)),
-    //       backgroundColor: errorColor,
-    //     ));
-    //   }
-    // });
+    _messageService
+        .sendFile(message: messageToSend, file: fileToSend)
+        .then((msg) {
+      setState(() {
+        sendingFile = false;
+        dropRecording();
+      });
+    }).onError((e, s) {
+      setState(() {
+        sendingFile = false;
+        dropRecording();
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not send file',
+              style: TextStyle(color: Colors.white)),
+          backgroundColor: errorColor,
+        ));
+      }
+    });
   }
 
   dropRecording() {

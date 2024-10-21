@@ -6,6 +6,8 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/objectbox.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
+import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/objectbox.g.dart';
 // import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
@@ -20,6 +22,7 @@ import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/theme.dart';
 import 'package:evercrypted/ui_constants.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -37,11 +40,24 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 late ObjectBox obx;
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  await Firebase.initializeApp();
+
+  print("Handling a background message: ${message.messageId}");
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  await FirebaseMessaging.instance.requestPermission(provisional: true);
 
   if (await Auth.appKeyFromStorage == null) {
     await Auth.setAppKey();
@@ -116,6 +132,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   late StreamSubscription authListener;
   late StreamSubscription resetConnectionListener;
+  late StreamSubscription fcmTokenListener;
   StreamSubscription? profileListener;
   StreamSubscription? contactRequestsListener;
   StreamSubscription? contactsListener;
@@ -127,6 +144,16 @@ class AuthGateState extends ConsumerState<AuthGate> {
     super.initState();
 
     _checkNotifications();
+
+    requestFcmPermissions();
+
+    fcmTokenListener =
+        FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
+      ChatSocket.emitWAck(
+          SocketChannelTypes.general, GeneralEventTypes.updateFcmToken, {
+        'fcmToken': fcmToken,
+      }).then((resp) {});
+    });
 
     authListener = Auth.authSubject.stream.listen((shouldFire) async {
       _authFlow();
@@ -181,6 +208,19 @@ class AuthGateState extends ConsumerState<AuthGate> {
               : !user!.emailVerified
                   ? const VerificationScreen()
                   : const MainScreen(),
+    );
+  }
+
+  void requestFcmPermissions() async {
+    final messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
     );
   }
 

@@ -30,10 +30,14 @@ Future<EncryptedRecording?> encodeRecording(key, List<Uint8List> recording,
 }
 
 Future<List<Uint8List>> decodeRecording(
-    String key, String iv, String mac, String cryptedRecording,
-    [bool notHex = true, bool isEncrypted = true]) async {
+    {String? key,
+    String? iv,
+    String? mac,
+    required String cryptedRecording,
+    bool notHex = true,
+    bool isEncrypted = true}) async {
   late final String stringList;
-  if (isEncrypted) {
+  if (isEncrypted && key != null && iv != null && mac != null) {
     final algorithm = Chacha20.poly1305Aead();
     final secretBox = SecretBox(
       base64.decode(cryptedRecording),
@@ -45,7 +49,7 @@ Future<List<Uint8List>> decodeRecording(
             SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
     stringList = utf8.decode(decrypted);
   } else {
-    stringList = cryptedRecording;
+    stringList = utf8.decode(base64Decode(cryptedRecording));
   }
   final List<String> listString =
       stringList.substring(1, stringList.length - 1).split('],');

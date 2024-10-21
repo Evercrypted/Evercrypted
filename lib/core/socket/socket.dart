@@ -10,8 +10,10 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
+import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:jwk/jwk.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -57,15 +59,19 @@ class ChatSocket {
   ];
 
   static getGeneralInfoAndExchangeKey() async {
+    // for apple push notification
+    // final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+    final fcmToken = await FirebaseMessaging.instance.getToken();
     final keyCompleter = Completer<bool>();
     final algo = X25519();
 
     // We need the private key pair of Alice.
     keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair!.extractPublicKey();
-    socket?.emitWithAck('general', {
-      'type': 'getInitialData',
-      'publicKey': Jwk.fromPublicKey(localPublicKey).toJson()
+    socket?.emitWithAck(SocketChannelTypes.general, {
+      'type': GeneralEventTypes.getInitialData,
+      'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+      'fcmToken': fcmToken,
     }, ack: (dynamic resp) async {
       key = await combineKeys(algo, keyPair, resp['publicKey']);
       keyCompleter.complete(true);

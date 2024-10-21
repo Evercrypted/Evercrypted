@@ -49,7 +49,6 @@ class Auth {
   static setAuth(
       {Profile? profile, String? newToken, bool? newIsOtpActive}) async {
     if (profile != null) {
-      print(profile.toJson());
       profileService.syncProfile(profile);
       Auth.user = AuthUser(
           email: profile.email!,

@@ -155,7 +155,8 @@ class MessageService {
         : '${directory.path}/$chatUid/$msgUid';
     if (await File(path).exists()) {
       final fileAtPath = File(path);
-      return await fileAtPath.readAsString();
+      final fileString = await fileAtPath.readAsString();
+      return fileString;
     } else {
       return null;
     }
