@@ -239,22 +239,29 @@ packages:
     source: hosted
     version: "3.0.5"
   cryptography:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: cryptography
       sha256: d146b76d33d94548cf035233fbc2f4338c1242fa119013bead807d033fc4ae05
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
-  cryptography_flutter:
+  cryptography_flutter_plus:
     dependency: "direct main"
     description:
-      path: cryptography_flutter
-      ref: master
-      resolved-ref: "5406ab95ce33d90558fef095fb5fdbeac92febe0"
-      url: "https://github.com/ugran/cryptography.git"
-    source: git
-    version: "2.3.2"
+      name: cryptography_flutter_plus
+      sha256: a727c1467918138d0454ddb782de32de41e5e6ae3ee3423f9e1d432eb292b6cf
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.3"
+  cryptography_plus:
+    dependency: "direct main"
+    description:
+      name: cryptography_plus
+      sha256: "34db787df4f4740a39474b6fb0a610aa6dc13a5b5b68754b4787a79939ac0454"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.1"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -702,14 +709,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.9.0"
-  jwk:
+  jwk_plus:
     dependency: "direct main"
     description:
-      name: jwk
-      sha256: "29579ae13c7b4b029e57bcc45514ef5a34768fae0d5e7863b4f03443454283e2"
+      name: jwk_plus
+      sha256: e5152a9afb61850119c07f3b4fb7f9d3d31e41e6c902533f727b21e2820860bd
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.3"
+    version: "0.2.4"
   leak_tracker:
     dependency: transitive
     description:

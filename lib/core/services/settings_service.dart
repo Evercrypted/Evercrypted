@@ -1,6 +1,7 @@
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:evercrypted/core/auth.dart';
-import 'package:jwk/jwk.dart';
+import 'package:jwk_plus/jwk_plus.dart';
+
 import 'package:rhttp/rhttp.dart';
 
 import '../cryptography/combine_keys.dart';

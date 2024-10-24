@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/helpers.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/helpers.dart';
 import 'package:evercrypted/core/auth.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
@@ -14,7 +14,7 @@ import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:jwk/jwk.dart';
+import 'package:jwk_plus/jwk_plus.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
@@ -147,11 +147,18 @@ class ChatSocket {
     });
 
     socket?.onError((data) {
-      final message = data is SocketException ? data.message : data['message'];
-      if (data != null && message == 'Connection refused') {
+      if (data == 'timeout') {
         isConnected = false;
         isConnected = false;
         isConnectedSubject.add(isConnected!);
+      } else {
+        final message =
+            data is SocketException ? data.message : data['message'];
+        if (data != null && message == 'Connection refused') {
+          isConnected = false;
+          isConnected = false;
+          isConnectedSubject.add(isConnected!);
+        }
       }
     });
 

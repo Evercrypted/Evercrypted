@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:jwk/jwk.dart';
+import 'package:jwk_plus/jwk_plus.dart';
 
 class ChatKeys {
   final String chatUid;

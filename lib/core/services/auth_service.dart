@@ -1,4 +1,4 @@
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/combine_keys.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
@@ -10,7 +10,7 @@ import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jwk/jwk.dart';
+import 'package:jwk_plus/jwk_plus.dart';
 import 'package:retry/retry.dart';
 import 'package:rhttp/rhttp.dart';
 
