@@ -4,6 +4,7 @@ import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwk_plus/jwk_plus.dart';
+import 'package:rxdart/rxdart.dart';
 
 class ChatKeys {
   final String chatUid;
@@ -31,6 +32,8 @@ class ChatKeys {
 
 class BaseKey {
   BaseKey._();
+
+  static BehaviorSubject<String> baseKeySubject = BehaviorSubject<String>();
 
   static const storage = FlutterSecureStorage(
       iOptions: IOSOptions(
@@ -98,6 +101,9 @@ class BaseKey {
           pubCombo: pubCombo);
     }
     await storage.write(key: 'keys-$chatUid', value: jsonEncode(keys.toJson()));
+    if (baseKey != null) {
+      baseKeySubject.add(chatUid);
+    }
     return keys;
   }
 

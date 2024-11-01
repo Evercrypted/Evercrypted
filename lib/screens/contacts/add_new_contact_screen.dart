@@ -107,9 +107,17 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
             setState(() {
               _selectedIndex = 1;
             });
-            Navigator.pop(context);
+            if (mounted) {
+              _emailController.clear();
+              _messageController.clear();
+              Navigator.pop(context);
+            }
           }).onError((error, stackTrace) {
-            Navigator.pop(context);
+            if (mounted) {
+              _emailController.clear();
+              _messageController.clear();
+              Navigator.pop(context);
+            }
             if (error == 'queued') {
               showQueuedNotification();
             } else {

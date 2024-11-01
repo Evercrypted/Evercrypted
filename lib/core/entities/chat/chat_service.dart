@@ -232,29 +232,26 @@ class ChatService {
         thisParticipant.pubKey = generatedKeys.publicKey;
         final generatedPubKeyComb =
             BaseKey.pubkeyComb([thisParticipant, otherParticipant]);
-        BaseKey.setKeys(
-          chatUid: chat.uid,
-          pubCombo: generatedPubKeyComb,
-        );
-        updatePubKey(
-          chatUid: chat.uid,
-          pubKey: generatedKeys.publicKey,
-        ).then((chat) {
-          if (generatedPubKeyComb != null) {
-            BaseKey.combine(generatedKeys.keyPair, otherParticipant.pubKey!)
-                .then((baseKey) {
-              if (baseKey != null) {
-                BaseKey.setKeys(
-                    chatUid: chat.uid,
-                    baseKey: baseKey.substring(0, 32),
-                    private: generatedKeys.keyPair);
-              }
-            });
-          } else {
-            //means that the other participant has not yet shared their key yet and we should only set private key
-            BaseKey.setKeys(chatUid: chat.uid, private: generatedKeys.keyPair);
-          }
-        });
+
+        if (generatedPubKeyComb != null) {
+          BaseKey.combine(generatedKeys.keyPair, otherParticipant.pubKey!)
+              .then((baseKey) {
+            if (baseKey != null) {
+              BaseKey.setKeys(
+                  chatUid: chat.uid,
+                  baseKey: baseKey.substring(0, 32),
+                  private: generatedKeys.keyPair,
+                  pubCombo: generatedPubKeyComb);
+              updatePubKey(
+                chatUid: chat.uid,
+                pubKey: generatedKeys.publicKey,
+              );
+            }
+          });
+        } else {
+          //means that the other participant has not yet shared their key yet and we should only set private key
+          BaseKey.setKeys(chatUid: chat.uid, private: generatedKeys.keyPair);
+        }
       });
     }
 
@@ -278,7 +275,15 @@ class ChatService {
           //means that both participants have shared their keys and we should check if pubKeys match
           if (keys.pubCombo != pubKeyComb) {
             //if pubKeys do not match then we should reset the sync
-            generateKeys(thisParticipant, otherParticipant);
+            BaseKey.combine(keys.private!, otherParticipant.pubKey!)
+                .then((baseKey) {
+              if (baseKey != null) {
+                BaseKey.setKeys(
+                    chatUid: chat.uid,
+                    baseKey: baseKey.substring(0, 32),
+                    pubCombo: pubKeyComb);
+              }
+            });
           }
           //else all is good
         }
@@ -338,5 +343,18 @@ class ChatService {
   updateChatLastSeen({String? chatUid}) {
     ChatSocket.emitWAck(SocketChannelTypes.chat,
         ChatEventTypes.updateChatLastSeen, chatUid ?? 'all');
+  }
+
+  getChat({int? chatId, String? chatUid}) {
+    if (chatId != null) {
+      return obx.chats.get(chatId);
+    } else if (chatUid != null) {
+      final query = obx.chats.query(Chat_.uid.equals(chatUid)).build();
+      final chat = query.findFirst();
+      query.close();
+      return chat;
+    } else {
+      return null;
+    }
   }
 }

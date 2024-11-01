@@ -50,6 +50,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   late String participantNames;
   String? baseKey;
 
+  StreamSubscription? basekeyListener;
+
   final FlutterSoundPlayer player = FlutterSoundPlayer();
 
   static const _pageSize = 10;
@@ -76,6 +78,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     chat = widget.chat;
     participantNames =
         chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
+
+    basekeyListener = BaseKey.baseKeySubject.stream.listen((chatUid) {
+      if (chatUid == chat.uid) {
+        setBaseKey();
+      }
+    });
+
     setBaseKey();
 
     AppState.setOpenedChatId(widget.chat.uid);
@@ -108,6 +117,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     _isarSubscription?.cancel();
     _passController.dispose();
     _pagingController.dispose();
+    basekeyListener?.cancel();
     super.dispose();
   }
 
@@ -317,8 +327,14 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   Widget build(BuildContext context) {
     ref.listen<List<Chat>>(chatsProvider, (prev, next) {
       setState(() {
-        chat = next.firstWhere((c) => c.uid == widget.chat.uid);
-        setBaseKey();
+        late final Chat? chatOrNull;
+        chatOrNull = next.firstWhereOrNull((c) => c.uid == widget.chat.uid);
+        if (chatOrNull != null) {
+          chat = chatOrNull;
+          setBaseKey();
+        } else {
+          Navigator.popUntil(context, (r) => r.isFirst);
+        }
       });
 
       if (chat.name == null) {

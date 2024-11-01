@@ -41,7 +41,6 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode searchFocus = FocusNode();
-  late final List<Contact> contacts = ref.read(contactsProvider);
   String searchValue = '';
   List<Participant>? participants;
 
@@ -69,6 +68,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Contact> contacts = ref.watch(contactsProvider);
     late final List<Contact> contactsToUse;
     if (searchValue.isNotEmpty) {
       final contactsAfterSearch = contacts

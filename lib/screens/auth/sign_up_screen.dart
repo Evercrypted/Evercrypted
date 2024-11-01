@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
+import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import './sign_in_screen.dart';
@@ -24,25 +25,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   bool _shouldShowLoading = false;
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _confirmController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
+  final _passFocus = FocusNode();
+  final _confirmFocus = FocusNode();
 
   final AuthService _authService = AuthService();
 
-  AuthForm formValues = AuthForm();
-
   void submitForm(BuildContext context) async {
     FocusManager.instance.primaryFocus?.unfocus();
-    formValues = AuthForm();
 
     if (_form.currentState!.validate()) {
       _form.currentState!.save();
 
-      if (formValues.email != null && formValues.password != null) {
+      if (_emailController.text.isNotEmpty &&
+          _passController.text.isNotEmpty &&
+          _confirmController.text.isNotEmpty &&
+          _passController.text == _confirmController.text) {
         setState(() {
           _shouldShowLoading = true;
         });
 
-        _authService.signUp(formValues).then((result) {
+        _authService
+            .signUp(AuthForm(
+                email: _emailController.text, password: _passController.text))
+            .then((result) {
           if (result['success']) {
             setState(() {
               _shouldShowLoading = false;
@@ -84,7 +92,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   void dispose() {
-    _passwordController.dispose();
+    _emailController.dispose();
+    _confirmController.dispose();
+    _passController.dispose();
+    _passFocus.dispose();
+    _confirmFocus.dispose();
     super.dispose();
   }
 
@@ -117,13 +129,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     children: [
                       TextFormField(
                         validator: validateEmail,
+                        controller: _emailController,
                         decoration: const InputDecoration(
                           labelText: 'Email',
                         ),
-                        textInputAction: TextInputAction.next,
-                        keyboardType: TextInputType.emailAddress,
-                        onSaved: (value) {
-                          formValues.email = value;
+                        keyboardType: TextInputType.none,
+                        onTap: () {
+                          openSecretInput(
+                              isSingleLine: true,
+                              fieldName: 'Email',
+                              context: context,
+                              controller: _emailController,
+                              done: (val) {
+                                _emailController.text = val.text;
+                                if (_passController.text.isEmpty) {
+                                  FocusScope.of(context)
+                                      .requestFocus(_passFocus);
+                                  openSecretInput(
+                                      fieldName: 'Password',
+                                      isPasswordLike: true,
+                                      isSingleLine: true,
+                                      context: context,
+                                      controller: _passController,
+                                      done: (val) {
+                                        _passController.text = val.text;
+                                        if (_confirmController.text.isEmpty) {
+                                          FocusScope.of(context)
+                                              .requestFocus(_confirmFocus);
+                                          openSecretInput(
+                                              fieldName: 'Confirm Password',
+                                              isPasswordLike: true,
+                                              isSingleLine: true,
+                                              context: context,
+                                              controller: _confirmController,
+                                              done: (val) {
+                                                _confirmController.text =
+                                                    val.text;
+                                                submitForm(context);
+                                              });
+                                        }
+                                      });
+                                }
+                              });
                         },
                       ),
                       Padding(
@@ -131,8 +178,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             vertical: defaultPadding),
                         child: TextFormField(
                           validator: validatePassword,
-                          controller: _passwordController,
-                          textInputAction: TextInputAction.next,
+                          controller: _passController,
+                          focusNode: _passFocus,
+                          keyboardType: TextInputType.none,
                           decoration: InputDecoration(
                             labelText: 'Password',
                             errorMaxLines: 3,
@@ -148,8 +196,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           obscureText: !_passwordVisible,
-                          onSaved: (value) {
-                            formValues.password = value;
+                          onTap: () {
+                            openSecretInput(
+                                fieldName: 'Password',
+                                isSingleLine: true,
+                                isPasswordLike: true,
+                                context: context,
+                                controller: _passController,
+                                done: (val) {
+                                  _passController.text = val.text;
+                                  if (_confirmController.text.isEmpty) {
+                                    FocusScope.of(context)
+                                        .requestFocus(_confirmFocus);
+                                    openSecretInput(
+                                        fieldName: 'Confirm Password',
+                                        isSingleLine: true,
+                                        isPasswordLike: true,
+                                        context: context,
+                                        controller: _confirmController,
+                                        done: (val) {
+                                          _confirmController.text = val.text;
+                                          submitForm(context);
+                                        });
+                                  }
+                                });
                           },
                         ),
                       ),
@@ -160,12 +230,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           validator: (val) {
                             if (val == null || val.isEmpty) {
                               return 'Field should not be empty.';
-                            } else if (val != _passwordController.text) {
+                            } else if (val != _passController.text) {
                               return 'Passwords do not match.';
                             }
                             return null;
                           },
-                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.none,
+                          controller: _confirmController,
+                          focusNode: _confirmFocus,
                           decoration: InputDecoration(
                             labelText: 'Confirm Password',
                             suffixIcon: IconButton(
@@ -181,8 +253,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           obscureText: !_confirmPasswordVisible,
-                          onFieldSubmitted: (_) {
-                            submitForm(context);
+                          onTap: () {
+                            openSecretInput(
+                                fieldName: 'Confirm Password',
+                                isPasswordLike: true,
+                                isSingleLine: true,
+                                context: context,
+                                controller: _confirmController,
+                                done: (val) {
+                                  _confirmController.text = val.text;
+                                  submitForm(context);
+                                });
                           },
                         ),
                       ),

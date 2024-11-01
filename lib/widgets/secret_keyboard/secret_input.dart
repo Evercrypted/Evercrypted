@@ -4,12 +4,21 @@ import 'package:evercrypted/widgets/secret_keyboard/keyboard.dart';
 import 'package:evercrypted/widgets/secret_keyboard/keyboards.dart';
 import 'package:flutter/material.dart';
 
-openSecretInput({required context, required controller, done}) {
+openSecretInput(
+    {required context,
+    required controller,
+    done,
+    String? fieldName,
+    bool isPasswordLike = false,
+    bool isSingleLine = false}) {
   showDialog(
       context: context,
       builder: (BuildContext context) => Dialog.fullscreen(
             child: SecretInput(
               originalText: controller.text,
+              fieldName: fieldName,
+              isPasswordLike: isPasswordLike,
+              isSingleLine: isSingleLine,
             ),
           )).then((value) {
     if (value?.text.isNotEmpty ?? false) {
@@ -23,10 +32,16 @@ openSecretInput({required context, required controller, done}) {
 
 class SecretInput extends StatefulWidget {
   const SecretInput(
-      {super.key, this.originalText, this.isPasswordLike = false});
+      {super.key,
+      this.originalText,
+      this.isPasswordLike = false,
+      this.isSingleLine = false,
+      this.fieldName});
 
+  final String? fieldName;
   final String? originalText;
   final bool isPasswordLike;
+  final bool isSingleLine;
 
   @override
   SecretInputState createState() => SecretInputState();
@@ -136,24 +151,44 @@ class SecretInputState extends State<SecretInput>
             Container(
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
-              color: Colors.black.withOpacity(0.5),
-              child: Container(
-                margin:
-                    const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-                child: TextField(
-                  controller: _textController,
-                  keyboardType: TextInputType.none,
-                  style: const TextStyle(color: Colors.white, fontSize: 20),
-                  autofocus: true,
-                  showCursor: true,
-                  cursorColor: Colors.white,
-                  cursorHeight: 15,
-                  cursorWidth: 2,
-                  enableInteractiveSelection: true,
-                  expands: true,
-                  minLines: null,
-                  maxLines: null,
-                ),
+              color: const Color.fromRGBO(0, 0, 0, 1).withOpacity(0.55),
+              child: Column(
+                children: [
+                  if (widget.fieldName != null)
+                    Container(
+                      margin: const EdgeInsets.only(top: 10),
+                      child: Text(widget.fieldName!,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.only(
+                          top: 10, left: 15, right: 15, bottom: 300),
+                      child: TextField(
+                        decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            fillColor: Colors.transparent),
+                        textAlignVertical: TextAlignVertical.center,
+                        controller: _textController,
+                        keyboardType: TextInputType.none,
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 24),
+                        autofocus: true,
+                        showCursor: true,
+                        cursorColor: Colors.white,
+                        cursorHeight: 24,
+                        cursorWidth: 3,
+                        enableInteractiveSelection: true,
+                        expands: widget.isSingleLine ? false : true,
+                        minLines: widget.isSingleLine ? 1 : null,
+                        maxLines: widget.isSingleLine ? 1 : null,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Container(
@@ -322,28 +357,32 @@ class SecretInputState extends State<SecretInput>
                                   child: const Icon(Icons.backspace,
                                       color: Colors.white)),
                             ),
-                            Container(
-                              height: Keyboard.defaultHeight,
-                              margin: EdgeInsets.only(
-                                  top: Keyboard.defaultMargins.top,
-                                  bottom: Keyboard.defaultMargins.bottom,
-                                  left: Keyboard.defaultMargins.left,
-                                  right: Keyboard.defaultMargins.right),
-                              child: HighlightedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    minimumSize: Size.zero,
-                                    padding: const EdgeInsets.only(
-                                        top: 2, bottom: 2, left: 13, right: 15),
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _textController.text += "\n";
-                                    });
-                                  },
-                                  child: const Icon(
-                                      Icons.subdirectory_arrow_left,
-                                      color: Colors.white)),
-                            ),
+                            if (!widget.isSingleLine)
+                              Container(
+                                height: Keyboard.defaultHeight,
+                                margin: EdgeInsets.only(
+                                    top: Keyboard.defaultMargins.top,
+                                    bottom: Keyboard.defaultMargins.bottom,
+                                    left: Keyboard.defaultMargins.left,
+                                    right: Keyboard.defaultMargins.right),
+                                child: HighlightedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      minimumSize: Size.zero,
+                                      padding: const EdgeInsets.only(
+                                          top: 2,
+                                          bottom: 2,
+                                          left: 13,
+                                          right: 15),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _textController.text += "\n";
+                                      });
+                                    },
+                                    child: const Icon(
+                                        Icons.subdirectory_arrow_left,
+                                        color: Colors.white)),
+                              ),
                           ],
                         ),
                       ],

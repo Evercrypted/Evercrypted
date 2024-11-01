@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
+import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../../widgets/primary_button.dart';
@@ -20,21 +21,27 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _form = GlobalKey<FormState>();
-
   bool _passwordVisible = false;
   bool _shouldShowLoading = false;
-
   AuthForm formValues = AuthForm();
-
+  final TextEditingController _emailField = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
+  final _passFocus = FocusNode();
   final AuthService _authService = AuthService();
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _emailField.dispose();
+    _passController.dispose();
+    _passFocus.dispose();
+    super.dispose();
+  }
 
   void submitForm(BuildContext context) async {
     FocusManager.instance.primaryFocus?.unfocus();
-    formValues = AuthForm();
 
     if (_form.currentState!.validate()) {
-      _form.currentState!.save();
-
       if (formValues.email != null && formValues.password != null) {
         setState(() {
           _shouldShowLoading = true;
@@ -42,6 +49,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
         _authService.singIn(formValues).then((result) {
           if (result['success'] == true) {
+            formValues = AuthForm();
             setState(() {
               _shouldShowLoading = false;
             });
@@ -104,21 +112,46 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Column(
                       children: [
                         TextFormField(
+                          controller: _emailField,
                           validator: validateEmail,
                           decoration: const InputDecoration(
                             labelText: 'Email',
                           ),
                           textInputAction: TextInputAction.next,
-                          keyboardType: TextInputType.emailAddress,
-                          onSaved: (value) {
-                            formValues.email = value;
+                          keyboardType: TextInputType.none,
+                          onTap: () {
+                            openSecretInput(
+                                fieldName: 'Email',
+                                context: context,
+                                controller: _emailField,
+                                isSingleLine: true,
+                                done: (val) {
+                                  formValues.email = val.text;
+                                  if (_passController.text.isEmpty) {
+                                    FocusScope.of(context)
+                                        .requestFocus(_passFocus);
+                                    openSecretInput(
+                                        fieldName: 'Password',
+                                        isPasswordLike: true,
+                                        isSingleLine: true,
+                                        context: context,
+                                        controller: _passController,
+                                        done: (val) {
+                                          formValues.password = val.text;
+                                          submitForm(context);
+                                        });
+                                  }
+                                });
                           },
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: defaultPadding),
                           child: TextFormField(
+                            controller: _passController,
+                            focusNode: _passFocus,
                             textInputAction: TextInputAction.next,
+                            keyboardType: TextInputType.none,
                             decoration: InputDecoration(
                               labelText: 'Password',
                               errorMaxLines: 3,
@@ -134,8 +167,17 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             ),
                             obscureText: !_passwordVisible,
-                            onSaved: (value) {
-                              formValues.password = value;
+                            onTap: () {
+                              openSecretInput(
+                                  fieldName: 'Password',
+                                  isPasswordLike: true,
+                                  isSingleLine: true,
+                                  context: context,
+                                  controller: _passController,
+                                  done: (val) {
+                                    formValues.password = val.text;
+                                    submitForm(context);
+                                  });
                             },
                           ),
                         ),

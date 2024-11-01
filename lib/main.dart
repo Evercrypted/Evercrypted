@@ -80,6 +80,7 @@ void main() async {
       // Setting to 1.0 will profile 100% of sampled transactions:
       options.profilesSampleRate = 1.0;
       options.debug = true;
+      options.diagnosticLevel = SentryLevel.error;
     },
     appRunner: () => runApp(const ProviderScope(child: MyApp())),
   );
@@ -377,6 +378,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
         .watch()
         .map((query) => query.find())
         .listen((contacts) {
+      print('contacts: ${contacts.map((e) => e.toJson()).toList()}');
       ref.read(contactsProvider.notifier).setContacts(contacts);
     });
     //chats

@@ -82,17 +82,24 @@ class AuthService {
           value.bodyToJson['mac'],
           keys['key'],
         );
-        Auth.setAuth(
-            profile: Profile(
-                uid: payload['uid'],
-                email: payload['email'] ?? payload['preverified_email'],
-                emailVerified: payload['email_verified'] as bool),
-            newToken: payload['access_token'] as String,
-            newIsOtpActive: payload['otp_active'] as bool);
-        return {
-          'success': true,
-          'payload': payload,
-        };
+        if (payload['error'] != null) {
+          return {
+            'success': false,
+            'message': payload['message'],
+          };
+        } else {
+          Auth.setAuth(
+              profile: Profile(
+                  uid: payload['uid'],
+                  email: payload['email'] ?? payload['preverified_email'],
+                  emailVerified: payload['email_verified'] as bool),
+              newToken: payload['access_token'] as String,
+              newIsOtpActive: payload['otp_active'] as bool);
+          return {
+            'success': true,
+            'payload': payload,
+          };
+        }
       },
     );
   }
@@ -142,8 +149,6 @@ class AuthService {
     final identifier =
         DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
-    final otptkn = await Auth.getOtpToken;
-    print('otpTkn $otptkn');
     final crypted = await encodePayload(
         {'type': SettingsEventTypes.login2FA, 'code': code}, keys['key']);
     return HttpClient.client

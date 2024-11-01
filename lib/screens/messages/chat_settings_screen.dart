@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
@@ -24,16 +25,28 @@ class ChatSettingsScreen extends ConsumerStatefulWidget {
 class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
   ChatService chatService = ChatService();
   late Participant user;
+  late Chat chat;
 
   @override
   void initState() {
+    chat = widget.chat;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    Chat chat =
-        ref.watch(chatsProvider).firstWhere((c) => c.uid == widget.chat.uid);
+    ref.listen<List<Chat>>(chatsProvider, (prev, next) {
+      setState(() {
+        late final Chat? chatOrNull;
+        chatOrNull = next.firstWhereOrNull((c) => c.uid == widget.chat.uid);
+        if (chatOrNull != null) {
+          chat = chatOrNull;
+        } else {
+          Navigator.popUntil(context, (r) => r.isFirst);
+        }
+      });
+    });
+
     user = chat.participants.firstWhere((p) => p.email == Auth.getUser!.email);
     return Scaffold(
         appBar: AppBar(
@@ -161,7 +174,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                 ),
               ),
             ],
-            if (!user.isCreator) ...[
+            if (!user.isCreator && !chat.isOneToOne) ...[
               const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),

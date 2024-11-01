@@ -217,7 +217,8 @@ class SocketEventsService {
           'Contact',
           'Your contact $creatorEmail has created a chat with you',
           json.encode({
-            'type': null,
+            'type': NotificationEventTypes.goToChatPage,
+            'chatId': chat.id,
           }),
         );
         break;
