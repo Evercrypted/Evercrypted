@@ -127,20 +127,6 @@ class _SignInScreenState extends State<SignInScreen> {
                                 isSingleLine: true,
                                 done: (val) {
                                   formValues.email = val.text;
-                                  if (_passController.text.isEmpty) {
-                                    FocusScope.of(context)
-                                        .requestFocus(_passFocus);
-                                    openSecretInput(
-                                        fieldName: 'Password',
-                                        isPasswordLike: true,
-                                        isSingleLine: true,
-                                        context: context,
-                                        controller: _passController,
-                                        done: (val) {
-                                          formValues.password = val.text;
-                                          submitForm(context);
-                                        });
-                                  }
                                 });
                           },
                         ),
@@ -170,7 +156,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             onTap: () {
                               openSecretInput(
                                   fieldName: 'Password',
-                                  isPasswordLike: true,
+                                  obscureText: true,
                                   isSingleLine: true,
                                   context: context,
                                   controller: _passController,

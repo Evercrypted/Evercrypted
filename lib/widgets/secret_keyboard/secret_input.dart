@@ -9,7 +9,7 @@ openSecretInput(
     required controller,
     done,
     String? fieldName,
-    bool isPasswordLike = false,
+    bool obscureText = false,
     bool isSingleLine = false}) {
   showDialog(
       context: context,
@@ -17,7 +17,7 @@ openSecretInput(
             child: SecretInput(
               originalText: controller.text,
               fieldName: fieldName,
-              isPasswordLike: isPasswordLike,
+              obscureText: obscureText,
               isSingleLine: isSingleLine,
             ),
           )).then((value) {
@@ -34,13 +34,13 @@ class SecretInput extends StatefulWidget {
   const SecretInput(
       {super.key,
       this.originalText,
-      this.isPasswordLike = false,
+      this.obscureText = false,
       this.isSingleLine = false,
       this.fieldName});
 
   final String? fieldName;
   final String? originalText;
-  final bool isPasswordLike;
+  final bool obscureText;
   final bool isSingleLine;
 
   @override
@@ -56,6 +56,7 @@ class SecretInputState extends State<SecretInput>
   List<String> availableKeyboards = Keyboards.availableKeyboards;
   bool isShifted = false;
   bool isSpecial = false;
+  bool shouldObscureText = false;
 
   String activeLanguage = 'English';
   Keyboard activeKeyboard = Keyboards.getKeyboard();
@@ -66,6 +67,9 @@ class SecretInputState extends State<SecretInput>
   @override
   void initState() {
     super.initState();
+    if (widget.obscureText) {
+      shouldObscureText = true;
+    }
     if (widget.originalText != null) {
       _textController.text = widget.originalText!;
     }
@@ -174,6 +178,7 @@ class SecretInputState extends State<SecretInput>
                         textAlignVertical: TextAlignVertical.center,
                         controller: _textController,
                         keyboardType: TextInputType.none,
+                        obscureText: shouldObscureText ? true : false,
                         style:
                             const TextStyle(color: Colors.white, fontSize: 24),
                         autofocus: true,
@@ -431,13 +436,14 @@ class SecretInputState extends State<SecretInput>
                                 }),
                             IconButton(
                                 onPressed: () {
-                                  Navigator.of(context).pop((
-                                    text: _textController.text,
-                                    done: false,
-                                  ));
+                                  setState(() {
+                                    shouldObscureText = !shouldObscureText;
+                                  });
                                 },
-                                icon: const Icon(
-                                  Icons.visibility,
+                                icon: Icon(
+                                  shouldObscureText
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: Colors.white,
                                   size: 25,
                                 )),

@@ -142,34 +142,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               controller: _emailController,
                               done: (val) {
                                 _emailController.text = val.text;
-                                if (_passController.text.isEmpty) {
-                                  FocusScope.of(context)
-                                      .requestFocus(_passFocus);
-                                  openSecretInput(
-                                      fieldName: 'Password',
-                                      isPasswordLike: true,
-                                      isSingleLine: true,
-                                      context: context,
-                                      controller: _passController,
-                                      done: (val) {
-                                        _passController.text = val.text;
-                                        if (_confirmController.text.isEmpty) {
-                                          FocusScope.of(context)
-                                              .requestFocus(_confirmFocus);
-                                          openSecretInput(
-                                              fieldName: 'Confirm Password',
-                                              isPasswordLike: true,
-                                              isSingleLine: true,
-                                              context: context,
-                                              controller: _confirmController,
-                                              done: (val) {
-                                                _confirmController.text =
-                                                    val.text;
-                                                submitForm(context);
-                                              });
-                                        }
-                                      });
-                                }
                               });
                         },
                       ),
@@ -200,25 +172,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             openSecretInput(
                                 fieldName: 'Password',
                                 isSingleLine: true,
-                                isPasswordLike: true,
+                                obscureText: true,
                                 context: context,
                                 controller: _passController,
                                 done: (val) {
                                   _passController.text = val.text;
-                                  if (_confirmController.text.isEmpty) {
-                                    FocusScope.of(context)
-                                        .requestFocus(_confirmFocus);
-                                    openSecretInput(
-                                        fieldName: 'Confirm Password',
-                                        isSingleLine: true,
-                                        isPasswordLike: true,
-                                        context: context,
-                                        controller: _confirmController,
-                                        done: (val) {
-                                          _confirmController.text = val.text;
-                                          submitForm(context);
-                                        });
-                                  }
                                 });
                           },
                         ),
@@ -256,7 +214,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           onTap: () {
                             openSecretInput(
                                 fieldName: 'Confirm Password',
-                                isPasswordLike: true,
+                                obscureText: true,
                                 isSingleLine: true,
                                 context: context,
                                 controller: _confirmController,

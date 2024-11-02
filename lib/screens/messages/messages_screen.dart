@@ -197,6 +197,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           textInputAction: TextInputAction.done,
                           onTap: () {
                             openSecretInput(
+                                isSingleLine: true,
+                                obscureText: true,
                                 context: context,
                                 controller: _passController,
                                 done: (val) => setPass(val.text));
