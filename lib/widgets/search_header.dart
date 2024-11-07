@@ -23,9 +23,6 @@ class SearchHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-          border: Border(
-              bottom: BorderSide(color: Colors.grey[200] ?? Colors.grey))),
       padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
       height: 44,
       child: Row(
@@ -57,22 +54,22 @@ class SearchHeader extends StatelessWidget {
           else
             Container(),
           if (searching)
-            IconButton(
-              icon: const Icon(
+            InkWell(
+              child: const Icon(
                 Icons.close,
                 size: 30,
               ),
-              onPressed: () {
+              onTap: () {
                 onCloseIconPressed();
               },
             )
           else
-            IconButton(
-              icon: const Icon(
+            InkWell(
+              child: const Icon(
                 Icons.search,
                 size: 30,
               ),
-              onPressed: () {
+              onTap: () {
                 onSearchIconPressed();
               },
             ),

@@ -9,8 +9,7 @@ import 'package:evercrypted/core/notifications/notification_events_service.dart'
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/objectbox.g.dart';
-// import 'package:evercrypted/objectbox.g.dart';
-import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
+// import 'package:evercrypted/screens/auth/change_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
 import 'package:evercrypted/screens/auth/signin_or_signup_screen.dart';
@@ -40,14 +39,14 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 late ObjectBox obx;
 
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  await Firebase.initializeApp();
+// @pragma('vm:entry-point')
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   // If you're going to use other Firebase services in the background, such as Firestore,
+//   // make sure you call `initializeApp` before using other Firebase services.
+//   await Firebase.initializeApp();
 
-  print("Handling a background message: ${message.messageId}");
-}
+//   print("Handling a background message: ${message.messageId}");
+// }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +54,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);s
 
   await FirebaseMessaging.instance.requestPermission(provisional: true);
 
@@ -102,7 +101,7 @@ class MyApp extends StatelessWidget {
           SigninOrSignupScreen.routeName: (ctx) => const SigninOrSignupScreen(),
           SignUpScreen.routeName: (ctx) => const SignUpScreen(),
           SignInScreen.routeName: (ctx) => const SignInScreen(),
-          ForgotPasswordScreen.routeName: (ctx) => const ForgotPasswordScreen(),
+          // ChangePasswordScreen.routeName: (ctx) => const ChangePasswordScreen(),
           ContactsScreen.routeName: (ctx) => const ContactsScreen(),
           AddNewContactScreen.routeName: (ctx) => const AddNewContactScreen(),
           OtpScreen.routeName: (ctx) => const OtpScreen(),

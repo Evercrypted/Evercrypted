@@ -1,7 +1,7 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
-import 'package:evercrypted/screens/auth/forgot_password_screen.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,10 +10,16 @@ import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
 import 'components/info.dart';
 import 'components/profile_pic.dart';
-import 'edit_profile_screen.dart';
 
-class ProfileScreen extends ConsumerWidget {
-  ProfileScreen({super.key});
+class ProfileScreen extends ConsumerStatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  ProfileScreenState createState() => ProfileScreenState();
+}
+
+class ProfileScreenState extends ConsumerState<ProfileScreen> {
+  late Color dialogPickerColor;
   final SettingsService settingsService = SettingsService();
 
   Future<void> _signOut() async {
@@ -21,18 +27,81 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    dialogPickerColor = Colors.red;
+  }
+
+  Future<bool> colorPickerDialog() async {
+    return ColorPicker(
+      // Use the dialogPickerColor as start color.
+      color: dialogPickerColor,
+      // Update the dialogPickerColor using the callback.
+      onColorChanged: (Color color) =>
+          setState(() => dialogPickerColor = color),
+      width: 40,
+      height: 40,
+      borderRadius: 4,
+      spacing: 5,
+      runSpacing: 5,
+      wheelDiameter: 155,
+      heading: Text(
+        'Select color',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      subheading: Text(
+        'Select color shade',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      wheelSubheading: Text(
+        'Selected color and its shades',
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      showMaterialName: true,
+      showColorName: true,
+      showColorCode: true,
+      copyPasteBehavior: const ColorPickerCopyPasteBehavior(
+        longPressMenu: true,
+      ),
+      materialNameTextStyle: Theme.of(context).textTheme.bodySmall,
+      colorNameTextStyle: Theme.of(context).textTheme.bodySmall,
+      colorCodeTextStyle: Theme.of(context).textTheme.bodySmall,
+      pickersEnabled: const <ColorPickerType, bool>{
+        ColorPickerType.both: false,
+        ColorPickerType.primary: true,
+        ColorPickerType.accent: true,
+        ColorPickerType.bw: false,
+        ColorPickerType.custom: true,
+        ColorPickerType.wheel: true,
+      },
+    ).showPickerDialog(
+      context,
+      // New in version 3.0.0 custom transitions support.
+      transitionBuilder: (BuildContext context, Animation<double> a1,
+          Animation<double> a2, Widget widget) {
+        final double curvedValue =
+            Curves.easeInOutBack.transform(a1.value) - 1.0;
+        return Transform(
+          transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+          child: Opacity(
+            opacity: a1.value,
+            child: widget,
+          ),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 400),
+      constraints:
+          const BoxConstraints(minHeight: 460, minWidth: 300, maxWidth: 320),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Settings"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
-          )
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
@@ -41,7 +110,9 @@ class ProfileScreen extends ConsumerWidget {
             ProfilePic(
               image: profile?.avatar?.pic,
               name: profile?.name ?? profile?.email?.split('@')[0],
-              btnPress: () {},
+              btnPress: () {
+                // colorPickerDialog().then((value) => print(dialogPickerColor));
+              },
             ),
             Text(
               profile?.name ?? '',
@@ -53,21 +124,11 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: defaultPadding),
             PrimaryButton(
-              padding: const EdgeInsets.all(5),
-              text: "Edit Profile",
-              press: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const EditProfileScreen(),
-                ),
-              ),
-            ),
-            PrimaryButton(
-              padding: const EdgeInsets.all(5),
-              text: "Forgot Password?",
-              press: () =>
-                  Navigator.pushNamed(context, ForgotPasswordScreen.routeName),
-            ),
+                padding: const EdgeInsets.all(5),
+                text: "Reset Password",
+                press: () {
+                  // reset password
+                }),
             PrimaryButton(
               padding: const EdgeInsets.all(5),
               text: Auth.isOtpActive! ? "Deactivate 2FA" : "Activate 2FA",

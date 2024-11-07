@@ -5,7 +5,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
-import './forgot_password_screen.dart';
 import './sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -179,10 +178,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextButton(
-                          onPressed: () => Navigator.pushNamed(
-                            context,
-                            ForgotPasswordScreen.routeName,
-                          ),
+                          onPressed: () {},
                           child: Text(
                             'Forgot Password?',
                             style: TextStyle(

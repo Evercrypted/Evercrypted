@@ -11,6 +11,8 @@ import 'sign_in_screen.dart';
 class ChangePasswordScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
 
+  static const routeName = '/change-password';
+
   ChangePasswordScreen({super.key});
 
   @override

@@ -1,8 +1,10 @@
 import 'package:collection/collection.dart';
-import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
+import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
+import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/screens/contacts/components/add_contact_button.dart';
 import 'package:evercrypted/screens/contacts/contact_screen.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
@@ -69,6 +71,12 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Contact> contacts = ref.watch(contactsProvider);
+    final List<ContactRequest> receivedRequests =
+        ref.watch(receivedRequestsProvider);
+
+    final isThereUnread =
+        receivedRequests.where((element) => element.unread == true).isNotEmpty;
+
     late final List<Contact> contactsToUse;
     if (searchValue.isNotEmpty) {
       final contactsAfterSearch = contacts
@@ -151,33 +159,82 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
           : null,
       body: Column(
         children: [
-          SearchHeader(
-              label: Text(
-                widget.isParticipantSelect ? 'Search' : 'Contacts',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: widget.isParticipantSelect
-                      ? FontWeight.normal
-                      : FontWeight.bold,
+          Container(
+            decoration: BoxDecoration(
+                border: Border(
+                    bottom:
+                        BorderSide(color: Colors.grey[200] ?? Colors.grey))),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SearchHeader(
+                      label: Text(
+                        widget.isParticipantSelect ? 'Search' : 'Contacts',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: widget.isParticipantSelect
+                              ? FontWeight.normal
+                              : FontWeight.bold,
+                        ),
+                      ),
+                      searching: searching,
+                      searchFocus: searchFocus,
+                      searchController: _searchController,
+                      onSearchIconPressed: () {
+                        setState(() {
+                          searching = true;
+                          searchFocus.requestFocus();
+                          openSecretInput(
+                              isSingleLine: true,
+                              fieldName: 'Search',
+                              context: context,
+                              controller: _searchController);
+                        });
+                      },
+                      onCloseIconPressed: () {
+                        setState(() {
+                          searching = false;
+                          _searchController.clear();
+                        });
+                      }),
                 ),
-              ),
-              searching: searching,
-              searchFocus: searchFocus,
-              searchController: _searchController,
-              onSearchIconPressed: () {
-                setState(() {
-                  searching = true;
-                  searchFocus.requestFocus();
-                  openSecretInput(
-                      context: context, controller: _searchController);
-                });
-              },
-              onCloseIconPressed: () {
-                setState(() {
-                  searching = false;
-                  _searchController.clear();
-                });
-              }),
+                InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, AddNewContactScreen.routeName);
+                    },
+                    child: Tooltip(
+                      message: 'Check received / sent requests',
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        child: Stack(
+                          children: [
+                            const Icon(Icons.mark_email_unread_outlined,
+                                color: primaryColor, size: 30),
+                            if (isThereUnread)
+                              Positioned(
+                                right: 0,
+                                top: 1,
+                                child: Container(
+                                  height: 13,
+                                  width: 13,
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: Theme.of(context)
+                                            .scaffoldBackgroundColor,
+                                        width: 2),
+                                  ),
+                                ),
+                              )
+                          ],
+                        ),
+                      ),
+                    ))
+              ],
+            ),
+          ),
           SizedBox(
               height: MediaQuery.of(context).size.height - 243,
               child: _contactList(
@@ -191,19 +248,20 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
       floatingActionButton: widget.isParticipantSelect
           ? null
           : Tooltip(
-              message: 'Check Contact Requests',
+              message: 'Add new contact',
               preferBelow: false,
-              child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, AddNewContactScreen.routeName);
+              child: AddContactButton(
+                afterCallback: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+                      return const AddNewContactScreen(
+                        initialTab: 'sent',
+                      );
+                    }),
+                  );
                 },
-                backgroundColor: primaryColor,
-                child: const Icon(
-                  Icons.person_add,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+              )),
     );
   }
 
