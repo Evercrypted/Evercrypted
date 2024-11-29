@@ -112,7 +112,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
     return Tooltip(
       message: 'Add new contact',
       preferBelow: false,
-      child: FloatingActionButton(
+      child: FloatingActionButton.extended(
         onPressed: () {
           showModalBottomSheet(
               context: context,
@@ -227,7 +227,11 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
               });
         },
         backgroundColor: primaryColor,
-        child: const Icon(
+        label: const Text(
+          'Add Contact',
+          style: TextStyle(color: Colors.white),
+        ),
+        icon: const Icon(
           Icons.person_add,
           color: Colors.white,
         ),

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:convert/convert.dart';
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 dynamic decodePayload(crypted, iv, mac, key, [bool notHex = false]) async {
   final algorithm = Chacha20.poly1305Aead();

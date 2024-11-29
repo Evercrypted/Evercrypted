@@ -35,7 +35,7 @@ import 'core/socket/socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'firebase_options.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+// import 'package:sentry_flutter/sentry_flutter.dart';
 
 late ObjectBox obx;
 
@@ -68,21 +68,22 @@ void main() async {
 
   await Rhttp.init();
   await HttpClient.initialize();
-  await SentryFlutter.init(
-    (options) {
-      options.dsn =
-          'https://e8035b86b950aadbfb29164b99cc0a2e@o4508054021210112.ingest.de.sentry.io/4508077446529104';
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
-      // We recommend adjusting this value in production.
-      options.tracesSampleRate = 1.0;
-      // The sampling rate for profiling is relative to tracesSampleRate
-      // Setting to 1.0 will profile 100% of sampled transactions:
-      options.profilesSampleRate = 1.0;
-      options.debug = true;
-      options.diagnosticLevel = SentryLevel.error;
-    },
-    appRunner: () => runApp(const ProviderScope(child: MyApp())),
-  );
+  // await SentryFlutter.init(
+  //   (options) {
+  //     options.dsn =
+  //         'https://e8035b86b950aadbfb29164b99cc0a2e@o4508054021210112.ingest.de.sentry.io/4508077446529104';
+  //     // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
+  //     // We recommend adjusting this value in production.
+  //     options.tracesSampleRate = 1.0;
+  //     // The sampling rate for profiling is relative to tracesSampleRate
+  //     // Setting to 1.0 will profile 100% of sampled transactions:
+  //     options.profilesSampleRate = 1.0;
+  //     options.debug = true;
+  //     options.diagnosticLevel = SentryLevel.error;
+  //   },
+  //   appRunner: () => runApp(const ProviderScope(child: MyApp())),
+  // );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
