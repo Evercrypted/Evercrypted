@@ -442,13 +442,14 @@ class ChatInputFieldState extends State<ChatInputField> {
                                                   .withOpacity(0.64),
                                         ),
                                       ),
-                                      IconButton(
-                                        onPressed: () {
+                                      InkWell(
+                                        onTap: () {
                                           sendMessage(_messageField.text);
                                         },
-                                        icon: const Icon(
-                                          Icons.send,
-                                          color: primaryColor,
+                                        onLongPress: () {},
+                                        child: Ink(
+                                          child: const Icon(Icons.send,
+                                              color: primaryColor),
                                         ),
                                       ),
                                     ],

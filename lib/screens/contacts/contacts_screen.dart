@@ -210,7 +210,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                         child: Stack(
                           children: [
                             const Icon(Icons.mark_email_unread_outlined,
-                                color: primaryColor, size: 30),
+                                size: 30),
                             if (isThereUnread)
                               Positioned(
                                 right: 0,

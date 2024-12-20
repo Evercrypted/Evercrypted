@@ -18,9 +18,11 @@ import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:swipe_to/swipe_to.dart';
 
 import '../../core/entities/message/message_model.dart';
 import '../../ui_constants.dart';
@@ -63,6 +65,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   late StreamSubscription isConnectedListener;
   bool isConnected = ChatSocket.isConnectedSubject.value;
+
+  final fabKey = GlobalKey<ExpandableFabState>();
+  bool areYouSureToDeleteAll = false;
 
   @override
   void initState() {
@@ -146,7 +151,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         builder: (BuildContext context) {
           return Wrap(children: [
             Container(
-              color: primaryColor,
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20)),
+              ),
               padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).viewInsets.bottom),
               child: Container(
@@ -427,6 +437,125 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             const SizedBox(width: defaultPadding / 4),
           ],
         ),
+        bottomNavigationBar: ChatInputField(
+            chatId: chat.uid, baseKey: baseKey, pass: pass, player: player),
+        floatingActionButton: ExpandableFab(
+          key: fabKey,
+          pos: ExpandableFabPos.left,
+          openButtonBuilder: RotateFloatingActionButtonBuilder(
+            child: const Icon(Icons.delete),
+            fabSize: ExpandableFabSize.small,
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.red,
+          ),
+          closeButtonBuilder: DefaultFloatingActionButtonBuilder(
+            child: const Icon(Icons.close),
+            fabSize: ExpandableFabSize.small,
+            foregroundColor: Colors.white,
+            backgroundColor: primaryColor,
+          ),
+          onClose: () {
+            setState(() {
+              areYouSureToDeleteAll = false;
+            });
+          },
+          children: [
+            if (areYouSureToDeleteAll) ...[
+              SwipeTo(
+                  offsetDx: 0.5,
+                  onRightSwipe: (details) {
+                    setState(() {
+                      areYouSureToDeleteAll = false;
+                    });
+                    fabKey.currentState?.toggle();
+                    fabKey.currentState?.toggle();
+                  },
+                  onLeftSwipe: (details) {
+                    setState(() {
+                      areYouSureToDeleteAll = false;
+                    });
+                    fabKey.currentState?.toggle();
+                    fabKey.currentState?.toggle();
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.red,
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Yes!',
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  )),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.black,
+                ),
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.delete_sweep,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Are you sure ?',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ] else
+              SwipeTo(
+                  offsetDx: 0.5,
+                  onRightSwipe: (details) {
+                    setState(() {
+                      areYouSureToDeleteAll = true;
+                    });
+                  },
+                  onLeftSwipe: (details) {
+                    setState(() {
+                      areYouSureToDeleteAll = true;
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.red,
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.delete_sweep,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Swipe to delete all messages',
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  )),
+          ],
+        ),
+        floatingActionButtonLocation: ExpandableFab.location,
         body: Column(
           children: [
             Expanded(
@@ -485,8 +614,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                 ),
               ),
             ),
-            ChatInputField(
-                chatId: chat.uid, baseKey: baseKey, pass: pass, player: player),
           ],
         ));
   }

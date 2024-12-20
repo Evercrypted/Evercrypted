@@ -1,4 +1,6 @@
 import 'package:animations/animations.dart';
+import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,42 +56,54 @@ class MainScreenState extends ConsumerState<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const ConnectionStatusAppbar(
-        title: null,
-        actions: null,
-      ),
-      body: PageTransitionSwitcher(
-        transitionBuilder: (
-          Widget child,
-          Animation<double> animation,
-          Animation<double> secondaryAnimation,
-        ) {
-          return FadeThroughTransition(
-            animation: animation,
-            secondaryAnimation: secondaryAnimation,
-            child: child,
-          );
-        },
-        child: pageList[pageIndex],
-      ),
-      bottomNavigationBar: Consumer(builder: (context, ref, _) {
-        return BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: pageIndex,
-          onTap: (value) {
+        appBar: const ConnectionStatusAppbar(
+          title: null,
+          actions: null,
+        ),
+        body: PageTransitionSwitcher(
+          transitionBuilder: (
+            Widget child,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+          ) {
+            return FadeThroughTransition(
+              animation: animation,
+              secondaryAnimation: secondaryAnimation,
+              child: child,
+            );
+          },
+          child: pageList[pageIndex],
+        ),
+        bottomNavigationBar: ConvexAppBar(
+          style: TabStyle.react,
+          backgroundColor: primaryColor,
+          items: [
+            TabItem(icon: Icons.messenger, title: 'Chats'),
+            TabItem(icon: Icons.people, title: 'Contacts'),
+            TabItem(icon: Icons.manage_accounts, title: 'Settings'),
+          ],
+          onTap: (int i) {
             setState(() {
-              pageIndex = value;
+              pageIndex = i;
             });
           },
-          items: const [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.messenger), label: "Chats"),
-            BottomNavigationBarItem(icon: Icon(Icons.people), label: "People"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.manage_accounts), label: "Settings"),
-          ],
+        )
+        //  BottomNavigationBar(
+        //   type: BottomNavigationBarType.fixed,
+        //   currentIndex: pageIndex,
+        //   onTap: (value) {
+        //     setState(() {
+        //       pageIndex = value;
+        //     });
+        //   },
+        //   items: const [
+        //     BottomNavigationBarItem(
+        //         icon: Icon(Icons.messenger), label: "Chats"),
+        //     BottomNavigationBarItem(icon: Icon(Icons.people), label: "People"),
+        //     BottomNavigationBarItem(
+        //         icon: Icon(Icons.manage_accounts), label: "Settings"),
+        //   ],
+        // ),
         );
-      }),
-    );
   }
 }
