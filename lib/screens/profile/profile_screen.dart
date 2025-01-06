@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
@@ -127,7 +128,15 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.all(5),
                 text: "Reset Password",
                 press: () {
-                  // reset password
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(25.0)),
+                    ),
+                    builder: (BuildContext context) => const ResetPassword(),
+                  );
                 }),
             PrimaryButton(
               padding: const EdgeInsets.all(5),

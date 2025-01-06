@@ -114,7 +114,7 @@ class ChatSocket {
     io.cache.clear();
     socket = io.io('http://10.0.2.2:4000', options.build());
     // socket = io.io('http://localhost:4000', options.build());
-    // socket = io.io('http://49.13.136.216:8080', options.build());
+    // socket = io.io('http://188.245.154.95:8080', options.build());
 
     if (socket?.connected != true) {
       socket?.connect();
@@ -152,13 +152,10 @@ class ChatSocket {
         isConnected = false;
         isConnectedSubject.add(isConnected!);
       } else {
-        final message =
-            data is SocketException ? data.message : data['message'];
-        if (data != null && message == 'Connection refused') {
-          isConnected = false;
-          isConnected = false;
-          isConnectedSubject.add(isConnected!);
-        }
+        print(data is String ? data : data.toString());
+        isConnected = false;
+        isConnected = false;
+        isConnectedSubject.add(isConnected!);
       }
     });
 

@@ -346,4 +346,12 @@ class MessageService {
     obx.messages.put(message);
     obx.chats.put(chat);
   }
+
+  Future<void> deleteAllMessages(String chatUid) async {
+    final query = obx.messages.query(Message_.chatUid.equals(chatUid)).build();
+    final messages = query.find();
+    final messageIds = messages.map((m) => m.id).toList();
+    obx.messages.removeMany(messageIds);
+    query.close();
+  }
 }

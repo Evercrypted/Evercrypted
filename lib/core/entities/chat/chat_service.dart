@@ -59,7 +59,9 @@ class ChatService {
       obx.messages.putMany(chat.messages);
     }
 
-    _doSyncForAllChats(allChats);
+    if (allChats.isNotEmpty) {
+      _doSyncForAllChats(allChats);
+    }
 
     obx.chats.putMany(allChats);
 

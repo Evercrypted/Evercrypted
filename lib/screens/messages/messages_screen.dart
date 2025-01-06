@@ -235,11 +235,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                             fillColor: Colors.white,
                             prefixIcon: Icon(
                               Icons.password,
-                              color: contentColorLightTheme.withOpacity(0.64),
+                              color: contentColorLightTheme
+                                  .withAlpha((0.64 * 255).round()),
                             ),
                             hintText: "Password",
                             hintStyle: TextStyle(
-                              color: contentColorLightTheme.withOpacity(0.64),
+                              color: contentColorLightTheme
+                                  .withAlpha((0.64 * 255).round()),
                             ),
                           ),
                         ),
@@ -463,19 +465,67 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             if (areYouSureToDeleteAll) ...[
               SwipeTo(
                   offsetDx: 0.5,
-                  onRightSwipe: (details) {
-                    setState(() {
-                      areYouSureToDeleteAll = false;
-                    });
-                    fabKey.currentState?.toggle();
-                    fabKey.currentState?.toggle();
+                  onRightSwipe: (details) async {
+                    try {
+                      // Disable swipe interaction while deleting
+                      setState(() {
+                        areYouSureToDeleteAll = false;
+                      });
+
+                      // Delete all messages
+                      await _messageService.deleteAllMessages(widget.chat.uid);
+
+                      // Only update UI after successful deletion
+                      if (mounted) {
+                        setState(() {
+                          _pagingController.itemList = [];
+                        });
+                        // Double toggle - first closes "Are you sure?", second closes the FAB
+                        fabKey.currentState?.toggle();
+                        fabKey.currentState?.toggle();
+                      }
+                    } catch (e) {
+                      // Handle error - revert UI if needed
+                      if (mounted) {
+                        setState(() {
+                          areYouSureToDeleteAll = true;
+                        });
+                        // Show error to user
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Failed to delete messages: $e')));
+                      }
+                    }
                   },
-                  onLeftSwipe: (details) {
-                    setState(() {
-                      areYouSureToDeleteAll = false;
-                    });
-                    fabKey.currentState?.toggle();
-                    fabKey.currentState?.toggle();
+                  onLeftSwipe: (details) async {
+                    try {
+                      // Disable swipe interaction while deleting
+                      setState(() {
+                        areYouSureToDeleteAll = false;
+                      });
+
+                      // Delete all messages
+                      await _messageService.deleteAllMessages(widget.chat.uid);
+
+                      // Only update UI after successful deletion
+                      if (mounted) {
+                        setState(() {
+                          _pagingController.itemList = [];
+                        });
+                        // Double toggle - first closes "Are you sure?", second closes the FAB
+                        fabKey.currentState?.toggle();
+                        fabKey.currentState?.toggle();
+                      }
+                    } catch (e) {
+                      // Handle error - revert UI if needed
+                      if (mounted) {
+                        setState(() {
+                          areYouSureToDeleteAll = true;
+                        });
+                        // Show error to user
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Failed to delete messages: $e')));
+                      }
+                    }
                   },
                   child: Container(
                     decoration: BoxDecoration(

@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
+import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -178,7 +179,18 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                         const SizedBox(height: defaultPadding),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(25.0)),
+                              ),
+                              builder: (BuildContext context) =>
+                                  const ResetPassword(),
+                            );
+                          },
                           child: Text(
                             'Forgot Password?',
                             style: TextStyle(

@@ -334,13 +334,15 @@ class SecretInputState extends State<SecretInput>
                                                 .substring(selectionEnd!);
                                       });
                                     } else {
-                                      setState(() {
-                                        _textController.text =
-                                            _textController.text.substring(
-                                                0,
-                                                _textController.text.length -
-                                                    1);
-                                      });
+                                      if (_textController.text.isNotEmpty) {
+                                        setState(() {
+                                          _textController.text =
+                                              _textController.text.substring(
+                                                  0,
+                                                  _textController.text.length -
+                                                      1);
+                                        });
+                                      }
                                     }
                                   },
                                   onLongPress: () {

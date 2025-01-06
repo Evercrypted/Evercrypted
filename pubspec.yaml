@@ -72,6 +72,7 @@ dependencies:
   swipe_to: 1.0.6
   convex_bottom_bar: ^3.2.0
   flutter_expandable_fab: ^2.3.0
+  timer_count_down: ^2.2.2
   # sentry_flutter: ^8.10.1
 
   collection: any
@@ -109,7 +110,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/secrets/
     - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -52,7 +52,7 @@ class VerificationScreenState extends State<VerificationScreen> {
                     .textTheme
                     .bodyLarge!
                     .color!
-                    .withOpacity(0.64),
+                    .withAlpha((0.64 * 255).round()),
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.04),
@@ -64,6 +64,7 @@ class VerificationScreenState extends State<VerificationScreen> {
               setState(() {
                 buttonDisableDuration = 60;
               });
+              if (disableInterval != null) disableInterval?.cancel();
               disableInterval = Timer.periodic(
                 const Duration(seconds: 1),
                 (timer) {
@@ -83,7 +84,7 @@ class VerificationScreenState extends State<VerificationScreen> {
             disabled: buttonDisableDuration != 0,
             child: buttonDisableDuration != 0
                 ? const SpinKitThreeBounce(
-                    color: primaryColor,
+                    color: Colors.white,
                     size: 17,
                   )
                 : null,

@@ -185,4 +185,27 @@ class AuthService {
       return resp;
     });
   }
+
+  Future forgotPassword(String email) async {
+    if (ChatSocket.socket?.connected == true &&
+        ChatSocket.isConnected == true) {
+      return ChatSocket.emitWAck(
+        SocketChannelTypes.auth,
+        AuthEventTypes.forgotPassword,
+        {'email': email},
+      ).then((resp) => true);
+    }
+
+    final identifier =
+        DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
+    final Map<String, dynamic> keys = await getLoginEncKey(identifier);
+    final crypted = await encodePayload({
+      'email': email,
+    }, keys['key']);
+
+    return HttpClient.client
+        .post('/auth/forgot-password',
+            body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
+        .then((resp) => true);
+  }
 }
