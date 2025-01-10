@@ -249,7 +249,7 @@ class SocketEventsService {
             .toList();
         await chatService.updateChatFromResp(chat);
         messageService
-            .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
+            .writeNewMessageToObx(Message.fromJson(payload['sysMessage']));
         LocalNotification.instance.displayNotification(
           'Participant Added',
           '${newParticipants.length > 1 ? 'Participants' : 'Participant'} ${newParticipants.map(
@@ -264,7 +264,7 @@ class SocketEventsService {
         final chat = Chat.fromJson(payload['chat']);
         chatService.addChat(chat);
         messageService
-            .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
+            .writeNewMessageToObx(Message.fromJson(payload['sysMessage']));
         LocalNotification.instance.displayNotification(
           'Added to Chat',
           'You have been added to chat - ${chat.name}',
@@ -278,7 +278,7 @@ class SocketEventsService {
         final participantName = payload['participantName'];
         await chatService.updateChatFromResp(chat);
         messageService
-            .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
+            .writeNewMessageToObx(Message.fromJson(payload['sysMessage']));
         LocalNotification.instance.displayNotification(
           'Participant Removed',
           'Participant $participantName has been removed from chat - ${chat.name}',
@@ -302,7 +302,7 @@ class SocketEventsService {
         final Chat chat = Chat.fromJson(payload['chat']);
         await chatService.updateChatFromResp(chat);
         messageService
-            .writeNewMessageToIsar(Message.fromJson(payload['sysMessage']));
+            .writeNewMessageToObx(Message.fromJson(payload['sysMessage']));
         final String userEmail = payload['userEmail'];
         LocalNotification.instance.displayNotification(
           'Left Chat',
@@ -326,7 +326,7 @@ class SocketEventsService {
     switch (type) {
       case MessageEventTypes.messageReceived:
         Message message = Message.fromJson(payload['message']);
-        await messageService.writeNewMessageToIsar(message);
+        await messageService.writeNewMessageToObx(message);
 
         List<Chat> chats = obx.chats.getAll();
         Chat? chat =

@@ -43,6 +43,7 @@ class ChatInputFieldState extends State<ChatInputField> {
   bool recordingPlaying = false;
   bool sendingFile = false;
   PlatformFile? file;
+  bool withBaseKey = false;
 
   IOS7SiriWaveformController waveFromController = IOS7SiriWaveformController(
     amplitude: 0,
@@ -65,6 +66,7 @@ class ChatInputFieldState extends State<ChatInputField> {
 
   void setFullKey() {
     if (widget.baseKey != null) {
+      withBaseKey = true;
       if (widget.pass != null) {
         fullKey = widget.baseKey!.substring(0, 32 - widget.pass!.length) +
             widget.pass!;
@@ -93,7 +95,7 @@ class ChatInputFieldState extends State<ChatInputField> {
     if (fullKey != null) {
       encr = await encodePayload(message, fullKey, true);
     }
-    _messageService.sendMessage(encr, widget.chatId);
+    _messageService.sendMessage(encr, widget.chatId, withBaseKey);
     _messageField.clear();
   }
 
@@ -169,6 +171,7 @@ class ChatInputFieldState extends State<ChatInputField> {
           durationMAC: ecnryptedMicroSeconds['mac'],
           createdAtMSE: DateTime.now().millisecondsSinceEpoch,
           chatUid: widget.chatId,
+          withBaseKey: withBaseKey,
         );
         fileToSend = encrypted.cryptedRecording;
       }
@@ -179,6 +182,7 @@ class ChatInputFieldState extends State<ChatInputField> {
         playbackDurationMicroSeconds: recordingMicroSeconds.toString(),
         createdAtMSE: DateTime.now().millisecondsSinceEpoch,
         chatUid: widget.chatId,
+        withBaseKey: withBaseKey,
       );
       fileToSend = base64.encode(utf8.encode(recordingData.toString()));
     }
@@ -266,6 +270,7 @@ class ChatInputFieldState extends State<ChatInputField> {
         isEncrypted: true,
         createdAtMSE: DateTime.now().millisecondsSinceEpoch,
         chatUid: widget.chatId,
+        withBaseKey: withBaseKey,
       );
       fileToSend = ecnrypted['crypted'];
     } else {
@@ -275,6 +280,7 @@ class ChatInputFieldState extends State<ChatInputField> {
         text: file!.name,
         createdAtMSE: DateTime.now().millisecondsSinceEpoch,
         chatUid: widget.chatId,
+        withBaseKey: withBaseKey,
       );
       fileToSend = base64.encode(utf8.encode(file!.bytes.toString()));
     }

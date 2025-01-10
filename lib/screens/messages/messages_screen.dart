@@ -102,7 +102,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       startingCreatedAtMSE = value ?? 0;
     }).then((value) async {
       _fetchPage(0).then((value) {
-        listenToIsarChanges();
+        listenToObxChanges();
         _pagingController.addPageRequestListener((pageKey) {
           _fetchPage(pageKey);
         });
@@ -283,7 +283,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     return lastMessageCreatedAtMSE;
   }
 
-  void listenToIsarChanges() {
+  void listenToObxChanges() {
     startedListeningToIsar = true;
     final query = obx.messages
         .query(Message_.chatUid

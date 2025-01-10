@@ -59,7 +59,8 @@ class MessageService {
     return result;
   }
 
-  Future<Message> sendMessage(dynamic message, String chatUid) async {
+  Future<Message> sendMessage(
+      dynamic message, String chatUid, bool withBaseKey) async {
     Message messageToSend;
     if (message is String) {
       messageToSend = Message(
@@ -67,6 +68,7 @@ class MessageService {
         text: message,
         createdAtMSE: DateTime.now().millisecondsSinceEpoch,
         chatUid: chatUid,
+        withBaseKey: withBaseKey,
       );
     } else {
       messageToSend = Message(
@@ -77,6 +79,7 @@ class MessageService {
         iv: message['iv'],
         mac: message['mac'],
         isEncrypted: true,
+        withBaseKey: withBaseKey,
       );
     }
     Completer<Message> complete = Completer();
@@ -97,13 +100,13 @@ class MessageService {
         messageToSend.uniqueId = chatUid + resp['messageUid'];
         messageToSend.successfullySent = true;
       }
-      writeNewMessageToIsar(messageToSend).then((value) {
+      writeNewMessageToObx(messageToSend).then((value) {
         complete.complete(messageToSend);
       });
     }).onError((error, stackTrace) {
       messageToSend.successfullySent = false;
       messageToSend.error = 'Could not send message';
-      writeNewMessageToIsar(messageToSend).then((value) {
+      writeNewMessageToObx(messageToSend).then((value) {
         complete.complete(messageToSend);
       });
       complete.completeError(error!);
@@ -215,7 +218,7 @@ class MessageService {
               msgUid: DateTime.now().microsecondsSinceEpoch.toString());
         }
         deleteFile(queueId: queueId!);
-        writeNewMessageToIsar(msg).then((value) {
+        writeNewMessageToObx(msg).then((value) {
           complete.complete(message);
         });
       }).onError((error, stackTrace) async {
@@ -226,7 +229,7 @@ class MessageService {
             chatUid: msg.chatUid,
             msgUid: DateTime.now().microsecondsSinceEpoch.toString());
         deleteFile(queueId: queueId!);
-        writeNewMessageToIsar(msg).then((value) {
+        writeNewMessageToObx(msg).then((value) {
           complete.complete(message);
         });
       });
@@ -266,7 +269,7 @@ class MessageService {
                 chatUid: message.chatUid,
                 msgUid: DateTime.now().microsecondsSinceEpoch.toString());
           }
-          writeNewMessageToIsar(message).then((value) {
+          writeNewMessageToObx(message).then((value) {
             complete.complete(message);
           });
         }).onError((error, stackTrace) async {
@@ -276,7 +279,7 @@ class MessageService {
               file: file,
               chatUid: message.chatUid,
               msgUid: DateTime.now().microsecondsSinceEpoch.toString());
-          writeNewMessageToIsar(message).then((value) {
+          writeNewMessageToObx(message).then((value) {
             complete.complete(message);
           });
         });
@@ -288,7 +291,7 @@ class MessageService {
         message.uniqueId = DateTime.now().millisecondsSinceEpoch.toString() +
             message.chatUid +
             saveToQueueIfNeeded['queuedItemId'].toString();
-        writeNewMessageToIsar(message).then((value) {
+        writeNewMessageToObx(message).then((value) {
           complete.complete(message);
         });
       }
@@ -338,12 +341,12 @@ class MessageService {
     return message;
   }
 
-  writeNewMessageToIsar(Message message) async {
+  writeNewMessageToObx(Message message) async {
     final query = obx.chats.query(Chat_.uid.equals(message.chatUid)).build();
     final Chat chat = query.findFirst()!;
     query.close();
     chat.lastMessageTime = DateTime.now();
-    obx.messages.put(message);
+    chat.messages.add(message);
     obx.chats.put(chat);
   }
 

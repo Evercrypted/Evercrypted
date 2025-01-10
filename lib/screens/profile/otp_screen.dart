@@ -205,7 +205,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     ChatSocket.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
       if (resp['activated'] == true && resp['otpToken'] != null) {
-        print('resp $resp');
         await Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
         await Auth.setOtpToken(otpToken: resp['otpToken']);
         ChatSocket.resetConnectionSubject.add(true);
