@@ -21,12 +21,14 @@ class ChatInputField extends StatefulWidget {
   final String? pass;
   final String? baseKey;
   final FlutterSoundPlayer player;
+  final Function onDelete;
   const ChatInputField(
       {super.key,
       required this.chatId,
       required this.player,
       this.pass,
-      this.baseKey});
+      this.baseKey,
+      required this.onDelete});
 
   @override
   ChatInputFieldState createState() => ChatInputFieldState();
@@ -418,6 +420,18 @@ class ChatInputFieldState extends State<ChatInputField> {
                 : Expanded(
                     child: Row(
                       children: [
+                        InkWell(
+                          onTap: () {
+                            widget.onDelete();
+                          },
+                          onLongPress: () {},
+                          child: Ink(
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: defaultPadding / 4),
                         if (file == null)
                           Expanded(

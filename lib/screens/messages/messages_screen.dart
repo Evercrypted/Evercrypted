@@ -67,7 +67,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   bool isConnected = ChatSocket.isConnectedSubject.value;
 
   final fabKey = GlobalKey<ExpandableFabState>();
-  bool areYouSureToDeleteAll = false;
+  bool showFab = false;
 
   @override
   void initState() {
@@ -337,6 +337,44 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     }
   }
 
+  onDelete({close = false}) {
+    if (showFab) {
+      fabKey.currentState?.toggle();
+      setState(() {
+        showFab = false;
+      });
+    } else {
+      setState(() {
+        showFab = true;
+      });
+      Future.delayed(const Duration(milliseconds: 100), () {
+        fabKey.currentState?.toggle();
+      });
+    }
+  }
+
+  deteleMessages() async {
+    try {
+      await _messageService.deleteAllMessages(widget.chat.uid);
+
+      // Only update UI after successful deletion
+      if (mounted) {
+        setState(() {
+          _pagingController.itemList = [];
+        });
+        // Double toggle - first closes "Are you sure?", second closes the FAB
+        fabKey.currentState?.toggle();
+      }
+    } catch (e) {
+      // Handle error - revert UI if needed
+      if (mounted) {
+        // Show error to user
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete messages: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<List<Chat>>(chatsProvider, (prev, next) {
@@ -440,152 +478,67 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           ],
         ),
         bottomNavigationBar: ChatInputField(
-            chatId: chat.uid, baseKey: baseKey, pass: pass, player: player),
-        floatingActionButton: ExpandableFab(
-          key: fabKey,
-          pos: ExpandableFabPos.left,
-          openButtonBuilder: RotateFloatingActionButtonBuilder(
-            child: const Icon(Icons.delete),
-            fabSize: ExpandableFabSize.small,
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.red,
-          ),
-          closeButtonBuilder: DefaultFloatingActionButtonBuilder(
-            child: const Icon(Icons.close),
-            fabSize: ExpandableFabSize.small,
-            foregroundColor: Colors.white,
-            backgroundColor: primaryColor,
-          ),
-          onClose: () {
-            setState(() {
-              areYouSureToDeleteAll = false;
-            });
-          },
-          children: [
-            if (areYouSureToDeleteAll) ...[
-              SwipeTo(
-                  offsetDx: 0.5,
-                  onRightSwipe: (details) async {
-                    try {
-                      // Disable swipe interaction while deleting
-                      setState(() {
-                        areYouSureToDeleteAll = false;
-                      });
-
-                      // Delete all messages
-                      await _messageService.deleteAllMessages(widget.chat.uid);
-
-                      // Only update UI after successful deletion
-                      if (mounted) {
-                        setState(() {
-                          _pagingController.itemList = [];
-                        });
-                        // Double toggle - first closes "Are you sure?", second closes the FAB
-                        fabKey.currentState?.toggle();
-                        fabKey.currentState?.toggle();
-                      }
-                    } catch (e) {
-                      // Handle error - revert UI if needed
-                      if (mounted) {
-                        setState(() {
-                          areYouSureToDeleteAll = true;
-                        });
-                        // Show error to user
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Failed to delete messages: $e')));
-                      }
-                    }
-                  },
-                  onLeftSwipe: (details) async {
-                    try {
-                      // Disable swipe interaction while deleting
-                      setState(() {
-                        areYouSureToDeleteAll = false;
-                      });
-
-                      // Delete all messages
-                      await _messageService.deleteAllMessages(widget.chat.uid);
-
-                      // Only update UI after successful deletion
-                      if (mounted) {
-                        setState(() {
-                          _pagingController.itemList = [];
-                        });
-                        // Double toggle - first closes "Are you sure?", second closes the FAB
-                        fabKey.currentState?.toggle();
-                        fabKey.currentState?.toggle();
-                      }
-                    } catch (e) {
-                      // Handle error - revert UI if needed
-                      if (mounted) {
-                        setState(() {
-                          areYouSureToDeleteAll = true;
-                        });
-                        // Show error to user
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Failed to delete messages: $e')));
-                      }
-                    }
-                  },
-                  child: Container(
+            chatId: chat.uid,
+            baseKey: baseKey,
+            pass: pass,
+            player: player,
+            onDelete: onDelete),
+        floatingActionButton: showFab
+            ? ExpandableFab(
+                key: fabKey,
+                pos: ExpandableFabPos.left,
+                openButtonBuilder: RotateFloatingActionButtonBuilder(
+                  child: const Icon(Icons.delete),
+                  fabSize: ExpandableFabSize.small,
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.red,
+                ),
+                closeButtonBuilder: DefaultFloatingActionButtonBuilder(
+                  child: const Icon(Icons.close),
+                  fabSize: ExpandableFabSize.small,
+                  foregroundColor: Colors.white,
+                  backgroundColor: primaryColor,
+                ),
+                onClose: () {
+                  setState(() {
+                    showFab = false;
+                  });
+                },
+                children: [
+                  SwipeTo(
+                      offsetDx: 0.5,
+                      onRightSwipe: (details) async {
+                        deteleMessages();
+                      },
+                      onLeftSwipe: (details) async {
+                        deteleMessages();
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.red,
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Yes!',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      )),
+                  Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color: Colors.red,
-                    ),
-                    padding: const EdgeInsets.all(10),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Yes!',
-                          style: TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  )),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.black,
-                ),
-                padding: const EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.delete_sweep,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Are you sure ?',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ] else
-              SwipeTo(
-                  offsetDx: 0.5,
-                  onRightSwipe: (details) {
-                    setState(() {
-                      areYouSureToDeleteAll = true;
-                    });
-                  },
-                  onLeftSwipe: (details) {
-                    setState(() {
-                      areYouSureToDeleteAll = true;
-                    });
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.red,
+                      color: Colors.black,
                     ),
                     padding: const EdgeInsets.all(10),
                     child: Row(
@@ -596,15 +549,16 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          'Swipe to delete all messages',
+                          'Swipe "YES" to delete all messages',
                           style: TextStyle(
                               color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
-                  )),
-          ],
-        ),
+                  ),
+                ],
+              )
+            : null,
         floatingActionButtonLocation: ExpandableFab.location,
         body: Column(
           children: [
