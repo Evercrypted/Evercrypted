@@ -262,9 +262,12 @@ class ChatService {
       return;
     } else {
       final thisParticipant = chat.participants
-          .firstWhere((element) => element.uid == Auth.getUser!.uid);
+          .firstWhereOrNull((element) => element.uid == Auth.getUser!.uid);
       final otherParticipant = chat.participants
-          .firstWhere((element) => element.uid != Auth.getUser!.uid);
+          .firstWhereOrNull((element) => element.uid != Auth.getUser!.uid);
+      if (thisParticipant == null || otherParticipant == null) {
+        return;
+      }
       String? pubKeyComb =
           BaseKey.pubkeyComb([thisParticipant, otherParticipant]);
       final ChatKeys? keys = await BaseKey.getKeys(chat.uid);

@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/fernet.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/objectbox.g.dart';

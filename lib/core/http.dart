@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:flutter/services.dart';
 import 'package:rhttp/rhttp.dart';
 
 class HttpClient {
@@ -13,7 +10,7 @@ class HttpClient {
         settings: ClientSettings(
       baseUrl: 'http://10.0.2.2:3001',
       // baseUrl: 'http://localhost:3001',
-      // baseUrl: 'https://188.245.154.95',
+      // baseUrl: 'https://test-api.evercrypted.com',
       tlsSettings: TlsSettings(verifyCertificates: false),
     ));
   }
@@ -24,7 +21,7 @@ class HttpClient {
       settings: ClientSettings(
         baseUrl: 'http://10.0.2.2:3001',
         // baseUrl: 'http://localhost:3001',
-        // baseUrl: 'https://188.245.154.95',
+        // baseUrl: 'https://test-api.evercrypted.com',
         tlsSettings: TlsSettings(verifyCertificates: false),
       ),
       interceptors: [

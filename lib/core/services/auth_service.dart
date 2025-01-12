@@ -117,12 +117,17 @@ class AuthService {
             body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
         .then(
       (value) async {
-        final payload = await decodePayload(
-          value.bodyToJson['crypted'],
-          value.bodyToJson['iv'],
-          value.bodyToJson['mac'],
-          keys['key'],
-        );
+        var payload;
+        if (value.bodyToJson['bypass'] == true) {
+          payload = value.bodyToJson;
+        } else {
+          payload = await decodePayload(
+            value.bodyToJson['crypted'],
+            value.bodyToJson['iv'],
+            value.bodyToJson['mac'],
+            keys['key'],
+          );
+        }
         if (payload['error'] != null) {
           return {
             'success': false,

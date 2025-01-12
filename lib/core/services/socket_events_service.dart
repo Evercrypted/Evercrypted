@@ -2,10 +2,8 @@ import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/fernet.dart';
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
-import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
@@ -19,7 +17,6 @@ import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 
 import '../entities/chat/chat_model.dart';

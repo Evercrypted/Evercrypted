@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cryptography_plus/cryptography_plus.dart';
@@ -114,7 +113,7 @@ class ChatSocket {
     io.cache.clear();
     socket = io.io('http://10.0.2.2:4000', options.build());
     // socket = io.io('http://localhost:4000', options.build());
-    // socket = io.io('http://188.245.154.95:8080', options.build());
+    // socket = io.io('https://test-api.evercrypted.com:8443', options.build());
 
     if (socket?.connected != true) {
       socket?.connect();
