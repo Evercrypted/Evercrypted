@@ -55,8 +55,12 @@ class ChatService {
     });
 
     List<Chat> allChats = [...chatsToUpdate, ...chatsToPut];
+    obx.chats.putMany(allChats);
+
     for (var chat in allChats) {
-      obx.messages.putMany(chat.messages);
+      final dbChat = obx.chats.get(chat.id);
+      dbChat?.messages.addAll(chat.messagesList);
+      obx.chats.put(dbChat!);
     }
 
     if (allChats.isNotEmpty) {
