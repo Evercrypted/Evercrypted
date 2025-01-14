@@ -3,6 +3,7 @@ class Keyboard {
   bool isShifted = false;
   bool isSpecial = false;
 
+  List<String> firstRow;
   List<String> secondRow;
   List<String> thirdRow;
   List<String> fourthRow;
@@ -17,7 +18,7 @@ class Keyboard {
   late ({double top, double bottom, double left, double right}) keyPaddings;
   late ({double top, double bottom, double left, double right}) keyMargins;
 
-  static const defaultWidth = 32.0;
+  static const defaultWidth = 35.0;
   static const defaultHeight = 40.0;
 
   static const ({
@@ -41,6 +42,7 @@ class Keyboard {
       this.keyMargins = defaultMargins,
       this.keyWidth = defaultWidth,
       this.keyHeight = defaultHeight,
+      required this.firstRow,
       required this.secondRow,
       required this.thirdRow,
       required this.fourthRow,
@@ -48,46 +50,7 @@ class Keyboard {
       required this.thirdRowShifted,
       required this.fourthRowShifted});
 
-  static const List<String> firstRow = [
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    '0'
-  ];
-
   static const List<String> firstRowSpecial = [
-    '-',
-    '_',
-    '=',
-    '+',
-    '[',
-    ']',
-    '{',
-    '}',
-    '|',
-    '\\'
-  ];
-  static const List<String> secondRowSpecial = [
-    ';',
-    ':',
-    '\'',
-    '"',
-    ',',
-    '.',
-    '<',
-    '>',
-    '/',
-    '?'
-  ];
-  static const List<String> thirdRowSpecial = [
-    '`',
-    '~',
     '!',
     '@',
     '#',
@@ -95,12 +58,38 @@ class Keyboard {
     '%',
     '^',
     '&',
-    '*'
-  ];
-  static const List<String> fourthRowSpecial = [
+    '*',
     '(',
     ')',
+    '_',
+    '+'
   ];
+  static const List<String> secondRowSpecial = [
+    '`',
+    '~',
+    '-',
+    '=',
+    '[',
+    ']',
+    '{',
+    '}',
+    '\\',
+    '|'
+  ];
+  static const List<String> thirdRowSpecial = [
+    ';',
+    ':',
+    '\'',
+    '"',
+    ',',
+    '.',
+    '/',
+    '?',
+    '<',
+    '>'
+  ];
+
+  get firstRowKeys => isSpecial ? firstRowSpecial : firstRow;
 
   get secondRowKeys => isSpecial
       ? secondRowSpecial
@@ -114,9 +103,5 @@ class Keyboard {
           ? thirdRowShifted
           : thirdRow;
 
-  get fourthRowKeys => isSpecial
-      ? fourthRowSpecial
-      : isShifted
-          ? fourthRowShifted
-          : fourthRow;
+  get fourthRowKeys => isShifted ? fourthRowShifted : fourthRow;
 }

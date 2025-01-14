@@ -2,67 +2,131 @@ import 'package:evercrypted/widgets/secret_keyboard/keyboard.dart';
 
 class Keyboards {
   static Keyboard getKeyboard(
-      {language = 'English', isShifted = false, isSpecial = false}) {
+      {language = 'English',
+      Keyboard? activeKeyboard,
+      isShifted = false,
+      isSpecial = false,
+      randomize = false}) {
+    // Helper function to randomize a list
+    List<String> randomizeList(List<String> list) {
+      if (randomize) {
+        var shuffled = List<String>.from(list);
+        shuffled.shuffle();
+        return shuffled;
+      }
+      return list;
+    }
+
     switch (language) {
       case ('English'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('qwertyuiop'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('asdfghjkl'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('zxcvbnm'.split(''));
         return Keyboard(
           name: 'English',
-          secondRow: List<String>.from('qwertyuiop'.split('')),
-          thirdRow: List<String>.from('asdfghjkl'.split('')),
-          fourthRow: List<String>.from('zxcvbnm'.split('')),
-          secondRowShifted: List<String>.from('QWERTYUIOP'.split('')),
-          thirdRowShifted: List<String>.from('ASDFGHJKL'.split('')),
-          fourthRowShifted: List<String>.from('ZXCVBNM'.split('')),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              secondRow.map((e) => e.toUpperCase()).toList(),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              thirdRow.map((e) => e.toUpperCase()).toList(),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              fourthRow.map((e) => e.toUpperCase()).toList(),
           isShifted: isShifted,
           isSpecial: isSpecial,
         );
       case ('Russian'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('йцукенгшщзх'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('фывапролджэ'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('ячсмитьбюъ'.split(''));
         return Keyboard(
           name: 'Русский',
-          keyWidth: 27,
-          secondRow: List<String>.from('йцукенгшщзх'.split('')),
-          thirdRow: List<String>.from('фывапролджэ'.split('')),
-          fourthRow: List<String>.from('ячсмитьбюъ'.split('')),
-          secondRowShifted: List<String>.from('ЙЦУКЕНГШЩЗХ'.split('')),
-          thirdRowShifted: List<String>.from('ФЫВАПРОЛДЖЭ'.split('')),
-          fourthRowShifted: List<String>.from('ЯЧСМИТЬБЮЪ'.split('')),
+          keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              secondRow.map((e) => e.toUpperCase()).toList(),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              thirdRow.map((e) => e.toUpperCase()).toList(),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              fourthRow.map((e) => e.toUpperCase()).toList(),
           isShifted: isShifted,
           isSpecial: isSpecial,
         );
       case ('Georgian'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('ქწერტყუიოპ'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('ასდფგჰჯკლ'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('ზხცვბნმ'.split(''));
         return Keyboard(
           name: 'ქართული',
-          secondRow: List<String>.from('ქწერტყუიოპ'.split('')),
-          thirdRow: List<String>.from('ასდფგჰჯკლ'.split('')),
-          fourthRow: List<String>.from('ზხცვბნმ'.split('')),
-          secondRowShifted: List<String>.from('ქჭეღთყუიოპ'.split('')),
-          thirdRowShifted: List<String>.from('აშდფგჰჟკლ'.split('')),
-          fourthRowShifted: List<String>.from('ძხჩვბნმ'.split('')),
+          keyPaddings: (top: 2, bottom: 2, left: 1, right: 1),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              randomizeList('ქჭეღთყუიოპ'.split('')),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              randomizeList('აშდფგჰჟკლ'.split('')),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              randomizeList('ძხჩვბნმ'.split('')),
           isShifted: isShifted,
           isSpecial: isSpecial,
         );
       case ('Turkish'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('qwertyuiopğ'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('asdfghjklşi'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('zxcvbnmöçü'.split(''));
         return Keyboard(
           name: 'Türkçe',
-          keyWidth: 28,
-          secondRow: List<String>.from('qwertyuiopğ'.split('')),
-          thirdRow: List<String>.from('asdfghjklşi'.split('')),
-          fourthRow: List<String>.from('zxcvbnmöçü'.split('')),
-          secondRowShifted: List<String>.from('QWERTYUIOPĞ'.split('')),
-          thirdRowShifted: List<String>.from('ASDFGHJKLŞİ'.split('')),
-          fourthRowShifted: List<String>.from('ZXCVBNMÖÇÜ'.split('')),
+          keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              secondRow.map((e) => e.toUpperCase()).toList(),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              thirdRow.map((e) => e.toUpperCase()).toList(),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              fourthRow.map((e) => e.toUpperCase()).toList(),
           isShifted: isShifted,
           isSpecial: isSpecial,
         );
       default:
         return Keyboard(
           name: 'English',
-          secondRow: List<String>.from('qwertyuiop'.split('')),
-          thirdRow: List<String>.from('asdfghjkl'.split('')),
-          fourthRow: List<String>.from('zxcvbnm'.split('')),
-          secondRowShifted: List<String>.from('QWERTYUIOP'.split('')),
-          thirdRowShifted: List<String>.from('ASDFGHJKL'.split('')),
-          fourthRowShifted: List<String>.from('ZXCVBNM'.split('')),
+          firstRow: randomizeList('1234567890'.split('')),
+          secondRow: randomizeList('qwertyuiop'.split('')),
+          thirdRow: randomizeList('asdfghjkl'.split('')),
+          fourthRow: randomizeList('zxcvbnm'.split('')),
+          secondRowShifted: randomizeList('QWERTYUIOP'.split('')),
+          thirdRowShifted: randomizeList('ASDFGHJKL'.split('')),
+          fourthRowShifted: randomizeList('ZXCVBNM'.split('')),
           isShifted: isShifted,
           isSpecial: isSpecial,
         );

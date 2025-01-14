@@ -64,6 +64,11 @@ class SecretInputState extends State<SecretInput>
   int? selectionStart;
   int? selectionEnd;
 
+  bool isShiftLocked = false;
+  DateTime? lastShiftPress;
+
+  bool isRandomized = false;
+
   @override
   void initState() {
     super.initState();
@@ -95,7 +100,15 @@ class SecretInputState extends State<SecretInput>
     super.dispose();
   }
 
-  Widget _keyboardButton(key, {useDefualtSizes = false}) {
+  Widget _keyboardButton(key,
+      {useDefualtSizes = false, rowLength = 0, specialKeysRow = false}) {
+    final screenWidth = MediaQuery.of(context).size.width - 2;
+    final keyWidth = rowLength > 0
+        ? ((screenWidth - (rowLength + 1) * 2) / rowLength)
+        : (useDefualtSizes || isSpecial
+            ? Keyboard.defaultWidth
+            : activeKeyboard.keyWidth);
+
     final EdgeInsets paddings = useDefualtSizes
         ? EdgeInsets.only(
             top: Keyboard.defaultPaddings.top,
@@ -107,25 +120,13 @@ class SecretInputState extends State<SecretInput>
             bottom: activeKeyboard.keyPaddings.bottom,
             left: activeKeyboard.keyPaddings.left,
             right: activeKeyboard.keyPaddings.right);
-    final EdgeInsets margins = useDefualtSizes
-        ? EdgeInsets.only(
-            top: Keyboard.defaultMargins.top,
-            bottom: Keyboard.defaultMargins.bottom,
-            left: Keyboard.defaultMargins.left,
-            right: Keyboard.defaultMargins.right)
-        : EdgeInsets.only(
-            top: activeKeyboard.keyMargins.top,
-            bottom: activeKeyboard.keyMargins.bottom,
-            left: activeKeyboard.keyMargins.left,
-            right: activeKeyboard.keyMargins.right);
+
     return Container(
-      width: useDefualtSizes || isSpecial
-          ? Keyboard.defaultWidth
-          : activeKeyboard.keyWidth,
-      height: useDefualtSizes || isSpecial
-          ? Keyboard.defaultHeight
-          : activeKeyboard.keyHeight,
-      margin: margins,
+      width: keyWidth,
+      height: specialKeysRow ? 60 : 45,
+      margin: specialKeysRow
+          ? EdgeInsets.symmetric(horizontal: 1, vertical: 1.35)
+          : EdgeInsets.all(1),
       child: HighlightedButton(
         style: ElevatedButton.styleFrom(
           minimumSize: Size.zero,
@@ -134,6 +135,14 @@ class SecretInputState extends State<SecretInput>
         onPressed: () {
           setState(() {
             _textController.text += key;
+            if (isShifted && !isShiftLocked) {
+              isShifted = false;
+              activeKeyboard = Keyboards.getKeyboard(
+                  language: activeLanguage,
+                  activeKeyboard: activeKeyboard,
+                  isShifted: false,
+                  isSpecial: isSpecial);
+            }
           });
         },
         child: Text(key,
@@ -155,7 +164,8 @@ class SecretInputState extends State<SecretInput>
             Container(
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
-              color: const Color.fromRGBO(0, 0, 0, 1).withOpacity(0.55),
+              color: const Color.fromRGBO(0, 0, 0, 1)
+                  .withAlpha((0.55 * 255).round()),
               child: Column(
                 children: [
                   if (widget.fieldName != null)
@@ -178,7 +188,9 @@ class SecretInputState extends State<SecretInput>
                         textAlignVertical: TextAlignVertical.center,
                         controller: _textController,
                         keyboardType: TextInputType.none,
-                        obscureText: shouldObscureText ? true : false,
+                        obscureText: shouldObscureText && widget.isSingleLine
+                            ? true
+                            : false,
                         style:
                             const TextStyle(color: Colors.white, fontSize: 24),
                         autofocus: true,
@@ -203,46 +215,45 @@ class SecretInputState extends State<SecretInput>
                 color: primaryColor,
                 child: Column(
                   children: [
-                    Container(
-                      margin: const EdgeInsets.all(2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for (var key in Keyboard.firstRow)
-                            _keyboardButton(key, useDefualtSizes: true)
-                        ],
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (var key in activeKeyboard.firstRowKeys)
+                          _keyboardButton(key,
+                              useDefualtSizes: true,
+                              rowLength: activeKeyboard.firstRowKeys.length,
+                              specialKeysRow: isSpecial)
+                      ],
                     ),
-                    Container(
-                      margin: const EdgeInsets.all(2),
+                    SizedBox(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           for (var key in activeKeyboard.secondRowKeys)
-                            _keyboardButton(key)
+                            _keyboardButton(key,
+                                rowLength: activeKeyboard.secondRowKeys.length,
+                                specialKeysRow: isSpecial)
                         ],
                       ),
                     ),
-                    Container(
-                      margin: const EdgeInsets.all(2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for (var key in activeKeyboard.thirdRowKeys)
-                            _keyboardButton(key)
-                        ],
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (var key in activeKeyboard.thirdRowKeys)
+                          _keyboardButton(key,
+                              rowLength: activeKeyboard.thirdRowKeys.length,
+                              specialKeysRow: isSpecial)
+                      ],
                     ),
-                    Container(
-                      margin: const EdgeInsets.all(2),
-                      child: Row(
+                    if (!isSpecial)
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           for (var key in activeKeyboard.fourthRowKeys)
-                            _keyboardButton(key),
+                            _keyboardButton(key,
+                                rowLength: activeKeyboard.fourthRowKeys.length)
                         ],
                       ),
-                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -258,20 +269,37 @@ class SecretInputState extends State<SecretInput>
                                   minimumSize: Size.zero,
                                   padding: const EdgeInsets.only(
                                       top: 2, bottom: 2, left: 5, right: 5),
-                                  fixedSize: const Size(50, 40),
+                                  fixedSize: const Size(60, 45),
+                                  backgroundColor:
+                                      isShiftLocked ? Colors.blue[300] : null,
                                 ),
                                 onPressed: () {
                                   setState(() {
-                                    isShifted = !isShifted;
+                                    final now = DateTime.now();
+                                    if (lastShiftPress != null &&
+                                        now.difference(lastShiftPress!) <
+                                            const Duration(milliseconds: 300)) {
+                                      isShiftLocked = !isShiftLocked;
+                                      isShifted = isShiftLocked;
+                                    } else {
+                                      isShiftLocked = false;
+                                      isShifted = !isShifted;
+                                    }
+                                    lastShiftPress = now;
+
                                     activeKeyboard = Keyboards.getKeyboard(
                                         language: activeLanguage,
+                                        activeKeyboard: activeKeyboard,
                                         isShifted: isShifted,
                                         isSpecial: isSpecial);
                                   });
                                 },
-                                child: const Icon(
-                                  Icons.arrow_circle_up,
-                                  color: Color.fromRGBO(255, 255, 255, 1),
+                                child: Icon(
+                                  isShiftLocked
+                                      ? Icons.lock
+                                      : Icons.arrow_circle_up,
+                                  color: Colors.white,
+                                  size: 25,
                                 ),
                               ),
                             ),
@@ -283,7 +311,7 @@ class SecretInputState extends State<SecretInput>
                                 isActive: isSpecial,
                                 style: ElevatedButton.styleFrom(
                                   minimumSize: Size.zero,
-                                  fixedSize: const Size(50, 40),
+                                  fixedSize: const Size(60, 45),
                                   padding: const EdgeInsets.only(
                                       top: 2, bottom: 2, left: 5, right: 5),
                                 ),
@@ -292,13 +320,14 @@ class SecretInputState extends State<SecretInput>
                                     isSpecial = !isSpecial;
                                     activeKeyboard = Keyboards.getKeyboard(
                                         language: activeLanguage,
+                                        activeKeyboard: activeKeyboard,
                                         isShifted: isShifted,
                                         isSpecial: isSpecial);
                                   });
                                 },
                                 child: const Text('#?&!',
                                     style: TextStyle(
-                                        color: Colors.white, fontSize: 15)),
+                                        color: Colors.white, fontSize: 20)),
                               ),
                             ),
                           ],
@@ -307,10 +336,8 @@ class SecretInputState extends State<SecretInput>
                           children: [
                             _keyboardButton('.', useDefualtSizes: true),
                             _keyboardButton(',', useDefualtSizes: true),
-                            _keyboardButton('@', useDefualtSizes: true),
                             _keyboardButton('?', useDefualtSizes: true),
                             Container(
-                              height: Keyboard.defaultHeight,
                               margin: EdgeInsets.only(
                                   top: Keyboard.defaultMargins.top,
                                   bottom: Keyboard.defaultMargins.bottom,
@@ -320,6 +347,7 @@ class SecretInputState extends State<SecretInput>
                                   backgroundColor: Colors.red[300],
                                   style: ElevatedButton.styleFrom(
                                     minimumSize: Size.zero,
+                                    fixedSize: const Size(60, 45),
                                     padding: const EdgeInsets.only(
                                         top: 2, bottom: 2, left: 13, right: 15),
                                   ),
@@ -362,25 +390,22 @@ class SecretInputState extends State<SecretInput>
                                     });
                                   },
                                   child: const Icon(Icons.backspace,
-                                      color: Colors.white)),
+                                      color: Colors.white, size: 25)),
                             ),
                             if (!widget.isSingleLine)
                               Container(
-                                height: Keyboard.defaultHeight,
-                                margin: EdgeInsets.only(
-                                    top: Keyboard.defaultMargins.top,
-                                    bottom: Keyboard.defaultMargins.bottom,
-                                    left: Keyboard.defaultMargins.left,
-                                    right: Keyboard.defaultMargins.right),
+                                margin: const EdgeInsets.only(right: 3),
                                 child: HighlightedButton(
                                     style: ElevatedButton.styleFrom(
                                       minimumSize: Size.zero,
+                                      fixedSize: const Size(60, 45),
                                       padding: const EdgeInsets.only(
                                           top: 2,
                                           bottom: 2,
                                           left: 13,
                                           right: 15),
                                     ),
+                                    backgroundColor: Colors.blue[300],
                                     onPressed: () {
                                       setState(() {
                                         _textController.text += "\n";
@@ -388,7 +413,8 @@ class SecretInputState extends State<SecretInput>
                                     },
                                     child: const Icon(
                                         Icons.subdirectory_arrow_left,
-                                        color: Colors.white)),
+                                        color: Colors.white,
+                                        size: 25)),
                               ),
                           ],
                         ),
@@ -397,64 +423,90 @@ class SecretInputState extends State<SecretInput>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop((
-                                    text: _textController.text,
-                                    done: false,
-                                  ));
-                                },
-                                icon: const Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: Colors.white,
-                                  size: 35,
-                                )),
-                            DropdownButton(
-                                iconSize: 0.0,
-                                dropdownColor: secondaryColor,
-                                style: const TextStyle(
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.4,
+                          height: 45,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).pop((
+                                      text: _textController.text,
+                                      done: false,
+                                    ));
+                                  },
+                                  child: const Icon(
+                                    Icons.keyboard_arrow_down,
                                     color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                                value: activeLanguage,
-                                items: availableKeyboards
-                                    .map((e) => DropdownMenuItem<String>(
-                                          alignment:
-                                              AlignmentDirectional.center,
-                                          value: e,
-                                          child:
-                                              Text(Keyboards.abbreviations[e]!),
-                                        ))
-                                    .toList(),
-                                onChanged: (object) {
+                                    size: 40,
+                                  )),
+                              DropdownButton(
+                                  padding: EdgeInsets.only(left: 5, right: 10),
+                                  iconSize: 0.0,
+                                  dropdownColor: secondaryColor,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                  value: activeLanguage,
+                                  items: availableKeyboards
+                                      .map((e) => DropdownMenuItem<String>(
+                                            alignment:
+                                                AlignmentDirectional.center,
+                                            value: e,
+                                            child: Text(
+                                                Keyboards.abbreviations[e]!),
+                                          ))
+                                      .toList(),
+                                  onChanged: (object) {
+                                    setState(() {
+                                      activeLanguage = object!;
+                                      activeKeyboard = Keyboards.getKeyboard(
+                                          language: activeLanguage,
+                                          activeKeyboard: activeKeyboard,
+                                          isShifted: isShifted,
+                                          isSpecial: isSpecial);
+                                    });
+                                  }),
+                              if (widget.isSingleLine)
+                                InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        shouldObscureText = !shouldObscureText;
+                                      });
+                                    },
+                                    child: Icon(
+                                      shouldObscureText
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                      color: Colors.white,
+                                      size: 25,
+                                    )),
+                              InkWell(
+                                onTap: () {
                                   setState(() {
-                                    activeLanguage = object!;
+                                    isRandomized = !isRandomized;
                                     activeKeyboard = Keyboards.getKeyboard(
                                         language: activeLanguage,
                                         isShifted: isShifted,
-                                        isSpecial: isSpecial);
-                                  });
-                                }),
-                            IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    shouldObscureText = !shouldObscureText;
+                                        isSpecial: isSpecial,
+                                        randomize: isRandomized);
                                   });
                                 },
-                                icon: Icon(
-                                  shouldObscureText
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
+                                child: Icon(
+                                  isRandomized
+                                      ? Icons.shuffle_on_outlined
+                                      : Icons.shuffle,
                                   color: Colors.white,
                                   size: 25,
-                                )),
-                          ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(
-                              left: 5, top: 2, bottom: 2, right: 5),
-                          width: 150,
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.40,
+                          height: 45,
                           child: HighlightedButton(
                             onPressed: () {
                               setState(() {
@@ -464,23 +516,28 @@ class SecretInputState extends State<SecretInput>
                             child: const Icon(
                               Icons.space_bar,
                               color: Colors.white,
+                              size: 25,
                             ),
                           ),
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(
-                              left: 5, top: 2, bottom: 2, right: 5),
-                          child: HighlightedButton(
-                            backgroundColor: Colors.lightGreen,
-                            onPressed: () {
-                              Navigator.of(context).pop((
-                                text: _textController.text,
-                                done: true,
-                              ));
-                            },
-                            child: const Icon(
-                              Icons.done,
-                              color: Colors.white,
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.2,
+                          height: 45,
+                          child: Container(
+                            margin: const EdgeInsets.only(left: 4, right: 3),
+                            child: HighlightedButton(
+                              backgroundColor: Colors.lightGreen,
+                              onPressed: () {
+                                Navigator.of(context).pop((
+                                  text: _textController.text,
+                                  done: true,
+                                ));
+                              },
+                              child: const Icon(
+                                Icons.done,
+                                color: Colors.white,
+                                size: 25,
+                              ),
                             ),
                           ),
                         ),

@@ -155,6 +155,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                 textInputAction: TextInputAction.next,
                                 onTap: () {
                                   openSecretInput(
+                                      isSingleLine: true,
                                       context: context,
                                       controller: _emailController,
                                       done: (val) => FocusScope.of(context)
