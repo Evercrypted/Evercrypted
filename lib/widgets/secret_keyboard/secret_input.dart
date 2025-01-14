@@ -181,6 +181,7 @@ class SecretInputState extends State<SecretInput>
                     child: Container(
                       margin: const EdgeInsets.only(
                           top: 10, left: 15, right: 15, bottom: 300),
+                      alignment: Alignment.center,
                       child: TextField(
                         decoration: const InputDecoration(
                             border: InputBorder.none,
