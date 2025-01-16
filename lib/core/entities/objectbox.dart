@@ -3,6 +3,7 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_model.
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
+import 'package:evercrypted/core/entities/settings/settings_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:path/path.dart' as p;
@@ -17,6 +18,7 @@ class ObjectBox {
   late final Box<Contact> contacts;
   late final Box<ContactRequest> contactRequests;
   late final Box<ActionQueue> actionQueues;
+  late final Box<Settings> settings;
 
   ObjectBox._create(this.store) {
     // Add any additional setup code, e.g. build queries.
@@ -26,6 +28,7 @@ class ObjectBox {
     contacts = store.box<Contact>();
     contactRequests = store.box<ContactRequest>();
     actionQueues = store.box<ActionQueue>();
+    settings = store.box<Settings>();
   }
 
   /// Create an instance of ObjectBox to use throughout the app.

@@ -19,6 +19,7 @@ import 'core/entities/contact-request/contact_request_model.dart';
 import 'core/entities/contact/contact_model.dart';
 import 'core/entities/message/message_model.dart';
 import 'core/entities/profile/profile_model.dart';
+import 'core/entities/settings/settings_model.dart';
 import 'core/offline/action_queue/action_queue_model.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
@@ -411,6 +412,25 @@ final _entities = <obx_int.ModelEntity>[
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(7, 1770994479129291013),
+      name: 'Settings',
+      lastPropertyId: const obx_int.IdUid(2, 3843061746337845170),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 1332595293146249919),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 3843061746337845170),
+            name: 'dbAvailableKeyboards',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
 ];
 
@@ -449,7 +469,7 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(6, 1841315404041682912),
+      lastEntityId: const obx_int.IdUid(7, 1770994479129291013),
       lastIndexId: const obx_int.IdUid(15, 3591098884062730065),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
@@ -935,6 +955,36 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 .vTableGetNullable(buffer, rootOffset, 20);
 
           return object;
+        }),
+    Settings: obx_int.EntityDefinition<Settings>(
+        model: _entities[6],
+        toOneRelations: (Settings object) => [],
+        toManyRelations: (Settings object) => {},
+        getId: (Settings object) => object.id,
+        setId: (Settings object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Settings object, fb.Builder fbb) {
+          final dbAvailableKeyboardsOffset = object.dbAvailableKeyboards == null
+              ? null
+              : fbb.writeString(object.dbAvailableKeyboards!);
+          fbb.startTable(3);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, dbAvailableKeyboardsOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Settings()
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+            ..dbAvailableKeyboards =
+                const fb.StringReader(asciiOptimization: true)
+                    .vTableGetNullable(buffer, rootOffset, 6);
+
+          return object;
         })
   };
 
@@ -1209,4 +1259,15 @@ class Profile_ {
   /// See [Profile.dbAvatar].
   static final dbAvatar =
       obx.QueryStringProperty<Profile>(_entities[5].properties[5]);
+}
+
+/// [Settings] entity fields to define ObjectBox queries.
+class Settings_ {
+  /// See [Settings.id].
+  static final id =
+      obx.QueryIntegerProperty<Settings>(_entities[6].properties[0]);
+
+  /// See [Settings.dbAvailableKeyboards].
+  static final dbAvailableKeyboards =
+      obx.QueryStringProperty<Settings>(_entities[6].properties[1]);
 }

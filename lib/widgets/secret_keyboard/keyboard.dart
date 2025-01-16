@@ -34,21 +34,25 @@ class Keyboard {
     double right
   }) defaultMargins = (top: 2, bottom: 2, left: 3, right: 3);
 
-  Keyboard(
-      {required this.name,
-      this.isShifted = false,
-      this.isSpecial = false,
-      this.keyPaddings = defaultPaddings,
-      this.keyMargins = defaultMargins,
-      this.keyWidth = defaultWidth,
-      this.keyHeight = defaultHeight,
-      required this.firstRow,
-      required this.secondRow,
-      required this.thirdRow,
-      required this.fourthRow,
-      required this.secondRowShifted,
-      required this.thirdRowShifted,
-      required this.fourthRowShifted});
+  final Map<String, List<String>> alternatives;
+
+  Keyboard({
+    required this.name,
+    this.isShifted = false,
+    this.isSpecial = false,
+    this.keyPaddings = defaultPaddings,
+    this.keyMargins = defaultMargins,
+    this.keyWidth = defaultWidth,
+    this.keyHeight = defaultHeight,
+    required this.firstRow,
+    required this.secondRow,
+    required this.thirdRow,
+    required this.fourthRow,
+    required this.secondRowShifted,
+    required this.thirdRowShifted,
+    required this.fourthRowShifted,
+    this.alternatives = const {},
+  });
 
   static const List<String> firstRowSpecial = [
     '!',
@@ -89,7 +93,11 @@ class Keyboard {
     '>'
   ];
 
-  get firstRowKeys => isSpecial ? firstRowSpecial : firstRow;
+  get firstRowKeys => isSpecial
+      ? firstRowSpecial
+      : isShifted
+          ? firstRowSpecial
+          : firstRow;
 
   get secondRowKeys => isSpecial
       ? secondRowSpecial
@@ -104,4 +112,8 @@ class Keyboard {
           : thirdRow;
 
   get fourthRowKeys => isShifted ? fourthRowShifted : fourthRow;
+
+  List<String>? getAlternatives(String key) {
+    return alternatives[key.toLowerCase()];
+  }
 }

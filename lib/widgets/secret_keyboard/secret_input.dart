@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/entities/settings/settings_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/secret_keyboard/highlighted_button.dart';
 import 'package:evercrypted/widgets/secret_keyboard/keyboard.dart';
@@ -52,8 +53,9 @@ class SecretInputState extends State<SecretInput>
   late final AnimationController _controller;
   late final Animation<double> _animation;
   final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
-  List<String> availableKeyboards = Keyboards.availableKeyboards;
+  List<String> availableKeyboards = ['English']; // Start with only English
   bool isShifted = false;
   bool isSpecial = false;
   bool shouldObscureText = false;
@@ -69,9 +71,21 @@ class SecretInputState extends State<SecretInput>
 
   bool isRandomized = false;
 
+  bool isBackspaceLongPressed = false;
+
+  void loadAvailableKeyboards() async {
+    final settings = SettingsService.getSettings();
+    setState(() {
+      availableKeyboards = settings != null
+          ? List<String>.from(settings.availableKeyboards)
+          : ['English'];
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    loadAvailableKeyboards();
     if (widget.obscureText) {
       shouldObscureText = true;
     }
@@ -84,6 +98,12 @@ class SecretInputState extends State<SecretInput>
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
     _textController.addListener(() {
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+      });
+
       if (_textController.selection.start != _textController.selection.end) {
         selectionStart = _textController.selection.start;
         selectionEnd = _textController.selection.end;
@@ -96,6 +116,7 @@ class SecretInputState extends State<SecretInput>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -121,32 +142,99 @@ class SecretInputState extends State<SecretInput>
             left: activeKeyboard.keyPaddings.left,
             right: activeKeyboard.keyPaddings.right);
 
+    // Get alternative characters for this key
+    final List<String> alternatives = activeKeyboard.getAlternatives(key) ?? [];
+    final GlobalKey buttonKey = GlobalKey();
+
     return Container(
       width: keyWidth,
       height: specialKeysRow ? 60 : 45,
       margin: specialKeysRow
           ? EdgeInsets.symmetric(horizontal: 1, vertical: 1.35)
           : EdgeInsets.all(1),
-      child: HighlightedButton(
-        style: ElevatedButton.styleFrom(
-          minimumSize: Size.zero,
-          padding: paddings,
+      child: GestureDetector(
+        onLongPressStart: alternatives.isEmpty
+            ? null
+            : (details) {
+                // Get the specific button's position using its key
+                final RenderBox button =
+                    buttonKey.currentContext!.findRenderObject() as RenderBox;
+                final Offset position = button.localToGlobal(Offset.zero);
+
+                showDialog(
+                  context: context,
+                  barrierColor: Colors.transparent,
+                  builder: (BuildContext context) {
+                    return Stack(
+                      children: [
+                        Positioned(
+                          left: position.dx -
+                              ((alternatives.length * 40) / 2) +
+                              (keyWidth / 2), // Center horizontally
+                          top: position.dy -
+                              80, // Increased offset to show above the key
+                          child: Material(
+                            elevation: 4,
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey[800],
+                            child: Container(
+                              height: 40,
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: alternatives
+                                    .map((char) => InkWell(
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            setState(() {
+                                              _textController.text += char;
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 12),
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                              char,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 20,
+                                              ),
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+        child: HighlightedButton(
+          key: buttonKey, // Add the key to the button
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size.zero,
+            padding: paddings,
+          ),
+          onPressed: () {
+            setState(() {
+              _textController.text += key;
+              if (isShifted && !isShiftLocked) {
+                isShifted = false;
+                activeKeyboard = Keyboards.getKeyboard(
+                    language: activeLanguage,
+                    activeKeyboard: activeKeyboard,
+                    isShifted: false,
+                    isSpecial: isSpecial);
+              }
+            });
+          },
+          child: Text(key,
+              style: const TextStyle(color: Colors.white, fontSize: 20)),
         ),
-        onPressed: () {
-          setState(() {
-            _textController.text += key;
-            if (isShifted && !isShiftLocked) {
-              isShifted = false;
-              activeKeyboard = Keyboards.getKeyboard(
-                  language: activeLanguage,
-                  activeKeyboard: activeKeyboard,
-                  isShifted: false,
-                  isSpecial: isSpecial);
-            }
-          });
-        },
-        child: Text(key,
-            style: const TextStyle(color: Colors.white, fontSize: 20)),
       ),
     );
   }
@@ -185,7 +273,9 @@ class SecretInputState extends State<SecretInput>
                       child: TextField(
                         decoration: const InputDecoration(
                             border: InputBorder.none,
-                            fillColor: Colors.transparent),
+                            fillColor: Colors.transparent,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero),
                         textAlignVertical: TextAlignVertical.center,
                         controller: _textController,
                         keyboardType: TextInputType.none,
@@ -203,6 +293,13 @@ class SecretInputState extends State<SecretInput>
                         expands: widget.isSingleLine ? false : true,
                         minLines: widget.isSingleLine ? 1 : null,
                         maxLines: widget.isSingleLine ? 1 : null,
+                        onChanged: (text) {
+                          _textController.selection =
+                              TextSelection.fromPosition(
+                            TextPosition(offset: _textController.text.length),
+                          );
+                        },
+                        scrollController: _scrollController,
                       ),
                     ),
                   ),
@@ -255,148 +352,122 @@ class SecretInputState extends State<SecretInput>
                                 rowLength: activeKeyboard.fourthRowKeys.length)
                         ],
                       ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(
-                                  left: Keyboard.defaultMargins.left,
-                                  right: Keyboard.defaultMargins.right),
-                              child: HighlightedButton(
-                                isActive: isShifted,
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: Size.zero,
-                                  padding: const EdgeInsets.only(
-                                      top: 2, bottom: 2, left: 5, right: 5),
-                                  fixedSize: const Size(60, 45),
-                                  backgroundColor:
-                                      isShiftLocked ? Colors.blue[300] : null,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    final now = DateTime.now();
-                                    if (lastShiftPress != null &&
-                                        now.difference(lastShiftPress!) <
-                                            const Duration(milliseconds: 300)) {
-                                      isShiftLocked = !isShiftLocked;
-                                      isShifted = isShiftLocked;
-                                    } else {
-                                      isShiftLocked = false;
-                                      isShifted = !isShifted;
-                                    }
-                                    lastShiftPress = now;
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(
+                                    left: Keyboard.defaultMargins.left,
+                                    right: Keyboard.defaultMargins.right * 2),
+                                child: HighlightedButton(
+                                  isActive: isShifted,
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: Size.zero,
+                                    padding: const EdgeInsets.only(
+                                        top: 2, bottom: 2, left: 5, right: 5),
+                                    fixedSize: const Size(60, 45),
+                                    backgroundColor:
+                                        isShiftLocked ? Colors.blue[300] : null,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      final now = DateTime.now();
+                                      if (lastShiftPress != null &&
+                                          now.difference(lastShiftPress!) <
+                                              const Duration(
+                                                  milliseconds: 300)) {
+                                        isShiftLocked = !isShiftLocked;
+                                        isShifted = isShiftLocked;
+                                      } else {
+                                        isShiftLocked = false;
+                                        isShifted = !isShifted;
+                                      }
+                                      lastShiftPress = now;
 
-                                    activeKeyboard = Keyboards.getKeyboard(
-                                        language: activeLanguage,
-                                        activeKeyboard: activeKeyboard,
-                                        isShifted: isShifted,
-                                        isSpecial: isSpecial);
-                                  });
-                                },
-                                child: Icon(
-                                  isShiftLocked
-                                      ? Icons.lock
-                                      : Icons.arrow_circle_up,
-                                  color: Colors.white,
-                                  size: 25,
+                                      activeKeyboard = Keyboards.getKeyboard(
+                                          language: activeLanguage,
+                                          activeKeyboard: activeKeyboard,
+                                          isShifted: isShifted,
+                                          isSpecial: isSpecial);
+                                    });
+                                  },
+                                  child: Icon(
+                                    isShiftLocked
+                                        ? Icons.lock
+                                        : Icons.arrow_circle_up,
+                                    color: Colors.white,
+                                    size: 25,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(
-                                  left: Keyboard.defaultMargins.left,
-                                  right: Keyboard.defaultMargins.right),
-                              child: HighlightedButton(
-                                isActive: isSpecial,
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: Size.zero,
-                                  fixedSize: const Size(60, 45),
-                                  padding: const EdgeInsets.only(
-                                      top: 2, bottom: 2, left: 5, right: 5),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    isSpecial = !isSpecial;
-                                    activeKeyboard = Keyboards.getKeyboard(
-                                        language: activeLanguage,
-                                        activeKeyboard: activeKeyboard,
-                                        isShifted: isShifted,
-                                        isSpecial: isSpecial);
-                                  });
-                                },
-                                child: const Text('#?&!',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 20)),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            _keyboardButton('.', useDefualtSizes: true),
-                            _keyboardButton(',', useDefualtSizes: true),
-                            _keyboardButton('?', useDefualtSizes: true),
-                            Container(
-                              margin: EdgeInsets.only(
-                                  top: Keyboard.defaultMargins.top,
-                                  bottom: Keyboard.defaultMargins.bottom,
-                                  left: Keyboard.defaultMargins.left,
-                                  right: Keyboard.defaultMargins.right),
-                              child: HighlightedButton(
-                                  backgroundColor: Colors.red[300],
+                              Container(
+                                margin: EdgeInsets.only(
+                                    left: Keyboard.defaultMargins.left,
+                                    right: Keyboard.defaultMargins.right),
+                                child: HighlightedButton(
+                                  isActive: isSpecial,
                                   style: ElevatedButton.styleFrom(
                                     minimumSize: Size.zero,
                                     fixedSize: const Size(60, 45),
                                     padding: const EdgeInsets.only(
-                                        top: 2, bottom: 2, left: 13, right: 15),
+                                        top: 2, bottom: 2, left: 5, right: 5),
                                   ),
                                   onPressed: () {
-                                    if (selectionStart != null &&
-                                        selectionEnd != null) {
-                                      setState(() {
-                                        _textController.text = _textController
-                                                .text
-                                                .substring(0, selectionStart!) +
-                                            _textController.text
-                                                .substring(selectionEnd!);
-                                      });
-                                    } else {
-                                      if (_textController.text.isNotEmpty) {
-                                        setState(() {
-                                          _textController.text =
-                                              _textController.text.substring(
-                                                  0,
-                                                  _textController.text.length -
-                                                      1);
-                                        });
-                                      }
-                                    }
-                                  },
-                                  onLongPress: () {
                                     setState(() {
-                                      Future.doWhile(() async {
-                                        await Future.delayed(
-                                            const Duration(milliseconds: 100));
-                                        setState(() {
-                                          _textController.text =
-                                              _textController.text.substring(
-                                                  0,
-                                                  _textController.text.length -
-                                                      1);
-                                        });
-                                        return _textController.text.isNotEmpty;
-                                      });
+                                      isSpecial = !isSpecial;
+                                      activeKeyboard = Keyboards.getKeyboard(
+                                          language: activeLanguage,
+                                          activeKeyboard: activeKeyboard,
+                                          isShifted: isShifted,
+                                          isSpecial: isSpecial);
                                     });
                                   },
-                                  child: const Icon(Icons.backspace,
-                                      color: Colors.white, size: 25)),
-                            ),
-                            if (!widget.isSingleLine)
+                                  child: const Text('#?&!',
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 20)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              _keyboardButton('.', useDefualtSizes: true),
+                              _keyboardButton(',', useDefualtSizes: true),
+                              _keyboardButton('?', useDefualtSizes: true),
                               Container(
-                                margin: const EdgeInsets.only(right: 3),
-                                child: HighlightedButton(
+                                margin: EdgeInsets.only(
+                                    top: Keyboard.defaultMargins.top,
+                                    bottom: Keyboard.defaultMargins.bottom,
+                                    left: Keyboard.defaultMargins.left * 2,
+                                    right: Keyboard.defaultMargins.right),
+                                child: GestureDetector(
+                                  onLongPressStart: (_) async {
+                                    setState(() {
+                                      isBackspaceLongPressed = true;
+                                    });
+                                    while (isBackspaceLongPressed &&
+                                        _textController.text.isNotEmpty) {
+                                      setState(() {
+                                        _textController.text =
+                                            _textController.text.substring(
+                                                0,
+                                                _textController.text.length -
+                                                    1);
+                                      });
+                                      await Future.delayed(
+                                          const Duration(milliseconds: 100));
+                                    }
+                                  },
+                                  onLongPressEnd: (_) {
+                                    setState(() {
+                                      isBackspaceLongPressed = false;
+                                    });
+                                  },
+                                  child: HighlightedButton(
                                     style: ElevatedButton.styleFrom(
                                       minimumSize: Size.zero,
                                       fixedSize: const Size(60, 45),
@@ -406,20 +477,41 @@ class SecretInputState extends State<SecretInput>
                                           left: 13,
                                           right: 15),
                                     ),
-                                    backgroundColor: Colors.blue[300],
                                     onPressed: () {
-                                      setState(() {
-                                        _textController.text += "\n";
-                                      });
+                                      if (selectionStart != null &&
+                                          selectionEnd != null) {
+                                        setState(() {
+                                          _textController.text =
+                                              _textController.text.substring(
+                                                      0, selectionStart!) +
+                                                  _textController.text
+                                                      .substring(selectionEnd!);
+                                        });
+                                      } else {
+                                        if (_textController.text.isNotEmpty) {
+                                          setState(() {
+                                            _textController.text =
+                                                _textController.text.substring(
+                                                    0,
+                                                    _textController
+                                                            .text.length -
+                                                        1);
+                                          });
+                                        }
+                                      }
                                     },
                                     child: const Icon(
-                                        Icons.subdirectory_arrow_left,
-                                        color: Colors.white,
-                                        size: 25)),
+                                      Icons.backspace,
+                                      color: Colors.white,
+                                      size: 30,
+                                    ),
+                                  ),
+                                ),
                               ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -442,33 +534,38 @@ class SecretInputState extends State<SecretInput>
                                     color: Colors.white,
                                     size: 40,
                                   )),
-                              DropdownButton(
-                                  padding: EdgeInsets.only(left: 5, right: 10),
-                                  iconSize: 0.0,
-                                  dropdownColor: secondaryColor,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                  value: activeLanguage,
-                                  items: availableKeyboards
-                                      .map((e) => DropdownMenuItem<String>(
-                                            alignment:
-                                                AlignmentDirectional.center,
-                                            value: e,
-                                            child: Text(
-                                                Keyboards.abbreviations[e]!),
-                                          ))
-                                      .toList(),
-                                  onChanged: (object) {
-                                    setState(() {
-                                      activeLanguage = object!;
-                                      activeKeyboard = Keyboards.getKeyboard(
-                                          language: activeLanguage,
-                                          activeKeyboard: activeKeyboard,
-                                          isShifted: isShifted,
-                                          isSpecial: isSpecial);
-                                    });
-                                  }),
+                              if (availableKeyboards.length > 1)
+                                DropdownButton(
+                                    padding:
+                                        EdgeInsets.only(left: 5, right: 10),
+                                    iconSize: 0.0,
+                                    dropdownColor: secondaryColor,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                    value: activeLanguage,
+                                    items: availableKeyboards
+                                        .map((e) => DropdownMenuItem<String>(
+                                              alignment:
+                                                  AlignmentDirectional.center,
+                                              value: e,
+                                              child: Text(
+                                                  Keyboards.abbreviations[e]!),
+                                            ))
+                                        .toList(),
+                                    onChanged: (object) {
+                                      setState(() {
+                                        activeLanguage = object!;
+                                        isShifted = false;
+                                        isSpecial = false;
+                                        isShiftLocked = false;
+                                        activeKeyboard = Keyboards.getKeyboard(
+                                            language: activeLanguage,
+                                            isShifted: false,
+                                            isSpecial: false,
+                                            randomize: isRandomized);
+                                      });
+                                    }),
                               if (widget.isSingleLine)
                                 InkWell(
                                     onTap: () {
@@ -506,7 +603,7 @@ class SecretInputState extends State<SecretInput>
                           ),
                         ),
                         SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.40,
+                          width: MediaQuery.of(context).size.width * 0.30,
                           height: 45,
                           child: HighlightedButton(
                             onPressed: () {
@@ -521,8 +618,23 @@ class SecretInputState extends State<SecretInput>
                             ),
                           ),
                         ),
+                        if (!widget.isSingleLine)
+                          HighlightedButton(
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: Size.zero,
+                                fixedSize: const Size(60, 45),
+                                padding: const EdgeInsets.only(
+                                    top: 2, bottom: 2, left: 13, right: 15),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _textController.text += "\n";
+                                });
+                              },
+                              child: const Icon(Icons.subdirectory_arrow_left,
+                                  color: Colors.white, size: 30)),
                         SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.2,
+                          width: MediaQuery.of(context).size.width * 0.15,
                           height: 45,
                           child: Container(
                             margin: const EdgeInsets.only(left: 4, right: 3),

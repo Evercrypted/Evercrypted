@@ -11,12 +11,15 @@ class TextMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints:
+          BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
       padding: const EdgeInsets.symmetric(
-        horizontal: defaultPadding * 0.75,
+        horizontal: defaultPadding,
         vertical: defaultPadding / 2,
       ),
       decoration: BoxDecoration(
-        color: primaryColor.withOpacity(message.isSender ? 1 : 0.1),
+        color: primaryColor
+            .withAlpha(((message.isSender ? 1 : 0.1) * 255).round()),
         borderRadius: BorderRadius.circular(30),
       ),
       child: Text(

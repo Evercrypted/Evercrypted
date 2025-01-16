@@ -402,9 +402,28 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "7:1770994479129291013",
+      "lastPropertyId": "2:3843061746337845170",
+      "name": "Settings",
+      "properties": [
+        {
+          "id": "1:1332595293146249919",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3843061746337845170",
+          "name": "dbAvailableKeyboards",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "6:1841315404041682912",
+  "lastEntityId": "7:1770994479129291013",
   "lastIndexId": "15:3591098884062730065",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

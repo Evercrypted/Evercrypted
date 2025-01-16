@@ -46,11 +46,11 @@ class Keyboards {
         final firstRow =
             activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
         final secondRow =
-            activeKeyboard?.secondRow ?? randomizeList('йцукенгшщзх'.split(''));
+            activeKeyboard?.secondRow ?? randomizeList('йцукенгшзхъ'.split(''));
         final thirdRow =
-            activeKeyboard?.thirdRow ?? randomizeList('фывапролджэ'.split(''));
+            activeKeyboard?.thirdRow ?? randomizeList('фывапролдж'.split(''));
         final fourthRow =
-            activeKeyboard?.fourthRow ?? randomizeList('ячсмитьбюъ'.split(''));
+            activeKeyboard?.fourthRow ?? randomizeList('чсмитьб'.split(''));
         return Keyboard(
           name: 'Русский',
           keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
@@ -66,6 +66,12 @@ class Keyboards {
               fourthRow.map((e) => e.toUpperCase()).toList(),
           isShifted: isShifted,
           isSpecial: isSpecial,
+          alternatives: {
+            'е': ['ё', 'э'],
+            'ш': ['щ'],
+            'а': ['я'],
+            'у': ['ю'],
+          },
         );
       case ('Georgian'):
         final firstRow =
@@ -76,31 +82,58 @@ class Keyboards {
             activeKeyboard?.thirdRow ?? randomizeList('ასდფგჰჯკლ'.split(''));
         final fourthRow =
             activeKeyboard?.fourthRow ?? randomizeList('ზხცვბნმ'.split(''));
+
+        final alternatives = {
+          'ტ': ['თ'],
+          'წ': ['ჭ'],
+          'პ': ['ფ'],
+          'ს': ['შ'],
+          'ც': ['ჩ'],
+          'ზ': ['ძ'],
+          'რ': ['ღ'],
+          'ჯ': ['ჟ'],
+        };
+
         return Keyboard(
-          name: 'ქართული',
-          keyPaddings: (top: 2, bottom: 2, left: 1, right: 1),
-          firstRow: activeKeyboard?.firstRow ?? firstRow,
-          secondRow: activeKeyboard?.secondRow ?? secondRow,
-          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
-          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
-          secondRowShifted: activeKeyboard?.secondRowShifted ??
-              randomizeList('ქჭეღთყუიოპ'.split('')),
-          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
-              randomizeList('აშდფგჰჟკლ'.split('')),
-          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
-              randomizeList('ძხჩვბნმ'.split('')),
-          isShifted: isShifted,
-          isSpecial: isSpecial,
-        );
+            name: 'ქართული',
+            keyPaddings: (top: 2, bottom: 2, left: 1, right: 1),
+            firstRow: activeKeyboard?.firstRow ?? firstRow,
+            secondRow: activeKeyboard?.secondRow ?? secondRow,
+            thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+            fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+            secondRowShifted: activeKeyboard?.secondRowShifted ??
+                secondRow.map((e) {
+                  if (alternatives.containsKey(e)) {
+                    return alternatives[e]![0];
+                  }
+                  return e;
+                }).toList(),
+            thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+                thirdRow.map((e) {
+                  if (alternatives.containsKey(e)) {
+                    return alternatives[e]![0];
+                  }
+                  return e;
+                }).toList(),
+            fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+                fourthRow.map((e) {
+                  if (alternatives.containsKey(e)) {
+                    return alternatives[e]![0];
+                  }
+                  return e;
+                }).toList(),
+            isShifted: isShifted,
+            isSpecial: isSpecial,
+            alternatives: alternatives);
       case ('Turkish'):
         final firstRow =
             activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
         final secondRow =
-            activeKeyboard?.secondRow ?? randomizeList('qwertyuiopğ'.split(''));
+            activeKeyboard?.secondRow ?? randomizeList('qwertyuiop'.split(''));
         final thirdRow =
-            activeKeyboard?.thirdRow ?? randomizeList('asdfghjklşi'.split(''));
+            activeKeyboard?.thirdRow ?? randomizeList('asdfghjkl'.split(''));
         final fourthRow =
-            activeKeyboard?.fourthRow ?? randomizeList('zxcvbnmöçü'.split(''));
+            activeKeyboard?.fourthRow ?? randomizeList('zxcvbnm'.split(''));
         return Keyboard(
           name: 'Türkçe',
           keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
@@ -116,6 +149,177 @@ class Keyboards {
               fourthRow.map((e) => e.toUpperCase()).toList(),
           isShifted: isShifted,
           isSpecial: isSpecial,
+          alternatives: {
+            'i': ['İ', 'ı'],
+            'o': ['ö'],
+            'u': ['ü'],
+            'g': ['ğ'],
+            's': ['ş'],
+            'c': ['ç'],
+          },
+        );
+      case ('German'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('qwertzuiop'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('asdfghjkl'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('yxcvbnm'.split(''));
+        return Keyboard(
+          name: 'Deutsch',
+          keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              secondRow.map((e) => e.toUpperCase()).toList(),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              thirdRow.map((e) => e.toUpperCase()).toList(),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              fourthRow.map((e) => e.toUpperCase()).toList(),
+          isShifted: isShifted,
+          isSpecial: isSpecial,
+          alternatives: {
+            'a': ['ä'],
+            'o': ['ö'],
+            'u': ['ü'],
+            's': ['ß'],
+          },
+        );
+      case ('Spanish'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('qwertyuiop'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('asdfghjkl'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('zxcvbnm'.split(''));
+        return Keyboard(
+          name: 'Español',
+          keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              secondRow.map((e) => e.toUpperCase()).toList(),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              thirdRow.map((e) => e.toUpperCase()).toList(),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              fourthRow.map((e) => e.toUpperCase()).toList(),
+          isShifted: isShifted,
+          isSpecial: isSpecial,
+          alternatives: {
+            'a': ['á'],
+            'e': ['é'],
+            'i': ['í'],
+            'o': ['ó'],
+            'u': ['ú', 'ü'],
+            'n': ['ñ'],
+          },
+        );
+      case ('French'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('azertyuiop'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('qsdfghjklm'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('wxcvbn'.split(''));
+        return Keyboard(
+          name: 'Français',
+          keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              secondRow.map((e) => e.toUpperCase()).toList(),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              thirdRow.map((e) => e.toUpperCase()).toList(),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              fourthRow.map((e) => e.toUpperCase()).toList(),
+          isShifted: isShifted,
+          isSpecial: isSpecial,
+          alternatives: {
+            'a': ['à', 'â', 'æ'],
+            'e': ['é', 'è', 'ê', 'ë'],
+            'i': ['î', 'ï'],
+            'o': ['ô', 'œ'],
+            'u': ['ù', 'û', 'ü'],
+            'c': ['ç'],
+          },
+        );
+      case ('Italian'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('qwertyuiop'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('asdfghjkl'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('zxcvbnm'.split(''));
+        return Keyboard(
+          name: 'Italiano',
+          keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              secondRow.map((e) => e.toUpperCase()).toList(),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              thirdRow.map((e) => e.toUpperCase()).toList(),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              fourthRow.map((e) => e.toUpperCase()).toList(),
+          isShifted: isShifted,
+          isSpecial: isSpecial,
+          alternatives: {
+            'a': ['à'],
+            'e': ['è', 'é'],
+            'i': ['ì'],
+            'o': ['ò'],
+            'u': ['ù'],
+          },
+        );
+      case ('Greek'):
+        final firstRow =
+            activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('ςερτυθιοπ'.split(''));
+        final thirdRow =
+            activeKeyboard?.thirdRow ?? randomizeList('ασδφγηξκλ'.split(''));
+        final fourthRow =
+            activeKeyboard?.fourthRow ?? randomizeList('ζχψωβνμ'.split(''));
+        return Keyboard(
+          name: 'Ελληνικά',
+          keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
+          firstRow: activeKeyboard?.firstRow ?? firstRow,
+          secondRow: activeKeyboard?.secondRow ?? secondRow,
+          thirdRow: activeKeyboard?.thirdRow ?? thirdRow,
+          fourthRow: activeKeyboard?.fourthRow ?? fourthRow,
+          secondRowShifted: activeKeyboard?.secondRowShifted ??
+              secondRow.map((e) => e.toUpperCase()).toList(),
+          thirdRowShifted: activeKeyboard?.thirdRowShifted ??
+              thirdRow.map((e) => e.toUpperCase()).toList(),
+          fourthRowShifted: activeKeyboard?.fourthRowShifted ??
+              fourthRow.map((e) => e.toUpperCase()).toList(),
+          isShifted: isShifted,
+          isSpecial: isSpecial,
+          alternatives: {
+            'α': ['ά'],
+            'ε': ['έ'],
+            'η': ['ή'],
+            'ι': ['ί'],
+            'ο': ['ό'],
+            'υ': ['ύ'],
+            'ω': ['ώ'],
+          },
         );
       default:
         return Keyboard(
@@ -133,13 +337,27 @@ class Keyboards {
     }
   }
 
-  static List<String> get availableKeyboards =>
-      ['English', 'Russian', 'Georgian', 'Turkish'];
+  static List<String> get availableKeyboards => [
+        'English',
+        'Russian',
+        'Georgian',
+        'Turkish',
+        'German',
+        'Spanish',
+        'French',
+        'Italian',
+        'Greek'
+      ];
 
   static Map<String, String> abbreviations = {
     'English': 'EN',
     'Russian': 'RU',
     'Georgian': 'GE',
     'Turkish': 'TR',
+    'German': 'DE',
+    'Spanish': 'ES',
+    'French': 'FR',
+    'Italian': 'IT',
+    'Greek': 'EL',
   };
 }

@@ -2,78 +2,55 @@ import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 
 class HighlightedButton extends StatefulWidget {
-  final VoidCallback? onPressed;
-  final VoidCallback? onHover;
-  final VoidCallback? onLongPress;
-  final Color? backgroundColor;
-  final Color? hoverColor;
-  final Widget child;
-  final ButtonStyle? style;
-  final bool isActive;
-  final Color? specificColor;
+  const HighlightedButton({
+    super.key,
+    this.style,
+    required this.onPressed,
+    required this.child,
+    this.backgroundColor,
+    this.isActive = false,
+  });
 
-  const HighlightedButton(
-      {super.key,
-      this.onPressed,
-      this.onHover,
-      this.onLongPress,
-      this.backgroundColor = primaryColor,
-      this.hoverColor = secondaryColor,
-      required this.child,
-      this.style,
-      this.isActive = false,
-      this.specificColor});
+  final ButtonStyle? style;
+  final VoidCallback onPressed;
+  final Widget child;
+  final Color? backgroundColor;
+  final bool isActive;
 
   @override
-  HighlightedButtonState createState() => HighlightedButtonState();
+  State<HighlightedButton> createState() => _HighlightedButtonState();
 }
 
-class HighlightedButtonState extends State<HighlightedButton> {
-  bool _isPressed = false;
+class _HighlightedButtonState extends State<HighlightedButton> {
+  bool isPressed = false;
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = _isPressed || widget.isActive
-        ? widget.hoverColor
-        : widget.backgroundColor;
-
     return GestureDetector(
-      onTapDown: (_) {
-        setState(() {
-          _isPressed = true;
-        });
-      },
+      onTapDown: (_) => setState(() => isPressed = true),
       onTapUp: (_) {
-        setState(() {
-          _isPressed = false;
-        });
+        setState(() => isPressed = false);
+        widget.onPressed();
       },
-      onTapCancel: () {
-        setState(() {
-          _isPressed = false;
-        });
-      },
-      child: ElevatedButton(
-        onPressed: widget.onPressed,
-        onLongPress: widget.onLongPress,
-        style: widget.style != null
-            ? widget.style?.merge(ElevatedButton.styleFrom(
-                shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(5))),
-                elevation: 0,
-                side: const BorderSide(color: Colors.white),
-                shadowColor: Colors.white,
-                backgroundColor: backgroundColor,
-              ))
-            : ElevatedButton.styleFrom(
-                shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(5))),
-                elevation: 0,
-                side: const BorderSide(color: Colors.white),
-                shadowColor: Colors.white,
-                backgroundColor: backgroundColor,
-              ),
-        child: widget.child,
+      onTapCancel: () => setState(() => isPressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        decoration: BoxDecoration(
+          color: isPressed
+              ? Colors.white.withOpacity(0.3)
+              : widget.backgroundColor ?? Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: widget.isActive
+                ? Colors.white.withOpacity(0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: widget.child,
+        ),
       ),
     );
   }
