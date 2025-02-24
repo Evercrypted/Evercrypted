@@ -37,7 +37,6 @@ class SocketEventsService {
   MessageService messageService = MessageService();
 
   handleEvent(String channel, String type, dynamic payload) {
-    print('Channel: $channel');
     switch (channel) {
       case SocketChannelTypes.contactRequest:
         handleContactRequestEvent(type, payload);
@@ -58,8 +57,7 @@ class SocketEventsService {
         handleAuthEvent(type, payload);
         break;
       default:
-        print('Unknown Event');
-        print(payload);
+        return;
     }
   }
 
@@ -71,8 +69,7 @@ class SocketEventsService {
         ChatSocket.resetConnectionSubject.add(true);
         break;
       default:
-        print('Unknown Contact Event');
-        print(payload);
+        return;
     }
   }
 
@@ -85,8 +82,7 @@ class SocketEventsService {
     } else if (type == ErrorEventTypes.userLoggedInElsewhere) {
     } else if (type == ErrorEventTypes.couldNotLogin) {
     } else {
-      print('Unknown Error Event');
-      print(payload);
+      return;
     }
   }
 
@@ -116,8 +112,7 @@ class SocketEventsService {
         //     .toList());
         break;
       default:
-        print('Unknown General Event');
-        print(payload);
+        return;
     }
   }
 
@@ -157,8 +152,7 @@ class SocketEventsService {
         );
         break;
       default:
-        print('Unknown Contact Request Event');
-        print(payload);
+        return;
     }
   }
 
@@ -196,8 +190,7 @@ class SocketEventsService {
         });
         break;
       default:
-        print('Unknown Contact Event');
-        print(payload);
+        return;
     }
   }
 
@@ -314,8 +307,7 @@ class SocketEventsService {
         chatService.updateChatFromResp(chat);
         break;
       default:
-        print('Unknown Contact Event');
-        print(payload);
+        return;
     }
   }
 
@@ -353,8 +345,7 @@ class SocketEventsService {
         }
         break;
       default:
-        print('Unknown Contact Event');
-        print(payload);
+        return;
     }
   }
 }

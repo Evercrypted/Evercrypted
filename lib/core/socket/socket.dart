@@ -13,6 +13,7 @@ import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:jwk_plus/jwk_plus.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -120,7 +121,7 @@ class ChatSocket {
     }
 
     socket?.onConnect((_) async {
-      print('connected');
+      debugPrint('connected');
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
       actionQueueService.processQueue();
@@ -139,7 +140,7 @@ class ChatSocket {
     });
 
     socket?.on('disconnect', (data) {
-      print('disconnected');
+      debugPrint('disconnected');
       isConnected = false;
       isConnectedSubject.add(isConnected!);
       disconnectWS();
@@ -151,7 +152,7 @@ class ChatSocket {
         isConnected = false;
         isConnectedSubject.add(isConnected!);
       } else {
-        print(data is String ? data : data.toString());
+        debugPrint(data is String ? data : data.toString());
         isConnected = false;
         isConnected = false;
         isConnectedSubject.add(isConnected!);
@@ -159,8 +160,8 @@ class ChatSocket {
     });
 
     socket?.onAny((event, data) {
-      print('event $event');
-      print('data $data');
+      debugPrint('event $event');
+      debugPrint('data $data');
       if (event == 'connected') {
         Auth.setToken(
           newToken: data['new_token'],
@@ -189,7 +190,7 @@ class ChatSocket {
   static setListeners() {
     for (var channel in channelsToListen) {
       socket?.on(channel, (dynamic data) async {
-        print('raw data: $data');
+        debugPrint('raw data: $data');
         dynamic payload;
         if (key != null) {
           payload = await decodePayload(
@@ -201,7 +202,7 @@ class ChatSocket {
         } else {
           payload = data;
         }
-        print(
+        debugPrint(
           'got emit to $channel - ${payload.toString()}',
         );
         socketEventsService.handleEvent(
@@ -244,7 +245,7 @@ class ChatSocket {
           resp['mac'],
           key,
         );
-        print(payload);
+        debugPrint(payload.toString());
         if (payload['error'] != null) {
           respCompleter.completeError(payload['error']);
         } else if (payload['status'] == 'ok') {

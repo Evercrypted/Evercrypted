@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
+import 'package:evercrypted/screens/messages/components/camera.dart';
 import 'package:evercrypted/widgets/fade_icon.dart';
 import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:file_picker/file_picker.dart';
@@ -309,6 +309,72 @@ class ChatInputFieldState extends State<ChatInputField> {
     });
   }
 
+  sendImage(Uint8List jpgBytes, BuildContext context) async {
+    if (jpgBytes.isEmpty) {
+      return;
+    }
+    if (sendingFile) {
+      return;
+    }
+
+    String? userId = Auth.user?.uid;
+    late Message messageToSend;
+    late String fileToSend;
+
+    if (fullKey != null && fullKey!.isNotEmpty) {
+      final encrypted = await encodePayload({
+        'name':
+            'image_${widget.chatId}_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        'bytes': jpgBytes,
+      }, fullKey!, true);
+
+      messageToSend = Message(
+        authorId: userId!,
+        messageType: MessageTypes.image,
+        iv: encrypted['iv'],
+        mac: encrypted['mac'],
+        isEncrypted: true,
+        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+        chatUid: widget.chatId,
+        withBaseKey: withBaseKey,
+      );
+      fileToSend = encrypted['crypted'];
+    } else {
+      messageToSend = Message(
+        authorId: userId!,
+        messageType: MessageTypes.image,
+        text: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+        chatUid: widget.chatId,
+        withBaseKey: withBaseKey,
+      );
+      fileToSend = base64.encode(jpgBytes);
+    }
+
+    setState(() {
+      sendingFile = true;
+    });
+
+    _messageService
+        .sendFile(message: messageToSend, file: fileToSend)
+        .then((msg) {
+      setState(() {
+        sendingFile = false;
+      });
+    }).onError((e, s) {
+      setState(() {
+        sendingFile = false;
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not send image',
+              style: TextStyle(color: Colors.white)),
+          backgroundColor: errorColor,
+        ));
+      }
+    });
+  }
+
   @override
   void dispose() {
     _messageField.dispose();
@@ -351,7 +417,7 @@ class ChatInputFieldState extends State<ChatInputField> {
                             const EdgeInsets.only(right: defaultPadding / 2),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          color: primaryColor.withOpacity(0.1),
+                          color: primaryColor.withAlpha((0.1 * 255).round()),
                         ),
                         width: MediaQuery.of(context).size.width - 115,
                         height: 50,
@@ -448,10 +514,37 @@ class ChatInputFieldState extends State<ChatInputField> {
                                 suffixIcon: SizedBox(
                                   width: 96,
                                   child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      IconButton(
-                                        onPressed: () => _selectFile(context),
-                                        icon: Icon(
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          const CameraWidget()))
+                                              .then((jpgBytes) {
+                                            if (jpgBytes != null) {
+                                              sendImage(jpgBytes, context);
+                                            }
+                                          });
+                                        },
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          color: file != null
+                                              ? primaryColor
+                                              : Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge!
+                                                  .color!
+                                                  .withAlpha(
+                                                      (0.64 * 255).round()),
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: () => _selectFile(context),
+                                        child: Icon(
                                           Icons.attach_file,
                                           color: file != null
                                               ? primaryColor
@@ -459,7 +552,8 @@ class ChatInputFieldState extends State<ChatInputField> {
                                                   .textTheme
                                                   .bodyLarge!
                                                   .color!
-                                                  .withOpacity(0.64),
+                                                  .withAlpha(
+                                                      (0.64 * 255).round()),
                                         ),
                                       ),
                                       InkWell(
@@ -467,7 +561,9 @@ class ChatInputFieldState extends State<ChatInputField> {
                                           sendMessage(_messageField.text);
                                         },
                                         onLongPress: () {},
-                                        child: Ink(
+                                        child: Container(
+                                          margin: const EdgeInsets.only(
+                                              right: defaultPadding / 2),
                                           child: const Icon(Icons.send,
                                               color: primaryColor),
                                         ),
@@ -501,7 +597,8 @@ class ChatInputFieldState extends State<ChatInputField> {
                                       decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          color: primaryColor.withOpacity(0.1)),
+                                          color: primaryColor
+                                              .withAlpha((0.1 * 255).round())),
                                       padding: const EdgeInsets.only(
                                           top: defaultPadding / 4,
                                           bottom: defaultPadding / 4,

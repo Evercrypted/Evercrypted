@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-// import 'dart:io' show Platform;
-
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/objectbox.dart';
@@ -22,6 +20,7 @@ import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/theme.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -57,6 +56,10 @@ void main() async {
   // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);s
 
   await FirebaseMessaging.instance.requestPermission(provisional: true);
+
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
 
   if (await Auth.appKeyFromStorage == null) {
     await Auth.setAppKey();

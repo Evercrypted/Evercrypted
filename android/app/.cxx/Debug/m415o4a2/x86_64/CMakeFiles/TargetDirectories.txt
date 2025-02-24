@@ -1,0 +1,2 @@
+/Users/iraklikoridze/Desktop/Programming/evercrypted/android/app/.cxx/Debug/m415o4a2/x86_64/CMakeFiles/edit_cache.dir
+/Users/iraklikoridze/Desktop/Programming/evercrypted/android/app/.cxx/Debug/m415o4a2/x86_64/CMakeFiles/rebuild_cache.dir

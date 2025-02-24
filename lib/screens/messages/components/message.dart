@@ -3,6 +3,7 @@ import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/screens/messages/components/file_message.dart';
+import 'package:evercrypted/screens/messages/components/image_message.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
@@ -130,6 +131,8 @@ class _MessageWidgetState extends State<MessageWidget> {
           );
         case MessageTypes.file:
           return FileMessage(message: message);
+        case MessageTypes.image:
+          return ImageMessage(message: message);
         default:
           return const SizedBox();
       }

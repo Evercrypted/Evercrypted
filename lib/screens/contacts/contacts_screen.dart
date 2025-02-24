@@ -5,6 +5,7 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_riverp
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/screens/contacts/components/add_contact_button.dart';
+import 'package:evercrypted/screens/contacts/components/check_requests_icon.dart';
 import 'package:evercrypted/screens/contacts/contact_screen.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
@@ -207,29 +208,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                       message: 'Check received / sent requests',
                       child: Container(
                         margin: const EdgeInsets.only(right: 10),
-                        child: Stack(
-                          children: [
-                            const Icon(Icons.mark_email_unread_outlined,
-                                size: 30),
-                            if (isThereUnread)
-                              Positioned(
-                                right: 0,
-                                top: 1,
-                                child: Container(
-                                  height: 13,
-                                  width: 13,
-                                  decoration: BoxDecoration(
-                                    color: Colors.redAccent,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color: Theme.of(context)
-                                            .scaffoldBackgroundColor,
-                                        width: 2),
-                                  ),
-                                ),
-                              )
-                          ],
-                        ),
+                        child: CheckRequestsIcon(isThereUnread: isThereUnread),
                       ),
                     ))
               ],

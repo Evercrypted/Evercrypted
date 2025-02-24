@@ -11,6 +11,7 @@ import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
+import 'package:evercrypted/screens/messages/components/password_icon.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:evercrypted/models/chat_message.dart';
@@ -68,6 +69,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   final fabKey = GlobalKey<ExpandableFabState>();
   bool showFab = false;
+  bool settingsDialogOpen = false;
 
   @override
   void initState() {
@@ -145,6 +147,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   Future openPasswordDialog(BuildContext context) {
+    setState(() {
+      settingsDialogOpen = true;
+    });
     return showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -171,18 +176,19 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                     key: settingsForm,
                     child: Column(
                       children: [
-                        if (chat.isOneToOne)
-                          baseKey == null
-                              ? const Icon(Icons.security,
-                                  color: Colors.redAccent)
-                              : const Icon(Icons.security, color: Colors.white),
+                        PasswordDialogIcon(
+                            settingsDialogOpen: false,
+                            pass: pass,
+                            openPasswordDialog: () => null,
+                            chat: chat,
+                            baseKey: baseKey),
                         if (chat.isOneToOne)
                           Container(
                             margin: const EdgeInsets.symmetric(
                                 vertical: defaultPadding / 2),
                             child: Text(
                               baseKey == null
-                                  ? 'Chat Base-Encryption-Key is not synchronized yet. The other party needs to open Evercrypted at least once to generate base encryption key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
+                                  ? 'Chat End-to-End key is not synchronized yet. The other party needs to open Evercrypted at least once to generate base encryption key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
                                   : 'Base-Encryption-Key has successfully been synchronized. All the passwords less then 32 characters will automatically be reinforced with the synchronized key.',
                               style: const TextStyle(
                                   color: Colors.white,
@@ -269,7 +275,11 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                   )),
             ),
           ]);
-        });
+        }).then((value) {
+      setState(() {
+        settingsDialogOpen = false;
+      });
+    });
   }
 
   Future<int?> getlastMessageCreatedAtMSE() async {
@@ -426,53 +436,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         builder: (context) => ChatSettingsScreen(chat)));
               },
             ),
-            SizedBox(
-              width: 34,
-              height: 34,
-              child: Stack(
-                children: [
-                  IconButton(
-                      visualDensity: VisualDensity.compact,
-                      style: ButtonStyle(
-                          padding: WidgetStateProperty.all<EdgeInsets>(
-                              const EdgeInsets.all(0)),
-                          shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                      side: BorderSide(
-                                          width: 2,
-                                          color: pass == null
-                                              ? Colors.redAccent
-                                              : primaryColor)))),
-                      icon: Icon(Icons.security,
-                          size: 22,
-                          color:
-                              pass == null ? Colors.redAccent : primaryColor),
-                      onPressed: () {
-                        openPasswordDialog(context);
-                      }),
-                  Positioned(
-                    right: 1,
-                    bottom: 1,
-                    child: Container(
-                      height: 12,
-                      width: 12,
-                      decoration: BoxDecoration(
-                        color: !chat.isOneToOne
-                            ? Colors.grey
-                            : baseKey == null
-                                ? Colors.redAccent
-                                : primaryColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            width: 2),
-                      ),
-                    ),
-                  )
-                ],
-              ),
+            PasswordDialogIcon(
+              settingsDialogOpen: settingsDialogOpen,
+              pass: pass,
+              openPasswordDialog: () => openPasswordDialog(context),
+              chat: chat,
+              baseKey: baseKey,
             ),
             const SizedBox(width: defaultPadding / 4),
           ],

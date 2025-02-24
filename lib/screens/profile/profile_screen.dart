@@ -113,7 +113,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
               image: profile?.avatar?.pic,
               name: profile?.name ?? profile?.email?.split('@')[0],
               btnPress: () {
-                // colorPickerDialog().then((value) => print(dialogPickerColor));
+                // colorPickerDialog().then((value) => debugPrint(dialogPickerColor));
               },
             ),
             Text(

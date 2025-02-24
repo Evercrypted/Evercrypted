@@ -23,6 +23,7 @@ class Contact {
   @Unique()
   final String? contactPersonUid;
 
+  @Transient()
   Avatar? avatar;
 
   String? get dbAvatar => avatar == null ? null : jsonEncode(avatar?.toJson());
