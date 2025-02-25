@@ -19,13 +19,14 @@ ThemeData lightThemeData(BuildContext context) {
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
-      selectedItemColor: contentColorLightTheme.withOpacity(0.7),
-      unselectedItemColor: contentColorLightTheme.withOpacity(0.32),
+      selectedItemColor: contentColorLightTheme.withAlpha((255 * 0.7).round()),
+      unselectedItemColor:
+          contentColorLightTheme.withAlpha((255 * 0.32).round()),
       selectedIconTheme: const IconThemeData(color: primaryColor),
       showUnselectedLabels: true,
     ),
     inputDecorationTheme: inputDecorationTheme.copyWith(
-        fillColor: primaryColor.withOpacity(0.05)),
+        fillColor: primaryColor.withAlpha((255 * 0.05).round())),
   );
 }
 
@@ -35,7 +36,9 @@ ThemeData darkThemeData(BuildContext context) {
   return ThemeData.dark().copyWith(
     primaryColor: primaryColor,
     scaffoldBackgroundColor: contentColorLightTheme,
-    appBarTheme: appBarTheme,
+    appBarTheme: appBarTheme.copyWith(
+      backgroundColor: contentColorLightTheme,
+    ),
     iconTheme: const IconThemeData(color: contentColorDarkTheme),
     textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme)
         .apply(bodyColor: contentColorDarkTheme),
@@ -47,18 +50,25 @@ ThemeData darkThemeData(BuildContext context) {
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: contentColorLightTheme,
       selectedItemColor: Colors.white70,
-      unselectedItemColor: contentColorDarkTheme.withOpacity(0.32),
+      unselectedItemColor:
+          contentColorDarkTheme.withAlpha((255 * 0.32).round()),
       selectedIconTheme: const IconThemeData(color: primaryColor),
       showUnselectedLabels: true,
     ),
-    inputDecorationTheme: inputDecorationTheme,
+    inputDecorationTheme: inputDecorationTheme.copyWith(
+      fillColor: contentColorLightThemeSecondary,
+      border: OutlineInputBorder(
+        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.all(Radius.circular(50)),
+      ),
+    ),
   );
 }
 
 const appBarTheme = AppBarTheme(centerTitle: false, elevation: 0);
 final inputDecorationTheme = InputDecorationTheme(
   filled: true,
-  fillColor: contentColorDarkTheme.withOpacity(0.08),
+  fillColor: contentColorDarkTheme.withAlpha((255 * 0.08).round()),
   contentPadding: const EdgeInsets.symmetric(
       horizontal: defaultPadding * 1.5, vertical: defaultPadding),
   border: const OutlineInputBorder(

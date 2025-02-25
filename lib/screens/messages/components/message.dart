@@ -51,7 +51,7 @@ class _MessageWidgetState extends State<MessageWidget> {
   @override
   didUpdateWidget(MessageWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // checkAndDecrypt();
+    checkAndDecrypt();
     decrypt();
   }
 

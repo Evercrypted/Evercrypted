@@ -118,7 +118,6 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                   Container(
                     margin: const EdgeInsets.only(left: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         width: 1,
@@ -140,7 +139,6 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                           borderSide: BorderSide.none,
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
-                        fillColor: Colors.white,
                         hintStyle: TextStyle(
                           color: contentColorLightTheme.withOpacity(0.64),
                         ),
@@ -192,7 +190,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                 icon: const Icon(Icons.chat),
                 label: const Text(
                   'Open Chat',
-                  style: TextStyle(fontSize: 16, color: contentColorLightTheme),
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
               const SizedBox(height: 5),
@@ -205,7 +203,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                 icon: const Icon(Icons.edit),
                 label: const Text(
                   'Rename Contact',
-                  style: TextStyle(fontSize: 16, color: contentColorLightTheme),
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
               const SizedBox(height: 5),
@@ -219,8 +217,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                   ),
                   label: const Text(
                     'Delete Contact',
-                    style:
-                        TextStyle(color: contentColorLightTheme, fontSize: 16),
+                    style: TextStyle(fontSize: 16),
                   )),
             ],
           )
