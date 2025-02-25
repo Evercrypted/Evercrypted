@@ -26,7 +26,7 @@ class MainScreenState extends ConsumerState<MainScreen> {
   List<Widget> pageList = <Widget>[
     const ChatsScreen(),
     const ContactsScreen(),
-    ProfileScreen(),
+    const ProfileScreen(),
   ];
 
   @override
@@ -87,23 +87,6 @@ class MainScreenState extends ConsumerState<MainScreen> {
               pageIndex = i;
             });
           },
-        )
-        //  BottomNavigationBar(
-        //   type: BottomNavigationBarType.fixed,
-        //   currentIndex: pageIndex,
-        //   onTap: (value) {
-        //     setState(() {
-        //       pageIndex = value;
-        //     });
-        //   },
-        //   items: const [
-        //     BottomNavigationBarItem(
-        //         icon: Icon(Icons.messenger), label: "Chats"),
-        //     BottomNavigationBarItem(icon: Icon(Icons.people), label: "People"),
-        //     BottomNavigationBarItem(
-        //         icon: Icon(Icons.manage_accounts), label: "Settings"),
-        //   ],
-        // ),
-        );
+        ));
   }
 }

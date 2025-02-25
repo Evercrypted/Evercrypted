@@ -18,6 +18,7 @@ import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 
 import '../entities/chat/chat_model.dart';
 import '../entities/chat/chat_service.dart';
@@ -75,6 +76,7 @@ class SocketEventsService {
 
   handleErrorEvent(String type, dynamic payload) {
     if (type == ErrorEventTypes.accessDenied) {
+      Auth.clearAuth();
     } else if (type == ErrorEventTypes.noOTPToken ||
         type == ErrorEventTypes.invalidOTPToken) {
       Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
@@ -321,27 +323,29 @@ class SocketEventsService {
         Chat? chat =
             chats.firstWhereOrNull((element) => element.uid == message.chatUid);
 
-        if (chat != null && AppState.openedChatId != message.chatUid) {
-          String chatname;
-          if (chat.name != null && chat.name!.isNotEmpty) {
-            chatname = chat.name!;
-          } else {
-            final String appKey = await Auth.getAppKey;
-            final userId = Auth.user?.uid;
-            final otherParticipant = chat.participants
-                .firstWhere((element) => element.uid != userId);
-            chatname = otherParticipant.name != null
-                ? fernetDecrypt(otherParticipant.name, appKey)
-                : fernetDecrypt(otherParticipant.email, appKey);
-          }
-          LocalNotification.instance.displayNotification(
-            'Message',
-            'New message from $chatname',
-            json.encode({
-              'type': NotificationEventTypes.goToChatPage,
-            }),
-          );
+        if (chat != null) {
           chatService.updateChatLastSeen(chatUid: chat.uid);
+          if (AppState.openedChatId != message.chatUid) {
+            String chatname;
+            if (chat.name != null && chat.name!.isNotEmpty) {
+              chatname = chat.name!;
+            } else {
+              final String appKey = await Auth.getAppKey;
+              final userId = Auth.user?.uid;
+              final otherParticipant = chat.participants
+                  .firstWhere((element) => element.uid != userId);
+              chatname = otherParticipant.name != null
+                  ? fernetDecrypt(otherParticipant.name, appKey)
+                  : fernetDecrypt(otherParticipant.email, appKey);
+            }
+            LocalNotification.instance.displayNotification(
+              'Message',
+              'New message from $chatname',
+              json.encode({
+                'type': NotificationEventTypes.goToChatPage,
+              }),
+            );
+          }
         }
         break;
       default:

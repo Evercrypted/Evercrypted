@@ -63,10 +63,6 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
       body: Column(
         children: [
           SearchHeader(
-              label: const Text(
-                'Chats',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
               searching: searching,
               searchFocus: searchFocus,
               searchController: _searchController,

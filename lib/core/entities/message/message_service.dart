@@ -315,6 +315,7 @@ class MessageService {
         resp.bodyToJson['mac'],
         ChatSocket.key,
       );
+      print(respPayload);
       if (respPayload['status'] != 'success') {
         completer.completeError('Could not download file');
       } else {

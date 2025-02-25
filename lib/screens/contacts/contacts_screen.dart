@@ -160,59 +160,43 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
           : null,
       body: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-                border: Border(
-                    bottom:
-                        BorderSide(color: Colors.grey[200] ?? Colors.grey))),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SearchHeader(
-                      label: Text(
-                        widget.isParticipantSelect ? 'Search' : 'Contacts',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: widget.isParticipantSelect
-                              ? FontWeight.normal
-                              : FontWeight.bold,
-                        ),
-                      ),
-                      searching: searching,
-                      searchFocus: searchFocus,
-                      searchController: _searchController,
-                      onSearchIconPressed: () {
-                        setState(() {
-                          searching = true;
-                          searchFocus.requestFocus();
-                          openSecretInput(
-                              isSingleLine: true,
-                              fieldName: 'Search',
-                              context: context,
-                              controller: _searchController);
-                        });
-                      },
-                      onCloseIconPressed: () {
-                        setState(() {
-                          searching = false;
-                          _searchController.clear();
-                        });
-                      }),
-                ),
-                InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(
-                          context, AddNewContactScreen.routeName);
+          Row(
+            children: [
+              Expanded(
+                child: SearchHeader(
+                    searching: searching,
+                    searchFocus: searchFocus,
+                    searchController: _searchController,
+                    onSearchIconPressed: () {
+                      setState(() {
+                        searching = true;
+                        searchFocus.requestFocus();
+                        openSecretInput(
+                            isSingleLine: true,
+                            fieldName: 'Search',
+                            context: context,
+                            controller: _searchController);
+                      });
                     },
-                    child: Tooltip(
-                      message: 'Check received / sent requests',
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        child: CheckRequestsIcon(isThereUnread: isThereUnread),
-                      ),
-                    ))
-              ],
-            ),
+                    onCloseIconPressed: () {
+                      setState(() {
+                        searching = false;
+                        _searchController.clear();
+                      });
+                    }),
+              ),
+              InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, AddNewContactScreen.routeName);
+                  },
+                  child: Tooltip(
+                    message: 'Check received / sent requests',
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 10),
+                      child: CheckRequestsIcon(isThereUnread: isThereUnread),
+                    ),
+                  ))
+            ],
           ),
           SizedBox(
               height: MediaQuery.of(context).size.height - 243,

@@ -23,7 +23,10 @@ class SearchHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(
+        horizontal: defaultPadding,
+      ),
       height: 44,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -42,11 +45,7 @@ class SearchHeader extends StatelessWidget {
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(
                     borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                  ),
-                  fillColor: Colors.white,
-                  hintStyle: TextStyle(
-                    color: contentColorLightTheme.withOpacity(0.64),
+                    borderRadius: BorderRadius.all(Radius.circular(15)),
                   ),
                 ),
               ),

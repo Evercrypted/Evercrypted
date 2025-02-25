@@ -51,7 +51,7 @@ class _MessageWidgetState extends State<MessageWidget> {
   @override
   didUpdateWidget(MessageWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    checkAndDecrypt();
+    // checkAndDecrypt();
     decrypt();
   }
 
@@ -82,6 +82,10 @@ class _MessageWidgetState extends State<MessageWidget> {
 
   decrypt() async {
     try {
+      if (message.encryptionStatus == EncryptionStatus.decrypted ||
+          message.encryptionStatus == EncryptionStatus.notEncrypted) {
+        return;
+      }
       if (message.pass != null) {
         String? decrypted;
         int? decryptedDuration;

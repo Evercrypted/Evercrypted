@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
@@ -102,9 +103,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     final profile = ref.watch(profileProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Settings"),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
         child: Column(
@@ -153,6 +151,21 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                   builder: (context) => const KeyboardSettingsScreen(),
                 ),
               ),
+            ),
+            PrimaryButton(
+              padding: const EdgeInsets.all(5),
+              text: "Clear OBX",
+              press: () {
+                // Clear all ObjectBox boxes
+                obx.messages.removeAll();
+                obx.chats.removeAll();
+                obx.contacts.removeAll();
+                obx.profiles.removeAll();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('All ObjectBox data cleared')),
+                );
+              },
             ),
             PrimaryButton(
                 padding: const EdgeInsets.all(5),

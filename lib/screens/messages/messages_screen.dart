@@ -263,7 +263,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         ),
                         const SizedBox(height: defaultPadding / 2),
                         PrimaryButton(
-                          text: 'DECRYPT',
+                          text: 'Use Password',
                           press: () {
                             setPass(_passController.text);
                             Navigator.pop(context);
@@ -309,10 +309,11 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           _pagingController.itemList
               ?.firstWhereOrNull((el) => el.id == element.id) ==
           null);
-      _pagingController.itemList = [
-        ...messages,
-        ...(_pagingController.itemList ?? []),
-      ];
+      _pagingController.appendPage(messages, nextPageKey);
+      // _pagingController.itemList = [
+      //   ...messages,
+      //   ...(_pagingController.itemList ?? []),
+      // ];
     });
   }
 
@@ -538,6 +539,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                   reverse: true,
                   pagingController: _pagingController,
                   builderDelegate: PagedChildBuilderDelegate<Message>(
+                      animateTransitions: true,
                       newPageProgressIndicatorBuilder: (context) => Container(),
                       itemBuilder: (context, item, index) {
                         final chatMessage = ChatMessage(
@@ -576,7 +578,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                               : EncryptionStatus.notEncrypted,
                         );
                         return MessageWidget(
-                          key: ValueKey(item.id),
+                          key: Key(item.id.toString()),
                           chat: chat,
                           message: chatMessage,
                           sender: chat.participants.firstWhereOrNull(

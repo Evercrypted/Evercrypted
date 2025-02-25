@@ -146,27 +146,52 @@ class _ImageMessageState extends State<ImageMessage> {
         maxHeight: MediaQuery.of(context).size.width * 0.55,
       ),
       child: needDownload
-          ? Center(
-              child: downloadInProgress
-                  ? FadeIcon(
-                      icon: Container(
-                      margin: const EdgeInsets.all(7.5),
-                      child: Icon(
-                        Icons.download,
-                        color: widget.message.isSender
-                            ? Colors.white
-                            : primaryColor,
+          ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: primaryColor,
+                ),
+              ),
+              child: GestureDetector(
+                onTap: () => downloadFile(context),
+                child: Container(
+                  height: 100,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: defaultPadding * 0.75,
+                  ),
+                  child: Row(
+                    children: [
+                      downloadInProgress
+                          ? FadeIcon(
+                              icon: Icon(
+                              Icons.download,
+                              color: widget.message.isSender
+                                  ? Colors.white
+                                  : primaryColor,
+                            ))
+                          : Icon(
+                              Icons.download,
+                              color: widget.message.isSender
+                                  ? Colors.white
+                                  : primaryColor,
+                            ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            downloadInProgress
+                                ? 'Downloading...'
+                                : 'Download Image',
+                            style: TextStyle(
+                                color: primaryColor,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ),
-                    ))
-                  : IconButton(
-                      onPressed: () => downloadFile(context),
-                      icon: Icon(
-                        Icons.download,
-                        color: widget.message.isSender
-                            ? Colors.white
-                            : primaryColor,
-                      ),
-                    ),
+                    ],
+                  ),
+                ),
+              ),
             )
           : (imageData != null &&
                   (decryptionStatus == ImageStatus.decrypted ||
@@ -197,15 +222,15 @@ class _ImageMessageState extends State<ImageMessage> {
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
-                    color: Colors.grey.shade500,
+                    border: Border.all(
+                      color: primaryColor,
+                    ),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.image_outlined,
-                        color: widget.message.isSender
-                            ? Colors.white
-                            : primaryColor,
+                        color: primaryColor,
                       ),
                       Expanded(
                         child: Center(
