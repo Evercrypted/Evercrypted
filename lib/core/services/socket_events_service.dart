@@ -18,7 +18,6 @@ import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 
 import '../entities/chat/chat_model.dart';
 import '../entities/chat/chat_service.dart';

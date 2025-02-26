@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
@@ -38,7 +40,7 @@ class _MessageWidgetState extends State<MessageWidget> {
 
   @override
   void initState() {
-    checkAndDecrypt();
+    checkAndDecrypt(true);
     super.initState();
   }
 
@@ -51,75 +53,81 @@ class _MessageWidgetState extends State<MessageWidget> {
   @override
   didUpdateWidget(MessageWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    checkAndDecrypt();
-    decrypt();
+    checkAndDecrypt(false);
+    // decrypt();
   }
 
-  checkAndDecrypt() {
-    message = widget.message;
-    if (message.iv == null || message.mac == null) return;
-    if (message.withBaseKey) {
-      if (message.baseKey != null) {
-        if (message.pass != null) {
-          message.pass =
-              message.baseKey!.substring(0, 32 - message.pass!.length) +
-                  message.pass!;
+  checkAndDecrypt(bool? isInit) async {
+    ChatMessage msg = message;
+    if (msg.iv == null || msg.mac == null) return;
+    if (msg.withBaseKey) {
+      if (msg.baseKey != null) {
+        if (msg.pass != null) {
+          msg.pass =
+              msg.baseKey!.substring(0, 32 - msg.pass!.length) + msg.pass!;
         } else {
-          message.pass = message.baseKey!;
+          msg.pass = msg.baseKey!;
         }
-        decrypt();
+        msg = await decrypt(msg);
       }
     } else {
-      if (message.pass != null) {
-        if (message.pass!.length < 32) {
-          message.pass = message.pass! + '0' * (32 - message.pass!.length);
+      if (msg.pass != null) {
+        if (msg.pass!.length < 32) {
+          msg.pass = msg.pass! + '0' * (32 - msg.pass!.length);
         }
-        message.pass = widget.message.pass;
-        decrypt();
+        msg.pass = msg.pass;
+        msg = await decrypt(msg);
       }
     }
+    setState(() {
+      message = msg;
+    });
   }
 
-  decrypt() async {
-    try {
-      if (message.encryptionStatus == EncryptionStatus.decrypted ||
-          message.encryptionStatus == EncryptionStatus.notEncrypted) {
-        return;
-      }
-      if (message.pass != null) {
-        String? decrypted;
-        int? decryptedDuration;
-        if (message.messageType == MessageTypes.text && message.text != null) {
-          decrypted = await decodePayload(
-            message.text,
-            message.iv,
-            message.mac,
-            message.pass,
-            true,
-          );
+  Future<ChatMessage> decrypt(ChatMessage msg) async {
+    Completer<ChatMessage> completer = Completer<ChatMessage>();
+    ChatMessage inProcess = msg;
+    if (inProcess.encryptionStatus == EncryptionStatus.decrypted ||
+        inProcess.encryptionStatus == EncryptionStatus.notEncrypted) {
+      completer.complete(inProcess);
+    } else {
+      try {
+        if (inProcess.pass != null) {
+          String? decrypted;
+          int? decryptedDuration;
+          if (inProcess.messageType == MessageTypes.text &&
+              inProcess.text != null) {
+            decrypted = await decodePayload(
+              inProcess.text,
+              inProcess.iv,
+              inProcess.mac,
+              inProcess.pass,
+              true,
+            );
+          }
+          if (inProcess.messageType == MessageTypes.audio &&
+              inProcess.duration != null &&
+              inProcess.decodedDuration == null) {
+            decryptedDuration = await decodePayload(
+              inProcess.duration,
+              inProcess.durationIV,
+              inProcess.durationMAC,
+              inProcess.pass,
+              true,
+            );
+          }
+
+          inProcess.decodedDuration = decryptedDuration ?? 0;
+          inProcess.decrypted = decrypted ?? message.text;
+          inProcess.encryptionStatus = EncryptionStatus.decrypted;
         }
-        if (message.messageType == MessageTypes.audio &&
-            message.duration != null &&
-            message.decodedDuration == null) {
-          decryptedDuration = await decodePayload(
-            message.duration,
-            message.durationIV,
-            message.durationMAC,
-            message.pass,
-            true,
-          );
-        }
-        setState(() {
-          message.decodedDuration = decryptedDuration ?? 0;
-          message.decrypted = decrypted ?? message.text;
-          message.encryptionStatus = EncryptionStatus.decrypted;
-        });
+      } catch (e) {
+        inProcess.encryptionStatus = EncryptionStatus.failed;
       }
-    } catch (e) {
-      setState(() {
-        message.encryptionStatus = EncryptionStatus.failed;
-      });
+      completer.complete(inProcess);
     }
+
+    return completer.future;
   }
 
   @override

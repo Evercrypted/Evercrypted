@@ -1,4 +1,3 @@
-import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 
 class HighlightedButton extends StatefulWidget {
