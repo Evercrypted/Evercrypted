@@ -164,6 +164,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
             children: [
               Expanded(
                 child: SearchHeader(
+                    label: Text('Contacts', style: TextStyle(fontSize: 24)),
                     searching: searching,
                     searchFocus: searchFocus,
                     searchController: _searchController,

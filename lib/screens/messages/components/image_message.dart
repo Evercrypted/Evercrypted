@@ -9,17 +9,14 @@ import '../../../ui_constants.dart';
 import '../../../models/chat_message.dart';
 import '../../../screens/messages/components/image_preview.dart';
 
-enum ImageStatus {
-  unencrypted,
-  encrypted,
-  decryptionFailed,
-  decrypted,
-}
-
 class ImageMessage extends StatefulWidget {
   final ChatMessage message;
+  final Function(EncryptionStatus?) encryptionStatusCallback;
 
-  const ImageMessage({super.key, required this.message});
+  const ImageMessage(
+      {super.key,
+      required this.message,
+      required this.encryptionStatusCallback});
 
   @override
   State<ImageMessage> createState() => _ImageMessageState();
@@ -29,7 +26,7 @@ class _ImageMessageState extends State<ImageMessage> {
   Uint8List? imageData;
   bool needDownload = false;
   bool downloadInProgress = false;
-  late ImageStatus decryptionStatus;
+  EncryptionStatus? decryptionStatus;
 
   MessageService messageService = MessageService();
 
@@ -42,11 +39,12 @@ class _ImageMessageState extends State<ImageMessage> {
   @override
   didUpdateWidget(ImageMessage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    setImage();
+    setImage(oldWidget: oldWidget);
   }
 
-  setImage() async {
-    print(widget.message.toJson());
+  setImage({ImageMessage? oldWidget}) async {
+    // print(widget.message.toJson());
+    if (!mounted) return;
     late dynamic downloaded;
     if (widget.message.queueId != null) {
       downloaded =
@@ -85,26 +83,28 @@ class _ImageMessageState extends State<ImageMessage> {
             Uint8List data = Uint8List.fromList(intList);
             setState(() {
               imageData = data;
-              decryptionStatus = ImageStatus.decrypted;
+              decryptionStatus = EncryptionStatus.decrypted;
             });
+            widget.encryptionStatusCallback(decryptionStatus);
           } else {
             setState(() {
-              decryptionStatus = ImageStatus.decryptionFailed;
+              decryptionStatus = EncryptionStatus.failed;
             });
+            widget.encryptionStatusCallback(decryptionStatus);
           }
         } else {
           setState(() {
-            decryptionStatus = ImageStatus.encrypted;
+            decryptionStatus = EncryptionStatus.encrypted;
           });
+          widget.encryptionStatusCallback(decryptionStatus);
         }
-      } else {
+      } else if (decryptionStatus == null) {
         setState(() {
-          decryptionStatus = ImageStatus.unencrypted;
+          decryptionStatus = EncryptionStatus.notEncrypted;
           imageData = downloaded = base64.decode(downloaded);
         });
       }
     }
-    print(decryptionStatus.name);
   }
 
   downloadFile(context) {
@@ -194,8 +194,8 @@ class _ImageMessageState extends State<ImageMessage> {
               ),
             )
           : (imageData != null &&
-                  (decryptionStatus == ImageStatus.decrypted ||
-                      decryptionStatus == ImageStatus.unencrypted))
+                  (decryptionStatus == EncryptionStatus.decrypted ||
+                      decryptionStatus == EncryptionStatus.notEncrypted))
               ? GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -237,9 +237,7 @@ class _ImageMessageState extends State<ImageMessage> {
                           child: Text(
                             'Encrypted Image',
                             style: TextStyle(
-                              color: widget.message.isSender
-                                  ? Colors.white
-                                  : primaryColor,
+                              color: primaryColor,
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),

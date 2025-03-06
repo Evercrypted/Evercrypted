@@ -61,8 +61,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   StreamSubscription? _isarSubscription;
 
-  final PagingController<int, Message> _pagingController =
-      PagingController(firstPageKey: 1);
+  PagingState<int, Message> _pagingState = PagingState();
+
+  List<Message> obxAddedMessages = [];
 
   late StreamSubscription isConnectedListener;
   bool isConnected = ChatSocket.isConnectedSubject.value;
@@ -105,9 +106,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     }).then((value) async {
       _fetchPage(0).then((value) {
         listenToObxChanges();
-        _pagingController.addPageRequestListener((pageKey) {
-          _fetchPage(pageKey);
-        });
       });
     });
   }
@@ -115,6 +113,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   @override
   void deactivate() {
     AppState.setOpenedChatId(null);
+    isConnectedListener.cancel();
     super.deactivate();
   }
 
@@ -123,7 +122,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     isConnectedListener.cancel();
     _isarSubscription?.cancel();
     _passController.dispose();
-    _pagingController.dispose();
+    _pagingState.reset();
     basekeyListener?.cancel();
     super.dispose();
   }
@@ -306,14 +305,15 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     _isarSubscription?.cancel();
     _isarSubscription = queryChanged.listen((messages) {
       messages.retainWhere((element) =>
-          _pagingController.itemList
-              ?.firstWhereOrNull((el) => el.id == element.id) ==
-          null);
-      _pagingController.appendPage(messages, nextPageKey);
-      // _pagingController.itemList = [
-      //   ...messages,
-      //   ...(_pagingController.itemList ?? []),
-      // ];
+          obxAddedMessages.firstWhereOrNull((el) => el.id == element.id) ==
+              null &&
+          _pagingState.items?.firstWhereOrNull((el) => el.id == element.id) ==
+              null);
+      if (messages.isNotEmpty) {
+        setState(() {
+          obxAddedMessages = [...messages, ...obxAddedMessages];
+        });
+      }
     });
   }
 
@@ -322,29 +322,39 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       final newItems = await _messageService.getMessagesFromDB(
           widget.chat.id, pageKey, _pageSize);
       newItems.retainWhere((element) =>
-          _pagingController.itemList
-              ?.firstWhereOrNull((el) => el.id == element.id) ==
+          _pagingState.items?.firstWhereOrNull((el) => el.id == element.id) ==
           null);
       final isLastPage = newItems.length < _pageSize;
+      final newKey = (_pagingState.keys?.first ?? 0) + 1;
       if (isLastPage) {
-        _pagingController.itemList = [
-          ...(_pagingController.itemList ?? []),
-          ...newItems,
-        ];
-        _pagingController.nextPageKey = null;
+        setState(() {
+          _pagingState = _pagingState.copyWith(pages: [
+            ...?_pagingState.pages,
+            newItems,
+          ], keys: [
+            ...?_pagingState.keys,
+            newKey,
+          ], hasNextPage: false, isLoading: false);
+        });
       } else {
-        nextPageKey = pageKey + 1;
-        _pagingController.itemList = [
-          ...(_pagingController.itemList ?? []),
-          ...newItems,
-        ];
-        _pagingController.nextPageKey = nextPageKey;
+        setState(() {
+          _pagingState = _pagingState.copyWith(
+              pages: [newItems, ...?_pagingState.pages],
+              keys: [newKey, ...?_pagingState.keys],
+              hasNextPage: true,
+              isLoading: false);
+        });
       }
       if (pageKey == 0 && newItems.isNotEmpty) {
         startingCreatedAtMSE = newItems.last.createdAtMSE;
       }
     } catch (error) {
-      _pagingController.error = error;
+      setState(() {
+        _pagingState = _pagingState.copyWith(
+          error: error,
+          isLoading: false,
+        );
+      });
     }
   }
 
@@ -371,7 +381,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       // Only update UI after successful deletion
       if (mounted) {
         setState(() {
-          _pagingController.itemList = [];
+          _pagingState = _pagingState.copyWith(
+            pages: [],
+            keys: [],
+            hasNextPage: false,
+            isLoading: false,
+          );
         });
         // Double toggle - first closes "Are you sure?", second closes the FAB
         fabKey.currentState?.toggle();
@@ -384,6 +399,42 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             SnackBar(content: Text('Failed to delete messages: $e')));
       }
     }
+  }
+
+  ChatMessage prepareMessage(Message item) {
+    return ChatMessage(
+      uid: item.uid,
+      chatUid: widget.chat.uid,
+      text: item.text,
+      createdAtMSE: item.createdAtMSE,
+      messageType: item.messageType,
+      isSender: item.authorId == userId,
+      isSystemMessage: item.messageType == MessageTypes.system,
+      queueId: item.queueId,
+      messageStatus: item.successfullySent
+          ? MessageStatus.successfullySent
+          : item.queueId != null
+              ? MessageStatus.queued
+              : item.couldNotSend
+                  ? MessageStatus.couldNotSend
+                  : MessageStatus.successfullySent,
+      pass: pass,
+      baseKey: baseKey,
+      iv: item.iv,
+      error: item.error,
+      mac: item.mac,
+      duration: item.playbackDurationMicroSeconds,
+      durationIV: item.durationIV,
+      durationMAC: item.durationMAC,
+      withBaseKey: item.withBaseKey ?? false,
+      decodedDuration: (item.durationIV == null || item.durationMAC == null) &&
+              item.playbackDurationMicroSeconds != null
+          ? int.parse(item.playbackDurationMicroSeconds!)
+          : null,
+      encryptionStatus: item.iv != null && item.mac != null
+          ? EncryptionStatus.encrypted
+          : EncryptionStatus.notEncrypted,
+    );
   }
 
   @override
@@ -535,57 +586,41 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-                child: PagedListView<int, Message>(
+                child: CustomScrollView(
                   reverse: true,
-                  pagingController: _pagingController,
-                  builderDelegate: PagedChildBuilderDelegate<Message>(
-                      animateTransitions: true,
-                      newPageProgressIndicatorBuilder: (context) => Container(),
-                      itemBuilder: (context, item, index) {
-                        final chatMessage = ChatMessage(
-                          uid: item.uid,
-                          chatUid: widget.chat.uid,
-                          text: item.text,
-                          createdAtMSE: item.createdAtMSE,
-                          messageType: item.messageType,
-                          isSender: item.authorId == userId,
-                          isSystemMessage:
-                              item.messageType == MessageTypes.system,
-                          queueId: item.queueId,
-                          messageStatus: item.successfullySent
-                              ? MessageStatus.successfullySent
-                              : item.queueId != null
-                                  ? MessageStatus.queued
-                                  : item.couldNotSend
-                                      ? MessageStatus.couldNotSend
-                                      : MessageStatus.successfullySent,
-                          pass: pass,
-                          baseKey: baseKey,
-                          iv: item.iv,
-                          error: item.error,
-                          mac: item.mac,
-                          duration: item.playbackDurationMicroSeconds,
-                          durationIV: item.durationIV,
-                          durationMAC: item.durationMAC,
-                          withBaseKey: item.withBaseKey ?? false,
-                          decodedDuration: (item.durationIV == null ||
-                                      item.durationMAC == null) &&
-                                  item.playbackDurationMicroSeconds != null
-                              ? int.parse(item.playbackDurationMicroSeconds!)
-                              : null,
-                          encryptionStatus: item.iv != null && item.mac != null
-                              ? EncryptionStatus.encrypted
-                              : EncryptionStatus.notEncrypted,
-                        );
-                        return MessageWidget(
-                          key: Key(item.id.toString()),
-                          chat: chat,
-                          message: chatMessage,
-                          sender: chat.participants.firstWhereOrNull(
-                              (element) => element.uid == item.authorId),
-                          player: player,
-                        );
-                      }),
+                  slivers: [
+                    SliverList(
+                      delegate: SliverChildListDelegate(
+                        [
+                          ...obxAddedMessages.map((e) => MessageWidget(
+                                key: Key(e.id.toString()),
+                                chat: chat,
+                                message: prepareMessage(e),
+                                player: player,
+                              )),
+                        ],
+                      ),
+                    ),
+                    PagedSliverList<int, Message>(
+                      state: _pagingState,
+                      fetchNextPage: () {
+                        _fetchPage(_pagingState.keys?.first ?? 1);
+                      },
+                      builderDelegate: PagedChildBuilderDelegate<Message>(
+                          newPageProgressIndicatorBuilder: (context) =>
+                              Container(),
+                          itemBuilder: (context, item, index) {
+                            return MessageWidget(
+                              key: Key(item.id.toString()),
+                              chat: chat,
+                              message: prepareMessage(item),
+                              sender: chat.participants.firstWhereOrNull(
+                                  (element) => element.uid == item.authorId),
+                              player: player,
+                            );
+                          }),
+                    ),
+                  ],
                 ),
               ),
             ),

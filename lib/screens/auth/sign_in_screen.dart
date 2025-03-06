@@ -40,7 +40,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
   void submitForm(BuildContext context) async {
     FocusManager.instance.primaryFocus?.unfocus();
-
     if (_form.currentState!.validate()) {
       if (formValues.email != null && formValues.password != null) {
         setState(() {

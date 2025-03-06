@@ -105,6 +105,7 @@ class AuthService {
   }
 
   Future singIn(AuthForm formValues) async {
+    print('signIn');
     final identifier =
         DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
