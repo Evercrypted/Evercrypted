@@ -44,7 +44,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   final MessageService _messageService = MessageService();
   final userId = Auth.user?.uid;
   late int startingCreatedAtMSE;
-  int nextPageKey = 1;
+  int nextPageKey = 0;
   bool startedListeningToIsar = false;
   bool _passwordVisible = false;
   final TextEditingController _passController = TextEditingController();
@@ -318,6 +318,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   Future<void> _fetchPage(int pageKey) async {
+    print(pageKey);
     try {
       final newItems = await _messageService.getMessagesFromDB(
           widget.chat.id, pageKey, _pageSize);
@@ -325,7 +326,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           _pagingState.items?.firstWhereOrNull((el) => el.id == element.id) ==
           null);
       final isLastPage = newItems.length < _pageSize;
-      final newKey = (_pagingState.keys?.first ?? 0) + 1;
       if (isLastPage) {
         setState(() {
           _pagingState = _pagingState.copyWith(pages: [
@@ -333,14 +333,14 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             newItems,
           ], keys: [
             ...?_pagingState.keys,
-            newKey,
+            pageKey,
           ], hasNextPage: false, isLoading: false);
         });
       } else {
         setState(() {
           _pagingState = _pagingState.copyWith(
-              pages: [newItems, ...?_pagingState.pages],
-              keys: [newKey, ...?_pagingState.keys],
+              pages: [...?_pagingState.pages, newItems],
+              keys: [...?_pagingState.keys, pageKey],
               hasNextPage: true,
               isLoading: false);
         });
@@ -589,37 +589,41 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                 child: CustomScrollView(
                   reverse: true,
                   slivers: [
-                    SliverList(
-                      delegate: SliverChildListDelegate(
-                        [
-                          ...obxAddedMessages.map((e) => MessageWidget(
-                                key: Key(e.id.toString()),
-                                chat: chat,
-                                message: prepareMessage(e),
-                                player: player,
-                              )),
-                        ],
+                    if (obxAddedMessages.isNotEmpty)
+                      SliverList(
+                        delegate: SliverChildListDelegate(
+                          [
+                            ...obxAddedMessages.map((e) => MessageWidget(
+                                  key: Key(e.id.toString()),
+                                  chat: chat,
+                                  message: prepareMessage(e),
+                                  player: player,
+                                )),
+                          ],
+                        ),
                       ),
-                    ),
-                    PagedSliverList<int, Message>(
-                      state: _pagingState,
-                      fetchNextPage: () {
-                        _fetchPage(_pagingState.keys?.first ?? 1);
-                      },
-                      builderDelegate: PagedChildBuilderDelegate<Message>(
-                          newPageProgressIndicatorBuilder: (context) =>
-                              Container(),
-                          itemBuilder: (context, item, index) {
-                            return MessageWidget(
-                              key: Key(item.id.toString()),
-                              chat: chat,
-                              message: prepareMessage(item),
-                              sender: chat.participants.firstWhereOrNull(
-                                  (element) => element.uid == item.authorId),
-                              player: player,
-                            );
-                          }),
-                    ),
+                    if (_pagingState.items?.isNotEmpty ?? false)
+                      PagedSliverList<int, Message>(
+                        state: _pagingState,
+                        fetchNextPage: () {
+                          _fetchPage(_pagingState.keys?.last == 0
+                              ? 1
+                              : _pagingState.keys!.last + 1);
+                        },
+                        builderDelegate: PagedChildBuilderDelegate<Message>(
+                            newPageProgressIndicatorBuilder: (context) =>
+                                Container(),
+                            itemBuilder: (context, item, index) {
+                              return MessageWidget(
+                                key: Key(item.id.toString()),
+                                chat: chat,
+                                message: prepareMessage(item),
+                                sender: chat.participants.firstWhereOrNull(
+                                    (element) => element.uid == item.authorId),
+                                player: player,
+                              );
+                            }),
+                      ),
                   ],
                 ),
               ),

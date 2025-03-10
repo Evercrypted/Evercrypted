@@ -43,8 +43,11 @@ class _ImageMessageState extends State<ImageMessage> {
   }
 
   setImage({ImageMessage? oldWidget}) async {
+    if (widget.message.pass == oldWidget?.message.pass) {
+      return;
+    }
     // print(widget.message.toJson());
-    if (!mounted) return;
+
     late dynamic downloaded;
     if (widget.message.queueId != null) {
       downloaded =
@@ -81,21 +84,27 @@ class _ImageMessageState extends State<ImageMessage> {
           if (decrypted != null) {
             List<int> intList = decrypted['bytes'].cast<int>().toList();
             Uint8List data = Uint8List.fromList(intList);
-            setState(() {
-              imageData = data;
-              decryptionStatus = EncryptionStatus.decrypted;
-            });
+            if (mounted) {
+              setState(() {
+                imageData = data;
+                decryptionStatus = EncryptionStatus.decrypted;
+              });
+            }
             widget.encryptionStatusCallback(decryptionStatus);
           } else {
-            setState(() {
-              decryptionStatus = EncryptionStatus.failed;
-            });
+            if (mounted) {
+              setState(() {
+                decryptionStatus = EncryptionStatus.failed;
+              });
+            }
             widget.encryptionStatusCallback(decryptionStatus);
           }
         } else {
-          setState(() {
-            decryptionStatus = EncryptionStatus.encrypted;
-          });
+          if (mounted) {
+            setState(() {
+              decryptionStatus = EncryptionStatus.encrypted;
+            });
+          }
           widget.encryptionStatusCallback(decryptionStatus);
         }
       } else if (decryptionStatus == null) {

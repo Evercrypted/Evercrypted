@@ -22,7 +22,8 @@ class TextMessage extends StatelessWidget {
             .withAlpha(((message.isSender ? 1 : 0.1) * 255).round()),
         borderRadius: BorderRadius.circular(30),
       ),
-      child: Text(
+      child: SelectableText(
+        showCursor: true,
         message.encryptionStatus == EncryptionStatus.decrypted
             ? message.decrypted!
             : message.text!,
