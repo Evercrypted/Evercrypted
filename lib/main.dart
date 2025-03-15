@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/objectbox.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/helpers/navigator_observer.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -19,6 +22,7 @@ import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/theme.dart';
 import 'package:evercrypted/ui_constants.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_widget.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +41,8 @@ import 'firebase_options.dart';
 // import 'package:sentry_flutter/sentry_flutter.dart';
 
 late ObjectBox obx;
+
+ValueNotifier shouldShowKeyboard = ValueNotifier(false);
 
 // @pragma('vm:entry-point')
 // Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -89,28 +95,73 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  MyAppState createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    BackButtonInterceptor.add(myInterceptor);
+  }
+
+  bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
+    if (shouldShowKeyboard.value) {
+      shouldShowKeyboard.value = false;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  void dispose() {
+    BackButtonInterceptor.remove(myInterceptor);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return OverlaySupport.global(
-      child: MaterialApp(
-        title: 'EverCrypted',
-        theme: lightThemeData(context),
-        darkTheme: darkThemeData(context),
-        home: const AuthGate(),
-        routes: {
-          SigninOrSignupScreen.routeName: (ctx) => const SigninOrSignupScreen(),
-          SignUpScreen.routeName: (ctx) => const SignUpScreen(),
-          SignInScreen.routeName: (ctx) => const SignInScreen(),
-          // ChangePasswordScreen.routeName: (ctx) => const ChangePasswordScreen(),
-          ContactsScreen.routeName: (ctx) => const ContactsScreen(),
-          AddNewContactScreen.routeName: (ctx) => const AddNewContactScreen(),
-          OtpScreen.routeName: (ctx) => const OtpScreen(),
-          MainScreen.routeName: (ctx) => const MainScreen(),
-        },
+      child: Column(
+        children: [
+          Expanded(
+            child: MaterialApp(
+              navigatorObservers: [
+                NavObserver(onChange: () {
+                  shouldShowKeyboard.value = false;
+                }),
+              ],
+              title: 'EverCrypted',
+              theme: lightThemeData(context),
+              darkTheme: darkThemeData(context),
+              home: const AuthGate(),
+              routes: {
+                SigninOrSignupScreen.routeName: (ctx) =>
+                    const SigninOrSignupScreen(),
+                SignUpScreen.routeName: (ctx) => const SignUpScreen(),
+                SignInScreen.routeName: (ctx) => const SignInScreen(),
+                // ChangePasswordScreen.routeName: (ctx) => const ChangePasswordScreen(),
+                ContactsScreen.routeName: (ctx) => const ContactsScreen(),
+                AddNewContactScreen.routeName: (ctx) =>
+                    const AddNewContactScreen(),
+                OtpScreen.routeName: (ctx) => const OtpScreen(),
+                MainScreen.routeName: (ctx) => const MainScreen(),
+              },
+            ),
+          ),
+          ValueListenableBuilder(
+              valueListenable: shouldShowKeyboard,
+              builder: (context, value, child) {
+                return value
+                    ? SizedBox(height: 300, child: EvercryptedKeyboard())
+                    : SizedBox.shrink();
+              }),
+        ],
       ),
     );
   }

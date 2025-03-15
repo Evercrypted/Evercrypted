@@ -44,11 +44,7 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     controller = AnimationController(
         vsync: this, duration: Duration(seconds: voiceMessageDurationSeconds));
 
-    controller.addListener(() {
-      setState(() {
-        progress = controller.value;
-      });
-    });
+    controller.addListener(setProgressToControllerValue);
     controller.addStatusListener((status) {
       setState(() {
         if (status == AnimationStatus.forward) {
@@ -60,6 +56,10 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     });
   }
 
+  setProgressToControllerValue() {
+    controller.value = progress;
+  }
+
   @override
   void dispose() async {
     if (_myRecorder != null) {
@@ -68,6 +68,7 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     }
     _mRecordingDataSubscription?.cancel();
     recordingDataController?.close();
+    controller.removeListener(setProgressToControllerValue);
     controller.dispose();
     super.dispose();
   }

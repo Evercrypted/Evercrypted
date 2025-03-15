@@ -28,9 +28,7 @@ class _FadeIcon extends State<FadeIcon> with TickerProviderStateMixin {
     controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..addListener(() {
-        setState(() {});
-      });
+    )..addListener(justSetState);
     controller.repeat();
     super.initState();
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -40,8 +38,13 @@ class _FadeIcon extends State<FadeIcon> with TickerProviderStateMixin {
     });
   }
 
+  justSetState() {
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    controller.removeListener(justSetState);
     controller.dispose();
     timer.cancel();
     super.dispose();

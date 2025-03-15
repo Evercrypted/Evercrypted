@@ -1,5 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/main.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +30,13 @@ class MainScreenState extends ConsumerState<MainScreen> {
     const ContactsScreen(),
     const ProfileScreen(),
   ];
+
+  tabChangeHandler(i) {
+    shouldShowKeyboard.value = false;
+    setState(() {
+      pageIndex = i;
+    });
+  }
 
   @override
   void initState() {
@@ -74,19 +83,21 @@ class MainScreenState extends ConsumerState<MainScreen> {
           },
           child: pageList[pageIndex],
         ),
-        bottomNavigationBar: ConvexAppBar(
-          style: TabStyle.react,
-          backgroundColor: primaryColor,
-          items: [
-            TabItem(icon: Icons.messenger, title: 'Chats'),
-            TabItem(icon: Icons.people, title: 'Contacts'),
-            TabItem(icon: Icons.manage_accounts, title: 'Settings'),
-          ],
-          onTap: (int i) {
-            setState(() {
-              pageIndex = i;
-            });
-          },
-        ));
+        bottomNavigationBar: ValueListenableBuilder(
+            valueListenable: shouldShowKeyboard,
+            builder: (context, value, child) {
+              return value
+                  ? SizedBox.shrink()
+                  : ConvexAppBar(
+                      style: TabStyle.react,
+                      backgroundColor: primaryColor,
+                      items: [
+                        TabItem(icon: Icons.messenger, title: 'Chats'),
+                        TabItem(icon: Icons.people, title: 'Contacts'),
+                        TabItem(icon: Icons.manage_accounts, title: 'Settings'),
+                      ],
+                      onTap: tabChangeHandler,
+                    );
+            }));
   }
 }

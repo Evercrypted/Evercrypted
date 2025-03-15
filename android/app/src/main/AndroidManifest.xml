@@ -8,6 +8,7 @@
         android:icon="@mipmap/ic_launcher"
         tools:replace="android:label, android:icon"
         android:allowBackup="false"
+        android:enableOnBackInvokedCallback="false"
         android:fullBackupContent="false">
         <activity
             android:name=".MainActivity"

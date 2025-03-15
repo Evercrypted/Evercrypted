@@ -1,5 +1,4 @@
 import 'package:evercrypted/ui_constants.dart';
-import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 
 class SearchHeader extends StatelessWidget {
@@ -10,13 +9,14 @@ class SearchHeader extends StatelessWidget {
       required this.searchFocus,
       required this.searchController,
       required this.onSearchIconPressed,
-      required this.onCloseIconPressed});
+      required this.onCloseIconPressed,
+      required this.onTapHandler});
 
   final Widget? label;
   final FocusNode searchFocus;
   final bool searching;
   final TextEditingController searchController;
-
+  final Function onTapHandler;
   final Function onSearchIconPressed;
   final Function onCloseIconPressed;
 
@@ -37,10 +37,7 @@ class SearchHeader extends StatelessWidget {
               child: TextFormField(
                 focusNode: searchFocus,
                 controller: searchController,
-                onTap: () {
-                  openSecretInput(
-                      context: context, controller: searchController);
-                },
+                onTap: () => onTapHandler(),
                 keyboardType: TextInputType.none,
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(

@@ -1,6 +1,8 @@
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/helpers/show_snackbar.dart';
+import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
@@ -32,21 +34,10 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
   final TextEditingController newGroupName = TextEditingController();
 
   NewGroupChatDTO? newGroupChatDTO;
-  String name = '';
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        searchValue = _searchController.text;
-      });
-    });
-    newGroupName.addListener(() {
-      setState(() {
-        name = newGroupName.text;
-      });
-    });
   }
 
   @override
@@ -59,6 +50,7 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardNotifier = ref.read(keyboardProvider.notifier);
     return Scaffold(
       body: Column(
         children: [
@@ -67,25 +59,46 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
               searching: searching,
               searchFocus: searchFocus,
               searchController: _searchController,
+              onTapHandler: () {
+                shouldShowKeyboard.value = true;
+                keyboardNotifier.setKeyboardState(
+                    handler: (val) {
+                      _searchController.text = val;
+                      setState(() {
+                        searchValue = val;
+                      });
+                    },
+                    startingText: _searchController.text,
+                    onClose: () => searchFocus.unfocus());
+              },
               onSearchIconPressed: () {
+                shouldShowKeyboard.value = true;
+                keyboardNotifier.setKeyboardState(
+                    handler: (val) {
+                      _searchController.text = val;
+                      setState(() {
+                        searchValue = val;
+                      });
+                    },
+                    startingText: _searchController.text,
+                    onClose: () => searchFocus.unfocus());
                 setState(() {
                   searching = true;
                   searchFocus.requestFocus();
-                  openSecretInput(
-                      context: context, controller: _searchController);
                 });
               },
               onCloseIconPressed: () {
+                shouldShowKeyboard.value = false;
                 setState(() {
                   searching = false;
+                  searchValue = '';
                   _searchController.clear();
                 });
               }),
-          SizedBox(
-              height: MediaQuery.of(context).size.height - 243,
+          Expanded(
               child: ChatList(
-                searchValue: searchValue,
-              )),
+            searchValue: searchValue,
+          )),
         ],
       ),
       floatingActionButton: Tooltip(

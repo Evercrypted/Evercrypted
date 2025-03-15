@@ -55,15 +55,18 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
       participants = [];
     }
     super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        searchValue = _searchController.text;
-      });
+    _searchController.addListener(setSearchValue);
+  }
+
+  setSearchValue() {
+    setState(() {
+      searchValue = _searchController.text;
     });
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(setSearchValue);
     _searchController.dispose();
     searchFocus.dispose();
     super.dispose();
@@ -168,6 +171,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                     searching: searching,
                     searchFocus: searchFocus,
                     searchController: _searchController,
+                    onTapHandler: () {},
                     onSearchIconPressed: () {
                       setState(() {
                         searching = true;
@@ -199,8 +203,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                   ))
             ],
           ),
-          SizedBox(
-              height: MediaQuery.of(context).size.height - 243,
+          Expanded(
               child: _contactList(
                   widget: widget,
                   contacts: contacts,

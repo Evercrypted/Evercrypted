@@ -97,25 +97,29 @@ class SecretInputState extends State<SecretInput>
       ..repeat(reverse: true);
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
-    _textController.addListener(() {
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-        }
-      });
+    _textController.addListener(listenerFn);
+  }
 
-      if (_textController.selection.start != _textController.selection.end) {
-        selectionStart = _textController.selection.start;
-        selectionEnd = _textController.selection.end;
-      } else {
-        selectionStart = null;
-        selectionEnd = null;
+  listenerFn() {
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
+
+    if (_textController.selection.start != _textController.selection.end) {
+      selectionStart = _textController.selection.start;
+      selectionEnd = _textController.selection.end;
+    } else {
+      selectionStart = null;
+      selectionEnd = null;
+    }
   }
 
   @override
   void dispose() {
+    _textController.removeListener(listenerFn);
+    _textController.dispose();
     _scrollController.dispose();
     _controller.dispose();
     super.dispose();

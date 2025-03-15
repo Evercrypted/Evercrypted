@@ -42,10 +42,22 @@ class _AudioMessageState extends State<AudioMessage>
           vsync: this,
           duration: Duration(microseconds: widget.message.decodedDuration!));
 
-      controller!.addListener(() {
-        setDurationLeft(controller!.value);
-      });
+      controller?.addListener(setDurationToControllerValue);
     }
+  }
+
+  setDurationToControllerValue() {
+    if (controller != null) {
+      setDurationLeft(controller!.value);
+    }
+  }
+
+  @override
+  void dispose() {
+    controller?.removeListener(setDurationToControllerValue);
+    controller?.dispose();
+    controller = null;
+    super.dispose();
   }
 
   @override
@@ -66,9 +78,7 @@ class _AudioMessageState extends State<AudioMessage>
             vsync: this,
             duration: Duration(microseconds: widget.message.decodedDuration!));
 
-        controller!.addListener(() {
-          setDurationLeft(controller!.value);
-        });
+        controller!.addListener(setDurationToControllerValue);
       }
     }
   }
@@ -115,7 +125,7 @@ class _AudioMessageState extends State<AudioMessage>
       await widget.player.closePlayer();
     });
     for (final Uint8List data in recording) {
-      await widget.player.feedFromStream(data);
+      await widget.player.feedUint8FromStream(data);
     }
   }
 
@@ -180,13 +190,6 @@ class _AudioMessageState extends State<AudioMessage>
   }
 
   @override
-  void dispose() {
-    controller?.dispose();
-    controller = null;
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.55,
@@ -196,7 +199,8 @@ class _AudioMessageState extends State<AudioMessage>
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        color: primaryColor.withOpacity(widget.message.isSender ? 1 : 0.1),
+        color: primaryColor
+            .withAlpha(255 * (widget.message.isSender ? 1 : 0.1).round()),
       ),
       child: Row(
         children: [
