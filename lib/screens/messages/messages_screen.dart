@@ -5,6 +5,7 @@ import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/services/app_state.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/main.dart';
@@ -15,7 +16,6 @@ import 'package:evercrypted/screens/messages/components/password_icon.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:evercrypted/models/chat_message.dart';
-import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:collection/collection.dart';
@@ -211,12 +211,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           maxLength: 32,
                           textInputAction: TextInputAction.done,
                           onTap: () {
-                            openSecretInput(
-                                isSingleLine: true,
-                                obscureText: true,
-                                context: context,
-                                controller: _passController,
-                                done: (val) => setPass(val.text));
+                            ref
+                                .read(keyboardProvider.notifier)
+                                .openKeyboard(controller: _passController);
                           },
                           keyboardType: TextInputType.none,
                           obscureText: !_passwordVisible,

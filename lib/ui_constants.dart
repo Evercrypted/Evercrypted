@@ -13,3 +13,4 @@ const errorColor = Color.fromARGB(255, 240, 95, 55);
 const defaultPadding = 16.0;
 
 const logoTheme = "assets/icons/evercrypted.svg";
+const infinityLogo = "assets/icons/infinity.svg";

@@ -4,11 +4,11 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_riverp
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:evercrypted/core/offline/action_queue/allowed_for_queue.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
-import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -109,6 +109,8 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardNotifier = ref.read(keyboardProvider.notifier);
+
     return Tooltip(
       message: 'Add new contact',
       preferBelow: false,
@@ -154,12 +156,8 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                 },
                                 textInputAction: TextInputAction.next,
                                 onTap: () {
-                                  openSecretInput(
-                                      isSingleLine: true,
-                                      context: context,
-                                      controller: _emailController,
-                                      done: (val) => FocusScope.of(context)
-                                          .requestFocus(_messageFocus));
+                                  keyboardNotifier.openKeyboard(
+                                      controller: _emailController);
                                 },
                                 keyboardType: TextInputType.none,
                                 decoration: InputDecoration(
@@ -172,12 +170,12 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                   prefixIcon: Icon(
                                     Icons.email,
                                     color: contentColorLightTheme
-                                        .withOpacity(0.64),
+                                        .withAlpha((255 * 0.64).round()),
                                   ),
                                   hintText: "Email",
                                   hintStyle: TextStyle(
                                     color: contentColorLightTheme
-                                        .withOpacity(0.64),
+                                        .withAlpha((255 * 0.64).round()),
                                   ),
                                 ),
                               ),
@@ -189,10 +187,8 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                   return maxLengthValidator(val, 100);
                                 },
                                 onTap: () {
-                                  openSecretInput(
-                                      context: context,
-                                      controller: _messageController,
-                                      done: (val) => submitForm());
+                                  keyboardNotifier.openKeyboard(
+                                      controller: _messageController);
                                 },
                                 keyboardType: TextInputType.none,
                                 decoration: InputDecoration(
@@ -205,12 +201,12 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                   prefixIcon: Icon(
                                     Icons.message,
                                     color: contentColorLightTheme
-                                        .withOpacity(0.64),
+                                        .withAlpha((255 * 0.64).round()),
                                   ),
                                   hintText: "Message",
                                   hintStyle: TextStyle(
                                     color: contentColorLightTheme
-                                        .withOpacity(0.64),
+                                        .withAlpha((255 * 0.64).round()),
                                   ),
                                 ),
                               ),

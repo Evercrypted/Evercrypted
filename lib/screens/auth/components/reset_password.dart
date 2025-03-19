@@ -1,22 +1,32 @@
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
-import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 
-class ResetPassword extends StatefulWidget {
+class ResetPassword extends ConsumerStatefulWidget {
   const ResetPassword({super.key});
 
   @override
-  State<ResetPassword> createState() => _ResetPasswordState();
+  ResetPasswordState createState() => ResetPasswordState();
 }
 
-class _ResetPasswordState extends State<ResetPassword> {
+class ResetPasswordState extends ConsumerState<ResetPassword> {
   final TextEditingController emailController = TextEditingController();
   final AuthService _authService = AuthService();
   bool isLoading = false;
   String? emailError;
+
+  @override
+  void initState() {
+    super.initState();
+    if (Auth.getUser != null) {
+      emailController.text = Auth.getUser!.email;
+    }
+  }
 
   @override
   void dispose() {
@@ -85,6 +95,8 @@ class _ResetPasswordState extends State<ResetPassword> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardNotifier = ref.watch(keyboardProvider.notifier);
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -105,20 +117,26 @@ class _ResetPasswordState extends State<ResetPassword> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: defaultPadding),
+          const Text(
+            'Reset Password link will be sent to your email address',
+            style: TextStyle(
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: defaultPadding),
           TextFormField(
+            readOnly: Auth.getUser != null,
             controller: emailController,
             decoration: const InputDecoration(
               labelText: 'Email',
             ),
             keyboardType: TextInputType.none,
             onTap: () {
-              openSecretInput(
-                fieldName: 'Email',
-                context: context,
-                controller: emailController,
-                isSingleLine: true,
-                done: (val) => _handleResetPassword(),
-              );
+              if (Auth.getUser != null) {
+                return;
+              }
+              keyboardNotifier.openKeyboard(controller: emailController);
             },
           ),
           const SizedBox(height: defaultPadding),
@@ -132,7 +150,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                   )
                 : null,
           ),
-          const SizedBox(height: defaultPadding),
+          const SizedBox(height: defaultPadding * 2),
         ],
       ),
     );

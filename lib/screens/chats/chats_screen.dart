@@ -2,7 +2,6 @@ import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/helpers/show_snackbar.dart';
-import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
@@ -10,7 +9,6 @@ import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:evercrypted/widgets/search_header.dart';
-import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'components/chat_list.dart';
@@ -60,27 +58,24 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
               searchFocus: searchFocus,
               searchController: _searchController,
               onTapHandler: () {
-                shouldShowKeyboard.value = true;
-                keyboardNotifier.setKeyboardState(
-                    handler: (val) {
-                      _searchController.text = val;
-                      setState(() {
-                        searchValue = val;
-                      });
-                    },
-                    startingText: _searchController.text,
-                    onClose: () => searchFocus.unfocus());
+                keyboardNotifier.openKeyboard(
+                  controller: _searchController,
+                  onChange: (val) {
+                    setState(() {
+                      searchValue = val;
+                    });
+                  },
+                  onClose: () => searchFocus.unfocus(),
+                );
               },
               onSearchIconPressed: () {
-                shouldShowKeyboard.value = true;
-                keyboardNotifier.setKeyboardState(
-                    handler: (val) {
-                      _searchController.text = val;
+                keyboardNotifier.openKeyboard(
+                    controller: _searchController,
+                    onChange: (val) {
                       setState(() {
                         searchValue = val;
                       });
                     },
-                    startingText: _searchController.text,
                     onClose: () => searchFocus.unfocus());
                 setState(() {
                   searching = true;
@@ -88,7 +83,7 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
                 });
               },
               onCloseIconPressed: () {
-                shouldShowKeyboard.value = false;
+                ref.read(keyboardProvider.notifier).close();
                 setState(() {
                   searching = false;
                   searchValue = '';
@@ -186,14 +181,9 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
                                       autofocus: true,
                                       controller: newGroupName,
                                       onTap: () {
-                                        openSecretInput(
-                                            context: context,
-                                            controller: newGroupName,
-                                            done: (val) {
-                                              setModalState(() {
-                                                isEmpty = val.text.isEmpty;
-                                              });
-                                            });
+                                        keyboardNotifier.openKeyboard(
+                                          controller: newGroupName,
+                                        );
                                       },
                                       keyboardType: TextInputType.none,
                                       decoration: InputDecoration(
@@ -213,7 +203,7 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
                                         fillColor: Colors.white,
                                         hintStyle: TextStyle(
                                           color: contentColorLightTheme
-                                              .withOpacity(0.64),
+                                              .withAlpha((255 * 0.64).round()),
                                         ),
                                       ),
                                     ),

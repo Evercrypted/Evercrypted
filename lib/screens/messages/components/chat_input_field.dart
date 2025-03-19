@@ -4,11 +4,12 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/screens/messages/components/camera.dart';
 import 'package:evercrypted/widgets/fade_icon.dart';
-import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:siri_wave/siri_wave.dart';
 
@@ -16,7 +17,7 @@ import '../../../core/entities/message/message_service.dart';
 import '../../../ui_constants.dart';
 import 'voice_recorder_button.dart';
 
-class ChatInputField extends StatefulWidget {
+class ChatInputField extends ConsumerStatefulWidget {
   final String chatId;
   final String? pass;
   final String? baseKey;
@@ -34,7 +35,7 @@ class ChatInputField extends StatefulWidget {
   ChatInputFieldState createState() => ChatInputFieldState();
 }
 
-class ChatInputFieldState extends State<ChatInputField> {
+class ChatInputFieldState extends ConsumerState<ChatInputField> {
   final TextEditingController _messageField = TextEditingController();
   final MessageService _messageService = MessageService();
   String? fullKey;
@@ -97,6 +98,7 @@ class ChatInputFieldState extends State<ChatInputField> {
     }
     _messageService.sendMessage(encr, widget.chatId, withBaseKey);
     _messageField.clear();
+    ref.read(keyboardProvider.notifier).close();
   }
 
   onRecording(List<Uint8List> recordingData, int recordingMicroSeconds) {
@@ -117,7 +119,7 @@ class ChatInputFieldState extends State<ChatInputField> {
         codec: Codec.pcm16, numChannels: 1, sampleRate: 16000);
 
     for (final Uint8List data in recordingData!) {
-      await widget.player.feedFromStream(data);
+      await widget.player.feedUint8FromStream(data);
     }
 
     Future.delayed(Duration(microseconds: recordingMicroSeconds!))
@@ -573,10 +575,9 @@ class ChatInputFieldState extends State<ChatInputField> {
                                 ),
                               ),
                               onTap: () {
-                                openSecretInput(
-                                    context: context,
-                                    controller: _messageField,
-                                    done: (val) => sendMessage(val.text));
+                                ref
+                                    .read(keyboardProvider.notifier)
+                                    .openKeyboard(controller: _messageField);
                               },
                               keyboardType: TextInputType.none,
                               onSubmitted: (value) {

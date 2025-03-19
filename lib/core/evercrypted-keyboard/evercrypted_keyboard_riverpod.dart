@@ -1,55 +1,101 @@
+import 'package:evercrypted/main.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// State class to hold keyboard-related state
 class KeyboardState {
-  final Function(String) onEvercryptedKeyboardTextChange;
-  final Function() onClose;
-  final Map<String, int> selection;
-  final String? startingText;
+  final Function(String)? onChange;
+  final Function()? onClose;
+  final Function()? onDone;
+  final bool isMultiLine;
+  final TextEditingController controller;
 
   const KeyboardState({
-    this.onEvercryptedKeyboardTextChange = _defaultTextChangeHandler,
-    this.onClose = _defaultCloseHandler,
-    this.selection = const {},
-    this.startingText,
+    this.onChange,
+    this.onClose,
+    this.onDone,
+    this.isMultiLine = false,
+    required this.controller,
   });
-
-  // Default handler that does nothing
-  static void _defaultTextChangeHandler(String text) {}
-
-  static void _defaultCloseHandler() {}
 
   // Create a new instance with updated values
   KeyboardState copyWith({
-    Function(String)? onEvercryptedKeyboardTextChange,
+    Function(String)? onChange,
     Function()? onClose,
-    Map<String, int>? selection,
-    String? startingText,
+    Function()? onDone,
+    bool? isMultiLine,
+    TextEditingController? controller,
   }) {
     return KeyboardState(
-      onEvercryptedKeyboardTextChange: onEvercryptedKeyboardTextChange ??
-          this.onEvercryptedKeyboardTextChange,
+      onChange: onChange ?? this.onChange,
       onClose: onClose ?? this.onClose,
-      selection: selection ?? this.selection,
-      startingText: startingText ?? this.startingText,
+      onDone: onDone ?? this.onDone,
+      isMultiLine: isMultiLine ?? this.isMultiLine,
+      controller: controller ?? this.controller,
+    );
+  }
+
+  KeyboardState start({
+    Function(String)? onChange,
+    Function()? onClose,
+    Function()? onDone,
+    bool? isMultiLine,
+    required TextEditingController controller,
+  }) {
+    return KeyboardState(
+      controller: controller,
+      onChange: onChange,
+      onClose: onClose,
+      onDone: onDone,
+      isMultiLine: isMultiLine ?? false,
     );
   }
 }
 
 /// Notifier class to manage keyboard state changes
 class KeyboardNotifier extends StateNotifier<KeyboardState> {
-  KeyboardNotifier() : super(const KeyboardState());
+  KeyboardNotifier()
+      : super(KeyboardState(controller: TextEditingController()));
 
-  void setKeyboardState(
-      {Function(String)? handler,
-      String? startingText,
-      Function()? onClose,
-      Map<String, int>? selection}) {
-    state = state.copyWith(
-      onEvercryptedKeyboardTextChange: handler,
+  void close() {
+    shouldShowKeyboard.value = false;
+    state.onClose?.call();
+  }
+
+  void done() {
+    state.onDone?.call();
+  }
+
+  void openKeyboard({
+    Function(String)? onChange,
+    Function()? onClose,
+    Function()? onDone,
+    bool? isMultiLine,
+    required TextEditingController controller,
+  }) {
+    shouldShowKeyboard.value = true;
+    state = state.start(
+      onChange: onChange,
       onClose: onClose,
-      startingText: startingText,
-      selection: selection,
+      onDone: onDone,
+      isMultiLine: isMultiLine,
+      controller: controller,
+    );
+  }
+
+  void setKeyboardState({
+    Function(String)? onChange,
+    Function()? onClose,
+    Function()? onDone,
+    bool? isMultiLine,
+    TextEditingController? controller,
+  }) {
+    state = state.copyWith(
+      onChange: onChange,
+      onClose: onClose,
+      onDone: onDone,
+      isMultiLine: isMultiLine,
+      controller: controller,
     );
   }
 }

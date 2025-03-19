@@ -72,7 +72,10 @@ class Auth {
 
   static AuthUser? get getUser {
     if (Auth.user == null) {
-      final Profile profile = obx.profiles.getAll().first;
+      final Profile? profile = obx.profiles.getAll().firstOrNull;
+      if (profile == null) {
+        return null;
+      }
       Auth.user = AuthUser(
           email: profile.email!,
           uid: profile.uid,
@@ -183,6 +186,7 @@ class Auth {
 
   static clearAuth() async {
     Auth.user = null;
+    obx.profiles.removeAll();
     Auth.isOtpActive = false;
     await Auth.clearOtpToken(skipNotify: true);
     await Auth.clearToken(skipNotify: true);

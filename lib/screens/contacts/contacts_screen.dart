@@ -4,6 +4,7 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_model.
 import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/screens/contacts/components/add_contact_button.dart';
 import 'package:evercrypted/screens/contacts/components/check_requests_icon.dart';
 import 'package:evercrypted/screens/contacts/contact_screen.dart';
@@ -12,7 +13,6 @@ import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:evercrypted/widgets/grid.dart';
 import 'package:evercrypted/widgets/search_header.dart';
-import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -131,6 +131,8 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
             .toList()
     };
 
+    final keyboardNotifier = ref.read(keyboardProvider.notifier);
+
     return Scaffold(
       appBar: widget.isParticipantSelect
           ? ConnectionStatusAppbar(
@@ -171,36 +173,52 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                     searching: searching,
                     searchFocus: searchFocus,
                     searchController: _searchController,
-                    onTapHandler: () {},
+                    onTapHandler: () {
+                      keyboardNotifier.openKeyboard(
+                          controller: _searchController,
+                          onChange: (val) {
+                            setState(() {
+                              searchValue = val;
+                            });
+                          },
+                          onClose: () => searchFocus.unfocus());
+                    },
                     onSearchIconPressed: () {
+                      keyboardNotifier.openKeyboard(
+                          controller: _searchController,
+                          onChange: (val) {
+                            setState(() {
+                              searchValue = val;
+                            });
+                          },
+                          onClose: () => searchFocus.unfocus());
                       setState(() {
                         searching = true;
                         searchFocus.requestFocus();
-                        openSecretInput(
-                            isSingleLine: true,
-                            fieldName: 'Search',
-                            context: context,
-                            controller: _searchController);
                       });
                     },
                     onCloseIconPressed: () {
+                      ref.read(keyboardProvider.notifier).close();
                       setState(() {
                         searching = false;
+                        searchValue = '';
                         _searchController.clear();
                       });
                     }),
               ),
-              InkWell(
-                  onTap: () {
-                    Navigator.pushNamed(context, AddNewContactScreen.routeName);
-                  },
-                  child: Tooltip(
-                    message: 'Check received / sent requests',
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 10),
-                      child: CheckRequestsIcon(isThereUnread: isThereUnread),
-                    ),
-                  ))
+              if (!widget.isParticipantSelect)
+                InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, AddNewContactScreen.routeName);
+                    },
+                    child: Tooltip(
+                      message: 'Check received / sent requests',
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        child: CheckRequestsIcon(isThereUnread: isThereUnread),
+                      ),
+                    ))
             ],
           ),
           Expanded(

@@ -32,7 +32,7 @@ class MainScreenState extends ConsumerState<MainScreen> {
   ];
 
   tabChangeHandler(i) {
-    shouldShowKeyboard.value = false;
+    ref.read(keyboardProvider.notifier).close();
     setState(() {
       pageIndex = i;
     });

@@ -1,12 +1,12 @@
 import 'package:evercrypted/core/entities/settings/settings_service.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
-import 'package:evercrypted/main.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/secret_keyboard/highlighted_button.dart';
 import 'package:evercrypted/widgets/secret_keyboard/keyboard.dart';
 import 'package:evercrypted/widgets/secret_keyboard/keyboards.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 class EvercryptedKeyboard extends ConsumerStatefulWidget {
   const EvercryptedKeyboard({super.key});
@@ -15,7 +15,7 @@ class EvercryptedKeyboard extends ConsumerStatefulWidget {
 }
 
 class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
-  final textController = TextEditingController();
+  late TextEditingController controller;
 
   List<String> availableKeyboards = ['English']; // Start with only English
   bool isShifted = false;
@@ -53,32 +53,40 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
 
     final keyboardState = ref.read(keyboardProvider);
 
-    textController.text = keyboardState.startingText ?? '';
-
-    // Add listener to textController to call widget.onTextChange
-    textController.addListener(_textChangeListener);
-  }
-
-  // Create a dedicated method for the listener
-  void _textChangeListener() {
-    final keyboardState = ref.read(keyboardProvider);
-    keyboardState.onEvercryptedKeyboardTextChange(textController.text);
-  }
-
-  @override
-  void didUpdateWidget(EvercryptedKeyboard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    final keyboardState = ref.read(keyboardProvider);
-    textController.text = keyboardState.startingText ?? '';
+    controller = keyboardState.controller;
+    controller.addListener(listenerFn);
+    controller.addListener(onChangeListener);
   }
 
   @override
   void dispose() {
-    // Remove the listener before disposing the controller
-    textController.removeListener(_textChangeListener);
-    textController.dispose();
+    controller.removeListener(listenerFn);
+    controller.removeListener(onChangeListener);
     super.dispose();
+  }
+
+  onChangeListener() {
+    final keyboardState = ref.read(keyboardProvider);
+    keyboardState.onChange?.call(controller.text);
+  }
+
+  listenerFn() {
+    if (controller.selection.start != controller.selection.end) {
+      selectionStart = controller.selection.start;
+      selectionEnd = controller.selection.end;
+    } else {
+      selectionStart = null;
+      selectionEnd = null;
+    }
+  }
+
+  deleteSelection() {
+    if (selectionStart != null && selectionEnd != null) {
+      setState(() {
+        controller.text = controller.text.substring(0, selectionStart!) +
+            controller.text.substring(selectionEnd!);
+      });
+    }
   }
 
   Widget _keyboardButton(key,
@@ -108,6 +116,10 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
       margin: specialKeysRow
           ? EdgeInsets.symmetric(horizontal: 1, vertical: 1.35)
           : EdgeInsets.all(1),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withAlpha(20),
+      ),
       child: GestureDetector(
         child: HighlightedButton(
           style: ElevatedButton.styleFrom(
@@ -115,8 +127,9 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
             padding: paddings,
           ),
           onPressed: () {
+            deleteSelection();
             setState(() {
-              textController.text += key;
+              controller.text += key;
               if (isShifted && !isShiftLocked) {
                 isShifted = false;
                 activeKeyboard = Keyboards.getKeyboard(
@@ -137,12 +150,37 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
 
   Widget _keyboard() {
     return Container(
-        height: 300,
-        padding: const EdgeInsets.only(top: 5),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: Colors.white.withAlpha((255 * 0.3).round())),
+          ),
+          color: primaryColor,
+        ),
         width: MediaQuery.of(context).size.width,
-        color: primaryColor,
         child: Column(
           children: [
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 7),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                textDirection: TextDirection.ltr,
+                children: [
+                  SvgPicture.asset(
+                    infinityLogo,
+                    height: 14,
+                  ),
+                  SizedBox(width: 7),
+                  Text(
+                    'Evercrypted Keyboard',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal),
+                    textDirection: TextDirection.ltr,
+                  ),
+                ],
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               textDirection: TextDirection.ltr,
@@ -154,17 +192,15 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                       specialKeysRow: isSpecial)
               ],
             ),
-            SizedBox(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                textDirection: TextDirection.ltr,
-                children: [
-                  for (var key in activeKeyboard.secondRowKeys)
-                    _keyboardButton(key,
-                        rowLength: activeKeyboard.secondRowKeys.length,
-                        specialKeysRow: isSpecial)
-                ],
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              textDirection: TextDirection.ltr,
+              children: [
+                for (var key in activeKeyboard.secondRowKeys)
+                  _keyboardButton(key,
+                      rowLength: activeKeyboard.secondRowKeys.length,
+                      specialKeysRow: isSpecial)
+              ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -288,11 +324,10 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                               isBackspaceLongPressed = true;
                             });
                             while (isBackspaceLongPressed &&
-                                textController.text.isNotEmpty) {
+                                controller.text.isNotEmpty) {
                               setState(() {
-                                textController.text = textController.text
-                                    .substring(
-                                        0, textController.text.length - 1);
+                                controller.text = controller.text
+                                    .substring(0, controller.text.length - 1);
                               });
                               await Future.delayed(
                                   const Duration(milliseconds: 100));
@@ -311,22 +346,12 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                   top: 2, bottom: 2, left: 13, right: 15),
                             ),
                             onPressed: () {
-                              if (selectionStart != null &&
-                                  selectionEnd != null) {
+                              deleteSelection();
+                              if (controller.text.isNotEmpty) {
                                 setState(() {
-                                  textController.text = textController.text
-                                          .substring(0, selectionStart!) +
-                                      textController.text
-                                          .substring(selectionEnd!);
+                                  controller.text = controller.text
+                                      .substring(0, controller.text.length - 1);
                                 });
-                              } else {
-                                if (textController.text.isNotEmpty) {
-                                  setState(() {
-                                    textController.text = textController.text
-                                        .substring(
-                                            0, textController.text.length - 1);
-                                  });
-                                }
                               }
                             },
                             child: const Icon(
@@ -343,155 +368,196 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                 ],
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              textDirection: TextDirection.ltr,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  height: 45,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    textDirection: TextDirection.ltr,
-                    children: [
-                      Material(
-                        color: Colors.transparent,
-                        child: Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: InkWell(
-                              onTap: () {
-                                shouldShowKeyboard.value = false;
-                              },
-                              child: const Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Colors.white,
-                                size: 40,
-                                textDirection: TextDirection.ltr,
-                              )),
-                        ),
-                      ),
-                      if (availableKeyboards.length > 1)
+            Container(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                textDirection: TextDirection.ltr,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    height: 45,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      textDirection: TextDirection.ltr,
+                      children: [
                         Material(
                           color: Colors.transparent,
                           child: Directionality(
                             textDirection: TextDirection.ltr,
                             child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  keyboardSelectOpen = !keyboardSelectOpen;
-                                });
-                              },
-                              child: Icon(Icons.language,
+                                onTap: () {
+                                  ref.read(keyboardProvider.notifier).close();
+                                },
+                                child: const Icon(
+                                  Icons.keyboard_arrow_down,
                                   color: Colors.white,
-                                  size: 25,
-                                  textDirection: TextDirection.ltr),
-                            ),
+                                  size: 40,
+                                  textDirection: TextDirection.ltr,
+                                )),
                           ),
                         ),
-                      // Material(
-                      //   color: Colors.transparent,
-                      //   child: Directionality(
-                      //     textDirection: TextDirection.ltr,
-                      //     child: InkWell(
-                      //         onTap: () {
-                      //           setState(() {
-                      //             shouldObscureText = !shouldObscureText;
-                      //           });
-                      //         },
-                      //         child: Icon(
-                      //           shouldObscureText
-                      //               ? Icons.visibility_off
-                      //               : Icons.visibility,
-                      //           color: Colors.white,
-                      //           size: 25,
-                      //           textDirection: TextDirection.ltr,
-                      //         )),
-                      //   ),
-                      // ),
-                      Material(
-                          color: Colors.transparent,
-                          child: Directionality(
-                            textDirection: TextDirection.ltr,
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  isRandomized = !isRandomized;
-                                  activeKeyboard = Keyboards.getKeyboard(
-                                      language: activeLanguage,
-                                      isShifted: isShifted,
-                                      isSpecial: isSpecial,
-                                      randomize: isRandomized);
-                                });
-                              },
-                              child: Icon(
-                                isRandomized
-                                    ? Icons.shuffle_on_outlined
-                                    : Icons.shuffle,
-                                color: Colors.white,
-                                size: 25,
-                                textDirection: TextDirection.ltr,
+                        if (availableKeyboards.length > 1)
+                          Material(
+                            color: Colors.transparent,
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    keyboardSelectOpen = !keyboardSelectOpen;
+                                  });
+                                },
+                                child: Icon(Icons.language,
+                                    color: Colors.white,
+                                    size: 25,
+                                    textDirection: TextDirection.ltr),
                               ),
                             ),
-                          )),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.30,
-                  height: 45,
-                  child: HighlightedButton(
-                    onPressed: () {
-                      setState(() {
-                        textController.text += ' ';
-                      });
-                    },
-                    child: const Icon(
-                      Icons.space_bar,
-                      color: Colors.white,
-                      size: 25,
-                      textDirection: TextDirection.ltr,
+                          ),
+                        // Material(
+                        //   color: Colors.transparent,
+                        //   child: Directionality(
+                        //     textDirection: TextDirection.ltr,
+                        //     child: InkWell(
+                        //         onTap: () {
+                        //           setState(() {
+                        //             shouldObscureText = !shouldObscureText;
+                        //           });
+                        //         },
+                        //         child: Icon(
+                        //           shouldObscureText
+                        //               ? Icons.visibility_off
+                        //               : Icons.visibility,
+                        //           color: Colors.white,
+                        //           size: 25,
+                        //           textDirection: TextDirection.ltr,
+                        //         )),
+                        //   ),
+                        // ),
+                        Material(
+                            color: Colors.transparent,
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    isRandomized = !isRandomized;
+                                    activeKeyboard = Keyboards.getKeyboard(
+                                        language: activeLanguage,
+                                        isShifted: isShifted,
+                                        isSpecial: isSpecial,
+                                        randomize: isRandomized);
+                                  });
+                                },
+                                child: Icon(
+                                  isRandomized
+                                      ? Icons.shuffle_on_outlined
+                                      : Icons.shuffle,
+                                  color: Colors.white,
+                                  size: 25,
+                                  textDirection: TextDirection.ltr,
+                                ),
+                              ),
+                            )),
+                      ],
                     ),
                   ),
-                ),
-                HighlightedButton(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: Size.zero,
-                      fixedSize: const Size(60, 45),
-                      padding: const EdgeInsets.only(
-                          top: 2, bottom: 2, left: 13, right: 15),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        textController.text += "\n";
-                      });
-                    },
-                    child: const Icon(Icons.subdirectory_arrow_left,
-                        color: Colors.white,
-                        size: 30,
-                        textDirection: TextDirection.ltr)),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.15,
-                  height: 45,
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 4, right: 3),
-                    child: HighlightedButton(
-                      backgroundColor: Colors.lightGreen,
-                      onPressed: () {
-                        Navigator.of(context).pop((
-                          text: textController.text,
-                          done: true,
-                        ));
-                      },
-                      child: const Icon(
-                        Icons.done,
-                        color: Colors.white,
-                        size: 25,
-                        textDirection: TextDirection.ltr,
+                  Expanded(
+                    child: Container(
+                      margin: EdgeInsets.only(right: 7),
+                      height: 45,
+                      child: HighlightedButton(
+                        onPressed: () {
+                          setState(() {
+                            controller.text += ' ';
+                          });
+                        },
+                        child: const Icon(
+                          Icons.space_bar,
+                          color: Colors.white,
+                          size: 25,
+                          textDirection: TextDirection.ltr,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  Consumer(builder: (context, ref, child) {
+                    final keyboardState = ref.watch(keyboardProvider);
+                    return Row(
+                      textDirection: TextDirection.ltr,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (keyboardState.isMultiLine)
+                          Container(
+                            height: 45,
+                            margin: const EdgeInsets.only(right: 7),
+                            child: HighlightedButton(
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  fixedSize: const Size(60, 45),
+                                  padding: const EdgeInsets.only(
+                                      top: 2, bottom: 2, left: 13, right: 15),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    controller.text += "\n";
+                                  });
+                                },
+                                child: const Icon(Icons.subdirectory_arrow_left,
+                                    color: Colors.white,
+                                    size: 30,
+                                    textDirection: TextDirection.ltr)),
+                          ),
+                        keyboardState.onDone != null
+                            ? Container(
+                                width: MediaQuery.of(context).size.width * 0.15,
+                                height: 45,
+                                margin:
+                                    const EdgeInsets.only(left: 4, right: 7),
+                                child: HighlightedButton(
+                                  backgroundColor: Colors.lightGreen,
+                                  onPressed: () {
+                                    Navigator.of(context).pop((
+                                      text: controller.text,
+                                      done: true,
+                                    ));
+                                  },
+                                  child: const Icon(
+                                    Icons.done,
+                                    color: Colors.white,
+                                    size: 25,
+                                    textDirection: TextDirection.ltr,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                margin:
+                                    const EdgeInsets.only(left: 4, right: 5),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: Directionality(
+                                    textDirection: TextDirection.ltr,
+                                    child: InkWell(
+                                        onTap: () {
+                                          ref
+                                              .read(keyboardProvider.notifier)
+                                              .close();
+                                        },
+                                        child: const Icon(
+                                          Icons.keyboard_arrow_down,
+                                          color: Colors.white,
+                                          size: 40,
+                                          textDirection: TextDirection.ltr,
+                                        )),
+                                  ),
+                                ),
+                              ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
             ),
           ],
         ));
@@ -591,6 +657,14 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(keyboardProvider, (previous, next) {
+      controller.removeListener(listenerFn);
+      controller.removeListener(onChangeListener);
+      controller = next.controller;
+      controller.addListener(listenerFn);
+      controller.addListener(onChangeListener);
+    });
+
     return keyboardSelectOpen ? _keyboardSelect() : _keyboard();
   }
 }

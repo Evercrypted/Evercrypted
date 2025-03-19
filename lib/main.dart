@@ -4,7 +4,6 @@ import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/objectbox.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/helpers/navigator_observer.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
@@ -157,9 +156,7 @@ class MyAppState extends State<MyApp> {
           ValueListenableBuilder(
               valueListenable: shouldShowKeyboard,
               builder: (context, value, child) {
-                return value
-                    ? SizedBox(height: 300, child: EvercryptedKeyboard())
-                    : SizedBox.shrink();
+                return value ? EvercryptedKeyboard() : SizedBox.shrink();
               }),
         ],
       ),

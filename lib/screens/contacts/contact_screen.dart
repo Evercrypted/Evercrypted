@@ -1,10 +1,10 @@
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/screens/profile/components/profile_pic.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
-import 'package:evercrypted/widgets/secret_keyboard/secret_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -80,6 +80,8 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardNotifier = ref.read(keyboardProvider.notifier);
+
     return Scaffold(
       appBar: const ConnectionStatusAppbar(
         title: Text('Contact Information'),
@@ -128,10 +130,8 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                     child: TextFormField(
                       controller: _renamingController,
                       onTap: () {
-                        openSecretInput(
-                            context: context,
-                            controller: _renamingController,
-                            done: (val) => _rename());
+                        keyboardNotifier.openKeyboard(
+                            controller: _renamingController);
                       },
                       keyboardType: TextInputType.none,
                       decoration: InputDecoration(
@@ -140,7 +140,8 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
                         hintStyle: TextStyle(
-                          color: contentColorLightTheme.withOpacity(0.64),
+                          color: contentColorLightTheme
+                              .withAlpha((255 * 0.64).round()),
                         ),
                       ),
                     ),
