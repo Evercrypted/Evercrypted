@@ -217,6 +217,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           },
                           keyboardType: TextInputType.none,
                           obscureText: !_passwordVisible,
+                          style: TextStyle(
+                            color: contentColorLightTheme,
+                          ),
                           decoration: InputDecoration(
                             errorMaxLines: 3,
                             suffixIcon: IconButton(

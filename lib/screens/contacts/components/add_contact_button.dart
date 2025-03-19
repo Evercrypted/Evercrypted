@@ -111,127 +111,129 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
   Widget build(BuildContext context) {
     final keyboardNotifier = ref.read(keyboardProvider.notifier);
 
-    return Tooltip(
-      message: 'Add new contact',
-      preferBelow: false,
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (BuildContext context) {
-                return Wrap(children: [
-                  Container(
-                    color: primaryColor,
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom),
-                    child: Container(
-                        margin: const EdgeInsets.all(defaultPadding),
-                        padding: const EdgeInsets.fromLTRB(
-                          defaultPadding,
-                          0,
-                          defaultPadding,
-                          defaultPadding,
+    return FloatingActionButton.extended(
+      onPressed: () {
+        showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (BuildContext context) {
+              return Wrap(children: [
+                Container(
+                  color: primaryColor,
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom),
+                  child: Container(
+                      margin: const EdgeInsets.all(defaultPadding),
+                      padding: const EdgeInsets.fromLTRB(
+                        defaultPadding,
+                        0,
+                        defaultPadding,
+                        defaultPadding,
+                      ),
+                      child: Form(
+                        key: form,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _emailController,
+                              validator: (val) {
+                                final List<ContactRequest> sentRequests =
+                                    ref.read(sentRequestsProvider);
+                                String? emailError = validateEmail(val);
+                                if (emailError != null) return emailError;
+                                if (val == Auth.getUser?.email) {
+                                  return "You can't send a contact request to yourself";
+                                } else if (sentRequests
+                                    .map((e) => e.recipientEmail)
+                                    .contains(val)) {
+                                  return "You have already sent a contact request to this email";
+                                } else {
+                                  return null;
+                                }
+                              },
+                              textInputAction: TextInputAction.next,
+                              onTap: () {
+                                keyboardNotifier.openKeyboard(
+                                    controller: _emailController);
+                              },
+                              keyboardType: TextInputType.none,
+                              style: TextStyle(
+                                color: contentColorLightTheme,
+                              ),
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10)),
+                                ),
+                                fillColor: Colors.white,
+                                prefixIcon: Icon(
+                                  Icons.email,
+                                  color: contentColorLightTheme
+                                      .withAlpha((255 * 0.64).round()),
+                                ),
+                                hintText: "Email",
+                                hintStyle: TextStyle(
+                                  color: contentColorLightTheme
+                                      .withAlpha((255 * 0.64).round()),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: defaultPadding / 2),
+                            TextFormField(
+                              controller: _messageController,
+                              focusNode: _messageFocus,
+                              validator: (val) {
+                                return maxLengthValidator(val, 100);
+                              },
+                              onTap: () {
+                                keyboardNotifier.openKeyboard(
+                                    controller: _messageController);
+                              },
+                              keyboardType: TextInputType.none,
+                              style: TextStyle(
+                                color: contentColorLightTheme,
+                              ),
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10)),
+                                ),
+                                fillColor: Colors.white,
+                                prefixIcon: Icon(
+                                  Icons.message,
+                                  color: contentColorLightTheme
+                                      .withAlpha((255 * 0.64).round()),
+                                ),
+                                hintText: "Message",
+                                hintStyle: TextStyle(
+                                  color: contentColorLightTheme
+                                      .withAlpha((255 * 0.64).round()),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: defaultPadding / 2),
+                            PrimaryButton(
+                              text: 'SEND REQUEST',
+                              press: submitForm,
+                              color: secondaryColor,
+                            )
+                          ],
                         ),
-                        child: Form(
-                          key: form,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                controller: _emailController,
-                                validator: (val) {
-                                  final List<ContactRequest> sentRequests =
-                                      ref.read(sentRequestsProvider);
-                                  String? emailError = validateEmail(val);
-                                  if (emailError != null) return emailError;
-                                  if (val == Auth.getUser?.email) {
-                                    return "You can't send a contact request to yourself";
-                                  } else if (sentRequests
-                                      .map((e) => e.recipientEmail)
-                                      .contains(val)) {
-                                    return "You have already sent a contact request to this email";
-                                  } else {
-                                    return null;
-                                  }
-                                },
-                                textInputAction: TextInputAction.next,
-                                onTap: () {
-                                  keyboardNotifier.openKeyboard(
-                                      controller: _emailController);
-                                },
-                                keyboardType: TextInputType.none,
-                                decoration: InputDecoration(
-                                  border: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
-                                  ),
-                                  fillColor: Colors.white,
-                                  prefixIcon: Icon(
-                                    Icons.email,
-                                    color: contentColorLightTheme
-                                        .withAlpha((255 * 0.64).round()),
-                                  ),
-                                  hintText: "Email",
-                                  hintStyle: TextStyle(
-                                    color: contentColorLightTheme
-                                        .withAlpha((255 * 0.64).round()),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: defaultPadding / 2),
-                              TextFormField(
-                                controller: _messageController,
-                                focusNode: _messageFocus,
-                                validator: (val) {
-                                  return maxLengthValidator(val, 100);
-                                },
-                                onTap: () {
-                                  keyboardNotifier.openKeyboard(
-                                      controller: _messageController);
-                                },
-                                keyboardType: TextInputType.none,
-                                decoration: InputDecoration(
-                                  border: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
-                                  ),
-                                  fillColor: Colors.white,
-                                  prefixIcon: Icon(
-                                    Icons.message,
-                                    color: contentColorLightTheme
-                                        .withAlpha((255 * 0.64).round()),
-                                  ),
-                                  hintText: "Message",
-                                  hintStyle: TextStyle(
-                                    color: contentColorLightTheme
-                                        .withAlpha((255 * 0.64).round()),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: defaultPadding / 2),
-                              PrimaryButton(
-                                text: 'SEND REQUEST',
-                                press: submitForm,
-                                color: secondaryColor,
-                              )
-                            ],
-                          ),
-                        )),
-                  ),
-                ]);
-              });
-        },
-        backgroundColor: primaryColor,
-        label: const Text(
-          'Add Contact',
-          style: TextStyle(color: Colors.white),
-        ),
-        icon: const Icon(
-          Icons.person_add,
-          color: Colors.white,
-        ),
+                      )),
+                ),
+              ]);
+            });
+      },
+      backgroundColor: primaryColor,
+      label: const Text(
+        'Add Contact',
+        style: TextStyle(color: Colors.white),
+      ),
+      icon: const Icon(
+        Icons.person_add,
+        color: Colors.white,
       ),
     );
   }
