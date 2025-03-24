@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/main.dart';
 import 'package:flutter/material.dart';
@@ -53,13 +57,20 @@ class Auth {
       Auth.user = AuthUser(
           email: profile.email!,
           uid: profile.uid,
-          emailVerified: profile.emailVerified);
+          emailVerified: profile.emailVerified,
+          subscriptionActive: profile.subscription?.active);
     }
     if (newToken != null) {
       await Auth.setToken(
         newToken: newToken,
         skipNotify: true,
       );
+      if (ChatSocket.key != null) {
+        final cryptedToken = await encodePayload(newToken, ChatSocket.key);
+        if (cryptedToken != null) {
+          HttpClient.addAuth(jsonEncode(cryptedToken), getUser!.uid);
+        }
+      }
     }
     if (newIsOtpActive != null) {
       await Auth.setIsOtpActive(
@@ -199,10 +210,12 @@ class AuthUser {
   final String uid;
   final String email;
   final bool emailVerified;
+  final bool? subscriptionActive;
 
   AuthUser({
     required this.uid,
     required this.email,
     required this.emailVerified,
+    this.subscriptionActive,
   });
 }

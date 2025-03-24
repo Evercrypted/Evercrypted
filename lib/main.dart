@@ -294,7 +294,6 @@ class AuthGateState extends ConsumerState<AuthGate> {
         user = Auth.getUser;
       });
       _connectIO(token);
-      HttpClient.addAuth(token);
       final bool otpActive = await Auth.getIsOtpActive;
       final String? otpToken = await Auth.getOtpToken;
       setState(() {

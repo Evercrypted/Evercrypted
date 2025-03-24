@@ -44,10 +44,12 @@ class _ConnectionStatusAppbarState extends State<ConnectionStatusAppbar> {
       });
     } else {
       isConnectedListener =
-          ChatSocket.isConnectedSubject.stream.listen((isConnected) async {
-        setState(() {
-          this.isConnected = isConnected;
-        });
+          ChatSocket.isConnectedSubject.stream.listen((isConnected) {
+        if (mounted) {
+          setState(() {
+            this.isConnected = isConnected;
+          });
+        }
       });
     }
   }

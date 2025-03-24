@@ -14,6 +14,7 @@ import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
+import 'package:evercrypted/core/socket/event_types/payment_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
@@ -55,6 +56,25 @@ class SocketEventsService {
         break;
       case SocketChannelTypes.auth:
         handleAuthEvent(type, payload);
+        break;
+      case SocketChannelTypes.payment:
+        handlePaymentEvent(type, payload);
+        break;
+      default:
+        return;
+    }
+  }
+
+  handlePaymentEvent(String type, dynamic payload) {
+    switch (type) {
+      case PaymentEventTypes.statusChanged:
+        profileService.updateProfileSubscription(payload);
+        LocalNotification.instance.displayNotification(
+            'Profile Subscription Status Changed',
+            'You account has been activated or new gift-codes have been added to your account',
+            json.encode({
+              'type': NotificationEventTypes.goToReceivedContactRequestPage,
+            }));
         break;
       default:
         return;

@@ -4,9 +4,11 @@ import 'dart:convert';
 import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:cryptography_plus/helpers.dart';
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/helpers/get_random_string.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
+import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -20,7 +22,6 @@ import 'package:socket_io_client/socket_io_client.dart';
 import '../cryptography/combine_keys.dart';
 import '../cryptography/payload.dart';
 import '../offline/action_queue/allowed_for_queue.dart';
-import '../services/settings_service.dart';
 
 List<int> getNewNonce(byteLength, random) {
   final bytes = Uint8List(byteLength);
@@ -36,9 +37,9 @@ class ChatSocket {
   static io.Socket? socket;
   static SimpleKeyPair? keyPair;
   static String? key;
-  static final SettingsService settingsService = SettingsService();
   static final ActionQueueService actionQueueService = ActionQueueService();
   static final SocketEventsService socketEventsService = SocketEventsService();
+  static final AuthService authService = AuthService();
 
   static bool? isConnected;
 
@@ -96,16 +97,25 @@ class ChatSocket {
 
     dynamic options = OptionBuilder().setTransports(['websocket']);
 
-    final token = await Auth.getToken;
+    final identifier =
+        DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
+    final Map<String, dynamic> keys =
+        await authService.getLoginEncKey(identifier);
 
-    var headers = {
-      'authorization': 'Bearer $token',
-    };
+    final token = await Auth.getToken;
 
     final otpToken = await Auth.getOtpToken;
 
+    final cryptedToken = await encodePayload(token, keys['key']);
+
+    var headers = {
+      'authorization': 'Bearer ${jsonEncode(cryptedToken)}',
+      'identifier': identifier,
+    };
+
     if (otpToken != null) {
-      headers['otpToken'] = otpToken;
+      final cryptedOtpToken = await encodePayload(otpToken, keys['key']);
+      headers['otpToken'] = jsonEncode(cryptedOtpToken);
     }
 
     options = options.setExtraHeaders(headers);
@@ -161,12 +171,7 @@ class ChatSocket {
     socket?.onAny((event, data) {
       debugPrint('event $event');
       debugPrint('data $data');
-      if (event == 'connected') {
-        Auth.setToken(
-          newToken: data['new_token'],
-          skipNotify: true,
-        );
-      } else if (event == 'error') {
+      if (event == 'error') {
         socketEventsService.handleErrorEvent(data['type'], data['payload']);
       }
     });

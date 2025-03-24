@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/main.dart';
 
 import 'profile_model.dart';
@@ -18,5 +19,17 @@ class ProfileService {
 
   Profile? getProfile() {
     return obx.profiles.getAll().firstOrNull;
+  }
+
+  updateProfileSubscription(dynamic payload) {
+    if (payload['active'] == true) {
+      final profile = getProfile();
+      if (profile != null) {
+        profile.subscription = ProfileSubscription.fromJson(payload);
+        Auth.setAuth(
+          profile: profile,
+        );
+      }
+    }
   }
 }

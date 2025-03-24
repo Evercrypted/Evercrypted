@@ -15,7 +15,7 @@ class HttpClient {
     ));
   }
 
-  static addAuth(token) async {
+  static addAuth(String token, String uid) async {
     client.dispose();
     client = await RhttpClient.create(
       settings: ClientSettings(
@@ -30,6 +30,9 @@ class HttpClient {
                 request.addHeader(
                     name: HttpHeaderName.authorization,
                     value: 'Bearer $token'))),
+        SimpleInterceptor(
+            beforeRequest: (request) async => Interceptor.next(
+                request.addHeader(name: HttpHeaderName.from, value: uid))),
       ],
     );
   }

@@ -20,6 +20,20 @@ class Profile {
   bool emailVerified;
 
   @Transient()
+  ProfileSubscription? subscription;
+
+  String? get dbSubscription =>
+      subscription == null ? null : jsonEncode(subscription?.toJson());
+
+  set dbSubscription(String? value) {
+    if (value == null) {
+      subscription = null;
+    } else {
+      subscription = ProfileSubscription.fromJson(jsonDecode(value));
+    }
+  }
+
+  @Transient()
   Avatar? avatar;
 
   String? get dbAvatar => avatar == null ? null : jsonEncode(avatar?.toJson());
@@ -75,7 +89,8 @@ class Profile {
       this.name,
       this.email,
       this.avatar,
-      this.emailVerified = false});
+      this.emailVerified = false,
+      this.subscription});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
         uid: json['uid'] as String,
@@ -83,6 +98,9 @@ class Profile {
         email: (json['email'] ?? json['preverified_email']) as String,
         emailVerified: json['email_verified'] as bool,
         avatar: json['avatar'] != null ? Avatar.fromJson(json['avatar']) : null,
+        subscription: json['subscription'] != null
+            ? ProfileSubscription.fromJson(json['subscription'])
+            : null,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -91,6 +109,7 @@ class Profile {
         'email': email,
         'email_verified': emailVerified,
         'avatar': avatar?.toJson(),
+        'subscription': subscription?.toJson(),
       };
 
   Profile copyWith({
@@ -101,6 +120,7 @@ class Profile {
     Avatar? avatar,
     String? avatarIcon,
     String? avatarPic,
+    ProfileSubscription? subscription,
   }) {
     return Profile(
       uid: uid ?? this.uid,
@@ -108,6 +128,7 @@ class Profile {
       email: email ?? this.email,
       emailVerified: emailVerified ?? this.emailVerified,
       avatar: avatar ?? this.avatar,
+      subscription: subscription ?? this.subscription,
     );
   }
 }
@@ -128,5 +149,29 @@ class Avatar {
         'color': color,
         'icon': icon,
         'pic': pic,
+      };
+}
+
+class ProfileSubscription {
+  final bool active;
+  final String? type;
+  final String? startDate;
+  final String? endDate;
+
+  ProfileSubscription(
+      {required this.active, this.type, this.startDate, this.endDate});
+
+  factory ProfileSubscription.fromJson(Map<String, dynamic> json) =>
+      ProfileSubscription(
+          active: json['active'] as bool,
+          type: json['type'] as String?,
+          startDate: json['from'] as String?,
+          endDate: json['to'] as String?);
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'active': active,
+        'type': type,
+        'from': startDate,
+        'to': endDate,
       };
 }

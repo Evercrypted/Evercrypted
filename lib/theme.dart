@@ -57,10 +57,6 @@ ThemeData darkThemeData(BuildContext context) {
     ),
     inputDecorationTheme: inputDecorationTheme.copyWith(
       fillColor: contentColorLightThemeSecondary,
-      border: OutlineInputBorder(
-        borderSide: BorderSide.none,
-        borderRadius: BorderRadius.all(Radius.circular(50)),
-      ),
     ),
   );
 }
@@ -71,8 +67,8 @@ final inputDecorationTheme = InputDecorationTheme(
   fillColor: contentColorDarkTheme.withAlpha((255 * 0.08).round()),
   contentPadding: const EdgeInsets.symmetric(
       horizontal: defaultPadding * 1.5, vertical: defaultPadding),
-  border: const OutlineInputBorder(
+  border: UnderlineInputBorder(
     borderSide: BorderSide.none,
-    borderRadius: BorderRadius.all(Radius.circular(50)),
+    borderRadius: BorderRadius.circular(50),
   ),
 );

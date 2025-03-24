@@ -8,7 +8,6 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/services/settings_service.dart';
 import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
 import 'components/info.dart';
@@ -23,7 +22,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class ProfileScreenState extends ConsumerState<ProfileScreen> {
   late Color dialogPickerColor;
-  final SettingsService settingsService = SettingsService();
 
   Future<void> _signOut() async {
     await Auth.clearAuth();

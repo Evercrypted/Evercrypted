@@ -377,7 +377,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(6, 1841315404041682912),
       name: 'Profile',
-      lastPropertyId: const obx_int.IdUid(9, 1648743164420436572),
+      lastPropertyId: const obx_int.IdUid(11, 2734670102412569722),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -406,7 +406,12 @@ final _entities = <obx_int.ModelEntity>[
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 1648743164420436572),
+            id: const obx_int.IdUid(10, 1120451617613894506),
+            name: 'dbSubscription',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(11, 2734670102412569722),
             name: 'dbAvatar',
             type: 9,
             flags: 0)
@@ -486,7 +491,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         3556369180048710603,
         8177402884606386942,
         2127959347323040075,
-        4218787220005735299
+        4218787220005735299,
+        1648743164420436572
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -924,16 +930,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
               object.dbEmail == null ? null : fbb.writeString(object.dbEmail!);
           final dbNameOffset =
               object.dbName == null ? null : fbb.writeString(object.dbName!);
+          final dbSubscriptionOffset = object.dbSubscription == null
+              ? null
+              : fbb.writeString(object.dbSubscription!);
           final dbAvatarOffset = object.dbAvatar == null
               ? null
               : fbb.writeString(object.dbAvatar!);
-          fbb.startTable(10);
+          fbb.startTable(12);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, uidOffset);
           fbb.addBool(2, object.emailVerified);
           fbb.addOffset(6, dbEmailOffset);
           fbb.addOffset(7, dbNameOffset);
-          fbb.addOffset(8, dbAvatarOffset);
+          fbb.addOffset(9, dbSubscriptionOffset);
+          fbb.addOffset(10, dbAvatarOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -951,8 +961,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 .vTableGetNullable(buffer, rootOffset, 16)
             ..dbName = const fb.StringReader(asciiOptimization: true)
                 .vTableGetNullable(buffer, rootOffset, 18)
+            ..dbSubscription = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 22)
             ..dbAvatar = const fb.StringReader(asciiOptimization: true)
-                .vTableGetNullable(buffer, rootOffset, 20);
+                .vTableGetNullable(buffer, rootOffset, 24);
 
           return object;
         }),
@@ -1256,9 +1268,13 @@ class Profile_ {
   static final dbName =
       obx.QueryStringProperty<Profile>(_entities[5].properties[4]);
 
+  /// See [Profile.dbSubscription].
+  static final dbSubscription =
+      obx.QueryStringProperty<Profile>(_entities[5].properties[5]);
+
   /// See [Profile.dbAvatar].
   static final dbAvatar =
-      obx.QueryStringProperty<Profile>(_entities[5].properties[5]);
+      obx.QueryStringProperty<Profile>(_entities[5].properties[6]);
 }
 
 /// [Settings] entity fields to define ObjectBox queries.
