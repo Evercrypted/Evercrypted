@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 
 class ImagePreview extends StatelessWidget {
@@ -33,7 +34,7 @@ class ImagePreview extends StatelessWidget {
               return const Center(
                 child: Icon(
                   Icons.error_outline,
-                  color: Colors.red,
+                  color: errorColor,
                   size: 48,
                 ),
               );

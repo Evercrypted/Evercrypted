@@ -155,7 +155,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: errorColor,
                   ),
                   onPressed: () {
                     Navigator.popUntil(context, (route) => route.isFirst);
@@ -180,7 +180,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: errorColor,
                   ),
                   onPressed: () {
                     Navigator.popUntil(context, (route) => route.isFirst);

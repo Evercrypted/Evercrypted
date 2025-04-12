@@ -153,10 +153,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         context: context,
         isScrollControlled: true,
         builder: (BuildContext context) {
+          debugPrint(().toString());
           return Wrap(children: [
             Container(
               decoration: BoxDecoration(
-                color: primaryColor,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? contentColorLightThemeSecondary
+                    : primaryColor,
                 borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20)),
@@ -180,7 +183,11 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                             pass: pass,
                             openPasswordDialog: () => null,
                             chat: chat,
-                            baseKey: baseKey),
+                            baseKey: baseKey,
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? Colors.white
+                                    : null),
                         if (chat.isOneToOne)
                           Container(
                             margin: const EdgeInsets.symmetric(
@@ -318,7 +325,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   Future<void> _fetchPage(int pageKey) async {
-    print(pageKey);
     try {
       final newItems = await _messageService.getMessagesFromDB(
           widget.chat.id, pageKey, _pageSize);
@@ -512,7 +518,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                   child: const Icon(Icons.delete),
                   fabSize: ExpandableFabSize.small,
                   foregroundColor: Colors.white,
-                  backgroundColor: Colors.red,
+                  backgroundColor: errorColor,
                 ),
                 closeButtonBuilder: DefaultFloatingActionButtonBuilder(
                   child: const Icon(Icons.close),
@@ -537,7 +543,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          color: Colors.red,
+                          color: errorColor,
                         ),
                         padding: const EdgeInsets.all(10),
                         child: Row(

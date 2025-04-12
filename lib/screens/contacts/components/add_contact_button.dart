@@ -48,7 +48,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
             "You already have a contact with this email",
             style: TextStyle(color: Colors.white),
           ),
-          background: Colors.redAccent);
+          background: errorColor);
       return;
     }
     FocusManager.instance.primaryFocus?.unfocus();
@@ -99,7 +99,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                     error.toString(),
                     style: const TextStyle(color: Colors.white),
                   ),
-                  background: Colors.redAccent);
+                  background: errorColor);
             }
           });
         }

@@ -238,7 +238,7 @@ class _CameraWidgetState extends State<CameraWidget> {
                             style: TextStyle(color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red.shade400,
+                            backgroundColor: errorColor,
                             padding: EdgeInsets.only(
                                 left: defaultPadding / 2,
                                 right: defaultPadding),

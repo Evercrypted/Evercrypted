@@ -111,7 +111,7 @@ class PendingRequestCard extends StatelessWidget {
                     borderRadius: BorderRadius.all(Radius.circular(30))),
                 child: const Icon(
                   Icons.delete,
-                  color: Colors.redAccent,
+                  color: errorColor,
                 ),
               )
             ],

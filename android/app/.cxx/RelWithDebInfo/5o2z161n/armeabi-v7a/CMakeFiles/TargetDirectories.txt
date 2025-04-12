@@ -1,0 +1,2 @@
+/Users/iraklikoridze/Desktop/Programming/Ever/evercrypted/android/app/.cxx/RelWithDebInfo/5o2z161n/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/iraklikoridze/Desktop/Programming/Ever/evercrypted/android/app/.cxx/RelWithDebInfo/5o2z161n/armeabi-v7a/CMakeFiles/rebuild_cache.dir

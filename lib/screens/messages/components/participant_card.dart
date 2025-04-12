@@ -59,7 +59,7 @@ class ParticipantCard extends StatelessWidget {
               onPressed: () {
                 remove();
               },
-              icon: const Icon(Icons.delete, color: Colors.red),
+              icon: const Icon(Icons.delete, color: errorColor),
             )
         ],
       ),

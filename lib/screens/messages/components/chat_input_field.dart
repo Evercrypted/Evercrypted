@@ -475,7 +475,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                               onTap: () {
                                 dropRecording();
                               },
-                              child: Icon(Icons.cancel, color: Colors.red[400]),
+                              child: Icon(Icons.cancel, color: errorColor),
                             ),
                           ],
                         ),
@@ -502,7 +502,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                           child: Ink(
                             child: const Icon(
                               Icons.delete,
-                              color: Colors.red,
+                              color: errorColor,
                             ),
                           ),
                         ),
@@ -528,7 +528,9 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                                                           const CameraWidget()))
                                               .then((jpgBytes) {
                                             if (jpgBytes != null) {
-                                              sendImage(jpgBytes, context);
+                                              if (mounted) {
+                                                sendImage(jpgBytes, context);
+                                              }
                                             }
                                           });
                                         },
@@ -628,7 +630,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                                                   },
                                                   icon: const Icon(
                                                     Icons.cancel,
-                                                    color: Colors.red,
+                                                    color: errorColor,
                                                   ),
                                                 ),
                                               ],

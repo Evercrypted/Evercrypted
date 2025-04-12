@@ -108,7 +108,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
               Text(
                 errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red),
+                style: const TextStyle(color: errorColor),
               ),
           ];
         });
@@ -169,7 +169,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
           Text(
             errorMessage!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.red),
+            style: const TextStyle(color: errorColor),
           ),
       ];
     }
@@ -282,7 +282,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
           Text(
             errorMessage!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.red),
+            style: const TextStyle(color: errorColor),
           ),
         TextButton(
           onPressed: () => Auth.clearAuth(),
@@ -309,7 +309,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
           Text(
             errorMessage!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.red),
+            style: const TextStyle(color: errorColor),
           ),
       ];
     }

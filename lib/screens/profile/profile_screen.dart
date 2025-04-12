@@ -30,7 +30,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    dialogPickerColor = Colors.red;
+    dialogPickerColor = errorColor;
   }
 
   Future<bool> colorPickerDialog() async {

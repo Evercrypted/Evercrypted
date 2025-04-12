@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:evercrypted/core/socket/socket.dart';
+import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 
 class ConnectionStatusAppbar extends StatefulWidget
@@ -77,17 +78,17 @@ class _ConnectionStatusAppbarState extends State<ConnectionStatusAppbar> {
                     padding: const EdgeInsets.only(bottom: 8),
                     child: const Text(
                       "We're not able to connect with the server",
-                      style: TextStyle(color: Colors.red, fontSize: 12),
+                      style: TextStyle(color: errorColor, fontSize: 12),
                     )),
-                widget.title!
+                widget.title!,
+                const SizedBox(height: 5),
               ])
             : const Text(
                 "We're not able to connect with the server",
-                style: TextStyle(color: Colors.white, fontSize: 15),
+                style: TextStyle(color: errorColor, fontSize: 15),
               ),
         actions: widget.actions,
         centerTitle: true,
-        backgroundColor: widget.title != null ? Colors.white : Colors.red,
         toolbarHeight: widget.title != null ? 100 : 25,
       );
     }

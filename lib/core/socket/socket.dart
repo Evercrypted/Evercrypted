@@ -99,8 +99,16 @@ class ChatSocket {
 
     final identifier =
         DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
-    final Map<String, dynamic> keys =
-        await authService.getLoginEncKey(identifier);
+
+    late Map<String, dynamic> keys;
+    try {
+      keys = await authService.loginHandshake(identifier);
+    } catch (e) {
+      debugPrint(e.toString());
+      isConnected = false;
+      isConnectedSubject.add(isConnected!);
+      return;
+    }
 
     final token = await Auth.getToken;
 

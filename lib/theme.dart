@@ -8,6 +8,9 @@ ThemeData lightThemeData(BuildContext context) {
   return ThemeData.light().copyWith(
     primaryColor: primaryColor,
     scaffoldBackgroundColor: Colors.white,
+    dialogTheme: DialogTheme(
+      backgroundColor: Colors.white,
+    ),
     appBarTheme: appBarTheme,
     iconTheme: const IconThemeData(color: contentColorLightTheme),
     textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme)
@@ -36,6 +39,9 @@ ThemeData darkThemeData(BuildContext context) {
   return ThemeData.dark().copyWith(
     primaryColor: primaryColor,
     scaffoldBackgroundColor: contentColorLightTheme,
+    dialogTheme: DialogTheme(
+      backgroundColor: contentColorLightThemeSecondary,
+    ),
     appBarTheme: appBarTheme.copyWith(
       backgroundColor: contentColorLightTheme,
     ),

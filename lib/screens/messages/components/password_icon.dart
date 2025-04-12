@@ -9,12 +9,14 @@ class PasswordDialogIcon extends StatefulWidget {
       required this.pass,
       required this.openPasswordDialog,
       required this.chat,
-      required this.baseKey});
+      required this.baseKey,
+      this.color});
   final bool settingsDialogOpen;
   final String? pass;
   final Function() openPasswordDialog;
   final Chat chat;
   final String? baseKey;
+  final Color? color;
 
   @override
   State<PasswordDialogIcon> createState() => _PasswordDialogIconState();
@@ -51,14 +53,13 @@ class _PasswordDialogIconState extends State<PasswordDialogIcon>
               style: ButtonStyle(
                   padding: WidgetStateProperty.all<EdgeInsets>(
                       const EdgeInsets.all(0)),
-                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          side: BorderSide(
-                              width: 2,
-                              color: widget.pass == null
-                                  ? Colors.redAccent
-                                  : primaryColor)))),
+                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      side: BorderSide(
+                          width: 2,
+                          color: widget.pass == null
+                              ? errorColor
+                              : widget.color ?? primaryColor)))),
               icon: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   transitionBuilder: (child, anim) => RotationTransition(
@@ -76,11 +77,11 @@ class _PasswordDialogIconState extends State<PasswordDialogIcon>
                           child: Icon(Icons.policy,
                               size: 22,
                               color: widget.pass == null
-                                  ? Colors.redAccent
-                                  : primaryColor))
+                                  ? errorColor
+                                  : widget.color ?? primaryColor))
                       : FadeTransition(
                           opacity: const AlwaysStoppedAnimation(1.0),
-                          child: Icon(Icons.security, size: 22, color: widget.pass == null ? Colors.redAccent : primaryColor))),
+                          child: Icon(Icons.security, size: 22, color: widget.pass == null ? errorColor : widget.color ?? primaryColor))),
               onPressed: () {
                 widget.openPasswordDialog();
               }),
@@ -94,11 +95,12 @@ class _PasswordDialogIconState extends State<PasswordDialogIcon>
                 color: !widget.chat.isOneToOne
                     ? Colors.grey
                     : widget.baseKey == null
-                        ? Colors.redAccent
+                        ? errorColor
                         : primaryColor,
                 shape: BoxShape.circle,
                 border: Border.all(
-                    color: Theme.of(context).scaffoldBackgroundColor, width: 2),
+                    color: Theme.of(context).dialogTheme.backgroundColor!,
+                    width: 2),
               ),
             ),
           )

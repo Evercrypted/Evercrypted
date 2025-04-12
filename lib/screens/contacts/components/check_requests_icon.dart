@@ -47,7 +47,7 @@ class _CheckRequestsIconState extends State<CheckRequestsIcon>
               height: 13,
               width: 13,
               decoration: BoxDecoration(
-                color: Colors.redAccent,
+                color: errorColor,
                 shape: BoxShape.circle,
                 border: Border.all(
                     color: Theme.of(context).scaffoldBackgroundColor, width: 2),
