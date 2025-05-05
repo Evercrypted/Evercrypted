@@ -119,7 +119,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
             builder: (BuildContext context) {
               return Wrap(children: [
                 Container(
-                  color: primaryColor,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewInsets.bottom),
                   child: Container(
@@ -134,6 +134,23 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                         key: form,
                         child: Column(
                           children: [
+                            Icon(Icons.forward_to_inbox,
+                                size: 60,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium!
+                                    .color),
+                            const SizedBox(height: defaultPadding / 2),
+                            Text(
+                              "Send a contact request",
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: defaultPadding / 2),
+                            Text(
+                              "The person will receive a request to add you as a contact. You can add a message to the request.",
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: defaultPadding),
                             TextFormField(
                               controller: _emailController,
                               validator: (val) {
@@ -179,7 +196,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: defaultPadding / 2),
+                            const SizedBox(height: defaultPadding),
                             TextFormField(
                               controller: _messageController,
                               focusNode: _messageFocus,
@@ -213,11 +230,11 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: defaultPadding / 2),
+                            const SizedBox(height: defaultPadding),
                             PrimaryButton(
                               text: 'SEND REQUEST',
                               press: submitForm,
-                              color: secondaryColor,
+                              color: primaryColor,
                             )
                           ],
                         ),

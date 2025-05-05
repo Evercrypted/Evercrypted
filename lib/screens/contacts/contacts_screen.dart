@@ -24,6 +24,7 @@ class ContactsScreen extends ConsumerStatefulWidget {
   static const routeName = '/contacts';
 
   final bool isParticipantSelect;
+  final bool isGroupCreate;
 
   final bool isAddNewParticipants;
 
@@ -33,7 +34,8 @@ class ContactsScreen extends ConsumerStatefulWidget {
       {super.key,
       this.isParticipantSelect = false,
       this.participants,
-      this.isAddNewParticipants = false});
+      this.isAddNewParticipants = false,
+      this.isGroupCreate = false});
 
   @override
   ContactsScreenState createState() => ContactsScreenState();
@@ -46,6 +48,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
   final FocusNode searchFocus = FocusNode();
   String searchValue = '';
   List<Participant>? participants;
+  final TextEditingController newGroupName = TextEditingController();
 
   @override
   void initState() {
@@ -68,6 +71,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
   void dispose() {
     _searchController.removeListener(setSearchValue);
     _searchController.dispose();
+    newGroupName.dispose();
     searchFocus.dispose();
     super.dispose();
   }
@@ -146,9 +150,38 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                   ? [
                       IconButton(
                           onPressed: () {
-                            if (participants != null &&
-                                participants!.isNotEmpty) {
-                              Navigator.pop(context, participants);
+                            if (widget.isGroupCreate) {
+                              if (participants != null &&
+                                  participants!.isNotEmpty &&
+                                  newGroupName.text.isNotEmpty) {
+                                Navigator.pop(context, {
+                                  'participants': participants,
+                                  'groupName': newGroupName.text
+                                });
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Missing information'),
+                                    content: Text(
+                                        'Please enter a group name and select participants'),
+                                  ),
+                                );
+                              }
+                            } else {
+                              if (participants != null &&
+                                  participants!.isNotEmpty) {
+                                Navigator.pop(context, participants);
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title:
+                                        Text('New participants not selected'),
+                                    content: Text('Please select participants'),
+                                  ),
+                                );
+                              }
                             }
                           },
                           icon: Icon(
@@ -165,6 +198,23 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
           : null,
       body: Column(
         children: [
+          if (widget.isParticipantSelect && widget.isGroupCreate)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: defaultPadding * 2),
+              child: TextFormField(
+                controller: newGroupName,
+                onTap: () {
+                  keyboardNotifier.openKeyboard(
+                    controller: newGroupName,
+                  );
+                },
+                keyboardType: TextInputType.none,
+                decoration: InputDecoration(
+                  hintText: 'Group Name',
+                ),
+              ),
+            ),
           Row(
             children: [
               Expanded(
@@ -369,7 +419,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                 padding: const EdgeInsets.only(left: 20, right: 20, top: 50),
                 alignment: Alignment.topCenter,
                 child: const Text(
-                  'Could not find such contacts.',
+                  'No contacts found',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                 ),
@@ -378,7 +428,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
             padding: const EdgeInsets.only(left: 20, right: 20, top: 50),
             alignment: Alignment.topCenter,
             child: const Text(
-              'Your contacts list is empty. Add new contacts to start chatting.',
+              'Your contacts list is empty',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
             ),

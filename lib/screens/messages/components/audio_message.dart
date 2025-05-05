@@ -102,7 +102,7 @@ class _AudioMessageState extends State<AudioMessage>
     if (fileString == null) {
       return;
     }
-    late final List<Uint8List> recording;
+    late final Uint8List recording;
     if (widget.message.pass != null &&
         widget.message.iv != null &&
         widget.message.mac != null) {
@@ -116,17 +116,17 @@ class _AudioMessageState extends State<AudioMessage>
           cryptedRecording: fileString!, isEncrypted: false);
     }
     await widget.player.openPlayer();
-    await widget.player.startPlayerFromStream(
-        codec: Codec.pcm16, numChannels: 1, sampleRate: 16000);
+    await widget.player
+        .startPlayer(fromDataBuffer: recording, codec: Codec.pcmFloat32);
 
-    Future.delayed(Duration(microseconds: widget.message.decodedDuration!))
-        .then((dur) async {
-      await widget.player.stopPlayer();
-      await widget.player.closePlayer();
-    });
-    for (final Uint8List data in recording) {
-      await widget.player.feedUint8FromStream(data);
-    }
+    // Future.delayed(Duration(microseconds: widget.message.decodedDuration!))
+    //     .then((dur) async {
+    //   await widget.player.stopPlayer();
+    //   await widget.player.closePlayer();
+    // });
+    // for (final Uint8List data in recording) {
+    //   await widget.player.feedUint8FromStream(data);
+    // }
   }
 
   setDurationLeft(controllerValue) {

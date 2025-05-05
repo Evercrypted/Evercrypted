@@ -97,7 +97,8 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
   Widget build(BuildContext context) {
     final keyboardNotifier = ref.watch(keyboardProvider.notifier);
 
-    return Padding(
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
         left: defaultPadding,
@@ -108,6 +109,8 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Icon(Icons.refresh,
+              size: 40, color: Theme.of(context).textTheme.titleMedium!.color),
           const Text(
             'Reset Password',
             style: TextStyle(

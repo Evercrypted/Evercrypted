@@ -14,12 +14,11 @@ class EncryptedRecording {
   EncryptedRecording(this.cryptedRecording, this.iv, this.mac);
 }
 
-Future<EncryptedRecording?> encodeRecording(key, List<Uint8List> recording,
+Future<EncryptedRecording?> encodeRecording(key, Uint8List recording,
     [bool notHex = true]) async {
   try {
     final algorithm = Chacha20.poly1305Aead();
-    Uint8List bytes = utf8.encode(recording.toString());
-    final SecretBox secretBox = await algorithm.encrypt(bytes,
+    final SecretBox secretBox = await algorithm.encrypt(recording,
         secretKey:
             SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
     return EncryptedRecording(base64.encode(secretBox.cipherText),
@@ -29,14 +28,14 @@ Future<EncryptedRecording?> encodeRecording(key, List<Uint8List> recording,
   }
 }
 
-Future<List<Uint8List>> decodeRecording(
+Future<Uint8List> decodeRecording(
     {String? key,
     String? iv,
     String? mac,
     required String cryptedRecording,
     bool notHex = true,
     bool isEncrypted = true}) async {
-  late final String stringList;
+  late final Uint8List recording;
   if (isEncrypted && key != null && iv != null && mac != null) {
     final algorithm = Chacha20.poly1305Aead();
     final secretBox = SecretBox(
@@ -47,17 +46,9 @@ Future<List<Uint8List>> decodeRecording(
     final decrypted = await algorithm.decrypt(secretBox,
         secretKey:
             SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
-    stringList = utf8.decode(decrypted);
+    recording = Uint8List.fromList(decrypted);
   } else {
-    stringList = utf8.decode(base64Decode(cryptedRecording));
+    recording = base64Decode(cryptedRecording);
   }
-  final List<String> listString =
-      stringList.substring(1, stringList.length - 1).split('],');
-  final List<String> modified = listString
-      .mapWithIndex((e, index) => index != listString.length - 1 ? '$e]' : e)
-      .toList();
-  List<Uint8List> decoded = modified.map((e) {
-    return Uint8List.fromList(json.decode(e).cast<int>().toList());
-  }).toList();
-  return decoded;
+  return recording;
 }

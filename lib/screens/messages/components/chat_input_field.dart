@@ -40,7 +40,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
   final MessageService _messageService = MessageService();
   String? fullKey;
   int? recordingMicroSeconds;
-  List<Uint8List>? recordingData;
+  Uint8List? recordingData;
   bool recordingPlaying = false;
   bool sendingFile = false;
   PlatformFile? file;
@@ -101,7 +101,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     ref.read(keyboardProvider.notifier).close();
   }
 
-  onRecording(List<Uint8List> recordingData, int recordingMicroSeconds) {
+  onRecording(Uint8List recordingData, int recordingMicroSeconds) {
     setState(() {
       this.recordingData = recordingData;
       this.recordingMicroSeconds = recordingMicroSeconds;
@@ -115,27 +115,22 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       return;
     }
     await widget.player.openPlayer();
-    await widget.player.startPlayerFromStream(
-        codec: Codec.pcm16, numChannels: 1, sampleRate: 16000);
-
-    for (final Uint8List data in recordingData!) {
-      await widget.player.feedUint8FromStream(data);
-    }
-
-    Future.delayed(Duration(microseconds: recordingMicroSeconds!))
-        .then((dur) async {
-      await widget.player.stopPlayer();
-      await widget.player.closePlayer();
-      setState(() {
-        recordingPlaying = false;
-        waveFromController = IOS7SiriWaveformController(
-          amplitude: 0,
-          color: primaryColor,
-          frequency: 15,
-          speed: 0.15,
-        );
-      });
-    });
+    await widget.player.startPlayer(
+        fromDataBuffer: recordingData,
+        codec: Codec.pcmFloat32,
+        whenFinished: () async {
+          await widget.player.stopPlayer();
+          await widget.player.closePlayer();
+          setState(() {
+            recordingPlaying = false;
+            waveFromController = IOS7SiriWaveformController(
+              amplitude: 0,
+              color: primaryColor,
+              frequency: 15,
+              speed: 0.15,
+            );
+          });
+        });
   }
 
   sendAudio(context) async {

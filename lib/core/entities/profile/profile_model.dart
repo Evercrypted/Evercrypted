@@ -19,6 +19,10 @@ class Profile {
 
   bool emailVerified;
 
+  bool activatedForLife;
+
+  int activationTokenQuantity;
+
   @Transient()
   ProfileSubscription? subscription;
 
@@ -90,6 +94,8 @@ class Profile {
       this.email,
       this.avatar,
       this.emailVerified = false,
+      this.activatedForLife = false,
+      this.activationTokenQuantity = 0,
       this.subscription});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
@@ -101,6 +107,8 @@ class Profile {
         subscription: json['subscription'] != null
             ? ProfileSubscription.fromJson(json['subscription'])
             : null,
+        activatedForLife: json['activatedForLife'] as bool,
+        activationTokenQuantity: json['activationTokenQuantity'] as int,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -110,6 +118,8 @@ class Profile {
         'email_verified': emailVerified,
         'avatar': avatar?.toJson(),
         'subscription': subscription?.toJson(),
+        'activatedForLife': activatedForLife,
+        'activationTokenQuantity': activationTokenQuantity,
       };
 
   Profile copyWith({

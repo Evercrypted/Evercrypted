@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -27,13 +26,12 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   double progress = 0;
   FlutterSoundRecorder? _myRecorder = FlutterSoundRecorder();
 
-  int? recordStartTime;
-  bool fileWritten = false;
   String? iv;
   String? mac;
   StreamSubscription<Uint8List>? _mRecordingDataSubscription;
+  StreamSubscription? _recorderProgressSub;
   StreamController<Uint8List>? recordingDataController;
-  List<Uint8List> recordingData = [];
+  BytesBuilder recordingData = BytesBuilder();
   int? recordingMicroSeconds;
   bool showPreviewButton = false;
 
@@ -71,8 +69,10 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
       _myRecorder = null;
     }
     _mRecordingDataSubscription?.cancel();
+    _recorderProgressSub?.cancel();
     recordingDataController?.close();
     controller.removeListener(setProgressToControllerValue);
+    controller.removeStatusListener(setStatus);
     controller.dispose();
     super.dispose();
   }
@@ -84,29 +84,17 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     }
     await _myRecorder!.openRecorder();
 
-    final session = await AudioSession.instance;
-    await session.configure(AudioSessionConfiguration(
-      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
-      avAudioSessionCategoryOptions:
-          AVAudioSessionCategoryOptions.allowBluetooth |
-              AVAudioSessionCategoryOptions.defaultToSpeaker,
-      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-      avAudioSessionRouteSharingPolicy:
-          AVAudioSessionRouteSharingPolicy.defaultPolicy,
-      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
-      androidAudioAttributes: const AndroidAudioAttributes(
-        contentType: AndroidAudioContentType.speech,
-        flags: AndroidAudioFlags.none,
-        usage: AndroidAudioUsage.voiceCommunication,
-      ),
-      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
-      androidWillPauseWhenDucked: true,
-    ));
+    _recorderProgressSub = _myRecorder!.onProgress!.listen((e) {
+      recordingMicroSeconds = e.duration.inMicroseconds;
+    });
+
+    await _myRecorder!
+        .setSubscriptionDuration(const Duration(milliseconds: 100)); // 100ms
   }
 
   Future<void> record() async {
     await _openRecorder();
-    recordingData = [];
+    recordingData.clear();
     recordingDataController = StreamController<Uint8List>();
     _mRecordingDataSubscription =
         recordingDataController?.stream.listen((data) {
@@ -118,24 +106,23 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     });
     await _myRecorder?.startRecorder(
       toStream: recordingDataController!.sink,
-      codec: Codec.pcm16,
-      numChannels: 1,
-      sampleRate: 16000,
+      codec: Codec.pcmFloat32,
+      audioSource: AudioSource.defaultSource,
     );
-    recordStartTime = DateTime.now().microsecondsSinceEpoch;
   }
 
   Future<void> stopRecorder() async {
     await _myRecorder?.stopRecorder();
     await _myRecorder?.closeRecorder();
 
+    await _mRecordingDataSubscription?.cancel();
+    _mRecordingDataSubscription = null;
+
     recordingDataController?.close();
     recordingDataController = null;
-    final recordEndTime = DateTime.now().microsecondsSinceEpoch;
-    recordingMicroSeconds = recordEndTime - recordStartTime!;
 
     if (recordingData.isNotEmpty && recordingMicroSeconds != null) {
-      widget.onRecord(recordingData, recordingMicroSeconds);
+      widget.onRecord(recordingData.toBytes(), recordingMicroSeconds);
     }
   }
 
@@ -149,11 +136,15 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
         record();
       },
       onTapUp: (_) async {
-        stopRecorder();
+        Future.delayed(Duration(milliseconds: 200)).then((value) {
+          stopRecorder();
+        });
         controller.reset();
       },
       onTapCancel: () async {
-        stopRecorder();
+        Future.delayed(Duration(milliseconds: 200)).then((value) {
+          stopRecorder();
+        });
         controller.reset();
       },
       child: Row(
