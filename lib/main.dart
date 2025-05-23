@@ -9,6 +9,7 @@ import 'package:evercrypted/core/notifications/notification_events_service.dart'
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/objectbox.g.dart';
+import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
 // import 'package:evercrypted/screens/auth/change_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
@@ -150,6 +151,8 @@ class MyAppState extends State<MyApp> {
                     const AddNewContactScreen(),
                 OtpScreen.routeName: (ctx) => const OtpScreen(),
                 MainScreen.routeName: (ctx) => const MainScreen(),
+                ActivationMainScreen.routeName: (ctx) =>
+                    const ActivationMainScreen(),
               },
             ),
           ),

@@ -10,11 +10,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
-import 'components/info.dart';
 import 'components/profile_pic.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
+  static const routeName = '/profile-screen';
 
   @override
   ProfileScreenState createState() => ProfileScreenState();
@@ -113,17 +113,23 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
             Text(
-              profile?.name ?? '',
+              profile?.name ?? profile?.email?.split('@')[0] ?? '',
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            Info(
-              infoKey: "Email Address",
-              info: profile?.email ?? '',
-            ),
-            const SizedBox(height: defaultPadding),
+            const SizedBox(height: defaultPadding * 2),
             PrimaryButton(
                 padding: const EdgeInsets.all(5),
-                text: "Reset Password",
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.password,
+                        color: Theme.of(context).colorScheme.onSurface),
+                    const SizedBox(width: 10),
+                    Text("Reset Password",
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface))
+                  ],
+                ),
                 press: () {
                   showModalBottomSheet(
                     context: context,
@@ -135,14 +141,38 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     builder: (BuildContext context) => const ResetPassword(),
                   );
                 }),
+            const SizedBox(height: defaultPadding / 2),
             PrimaryButton(
               padding: const EdgeInsets.all(5),
-              text: Auth.isOtpActive! ? "Deactivate 2FA" : "Activate 2FA",
+              needsActivation: true,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.enhanced_encryption,
+                      color: Theme.of(context).colorScheme.onSurface),
+                  const SizedBox(width: 10),
+                  Text(Auth.isOtpActive! ? "Deactivate 2FA" : "Activate 2FA",
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface))
+                ],
+              ),
               press: () => Navigator.pushNamed(context, OtpScreen.routeName),
             ),
+            const SizedBox(height: defaultPadding / 2),
             PrimaryButton(
               padding: const EdgeInsets.all(5),
-              text: "Keyboard Settings",
+              needsActivation: true,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.keyboard,
+                      color: Theme.of(context).colorScheme.onSurface),
+                  const SizedBox(width: 10),
+                  Text("In-App Keyboard",
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface))
+                ],
+              ),
               press: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -150,6 +180,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: defaultPadding / 2),
             PrimaryButton(
               padding: const EdgeInsets.all(5),
               text: "Clear OBX",
@@ -165,9 +196,20 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 );
               },
             ),
+            const SizedBox(height: defaultPadding / 2),
             PrimaryButton(
                 padding: const EdgeInsets.all(5),
-                text: "Sign Out",
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.exit_to_app,
+                        color: Theme.of(context).colorScheme.onSurface),
+                    const SizedBox(width: 10),
+                    Text("Sign Out",
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface))
+                  ],
+                ),
                 press: () => _signOut()),
           ],
         ),

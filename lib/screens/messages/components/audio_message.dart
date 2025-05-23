@@ -200,7 +200,7 @@ class _AudioMessageState extends State<AudioMessage>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
         color: primaryColor
-            .withAlpha(255 * (widget.message.isSender ? 1 : 0.1).round()),
+            .withAlpha((255 * (widget.message.isSender ? 1 : 0.05)).round()),
       ),
       child: Row(
         children: [

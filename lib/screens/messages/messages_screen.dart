@@ -192,13 +192,29 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           Container(
                             margin: const EdgeInsets.symmetric(
                                 vertical: defaultPadding / 2),
-                            child: Text(
-                              baseKey == null
-                                  ? 'Chat End-to-End key is not synchronized yet. The other party needs to open Evercrypted at least once to generate base encryption key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
-                                  : 'Base-Encryption-Key has successfully been synchronized. All the passwords less then 32 characters will automatically be reinforced with the synchronized key.',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  baseKey == null
+                                      ? Icons.warning
+                                      : Icons.check_circle,
+                                  color: baseKey == null
+                                      ? secondaryColor
+                                      : Theme.of(context).brightness ==
+                                              Brightness.light
+                                          ? Colors.white
+                                          : primaryColor,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    baseKey == null
+                                        ? 'Chat End-to-End key is not synchronized yet. The other party needs to open Evercrypted at least once to generate base encryption key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
+                                        : 'Base-Encryption-Key has successfully been synchronized. Entered password will modify the base encryption key.',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         if (!chat.isOneToOne)
@@ -258,24 +274,81 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                           ),
                         ),
                         Container(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: defaultPadding / 2),
-                          child: const Text(
-                            'Password can be Maximum 32 characters in Length.',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
+                          margin:
+                              const EdgeInsets.only(bottom: defaultPadding / 2),
+                          child: Center(
+                            child: const Text(
+                              'Password can be Maximum 32 characters in Length. All the passwords shorter than that will automatically be reinforced with the synchronized key if the other party has already opened Evercrypted.',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
                           ),
                         ),
                         const SizedBox(height: defaultPadding / 2),
-                        PrimaryButton(
-                          text: 'Use Password',
-                          press: () {
-                            setPass(_passController.text);
-                            Navigator.pop(context);
-                          },
-                          color: secondaryColor,
-                        )
+                        Row(
+                          children: [
+                            PrimaryButton(
+                              width: 100,
+                              color: errorColor,
+                              press: () {
+                                _passController.clear();
+                                setPass(null);
+                                Navigator.pop(context);
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.cancel_outlined,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'Clear',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: PrimaryButton(
+                                needsActivation: true,
+                                press: () {
+                                  setPass(_passController.text);
+                                  Navigator.pop(context);
+                                },
+                                color: Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? secondaryColor
+                                    : primaryColor,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.health_and_safety_outlined,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text("Use Password",
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface))
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ],
                     ),
                   )),
@@ -591,7 +664,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: defaultPadding, vertical: defaultPadding / 2),
                 child: CustomScrollView(
                   reverse: true,
                   slivers: [

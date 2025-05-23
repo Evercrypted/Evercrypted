@@ -52,68 +52,153 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
         setState(() {
           gAuthURI = resp['URI'];
           gAuthCode = resp['code'];
-
-          activateWidgets = [
-            const Text(
-              'To activate 2FA, scan the QR code below with Google Authenticator or Authy mobile apps',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Center(
-              child: QrImageView(
-                data: gAuthURI ?? 'test',
-                version: QrVersions.auto,
-                size: 150.0,
-              ),
-            ),
-            const SizedBox(height: 15),
-            const Text(
-              '- OR - ',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 15),
-            const Text(
-              'Enter this code into your 2FA app',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 5),
-            Text(
-              gAuthCode ?? '',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => _launchUrl(),
-              child: const Text('Open with Google Authenticator'),
-            ),
-            const SizedBox(height: 10),
-            const Divider(
-              height: 20,
-              thickness: 1,
-              color: primaryColor,
-            ),
-            const SizedBox(height: 10),
-            const Text(
-                'After you have scanned the QR code or entered the code, enter the 6-digit code from the app below to activate 2FA',
-                textAlign: TextAlign.center),
-            const SizedBox(height: 30),
-            Pinput(
-              length: 6,
-              controller: pinController,
-              onCompleted: (pin) => activate2FA(pin),
-            ),
-            const SizedBox(height: 10),
-            if (errorMessage != null)
-              Text(
-                errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: errorColor),
-              ),
-          ];
         });
       });
-    } else {
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    gAuthURI = null;
+    gAuthCode = null;
+    authListener = Auth.authSubject.stream.listen((shouldFire) async {
+      final bool isActive = await Auth.getIsOtpActive;
+      if (isOtpActive != isActive) {
+        setState(() {
+          isOtpActive = isActive;
+        });
+      }
+      if (!isActive) {
+        getActivationParams();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    pinController.dispose();
+    authListener.cancel();
+    super.dispose();
+  }
+
+  activate2FA(String code) {
+    pinController.clear();
+    ChatSocket.emitWAck(SocketChannelTypes.settings,
+        SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
+      if (resp['activated'] == true && resp['otpToken'] != null) {
+        await Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
+        await Auth.setOtpToken(otpToken: resp['otpToken']);
+        ChatSocket.resetConnectionSubject.add(true);
+        if (mounted) Navigator.pop(context);
+        showSimpleNotification(
+            const Text(
+              "Successfully activated 2FA",
+              style: TextStyle(color: Colors.white),
+            ),
+            background: Colors.blue);
+      } else {
+        setState(() {
+          errorMessage = 'Incorrect code';
+        });
+      }
+    }, onError: (e) {
+      setState(() {
+        errorMessage = e.toString();
+      });
+      print('afterActivate2FA: $errorMessage');
+    });
+  }
+
+  deactivate2FA(String code) {
+    pinController.clear();
+    ChatSocket.emitWAck(SocketChannelTypes.settings,
+        SettingsEventTypes.deactivate2FA, {'code': code}).then((resp) async {
+      if (resp['deactivated'] == true) {
+        await Auth.setIsOtpActive(isOtpActive: false, skipNotify: true);
+        await Auth.clearOtpToken();
+        ChatSocket.resetConnectionSubject.add(true);
+        if (mounted) {
+          Navigator.pop(context);
+        }
+        showSimpleNotification(
+            const Text(
+              "Successfully deactivated 2FA",
+              style: TextStyle(color: Colors.white),
+            ),
+            background: secondaryColor);
+      } else {
+        setState(() {
+          errorMessage = 'Incorrect code';
+        });
+      }
+    }, onError: (e) {
+      setState(() {
+        errorMessage = e.toString();
+      });
+    });
+  }
+
+  loginWith2Fa(WidgetRef ref, String code) {
+    pinController.clear();
+    authService.login2FA(ref, code).then((resp) {
+      if (resp['error'] != null) {
+        setState(() {
+          errorMessage = resp['error'];
+        });
+      }
+    });
+  }
+
+  chooseActivatedWidgets() {
+    if (widget.isLogin) {
+      activateWidgets = [
+        const Text(
+          'Enter 2FA code from your 2FA app below',
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 30),
+        Pinput(
+          length: 6,
+          controller: pinController,
+          onCompleted: (pin) => loginWith2Fa(ref, pin),
+        ),
+        const SizedBox(height: 10),
+        if (errorMessage != null)
+          Text(
+            errorMessage!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: errorColor),
+          ),
+        TextButton(
+          onPressed: () => Auth.clearAuth(),
+          child: Text(
+            'Back to Sign In',
+            style: TextStyle(color: Theme.of(context).primaryColor),
+          ),
+        ),
+      ];
+    } else if (isOtpActive) {
+      activateWidgets = [
+        const Text(
+          'To deactivate 2FA, enter the 6-digit code from your 2FA app below',
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 30),
+        Pinput(
+          length: 6,
+          controller: pinController,
+          onCompleted: (pin) => deactivate2FA(pin),
+        ),
+        const SizedBox(height: 10),
+        if (errorMessage != null)
+          Text(
+            errorMessage!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: errorColor),
+          ),
+      ];
+    } else if (gAuthURI != null && gAuthCode != null) {
       activateWidgets = [
         const Text(
           'To activate 2FA, scan the QR code below with Google Authenticator or Authy mobile apps',
@@ -172,147 +257,16 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
             style: const TextStyle(color: errorColor),
           ),
       ];
+    } else {
+      activateWidgets = [
+        Text('Loading...'),
+      ];
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    authListener = Auth.authSubject.stream.listen((shouldFire) async {
-      final bool isActive = await Auth.getIsOtpActive;
-      if (isOtpActive != isActive) {
-        setState(() {
-          isOtpActive = isActive;
-        });
-      }
-      if (!isActive) {
-        getActivationParams();
-      }
-    });
-    gAuthURI = null;
-    gAuthCode = null;
-  }
-
-  @override
-  void dispose() {
-    pinController.dispose();
-    authListener.cancel();
-    super.dispose();
-  }
-
-  activate2FA(String code) {
-    pinController.clear();
-    ChatSocket.emitWAck(SocketChannelTypes.settings,
-        SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
-      if (resp['activated'] == true && resp['otpToken'] != null) {
-        await Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
-        await Auth.setOtpToken(otpToken: resp['otpToken']);
-        ChatSocket.resetConnectionSubject.add(true);
-        if (mounted) Navigator.pop(context);
-        showSimpleNotification(
-            const Text(
-              "Successfully activated 2FA",
-              style: TextStyle(color: Colors.white),
-            ),
-            background: Colors.blue);
-      } else {
-        setState(() {
-          errorMessage = 'Incorrect code';
-        });
-      }
-    });
-  }
-
-  deactivate2FA(String code) {
-    pinController.clear();
-    ChatSocket.emitWAck(SocketChannelTypes.settings,
-        SettingsEventTypes.deactivate2FA, {'code': code}).then((resp) async {
-      if (resp['deactivated'] == true) {
-        await Auth.setIsOtpActive(isOtpActive: false, skipNotify: true);
-        await Auth.clearOtpToken();
-        ChatSocket.resetConnectionSubject.add(true);
-        if (mounted) {
-          Navigator.pop(context);
-        }
-        showSimpleNotification(
-            const Text(
-              "Successfully deactivated 2FA",
-              style: TextStyle(color: Colors.white),
-            ),
-            background: secondaryColor);
-      } else {
-        setState(() {
-          errorMessage = 'Incorrect code';
-        });
-      }
-    }, onError: (e) {
-      setState(() {
-        errorMessage = e.toString();
-      });
-    });
-  }
-
-  loginWith2Fa(WidgetRef ref, String code) {
-    pinController.clear();
-    authService.login2FA(ref, code).then((resp) {
-      if (resp['error'] != null) {
-        setState(() {
-          errorMessage = resp['error'];
-        });
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isLogin) {
-      activateWidgets = [
-        const Text(
-          'Enter 2FA code from your 2FA app below',
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 30),
-        Pinput(
-          length: 6,
-          controller: pinController,
-          onCompleted: (pin) => loginWith2Fa(ref, pin),
-        ),
-        const SizedBox(height: 10),
-        if (errorMessage != null)
-          Text(
-            errorMessage!,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: errorColor),
-          ),
-        TextButton(
-          onPressed: () => Auth.clearAuth(),
-          child: Text(
-            'Back to Sign In',
-            style: TextStyle(color: Theme.of(context).primaryColor),
-          ),
-        ),
-      ];
-    } else if (isOtpActive) {
-      activateWidgets = [
-        const Text(
-          'To deactivate 2FA, enter the 6-digit code from your 2FA app below',
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 30),
-        Pinput(
-          length: 6,
-          controller: pinController,
-          onCompleted: (pin) => deactivate2FA(pin),
-        ),
-        const SizedBox(height: 10),
-        if (errorMessage != null)
-          Text(
-            errorMessage!,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: errorColor),
-          ),
-      ];
-    }
+    chooseActivatedWidgets();
 
     return Scaffold(
       appBar: AppBar(

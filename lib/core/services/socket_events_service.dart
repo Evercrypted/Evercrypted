@@ -68,10 +68,10 @@ class SocketEventsService {
   handlePaymentEvent(String type, dynamic payload) {
     switch (type) {
       case PaymentEventTypes.statusChanged:
-        profileService.updateProfileSubscription(payload);
+        Auth.setAuth(profile: Profile.fromJson(payload['profile']));
         LocalNotification.instance.displayNotification(
-            'Profile Subscription Status Changed',
-            'You account has been activated or new gift-codes have been added to your account',
+            'Profile Status Changed',
+            'You account has been activated or new tokens have been added to your account',
             json.encode({
               'type': NotificationEventTypes.goToReceivedContactRequestPage,
             }));
@@ -108,6 +108,7 @@ class SocketEventsService {
   }
 
   handleGeneralEvent(String type, dynamic payload) async {
+    print(payload);
     switch (type) {
       case 'getInitialData':
         await Auth.setAuth(

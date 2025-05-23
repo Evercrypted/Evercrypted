@@ -58,7 +58,8 @@ class Auth {
           email: profile.email!,
           uid: profile.uid,
           emailVerified: profile.emailVerified,
-          subscriptionActive: profile.subscription?.active);
+          activated: profile.activatedForLife,
+          activationTokenQuantity: profile.activationTokenQuantity);
     }
     if (newToken != null) {
       await Auth.setToken(
@@ -83,14 +84,16 @@ class Auth {
 
   static AuthUser? get getUser {
     if (Auth.user == null) {
-      final Profile? profile = obx.profiles.getAll().firstOrNull;
+      final Profile? profile = profileService.getProfile();
       if (profile == null) {
         return null;
       }
       Auth.user = AuthUser(
           email: profile.email!,
           uid: profile.uid,
-          emailVerified: profile.emailVerified);
+          emailVerified: profile.emailVerified,
+          activated: profile.activatedForLife,
+          activationTokenQuantity: profile.activationTokenQuantity);
     }
     return Auth.user;
   }
@@ -210,12 +213,14 @@ class AuthUser {
   final String uid;
   final String email;
   final bool emailVerified;
-  final bool? subscriptionActive;
+  final bool? activated;
+  final int? activationTokenQuantity;
 
   AuthUser({
     required this.uid,
     required this.email,
     required this.emailVerified,
-    this.subscriptionActive,
+    this.activated,
+    this.activationTokenQuantity,
   });
 }

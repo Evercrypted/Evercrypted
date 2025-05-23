@@ -24,17 +24,25 @@ class Profile {
   int activationTokenQuantity;
 
   @Transient()
+  AccountSettings? accountSettings;
+
+  String? get dbAccountSettings =>
+      accountSettings == null ? null : jsonEncode(accountSettings?.toJson());
+
+  set dbAccountSettings(String? value) {
+    accountSettings =
+        value == null ? null : AccountSettings.fromJson(jsonDecode(value));
+  }
+
+  @Transient()
   ProfileSubscription? subscription;
 
   String? get dbSubscription =>
       subscription == null ? null : jsonEncode(subscription?.toJson());
 
   set dbSubscription(String? value) {
-    if (value == null) {
-      subscription = null;
-    } else {
-      subscription = ProfileSubscription.fromJson(jsonDecode(value));
-    }
+    subscription =
+        value == null ? null : ProfileSubscription.fromJson(jsonDecode(value));
   }
 
   @Transient()
@@ -96,7 +104,8 @@ class Profile {
       this.emailVerified = false,
       this.activatedForLife = false,
       this.activationTokenQuantity = 0,
-      this.subscription});
+      this.subscription,
+      this.accountSettings});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
         uid: json['uid'] as String,
@@ -109,6 +118,9 @@ class Profile {
             : null,
         activatedForLife: json['activatedForLife'] as bool,
         activationTokenQuantity: json['activationTokenQuantity'] as int,
+        accountSettings: json['accountSettings'] != null
+            ? AccountSettings.fromJson(json['accountSettings'])
+            : null,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -120,6 +132,7 @@ class Profile {
         'subscription': subscription?.toJson(),
         'activatedForLife': activatedForLife,
         'activationTokenQuantity': activationTokenQuantity,
+        'accountSettings': accountSettings?.toJson(),
       };
 
   Profile copyWith({
@@ -183,5 +196,18 @@ class ProfileSubscription {
         'type': type,
         'from': startDate,
         'to': endDate,
+      };
+}
+
+class AccountSettings {
+  final String? appIcon;
+
+  AccountSettings({this.appIcon});
+
+  factory AccountSettings.fromJson(Map<String, dynamic> json) =>
+      AccountSettings(appIcon: json['appIcon'] as String?);
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'appIcon': appIcon,
       };
 }

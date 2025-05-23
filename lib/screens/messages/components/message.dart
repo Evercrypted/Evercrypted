@@ -214,8 +214,11 @@ class _MessageWidgetState extends State<MessageWidget> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              EncryptionStatusIcon(status: encryptionStatus),
-                              const SizedBox(height: 2),
+                              if (encryptionStatus ==
+                                  EncryptionStatus.encrypted) ...[
+                                EncryptionStatusIcon(status: encryptionStatus),
+                                const SizedBox(height: 2),
+                              ],
                               MessageStatusDot(status: message!.messageStatus),
                             ]),
                       ],
@@ -247,13 +250,15 @@ class MessageStatusDot extends StatelessWidget {
       }
     }
 
-    return Icon(
-      status == MessageStatus.couldNotSend
-          ? Icons.pause_circle
-          : Icons.check_circle,
-      size: 22,
-      color: dotColor(status!),
-    );
+    return status != null
+        ? Icon(
+            status == MessageStatus.couldNotSend
+                ? Icons.pause_circle
+                : Icons.check_circle,
+            size: 22,
+            color: dotColor(status!),
+          )
+        : SizedBox();
   }
 }
 
