@@ -1,10 +1,13 @@
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/services/hidden_contact_service.dart';
 import 'package:evercrypted/screens/profile/components/profile_pic.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
+import 'package:evercrypted/widgets/password_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,6 +26,7 @@ class ContactScreen extends ConsumerStatefulWidget {
 class ContactScreenState extends ConsumerState<ContactScreen> {
   ContactService contactService = ContactService();
   ChatService chatService = ChatService();
+  HiddenContactService hiddenContactService = HiddenContactService();
   final TextEditingController _renamingController = TextEditingController();
 
   bool renaming = false;
@@ -78,9 +82,41 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
     });
   }
 
+  Future<bool> _showConfirmationDialog({
+    required String title,
+    required String content,
+    required String confirmText,
+    Color? confirmColor,
+  }) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(title),
+              content: Text(content),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: TextButton.styleFrom(
+                    foregroundColor: confirmColor ?? errorColor,
+                  ),
+                  child: Text(confirmText),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final keyboardNotifier = ref.read(keyboardProvider.notifier);
+    final profile = ref.watch(profileProvider);
 
     return Scaffold(
       appBar: const ConnectionStatusAppbar(
@@ -205,6 +241,56 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                 label: const Text(
                   'Rename Contact',
                   style: TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 5),
+              TextButton.icon(
+                onPressed: () {
+                  if (hiddenContactService.isContactHidden(
+                      widget.contact.contactPersonUid!, profile)) {
+                    // Show confirmation to unhide
+                    _showConfirmationDialog(
+                      title: 'Unhide Contact',
+                      content: 'Are you sure you want to unhide this contact?',
+                      confirmText: 'Unhide',
+                      confirmColor: primaryColor,
+                    ).then((confirmed) {
+                      if (confirmed) {
+                        hiddenContactService
+                            .unhideContact(widget.contact.contactPersonUid!);
+                        setState(() {}); // Refresh the UI
+                      }
+                    });
+                  } else {
+                    // Show password dialog to hide
+                    PasswordDialog.show(
+                      context: context,
+                      ref: ref,
+                      title: 'Hide Contact',
+                      description:
+                          'This contact will be hidden from your contact list. You can access it by entering the password in the search field.',
+                      hintText: 'Enter password to hide contact',
+                      confirmButtonText: 'Hide Contact',
+                      onConfirm: (password) {
+                        hiddenContactService.hideContact(
+                            widget.contact.contactPersonUid!, password);
+                        Navigator.pop(context); // Go back to contacts list
+                      },
+                    );
+                  }
+                },
+                icon: Icon(
+                  hiddenContactService.isContactHidden(
+                          widget.contact.contactPersonUid!, profile)
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                ),
+                label: Text(
+                  hiddenContactService.isContactHidden(
+                          widget.contact.contactPersonUid!, profile)
+                      ? 'Unhide Contact'
+                      : 'Hide Contact',
+                  style: const TextStyle(fontSize: 16),
                 ),
               ),
               const SizedBox(height: 5),

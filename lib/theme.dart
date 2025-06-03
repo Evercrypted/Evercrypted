@@ -72,9 +72,9 @@ final inputDecorationTheme = InputDecorationTheme(
   filled: true,
   fillColor: contentColorDarkTheme.withAlpha((255 * 0.08).round()),
   contentPadding: const EdgeInsets.symmetric(
-      horizontal: defaultPadding * 1.5, vertical: defaultPadding),
+      horizontal: defaultPadding * 1.5, vertical: defaultPadding * 0.9),
   border: UnderlineInputBorder(
     borderSide: BorderSide.none,
-    borderRadius: BorderRadius.circular(50),
+    borderRadius: BorderRadius.circular(40),
   ),
 );

@@ -93,13 +93,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       }
     });
 
-    setBaseKey();
+    setBaseKey().then((value) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        openPasswordDialog(context);
+      });
+    });
 
     AppState.setOpenedChatId(widget.chat.uid);
-
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      openPasswordDialog(context);
-    });
 
     getlastMessageCreatedAtMSE().then((value) {
       startingCreatedAtMSE = value ?? 0;
@@ -127,12 +127,15 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     super.dispose();
   }
 
-  void setBaseKey() async {
+  Future<String?> setBaseKey() async {
+    final completer = Completer<String?>();
     BaseKey.getKeys(chat.uid).then((keys) {
       setState(() {
         baseKey = keys?.baseKey;
       });
+      completer.complete(keys?.baseKey);
     });
+    return completer.future;
   }
 
   setPass(value) {
@@ -315,7 +318,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 5),
+                            const SizedBox(width: defaultPadding),
                             Expanded(
                               child: PrimaryButton(
                                 needsActivation: true,

@@ -184,6 +184,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   bool isOtpActiveAndNoToken = false;
   bool tokenAndUserNotLoaded = false;
+  bool isAuthCheckComplete = false;
 
   late StreamSubscription authListener;
   late StreamSubscription resetConnectionListener;
@@ -242,6 +243,36 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
+    if (!isAuthCheckComplete) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Center(
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 1200),
+            tween: Tween(begin: 0.55, end: 1.0),
+            curve: Curves.easeInOut,
+            builder: (context, scale, child) {
+              return Transform.scale(
+                scale: scale,
+                child: Opacity(
+                  opacity: 0.9 + (0.1 * scale),
+                  child: SvgPicture.asset(
+                    logoTheme,
+                    width: 150,
+                    height: 150,
+                  ),
+                ),
+              );
+            },
+            onEnd: () {
+              // Seamless pulse restart
+              setState(() {});
+            },
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: user == null
           ? tokenAndUserNotLoaded
@@ -280,31 +311,50 @@ class AuthGateState extends ConsumerState<AuthGate> {
   }
 
   void _authFlow() async {
-    final String? token = await Auth.getToken;
-    if (token != null) {
-      if (Auth.getUser == null) {
-        tokenAndUserNotLoaded = true;
-      } else if (user == null) {
+    try {
+      final String? token = await Auth.getToken;
+      if (token != null) {
+        if (Auth.getUser == null) {
+          setState(() {
+            tokenAndUserNotLoaded = true;
+            isAuthCheckComplete = true;
+          });
+        } else if (user == null) {
+          setState(() {
+            tokenAndUserNotLoaded = false;
+            user = Auth.getUser;
+            isAuthCheckComplete = true;
+          });
+          Future.delayed(Duration.zero, () {
+            _syncIsarToRiverpod();
+            _setWatchers();
+          });
+        } else {
+          setState(() {
+            user = Auth.getUser;
+            isAuthCheckComplete = true;
+          });
+        }
+        _connectIO(token);
+
+        // Handle OTP state
+        final bool otpActive = await Auth.getIsOtpActive;
+        final String? otpToken = await Auth.getOtpToken;
         setState(() {
-          tokenAndUserNotLoaded = false;
+          isOtpActiveAndNoToken = otpActive && otpToken == null;
         });
-        Future.delayed(Duration.zero, () {
-          _syncIsarToRiverpod();
-          _setWatchers();
+      } else {
+        setState(() {
+          user = null;
+          isAuthCheckComplete = true;
         });
       }
-      setState(() {
-        user = Auth.getUser;
-      });
-      _connectIO(token);
-      final bool otpActive = await Auth.getIsOtpActive;
-      final String? otpToken = await Auth.getOtpToken;
-      setState(() {
-        isOtpActiveAndNoToken = otpActive && otpToken == null;
-      });
-    } else {
+    } catch (e) {
+      // Handle any errors during auth check
+      debugPrint('Authentication check error: $e');
       setState(() {
         user = null;
+        isAuthCheckComplete = true;
       });
     }
   }

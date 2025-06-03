@@ -1,6 +1,7 @@
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
+import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -29,13 +30,34 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   final TextEditingController _passController = TextEditingController();
   final _passFocus = FocusNode();
   final AuthService _authService = AuthService();
+  final listViewController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    shouldShowKeyboard.addListener(scrollToBottom);
+  }
 
   @override
   void dispose() {
+    shouldShowKeyboard.removeListener(scrollToBottom);
+    listViewController.dispose();
     _emailField.dispose();
     _passController.dispose();
     _passFocus.dispose();
     super.dispose();
+  }
+
+  scrollToBottom() {
+    if (shouldShowKeyboard.value) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        listViewController.animateTo(
+          listViewController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeInOut,
+        );
+      });
+    }
   }
 
   void submitForm(BuildContext context) async {
@@ -91,19 +113,23 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
     final keyboardNotifier = ref.read(keyboardProvider.notifier);
 
     return Scaffold(
-        body: SingleChildScrollView(
+        body: Padding(
       padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-      child: Column(
+      child: ListView(
+        controller: listViewController,
+        padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
         children: [
           SizedBox(height: defaultPadding * 8),
           SvgPicture.asset(logoTheme, width: 150),
           SizedBox(height: defaultPadding * 2),
-          Text(
-            "Sign In",
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall!
-                .copyWith(fontWeight: FontWeight.bold),
+          Center(
+            child: Text(
+              "Sign In",
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall!
+                  .copyWith(fontWeight: FontWeight.bold),
+            ),
           ),
           SizedBox(height: defaultPadding * 2),
           Form(
@@ -163,6 +189,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                     },
                   ),
                 ),
+                const SizedBox(height: defaultPadding * 2),
                 PrimaryButton(
                   text: 'Sign In',
                   press: () => submitForm(context),
@@ -211,7 +238,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                               .textTheme
                               .bodyLarge!
                               .color!
-                              .withOpacity(0.64),
+                              .withAlpha((255 * 0.64).round()),
                         ),
                   ),
                 ),

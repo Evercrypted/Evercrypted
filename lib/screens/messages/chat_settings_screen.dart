@@ -4,11 +4,14 @@ import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/core/services/hidden_chat_service.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/messages/components/participant_card.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
+import 'package:evercrypted/widgets/password_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -24,6 +27,7 @@ class ChatSettingsScreen extends ConsumerStatefulWidget {
 
 class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
   ChatService chatService = ChatService();
+  HiddenChatService hiddenChatService = HiddenChatService();
   late Participant user;
   late Chat chat;
 
@@ -31,6 +35,37 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
   void initState() {
     chat = widget.chat;
     super.initState();
+  }
+
+  Future<bool> _showConfirmationDialog({
+    required String title,
+    required String content,
+    required String confirmText,
+    Color? confirmColor,
+  }) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(title),
+              content: Text(content),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: TextButton.styleFrom(
+                    foregroundColor: confirmColor ?? errorColor,
+                  ),
+                  child: Text(confirmText),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 
   @override
@@ -48,6 +83,8 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
     });
 
     user = chat.participants.firstWhere((p) => p.email == Auth.getUser!.email);
+    final profile = ref.watch(profileProvider);
+
     return Scaffold(
         appBar: AppBar(
           title: const Text('Chat Settings'),
@@ -55,7 +92,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
         body: SingleChildScrollView(
             child: Column(
           children: [
-            const SizedBox(height: 30),
+            const SizedBox(height: defaultPadding * 2),
             Stack(
               alignment: Alignment.bottomRight,
               children: [
@@ -87,43 +124,98 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                 )
               ],
             ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  Text(
-                    chat.name ??
-                        chatParticipantNames(chat: chat, widgetRef: ref)
-                            .join(', '),
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Last Message ${timeago.format(chat.lastMessageTime!)}',
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: lightGrey),
-                  ),
-                ],
+            const SizedBox(height: defaultPadding),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+                child: Column(
+                  children: [
+                    Text(
+                      chat.name ??
+                          chatParticipantNames(chat: chat, widgetRef: ref)
+                              .join(', '),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: defaultPadding / 2),
+                    Text(
+                      'Last Message ${timeago.format(chat.lastMessageTime!)}',
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: lightGrey),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 30),
-            for (final participant in chat.participants
-                .where((p) => p.email != Auth.getUser!.email))
-              ParticipantCard(
-                user: user,
-                participant: participant,
-                participantsLenght: chat.participants.length,
-                remove: () => chatService.removeParticipantFromChat(
-                    chat: chat, participant: participant),
+            const SizedBox(height: defaultPadding),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    hiddenChatService.isChatHidden(chat.uid, profile)
+                        ? primaryColor
+                        : Colors.grey,
               ),
+              onPressed: () {
+                if (hiddenChatService.isChatHidden(chat.uid, profile)) {
+                  // Show confirmation to unhide
+                  _showConfirmationDialog(
+                    title: 'Unhide Chat',
+                    content: 'Are you sure you want to unhide this chat?',
+                    confirmText: 'Unhide',
+                    confirmColor: primaryColor,
+                  ).then((confirmed) {
+                    if (confirmed) {
+                      hiddenChatService.unhideChat(chat.uid);
+                    }
+                  });
+                } else {
+                  // Show password dialog to hide
+                  PasswordDialog.show(
+                    context: context,
+                    ref: ref,
+                    title: 'Hide Chat',
+                    description:
+                        'This chat will be hidden from your chat list. You can access it by entering the password in the search field.',
+                    hintText: 'Enter password to hide chat',
+                    confirmButtonText: 'Hide Chat',
+                    onConfirm: (password) {
+                      hiddenChatService.hideChat(chat.uid, password);
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                    },
+                  );
+                }
+              },
+              icon: Icon(
+                hiddenChatService.isChatHidden(chat.uid, profile)
+                    ? Icons.visibility
+                    : Icons.visibility_off,
+                color: Colors.white,
+              ),
+              label: Text(
+                hiddenChatService.isChatHidden(chat.uid, profile)
+                    ? 'Unhide Chat'
+                    : 'Hide Chat',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+            if (!chat.isOneToOne) ...[
+              const SizedBox(height: defaultPadding),
+              for (final participant in chat.participants
+                  .where((p) => p.email != Auth.getUser!.email))
+                ParticipantCard(
+                  user: user,
+                  participant: participant,
+                  participantsLenght: chat.participants.length,
+                  remove: () => chatService.removeParticipantFromChat(
+                      chat: chat, participant: participant),
+                ),
+            ],
             if ((user.isCreator || user.isAdmin) && !chat.isOneToOne) ...[
-              const SizedBox(height: 30),
+              const SizedBox(height: defaultPadding),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
                 child: TextButton.icon(
                   onPressed: () {
                     Navigator.push(
@@ -150,18 +242,25 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
               )
             ],
             if (user.isCreator || chat.isOneToOne) ...[
-              const SizedBox(height: 30),
+              const SizedBox(height: defaultPadding),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: errorColor,
                   ),
                   onPressed: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                    ModalRoute.of(context)!
-                        .completed
-                        .then((_) => chatService.deleteChat(chatUid: chat.uid));
+                    _showConfirmationDialog(
+                      title: 'Confirm Delete',
+                      content: 'Are you sure you want to delete this chat?',
+                      confirmText: 'Delete',
+                    ).then((confirmed) {
+                      if (confirmed && mounted) {
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                        ModalRoute.of(context)!.completed.then(
+                            (_) => chatService.deleteChat(chatUid: chat.uid));
+                      }
+                    });
                   },
                   icon: const Icon(
                     Icons.delete,
@@ -175,18 +274,25 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
               ),
             ],
             if (!user.isCreator && !chat.isOneToOne) ...[
-              const SizedBox(height: 30),
+              const SizedBox(height: defaultPadding),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: errorColor,
                   ),
                   onPressed: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                    ModalRoute.of(context)!
-                        .completed
-                        .then((_) => chatService.leaveChat(chatUid: chat.uid));
+                    _showConfirmationDialog(
+                      title: 'Confirm Leave',
+                      content: 'Are you sure you want to leave this chat?',
+                      confirmText: 'Leave',
+                    ).then((confirmed) {
+                      if (confirmed && mounted) {
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                        ModalRoute.of(context)!.completed.then(
+                            (_) => chatService.leaveChat(chatUid: chat.uid));
+                      }
+                    });
                   },
                   icon: const Icon(
                     Icons.exit_to_app,

@@ -1,6 +1,7 @@
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
+import 'package:evercrypted/main.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -31,8 +32,27 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
   final TextEditingController _passController = TextEditingController();
   final _passFocus = FocusNode();
   final _confirmFocus = FocusNode();
+  final listViewController = ScrollController();
 
   final AuthService _authService = AuthService();
+
+  scrollToBottom() {
+    if (shouldShowKeyboard.value) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        listViewController.animateTo(
+          listViewController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeInOut,
+        );
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    shouldShowKeyboard.addListener(scrollToBottom);
+  }
 
   void submitForm(BuildContext context) async {
     FocusManager.instance.primaryFocus?.unfocus();
@@ -94,6 +114,8 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   void dispose() {
+    shouldShowKeyboard.removeListener(scrollToBottom);
+    listViewController.dispose();
     _emailController.dispose();
     _confirmController.dispose();
     _passController.dispose();
@@ -106,9 +128,11 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget build(BuildContext context) {
     final keyboardNotifier = ref.read(keyboardProvider.notifier);
     return Scaffold(
-        body: SingleChildScrollView(
+        body: Padding(
       padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-      child: Column(
+      child: ListView(
+        controller: listViewController,
+        padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
         children: [
           SizedBox(height: defaultPadding * 8),
           SvgPicture.asset(
@@ -116,12 +140,14 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
             width: 150,
           ),
           SizedBox(height: defaultPadding * 2),
-          Text(
-            "Sign Up",
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall!
-                .copyWith(fontWeight: FontWeight.bold),
+          Center(
+            child: Text(
+              "Sign Up",
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall!
+                  .copyWith(fontWeight: FontWeight.bold),
+            ),
           ),
           SizedBox(height: defaultPadding * 2),
           Form(
@@ -143,74 +169,71 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                         });
                   },
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: defaultPadding),
-                  child: TextFormField(
-                    validator: validatePassword,
-                    controller: _passController,
-                    focusNode: _passFocus,
-                    keyboardType: TextInputType.none,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      errorMaxLines: 3,
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _passwordVisible = !_passwordVisible;
-                          });
-                        },
-                        icon: Icon(_passwordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off),
-                      ),
+                const SizedBox(height: defaultPadding * 1.5),
+                TextFormField(
+                  validator: validatePassword,
+                  controller: _passController,
+                  focusNode: _passFocus,
+                  keyboardType: TextInputType.none,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    errorMaxLines: 3,
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _passwordVisible = !_passwordVisible;
+                        });
+                      },
+                      icon: Icon(_passwordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off),
                     ),
-                    obscureText: !_passwordVisible,
-                    onTap: () {
-                      keyboardNotifier.openKeyboard(
-                          controller: _passController,
-                          onChange: (val) {
-                            _passController.text = val;
-                          });
-                    },
                   ),
+                  obscureText: !_passwordVisible,
+                  onTap: () {
+                    keyboardNotifier.openKeyboard(
+                        controller: _passController,
+                        onChange: (val) {
+                          _passController.text = val;
+                        });
+                  },
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: defaultPadding),
-                  child: TextFormField(
-                    validator: (val) {
-                      if (val == null || val.isEmpty) {
-                        return 'Field should not be empty.';
-                      } else if (val != _passController.text) {
-                        return 'Passwords do not match.';
-                      }
-                      return null;
-                    },
-                    keyboardType: TextInputType.none,
-                    controller: _confirmController,
-                    focusNode: _confirmFocus,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm Password',
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _confirmPasswordVisible = !_confirmPasswordVisible;
-                          });
-                        },
-                        icon: Icon(_confirmPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off),
-                      ),
+                const SizedBox(height: defaultPadding * 0.75),
+                TextFormField(
+                  validator: (val) {
+                    if (val == null || val.isEmpty) {
+                      return 'Field should not be empty.';
+                    } else if (val != _passController.text) {
+                      return 'Passwords do not match.';
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.none,
+                  controller: _confirmController,
+                  focusNode: _confirmFocus,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _confirmPasswordVisible = !_confirmPasswordVisible;
+                        });
+                      },
+                      icon: Icon(_confirmPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off),
                     ),
-                    obscureText: !_confirmPasswordVisible,
-                    onTap: () {
-                      keyboardNotifier.openKeyboard(
-                          controller: _confirmController,
-                          onChange: (val) {
-                            _confirmController.text = val;
-                          });
-                    },
                   ),
+                  obscureText: !_confirmPasswordVisible,
+                  onTap: () {
+                    keyboardNotifier.openKeyboard(
+                        controller: _confirmController,
+                        onChange: (val) {
+                          _confirmController.text = val;
+                        });
+                  },
                 ),
+                const SizedBox(height: defaultPadding * 2),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: defaultPadding),
                   child: PrimaryButton(

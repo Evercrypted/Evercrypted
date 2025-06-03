@@ -1,4 +1,7 @@
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/socket/socket.dart';
+import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 
 import 'profile_model.dart';
@@ -30,6 +33,22 @@ class ProfileService {
           profile: profile,
         );
       }
+    }
+  }
+
+  Future<void> updateAccountSettingsOnServer(
+      AccountSettings accountSettings) async {
+    try {
+      await ChatSocket.emitWAck(
+        SocketChannelTypes.general,
+        GeneralEventTypes.updateAccountSettings,
+        {
+          'accountSettings': accountSettings.toJson(),
+        },
+      );
+    } catch (e) {
+      // Handle error if needed - could add logging or retry logic
+      print('Failed to update account settings on server: $e');
     }
   }
 }

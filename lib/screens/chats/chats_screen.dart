@@ -2,6 +2,7 @@ import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/helpers/show_snackbar.dart';
+import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:evercrypted/ui_constants.dart';
@@ -31,6 +32,11 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Set navigation state to chats when this screen is active
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(navigationProvider.notifier).navigateToChats();
+    });
   }
 
   @override

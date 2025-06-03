@@ -30,7 +30,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
   String? gAuthURI;
   String? gAuthCode;
-  final pinController = TextEditingController();
   String? errorMessage;
   bool isOtpActive = false;
 
@@ -77,13 +76,11 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
   @override
   void dispose() {
-    pinController.dispose();
     authListener.cancel();
     super.dispose();
   }
 
   activate2FA(String code) {
-    pinController.clear();
     ChatSocket.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
       if (resp['activated'] == true && resp['otpToken'] != null) {
@@ -111,7 +108,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   deactivate2FA(String code) {
-    pinController.clear();
     ChatSocket.emitWAck(SocketChannelTypes.settings,
         SettingsEventTypes.deactivate2FA, {'code': code}).then((resp) async {
       if (resp['deactivated'] == true) {
@@ -140,7 +136,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   loginWith2Fa(WidgetRef ref, String code) {
-    pinController.clear();
     authService.login2FA(ref, code).then((resp) {
       if (resp['error'] != null) {
         setState(() {
@@ -160,7 +155,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
         const SizedBox(height: 30),
         Pinput(
           length: 6,
-          controller: pinController,
           onCompleted: (pin) => loginWith2Fa(ref, pin),
         ),
         const SizedBox(height: 10),
@@ -187,7 +181,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
         const SizedBox(height: 30),
         Pinput(
           length: 6,
-          controller: pinController,
           onCompleted: (pin) => deactivate2FA(pin),
         ),
         const SizedBox(height: 10),
@@ -201,7 +194,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
     } else if (gAuthURI != null && gAuthCode != null) {
       activateWidgets = [
         const Text(
-          'To activate 2FA, scan the QR code below with Google Authenticator or Authy mobile apps',
+          'To activate 2FA, scan the QR code below with Google Authenticator or Bitwarden or any other 2FA app',
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
@@ -219,7 +212,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
         ),
         const SizedBox(height: 15),
         const Text(
-          'Enter this code into your 2FA app',
+          'Enter this code into your 2FA app manually',
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 5),
@@ -241,12 +234,11 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
         ),
         const SizedBox(height: 10),
         const Text(
-            'After you have scanned the QR code or entered the code, enter the 6-digit code from the app below to activate 2FA',
+            'After setting up your 2FA App, enter the 6-digit code from the app below to activate 2FA',
             textAlign: TextAlign.center),
         const SizedBox(height: 30),
         Pinput(
           length: 6,
-          controller: pinController,
           onCompleted: (pin) => activate2FA(pin),
         ),
         const SizedBox(height: 10),

@@ -4,7 +4,10 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_model.
 import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/navigation/navigation_state.dart';
+import 'package:evercrypted/core/services/hidden_contact_service.dart';
 import 'package:evercrypted/screens/contacts/components/add_contact_button.dart';
 import 'package:evercrypted/screens/contacts/components/check_requests_icon.dart';
 import 'package:evercrypted/screens/contacts/contact_screen.dart';
@@ -49,6 +52,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
   String searchValue = '';
   List<Participant>? participants;
   final TextEditingController newGroupName = TextEditingController();
+  final HiddenContactService hiddenContactService = HiddenContactService();
 
   @override
   void initState() {
@@ -59,6 +63,14 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
     }
     super.initState();
     _searchController.addListener(setSearchValue);
+
+    // Set navigation state to contacts when this screen is active
+    // Only do this for the main contacts screen, not participant selection
+    if (!widget.isParticipantSelect) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(navigationProvider.notifier).navigateToContacts();
+      });
+    }
   }
 
   setSearchValue() {
@@ -81,21 +93,32 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
     final List<Contact> contacts = ref.watch(contactsProvider);
     final List<ContactRequest> receivedRequests =
         ref.watch(receivedRequestsProvider);
+    final profile = ref.watch(profileProvider);
 
     final isThereUnread =
         receivedRequests.where((element) => element.unread == true).isNotEmpty;
 
     late final List<Contact> contactsToUse;
     if (searchValue.isNotEmpty) {
+      // Check if search value matches any hidden contact password
+      final hiddenContactUids = hiddenContactService
+          .getContactsMatchingPassword(searchValue, profile);
+
       final contactsAfterSearch = contacts
           .where((e) =>
               (e.name?.toLowerCase().contains(searchValue.toLowerCase()) ??
                   false) ||
-              e.email!.toLowerCase().contains(searchValue.toLowerCase()))
+              e.email!.toLowerCase().contains(searchValue.toLowerCase()) ||
+              hiddenContactUids.contains(e.contactPersonUid))
           .toList();
       contactsToUse = [...contactsAfterSearch];
     } else {
-      contactsToUse = [...contacts];
+      // Filter out hidden contacts when not searching
+      final hiddenContactUids =
+          hiddenContactService.getHiddenContactUids(profile);
+      contactsToUse = contacts
+          .where((e) => !hiddenContactUids.contains(e.contactPersonUid))
+          .toList();
     }
 
     final List<Contact> favorites =

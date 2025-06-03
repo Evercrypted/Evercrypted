@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
@@ -31,6 +32,11 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     dialogPickerColor = errorColor;
+
+    // Set navigation state to profile when this screen is active
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(navigationProvider.notifier).navigateToProfile();
+    });
   }
 
   Future<bool> colorPickerDialog() async {
@@ -103,115 +109,119 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-        child: Column(
-          children: [
-            ProfilePic(
-              image: profile?.avatar?.pic,
-              name: profile?.name ?? profile?.email?.split('@')[0],
-              btnPress: () {
-                // colorPickerDialog().then((value) => debugPrint(dialogPickerColor));
-              },
-            ),
-            Text(
-              profile?.name ?? profile?.email?.split('@')[0] ?? '',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: defaultPadding * 2),
-            PrimaryButton(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+          child: Column(
+            children: [
+              ProfilePic(
+                image: profile?.avatar?.pic,
+                name: profile?.name ?? profile?.email?.split('@')[0],
+                btnPress: () {
+                  // colorPickerDialog().then((value) => debugPrint(dialogPickerColor));
+                },
+              ),
+              Text(
+                profile?.name ?? profile?.email?.split('@')[0] ?? '',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: defaultPadding * 2),
+              PrimaryButton(
+                  padding: const EdgeInsets.all(5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.password,
+                          color: Theme.of(context).colorScheme.onSurface),
+                      const SizedBox(width: 10),
+                      Text("Reset Password",
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface))
+                    ],
+                  ),
+                  press: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(25.0)),
+                      ),
+                      builder: (BuildContext context) => const ResetPassword(),
+                    );
+                  }),
+              const SizedBox(height: defaultPadding / 2),
+              PrimaryButton(
                 padding: const EdgeInsets.all(5),
+                needsActivation: true,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.password,
+                    Icon(Icons.enhanced_encryption,
                         color: Theme.of(context).colorScheme.onSurface),
                     const SizedBox(width: 10),
-                    Text("Reset Password",
+                    Text(Auth.isOtpActive! ? "Deactivate 2FA" : "Activate 2FA",
                         style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface))
                   ],
                 ),
+                press: () => Navigator.pushNamed(context, OtpScreen.routeName),
+              ),
+              const SizedBox(height: defaultPadding / 2),
+              PrimaryButton(
+                padding: const EdgeInsets.all(5),
+                needsActivation: true,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.keyboard,
+                        color: Theme.of(context).colorScheme.onSurface),
+                    const SizedBox(width: 10),
+                    Text("In-App Keyboard",
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface))
+                  ],
+                ),
+                press: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const KeyboardSettingsScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: defaultPadding / 2),
+              PrimaryButton(
+                padding: const EdgeInsets.all(5),
+                text: "Clear OBX",
                 press: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(25.0)),
-                    ),
-                    builder: (BuildContext context) => const ResetPassword(),
-                  );
-                }),
-            const SizedBox(height: defaultPadding / 2),
-            PrimaryButton(
-              padding: const EdgeInsets.all(5),
-              needsActivation: true,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.enhanced_encryption,
-                      color: Theme.of(context).colorScheme.onSurface),
-                  const SizedBox(width: 10),
-                  Text(Auth.isOtpActive! ? "Deactivate 2FA" : "Activate 2FA",
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface))
-                ],
-              ),
-              press: () => Navigator.pushNamed(context, OtpScreen.routeName),
-            ),
-            const SizedBox(height: defaultPadding / 2),
-            PrimaryButton(
-              padding: const EdgeInsets.all(5),
-              needsActivation: true,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.keyboard,
-                      color: Theme.of(context).colorScheme.onSurface),
-                  const SizedBox(width: 10),
-                  Text("In-App Keyboard",
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface))
-                ],
-              ),
-              press: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const KeyboardSettingsScreen(),
-                ),
-              ),
-            ),
-            const SizedBox(height: defaultPadding / 2),
-            PrimaryButton(
-              padding: const EdgeInsets.all(5),
-              text: "Clear OBX",
-              press: () {
-                // Clear all ObjectBox boxes
-                obx.messages.removeAll();
-                obx.chats.removeAll();
-                obx.contacts.removeAll();
-                obx.profiles.removeAll();
+                  // Clear all ObjectBox boxes
+                  obx.messages.removeAll();
+                  obx.chats.removeAll();
+                  obx.contacts.removeAll();
+                  obx.profiles.removeAll();
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('All ObjectBox data cleared')),
-                );
-              },
-            ),
-            const SizedBox(height: defaultPadding / 2),
-            PrimaryButton(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.exit_to_app,
-                        color: Theme.of(context).colorScheme.onSurface),
-                    const SizedBox(width: 10),
-                    Text("Sign Out",
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface))
-                  ],
-                ),
-                press: () => _signOut()),
-          ],
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('All ObjectBox data cleared')),
+                  );
+                },
+              ),
+              const SizedBox(height: defaultPadding / 2),
+              PrimaryButton(
+                  color: errorColor,
+                  padding: const EdgeInsets.all(5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.exit_to_app,
+                          color: Theme.of(context).colorScheme.onSurface),
+                      const SizedBox(width: 10),
+                      Text("Sign Out",
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface))
+                    ],
+                  ),
+                  press: () => _signOut()),
+            ],
+          ),
         ),
       ),
     );

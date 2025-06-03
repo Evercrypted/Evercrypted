@@ -98,12 +98,18 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
     final keyboardNotifier = ref.watch(keyboardProvider.notifier);
 
     return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
         left: defaultPadding,
         right: defaultPadding,
-        top: defaultPadding,
+        top: defaultPadding * 2,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -119,7 +125,7 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: defaultPadding),
+          const SizedBox(height: defaultPadding * 2),
           const Text(
             'Reset Password link will be sent to your email address',
             style: TextStyle(
@@ -142,7 +148,7 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
               keyboardNotifier.openKeyboard(controller: emailController);
             },
           ),
-          const SizedBox(height: defaultPadding),
+          const SizedBox(height: defaultPadding * 2),
           PrimaryButton(
             text: 'Submit',
             press: _handleResetPassword,

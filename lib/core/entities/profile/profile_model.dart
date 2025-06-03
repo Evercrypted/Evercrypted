@@ -141,9 +141,10 @@ class Profile {
     String? email,
     bool? emailVerified,
     Avatar? avatar,
-    String? avatarIcon,
-    String? avatarPic,
     ProfileSubscription? subscription,
+    AccountSettings? accountSettings,
+    bool? activatedForLife,
+    int? activationTokenQuantity,
   }) {
     return Profile(
       uid: uid ?? this.uid,
@@ -152,6 +153,10 @@ class Profile {
       emailVerified: emailVerified ?? this.emailVerified,
       avatar: avatar ?? this.avatar,
       subscription: subscription ?? this.subscription,
+      accountSettings: accountSettings ?? this.accountSettings,
+      activatedForLife: activatedForLife ?? this.activatedForLife,
+      activationTokenQuantity:
+          activationTokenQuantity ?? this.activationTokenQuantity,
     );
   }
 }
@@ -201,13 +206,20 @@ class ProfileSubscription {
 
 class AccountSettings {
   final String? appIcon;
+  final Map<String, dynamic>? hiddenChats;
+  final Map<String, dynamic>? hiddenContacts;
 
-  AccountSettings({this.appIcon});
+  AccountSettings({this.appIcon, this.hiddenChats, this.hiddenContacts});
 
   factory AccountSettings.fromJson(Map<String, dynamic> json) =>
-      AccountSettings(appIcon: json['appIcon'] as String?);
+      AccountSettings(
+          appIcon: json['appIcon'] as String?,
+          hiddenChats: json['hiddenChats'] as Map<String, dynamic>?,
+          hiddenContacts: json['hiddenContacts'] as Map<String, dynamic>?);
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'appIcon': appIcon,
+        'hiddenChats': hiddenChats,
+        'hiddenContacts': hiddenContacts,
       };
 }

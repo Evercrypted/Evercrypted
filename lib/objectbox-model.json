@@ -366,7 +366,7 @@
     },
     {
       "id": "6:1841315404041682912",
-      "lastPropertyId": "11:2734670102412569722",
+      "lastPropertyId": "14:7624455643477313473",
       "name": "Profile",
       "properties": [
         {
@@ -403,6 +403,21 @@
         {
           "id": "11:2734670102412569722",
           "name": "dbAvatar",
+          "type": 9
+        },
+        {
+          "id": "12:3980157371704576229",
+          "name": "activatedForLife",
+          "type": 1
+        },
+        {
+          "id": "13:1013626265731542308",
+          "name": "activationTokenQuantity",
+          "type": 6
+        },
+        {
+          "id": "14:7624455643477313473",
+          "name": "dbAccountSettings",
           "type": 9
         }
       ],

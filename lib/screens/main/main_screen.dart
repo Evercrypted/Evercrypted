@@ -1,6 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
@@ -36,6 +37,19 @@ class MainScreenState extends ConsumerState<MainScreen> {
     setState(() {
       pageIndex = i;
     });
+
+    // Update navigation provider when tab is manually changed
+    switch (i) {
+      case 0:
+        ref.read(navigationProvider.notifier).navigateToChats();
+        break;
+      case 1:
+        ref.read(navigationProvider.notifier).navigateToContacts();
+        break;
+      case 2:
+        ref.read(navigationProvider.notifier).navigateToProfile();
+        break;
+    }
   }
 
   @override
@@ -54,6 +68,21 @@ class MainScreenState extends ConsumerState<MainScreen> {
       default:
         pageIndex = 0;
     }
+
+    // Set initial navigation state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      switch (pageIndex) {
+        case 0:
+          ref.read(navigationProvider.notifier).navigateToChats();
+          break;
+        case 1:
+          ref.read(navigationProvider.notifier).navigateToContacts();
+          break;
+        case 2:
+          ref.read(navigationProvider.notifier).navigateToProfile();
+          break;
+      }
+    });
   }
 
   void checkOnPermissions() async {
@@ -64,6 +93,16 @@ class MainScreenState extends ConsumerState<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to navigation provider and sync pageIndex
+    ref.listen<NavigationState>(navigationProvider, (previous, next) {
+      final newIndex = ref.read(navigationProvider.notifier).currentIndex;
+      if (newIndex != pageIndex) {
+        setState(() {
+          pageIndex = newIndex;
+        });
+      }
+    });
+
     return Scaffold(
         appBar: const ConnectionStatusAppbar(
           title: null,
@@ -89,8 +128,11 @@ class MainScreenState extends ConsumerState<MainScreen> {
               return value
                   ? SizedBox.shrink()
                   : ConvexAppBar(
+                      key: ValueKey(
+                          pageIndex), // Force rebuild when index changes
                       style: TabStyle.react,
                       backgroundColor: primaryColor,
+                      initialActiveIndex: pageIndex,
                       items: [
                         TabItem(icon: Icons.messenger, title: 'Chats'),
                         TabItem(icon: Icons.people, title: 'Contacts'),
