@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -60,10 +62,25 @@ class Message {
   String? waveDataMAC;
 
   String? filepath;
+  String? fileKey;
   bool? withBaseKey;
 
   @Index()
   final chat = ToOne<Chat>();
+
+  @Transient()
+  AdditionalData? additionalData;
+
+  String? get dbAdditionalData =>
+      additionalData == null ? null : jsonEncode(additionalData?.toJson());
+
+  set dbAdditionalData(String? value) {
+    if (value == null) {
+      additionalData = null;
+    } else {
+      additionalData = AdditionalData.fromJson(jsonDecode(value));
+    }
+  }
 
   Message(
       {this.uid,
@@ -90,7 +107,9 @@ class Message {
       this.waveDataMAC,
       this.filepath,
       this.error,
-      this.withBaseKey});
+      this.withBaseKey,
+      this.fileKey,
+      this.additionalData});
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
         uid: json['uid'] as String,
@@ -109,12 +128,16 @@ class Message {
             json['playbackDurationMicroSeconds'] as String?,
         durationIV: json['durationIV'] as String?,
         durationMAC: json['durationMAC'] as String?,
-        waveData: (json['waveData'] as List<dynamic>)
-            .map((e) => e as double)
+        waveData: (json['waveData'] as List<dynamic>?)
+            ?.map((e) => e as double)
             .toList(),
         waveDataIV: json['waveDataIV'] as String?,
         waveDataMAC: json['waveDataMAC'] as String?,
         withBaseKey: json['withBaseKey'] as bool? ?? false,
+        fileKey: json['fileKey'] as String?,
+        additionalData: json['additionalData'] != null
+            ? AdditionalData.fromJson(json['additionalData'])
+            : null,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -136,5 +159,21 @@ class Message {
         'waveDataIV': waveDataIV,
         'waveDataMAC': waveDataMAC,
         'withBaseKey': withBaseKey,
+        'fileKey': fileKey,
+        'additionalData': additionalData?.toJson(),
+      };
+}
+
+class AdditionalData {
+  String? description;
+
+  AdditionalData({this.description});
+
+  factory AdditionalData.fromJson(Map<String, dynamic> json) => AdditionalData(
+        description: json['description'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'description': description,
       };
 }

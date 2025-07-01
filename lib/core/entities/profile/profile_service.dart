@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -39,10 +40,10 @@ class ProfileService {
   Future<void> updateAccountSettingsOnServer(
       AccountSettings accountSettings) async {
     try {
-      await ChatSocket.emitWAck(
-        SocketChannelTypes.general,
-        GeneralEventTypes.updateAccountSettings,
-        {
+      await AppHttpClient.message(
+        channel: SocketChannelTypes.general,
+        type: GeneralEventTypes.updateAccountSettings,
+        payload: {
           'accountSettings': accountSettings.toJson(),
         },
       );

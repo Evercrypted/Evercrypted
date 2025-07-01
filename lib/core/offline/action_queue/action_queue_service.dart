@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -31,10 +32,10 @@ class ActionQueueService {
             }
           }
         } else {
-          result = await ChatSocket.emitWAck(
-            action.channel,
-            action.type,
-            json.decode(action.payload),
+          result = await AppHttpClient.message(
+            channel: action.channel,
+            type: action.type,
+            payload: json.decode(action.payload),
             isFromQueue: true,
           );
         }

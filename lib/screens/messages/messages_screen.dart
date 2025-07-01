@@ -509,6 +509,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       durationIV: item.durationIV,
       durationMAC: item.durationMAC,
       withBaseKey: item.withBaseKey ?? false,
+      fileKey: item.fileKey,
+      filePath: item.filepath,
       decodedDuration: (item.durationIV == null || item.durationMAC == null) &&
               item.playbackDurationMicroSeconds != null
           ? int.parse(item.playbackDurationMicroSeconds!)

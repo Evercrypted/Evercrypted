@@ -91,7 +91,8 @@ class _FileMessageState extends State<FileMessage>
       return;
     }
     messageService
-        .downloadFile(widget.message.chatUid, widget.message.uid!)
+        .downloadFile(widget.message.chatUid, widget.message.uid!,
+            widget.message.fileKey!)
         .then((resp) {
       file = resp;
       setState(() {

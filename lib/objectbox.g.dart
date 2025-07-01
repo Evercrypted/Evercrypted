@@ -226,7 +226,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(5, 381058101701020443),
       name: 'Message',
-      lastPropertyId: const obx_int.IdUid(27, 7083915981674476184),
+      lastPropertyId: const obx_int.IdUid(29, 1208494306677667935),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -370,6 +370,16 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(27, 7083915981674476184),
             name: 'withBaseKey',
             type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(28, 3552863372735818277),
+            name: 'fileKey',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(29, 1208494306677667935),
+            name: 'dbAdditionalData',
+            type: 9,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -808,7 +818,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final filepathOffset = object.filepath == null
               ? null
               : fbb.writeString(object.filepath!);
-          fbb.startTable(28);
+          final fileKeyOffset =
+              object.fileKey == null ? null : fbb.writeString(object.fileKey!);
+          final dbAdditionalDataOffset = object.dbAdditionalData == null
+              ? null
+              : fbb.writeString(object.dbAdditionalData!);
+          fbb.startTable(30);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, uidOffset);
           fbb.addOffset(2, authorIdOffset);
@@ -836,6 +851,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(24, filepathOffset);
           fbb.addInt64(25, object.chat.targetId);
           fbb.addBool(26, object.withBaseKey);
+          fbb.addOffset(27, fileKeyOffset);
+          fbb.addOffset(28, dbAdditionalDataOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -899,6 +916,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .vTableGetNullable(buffer, rootOffset, 20);
           final withBaseKeyParam =
               const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 56);
+          final fileKeyParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGetNullable(buffer, rootOffset, 58);
           final object = Message(
               uid: uidParam,
               authorId: authorIdParam,
@@ -924,8 +943,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
               waveDataMAC: waveDataMACParam,
               filepath: filepathParam,
               error: errorParam,
-              withBaseKey: withBaseKeyParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+              withBaseKey: withBaseKeyParam,
+              fileKey: fileKeyParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+            ..dbAdditionalData = const fb.StringReader(asciiOptimization: true)
+                .vTableGetNullable(buffer, rootOffset, 60);
           object.chat.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 54, 0);
           object.chat.attach(store);
@@ -1274,6 +1296,14 @@ class Message_ {
   /// See [Message.withBaseKey].
   static final withBaseKey =
       obx.QueryBooleanProperty<Message>(_entities[4].properties[26]);
+
+  /// See [Message.fileKey].
+  static final fileKey =
+      obx.QueryStringProperty<Message>(_entities[4].properties[27]);
+
+  /// See [Message.dbAdditionalData].
+  static final dbAdditionalData =
+      obx.QueryStringProperty<Message>(_entities[4].properties[28]);
 }
 
 /// [Profile] entity fields to define ObjectBox queries.

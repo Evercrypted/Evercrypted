@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/objectbox.dart';
 import 'package:evercrypted/core/helpers/navigator_observer.dart';
@@ -76,7 +77,7 @@ void main() async {
   obx = await ObjectBox.create();
 
   await Rhttp.init();
-  await HttpClient.initialize();
+  await AppHttpClient.initialize();
   // await SentryFlutter.init(
   //   (options) {
   //     options.dsn =
@@ -204,11 +205,15 @@ class AuthGateState extends ConsumerState<AuthGate> {
     requestFcmPermissions();
 
     fcmTokenListener =
-        FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
-      ChatSocket.emitWAck(
-          SocketChannelTypes.general, GeneralEventTypes.updateFcmToken, {
-        'fcmToken': fcmToken,
-      }).then((resp) {});
+        FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
+      if (ChatSocket.key != null && ChatSocket.isConnected == true) {
+        AppHttpClient.message(
+            channel: SocketChannelTypes.general,
+            type: GeneralEventTypes.updateFcmToken,
+            payload: {
+              'fcmToken': fcmToken,
+            });
+      }
     });
 
     authListener = Auth.authSubject.stream.listen((shouldFire) async {

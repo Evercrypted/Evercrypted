@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -29,21 +30,14 @@ class ContactService {
   }
 
   void deleteContact(String contactUid) async {
-    delete() {
+    return AppHttpClient.message(
+      channel: SocketChannelTypes.contact,
+      type: ContactEventTypes.deleteContact,
+      payload: {'contactUid': contactUid},
+    ).then((value) {
       final contact = findContactByUid(contactUid);
       if (contact != null) {
         obx.contacts.remove(contact.id);
-      }
-    }
-
-    return ChatSocket.emitWAck(
-        SocketChannelTypes.contact,
-        ContactEventTypes.deleteContact,
-        {'contactUid': contactUid}).then((value) {
-      delete();
-    }).onError((error, stackTrace) {
-      if (error == 'No such contact found') {
-        delete();
       }
     });
   }
@@ -84,10 +78,11 @@ class ContactService {
   }
 
   toggleFavorite(String contactUid) async {
-    ChatSocket.emitWAck(
-        SocketChannelTypes.contact,
-        ContactEventTypes.toggleFavorite,
-        {'contactUid': contactUid}).then((resp) async {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.contact,
+      type: ContactEventTypes.toggleFavorite,
+      payload: {'contactUid': contactUid},
+    ).then((resp) async {
       final contact = findContactByUid(contactUid);
       if (contact != null) {
         contact.isFavorite = !contact.isFavorite;

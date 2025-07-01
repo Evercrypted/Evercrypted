@@ -14,6 +14,7 @@ class ChatMessage {
   final String? mac;
   final String? error;
   final String? filePath;
+  final String? fileKey;
   final String? duration;
   final String? durationIV;
   final String? durationMAC;
@@ -48,6 +49,7 @@ class ChatMessage {
     required this.isSender,
     required this.isSystemMessage,
     this.encryptionStatus = EncryptionStatus.notEncrypted,
+    this.fileKey,
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{

@@ -5,6 +5,7 @@ import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:cryptography_plus/helpers.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
+import 'package:evercrypted/core/http.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
@@ -16,6 +17,7 @@ import 'package:evercrypted/main.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jwk_plus/jwk_plus.dart';
+import 'package:rhttp/rhttp.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
@@ -58,6 +60,42 @@ class ChatSocket {
     SocketChannelTypes.auth,
   ];
 
+  static getAuthAndIdentifier() async {
+    final identifier =
+        DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
+
+    late Map<String, dynamic> keys;
+    try {
+      keys = await authService.loginHandshake(identifier);
+    } catch (e) {
+      debugPrint(e.toString());
+      isConnected = false;
+      isConnectedSubject.add(isConnected!);
+      return null;
+    }
+
+    final token = await Auth.getToken;
+
+    final otpToken = await Auth.getOtpToken;
+
+    final cryptedToken = await encodePayload(token, keys['key']);
+
+    var headers = {
+      'authorization': jsonEncode(cryptedToken),
+      'identifier': identifier,
+    };
+
+    if (otpToken != null) {
+      final cryptedOtpToken = await encodePayload(otpToken, keys['key']);
+      headers['otpToken'] = jsonEncode(cryptedOtpToken);
+    }
+
+    return {
+      'headers': headers,
+      'key': keys['key'],
+    };
+  }
+
   static getGeneralInfoAndExchangeKey() async {
     // for apple push notification
     // final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
@@ -68,18 +106,34 @@ class ChatSocket {
     // We need the private key pair of Alice.
     keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair!.extractPublicKey();
-    socket?.emitWithAck(SocketChannelTypes.general, {
+
+    final authAndIdentifier = await getAuthAndIdentifier();
+
+    if (authAndIdentifier == null) return;
+
+    final body = await encodePayload({
+      'channel': SocketChannelTypes.general,
       'type': GeneralEventTypes.getInitialData,
-      'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
-      'fcmToken': fcmToken,
-    }, ack: (dynamic resp) async {
-      key = await combineKeys(algo, keyPair, resp['publicKey']);
+      'payload': {
+        'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+        'fcmToken': fcmToken,
+      }
+    }, authAndIdentifier['key']);
+
+    AppHttpClient.client
+        .post('/socket/handle-message',
+            body: HttpBody.json({
+              ...body,
+              'headers': authAndIdentifier['headers'],
+            }))
+        .then((dynamic resp) async {
+      key = await combineKeys(algo, keyPair, resp.bodyToJson['publicKey']);
       keyCompleter.complete(true);
       if (key != null) {
         final payload = await decodePayload(
-          resp['crypted'],
-          resp['iv'],
-          resp['mac'],
+          resp.bodyToJson['crypted'],
+          resp.bodyToJson['iv'],
+          resp.bodyToJson['mac'],
           key,
         );
         socketEventsService.handleGeneralEvent('getInitialData', payload);
@@ -97,36 +151,11 @@ class ChatSocket {
 
     dynamic options = OptionBuilder().setTransports(['websocket']);
 
-    final identifier =
-        DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
+    final authAndIdentifier = await getAuthAndIdentifier();
 
-    late Map<String, dynamic> keys;
-    try {
-      keys = await authService.loginHandshake(identifier);
-    } catch (e) {
-      debugPrint(e.toString());
-      isConnected = false;
-      isConnectedSubject.add(isConnected!);
-      return;
-    }
+    if (authAndIdentifier == null) return;
 
-    final token = await Auth.getToken;
-
-    final otpToken = await Auth.getOtpToken;
-
-    final cryptedToken = await encodePayload(token, keys['key']);
-
-    var headers = {
-      'authorization': 'Bearer ${jsonEncode(cryptedToken)}',
-      'identifier': identifier,
-    };
-
-    if (otpToken != null) {
-      final cryptedOtpToken = await encodePayload(otpToken, keys['key']);
-      headers['otpToken'] = jsonEncode(cryptedOtpToken);
-    }
-
-    options = options.setExtraHeaders(headers);
+    options = options.setExtraHeaders(authAndIdentifier['headers']);
 
     io.cache.clear();
     socket = io.io('http://10.0.2.2:4000', options.build());
@@ -134,8 +163,13 @@ class ChatSocket {
     // socket = io.io('https://test-api.evercrypted.com:8443', options.build());
 
     if (socket?.connected != true) {
+      debugPrint('connecting');
       socket?.connect();
     }
+
+    socket?.onConnectError((error) {
+      debugPrint('connect error: $error');
+    });
 
     socket?.onConnect((_) async {
       debugPrint('connected');
@@ -148,6 +182,7 @@ class ChatSocket {
     });
 
     socket?.onReconnect((data) async {
+      debugPrint('reconnected');
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
       actionQueueService.processQueue();
@@ -166,11 +201,9 @@ class ChatSocket {
     socket?.onError((data) {
       if (data == 'timeout') {
         isConnected = false;
-        isConnected = false;
         isConnectedSubject.add(isConnected!);
       } else {
         debugPrint(data is String ? data : data.toString());
-        isConnected = false;
         isConnected = false;
         isConnectedSubject.add(isConnected!);
       }
@@ -180,6 +213,7 @@ class ChatSocket {
       debugPrint('event $event');
       debugPrint('data $data');
       if (event == 'error') {
+        debugPrint('error event');
         socketEventsService.handleErrorEvent(data['type'], data['payload']);
       }
     });
@@ -203,22 +237,31 @@ class ChatSocket {
     for (var channel in channelsToListen) {
       socket?.on(channel, (dynamic data) async {
         debugPrint('raw data: $data');
-        dynamic payload;
-        if (key != null) {
-          payload = await decodePayload(
-            data['crypted'],
-            data['iv'],
-            data['mac'],
-            key,
-          );
+        if (channel == SocketChannelTypes.error &&
+            data['message'] == 'Invalid Credentials') {
+          debugPrint('Could not connect to socket server');
+          disconnectWS();
+          isConnected = false;
+          isConnectedSubject.add(isConnected!);
         } else {
-          payload = data;
+          dynamic payload;
+          if (key != null) {
+            payload = await decodePayload(
+              data['crypted'],
+              data['iv'],
+              data['mac'],
+              key,
+            );
+          } else {
+            payload = data;
+          }
+
+          debugPrint(
+            'got emit to $channel - ${payload.toString()}',
+          );
+          socketEventsService.handleEvent(
+              channel, payload['type'], payload['payload']);
         }
-        debugPrint(
-          'got emit to $channel - ${payload.toString()}',
-        );
-        socketEventsService.handleEvent(
-            channel, payload['type'], payload['payload']);
       });
     }
   }

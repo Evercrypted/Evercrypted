@@ -83,9 +83,11 @@ class MessageService {
       );
     }
     Completer<Message> complete = Completer();
-    ChatSocket.emitWAck(SocketChannelTypes.message,
-            MessageEventTypes.sendMessage, messageToSend.toJson())
-        .then((resp) {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.message,
+      type: MessageEventTypes.sendMessage,
+      payload: messageToSend.toJson(),
+    ).then((resp) {
       if (resp['status'] == 'queued') {
         messageToSend.successfullySent = false;
         messageToSend.queueId = resp['queuedItemId'];
@@ -187,36 +189,20 @@ class MessageService {
       bool isFromQueue = false,
       int? queueId}) async {
     Completer<Message> complete = Completer();
-    dynamic crypted;
     if (isFromQueue) {
       final decoded = json.decode(payload);
       final msg = Message.fromJson(decoded['message']);
-      crypted = encodePayload(decoded, ChatSocket.key);
-      HttpClient.client
-          .post('/files/${MessageEventTypes.sendFile}',
-              body: HttpBody.json(crypted))
+      AppHttpClient.message(
+              channel: SocketChannelTypes.message,
+              type: MessageEventTypes.sendFile,
+              payload: decoded)
           .then((resp) async {
-        final payload = await decodePayload(
-          resp.bodyToJson['crypted'],
-          resp.bodyToJson['iv'],
-          resp.bodyToJson['mac'],
-          ChatSocket.key,
-        );
-        if (payload['status'] == 'ok') {
-          msg.uid = payload['payload']['messageUid'];
-          msg.uniqueId = msg.chatUid + payload['payload']['messageUid'];
-          msg.successfullySent = true;
-          msg.queueId = null;
-          msg.filepath = await saveFile(
-              file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
-        } else {
-          msg.successfullySent = false;
-          msg.error = 'Could not send file';
-          msg.filepath = await saveFile(
-              file: decoded['file'],
-              chatUid: msg.chatUid,
-              msgUid: DateTime.now().microsecondsSinceEpoch.toString());
-        }
+        msg.uid = resp['messageUid'];
+        msg.uniqueId = msg.chatUid + resp['messageUid'];
+        msg.successfullySent = true;
+        msg.queueId = null;
+        msg.filepath = await saveFile(
+            file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
         deleteFile(queueId: queueId!);
         writeNewMessageToObx(msg).then((value) {
           complete.complete(message);
@@ -234,41 +220,22 @@ class MessageService {
         });
       });
     } else {
-      final payload = {
-        'message': message!.toJson(),
-      };
       final saveToQueueIfNeeded = await checkIfSocketConnectedAndQueueIfNeeded(
           json.encode(payload), file);
       if (saveToQueueIfNeeded == false) {
-        crypted = await encodePayload({
-          ...payload,
-          'file': file,
-        }, ChatSocket.key);
-        HttpClient.client
-            .post('/files/${MessageEventTypes.sendFile}',
-                body: HttpBody.json(crypted))
-            .then((resp) async {
-          final payload = await decodePayload(
-            resp.bodyToJson['crypted'],
-            resp.bodyToJson['iv'],
-            resp.bodyToJson['mac'],
-            ChatSocket.key,
-          );
-          if (payload['status'] == 'ok') {
-            message.uid = payload['payload']['messageUid'];
-            message.uniqueId =
-                message.chatUid + payload['payload']['messageUid'];
-            message.successfullySent = true;
-            message.filepath = await saveFile(
-                file: file, chatUid: message.chatUid, msgUid: message.uid);
-          } else {
-            message.successfullySent = false;
-            message.error = 'Could not send file';
-            message.filepath = await saveFile(
-                file: file,
-                chatUid: message.chatUid,
-                msgUid: DateTime.now().microsecondsSinceEpoch.toString());
-          }
+        AppHttpClient.message(
+          channel: SocketChannelTypes.message,
+          type: MessageEventTypes.sendFile,
+          payload: {
+            'message': message!.toJson(),
+            'file': file,
+          },
+        ).then((resp) async {
+          message.uid = resp['messageUid'];
+          message.uniqueId = message.chatUid + resp['messageUid'];
+          message.successfullySent = true;
+          message.filepath = await saveFile(
+              file: file, chatUid: message.chatUid, msgUid: message.uid);
           writeNewMessageToObx(message).then((value) {
             complete.complete(message);
           });
@@ -283,7 +250,7 @@ class MessageService {
             complete.complete(message);
           });
         });
-      } else if (saveToQueueIfNeeded['status'] == 'queued') {
+      } else if (saveToQueueIfNeeded['status'] == 'queued' && message != null) {
         message.successfullySent = false;
         message.queueId = saveToQueueIfNeeded['queuedItemId'];
         message.uid = DateTime.now().millisecondsSinceEpoch.toString() +
@@ -299,31 +266,23 @@ class MessageService {
     return complete.future;
   }
 
-  Future<String> downloadFile(String chatUid, String messageUid) async {
+  Future<String> downloadFile(
+      String chatUid, String messageUid, String fileKey) async {
     final Completer<String> completer = Completer();
-    final payload = await encodePayload({
-      'chatUid': chatUid,
-      'messageUid': messageUid,
-    }, ChatSocket.key);
-    HttpClient.client
-        .post('/files/${MessageEventTypes.downloadFile}',
-            body: HttpBody.json(payload))
-        .then((resp) async {
-      final respPayload = await decodePayload(
-        resp.bodyToJson['crypted'],
-        resp.bodyToJson['iv'],
-        resp.bodyToJson['mac'],
-        ChatSocket.key,
-      );
-      if (respPayload['status'] != 'success') {
-        completer.completeError('Could not download file');
-      } else {
-        final Message message = getMessage(chatUid, messageUid);
-        message.filepath = await saveFile(
-            file: respPayload['file'], chatUid: chatUid, msgUid: messageUid);
-        obx.messages.put(message);
-        completer.complete(respPayload['file']);
-      }
+    AppHttpClient.message(
+      channel: SocketChannelTypes.message,
+      type: MessageEventTypes.downloadFile,
+      payload: {
+        'chatUid': chatUid,
+        'messageUid': messageUid,
+        'fileKey': fileKey,
+      },
+    ).then((resp) async {
+      final Message message = getMessage(chatUid, messageUid);
+      message.filepath = await saveFile(
+          file: resp['file'], chatUid: chatUid, msgUid: messageUid);
+      obx.messages.put(message);
+      completer.complete(resp['file']);
     }).onError((error, stackTrace) {
       completer.completeError('Could not download file');
     });

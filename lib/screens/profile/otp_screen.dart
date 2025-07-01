@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
@@ -46,8 +47,11 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
 
   getActivationParams() {
     if (gAuthURI == null || gAuthCode == null) {
-      ChatSocket.emitWAck(SocketChannelTypes.settings,
-          SettingsEventTypes.getActivate2FA, {}).then((resp) {
+      AppHttpClient.message(
+        channel: SocketChannelTypes.settings,
+        type: SettingsEventTypes.getActivate2FA,
+        payload: {},
+      ).then((resp) {
         setState(() {
           gAuthURI = resp['URI'];
           gAuthCode = resp['code'];
@@ -81,8 +85,11 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   activate2FA(String code) {
-    ChatSocket.emitWAck(SocketChannelTypes.settings,
-        SettingsEventTypes.activate2FA, {'code': code}).then((resp) async {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.settings,
+      type: SettingsEventTypes.activate2FA,
+      payload: {'code': code},
+    ).then((resp) async {
       if (resp['activated'] == true && resp['otpToken'] != null) {
         await Auth.setIsOtpActive(isOtpActive: true, skipNotify: true);
         await Auth.setOtpToken(otpToken: resp['otpToken']);
@@ -108,8 +115,11 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   deactivate2FA(String code) {
-    ChatSocket.emitWAck(SocketChannelTypes.settings,
-        SettingsEventTypes.deactivate2FA, {'code': code}).then((resp) async {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.settings,
+      type: SettingsEventTypes.deactivate2FA,
+      payload: {'code': code},
+    ).then((resp) async {
       if (resp['deactivated'] == true) {
         await Auth.setIsOtpActive(isOtpActive: false, skipNotify: true);
         await Auth.clearOtpToken();

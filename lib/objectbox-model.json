@@ -209,7 +209,7 @@
     },
     {
       "id": "5:381058101701020443",
-      "lastPropertyId": "27:7083915981674476184",
+      "lastPropertyId": "29:1208494306677667935",
       "name": "Message",
       "properties": [
         {
@@ -360,6 +360,16 @@
           "id": "27:7083915981674476184",
           "name": "withBaseKey",
           "type": 1
+        },
+        {
+          "id": "28:3552863372735818277",
+          "name": "fileKey",
+          "type": 9
+        },
+        {
+          "id": "29:1208494306677667935",
+          "name": "dbAdditionalData",
+          "type": 9
         }
       ],
       "relations": []

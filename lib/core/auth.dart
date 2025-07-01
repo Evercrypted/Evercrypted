@@ -67,10 +67,7 @@ class Auth {
         skipNotify: true,
       );
       if (ChatSocket.key != null) {
-        final cryptedToken = await encodePayload(newToken, ChatSocket.key);
-        if (cryptedToken != null) {
-          HttpClient.addAuth(jsonEncode(cryptedToken), getUser!.uid);
-        }
+        AppHttpClient.addAuth();
       }
     }
     if (newIsOtpActive != null) {

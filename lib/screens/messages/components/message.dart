@@ -268,7 +268,7 @@ class EncryptionStatusIcon extends StatelessWidget {
   const EncryptionStatusIcon({super.key, this.status});
   @override
   Widget build(BuildContext context) {
-    Color dotColor(EncryptionStatus status) {
+    Color dotColor(EncryptionStatus? status) {
       switch (status) {
         case EncryptionStatus.failed:
           return errorColor;
@@ -292,7 +292,7 @@ class EncryptionStatusIcon extends StatelessWidget {
               ? Icons.gpp_bad
               : Icons.gpp_good,
       size: 24,
-      color: dotColor(status!),
+      color: dotColor(status),
     );
   }
 }

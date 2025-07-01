@@ -10,6 +10,7 @@ import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -87,9 +88,11 @@ class ChatService {
 
     newChatDTO.pubKey = keys.publicKey;
 
-    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createChat,
-            newChatDTO.toJson())
-        .then((resp) async {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.createChat,
+      payload: newChatDTO.toJson(),
+    ).then((resp) async {
       final Chat returnedChat = Chat.fromJson(resp['chat']);
       await BaseKey.setKeys(chatUid: returnedChat.uid, private: keys.keyPair);
       final Chat chat = addChat(returnedChat);
@@ -100,12 +103,16 @@ class ChatService {
 
   Future<Chat> updatePubKey({required String chatUid, String? pubKey}) async {
     Completer<Chat> complete = Completer();
-    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.updatePubKey, {
-      'chatUid': chatUid,
-      'pubKey': pubKey,
-    }).then((resp) async {
-      await updateChatFromResp(Chat.fromJson(resp['chat']));
-      complete.complete(Chat.fromJson(resp['chat']));
+    AppHttpClient.message(
+        channel: SocketChannelTypes.chat,
+        type: ChatEventTypes.updatePubKey,
+        payload: {
+          'chatUid': chatUid,
+          'pubKey': pubKey,
+        }).then((resp) async {
+      final Chat chat = Chat.fromJson(resp['chat']);
+      await updateChatFromResp(chat);
+      complete.complete(chat);
     });
     return complete.future;
   }
@@ -125,9 +132,11 @@ class ChatService {
         isCreator: true,
         isAdmin: true));
 
-    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.createGroupChat,
-            newGroupChatDTO.toJson())
-        .then((resp) {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.createGroupChat,
+      payload: newGroupChatDTO.toJson(),
+    ).then((resp) {
       final Chat chat = addChat(Chat.fromJson(resp['chat']));
       return complete.complete(chat);
     });
@@ -172,11 +181,14 @@ class ChatService {
       {required Chat chat, required List<Participant> participants}) async {
     Completer<bool> completer = Completer();
 
-    ChatSocket.emitWAck(
-        SocketChannelTypes.chat, ChatEventTypes.addParticipants, {
-      'chatUid': chat.uid,
-      'contactUids': participants.map((p) => p.uid).toList()
-    }).then((resp) {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.addParticipants,
+      payload: {
+        'chatUid': chat.uid,
+        'contactUids': participants.map((p) => p.uid).toList()
+      },
+    ).then((resp) {
       final chatFromDb = obx.chats.get(chat.id);
       chatFromDb?.participants.addAll(participants);
       obx.chats.put(chatFromDb!);
@@ -190,10 +202,11 @@ class ChatService {
   removeParticipantFromChat(
       {required Chat chat, required Participant participant}) {
     Completer<bool> completer = Completer();
-    ChatSocket.emitWAck(
-        SocketChannelTypes.chat,
-        ChatEventTypes.removeParticipant,
-        {'chatUid': chat.uid, 'participantUid': participant.uid}).then((resp) {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.removeParticipant,
+      payload: {'chatUid': chat.uid, 'participantUid': participant.uid},
+    ).then((resp) {
       final chatFromDb = obx.chats.get(chat.id);
       if (chatFromDb == null) {
         completer.completeError(false);
@@ -207,9 +220,13 @@ class ChatService {
   }
 
   leaveChat({required String chatUid}) {
-    ChatSocket.emitWAck(SocketChannelTypes.chat, ChatEventTypes.leaveChat, {
-      'chatUid': chatUid,
-    }).then((resp) {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.leaveChat,
+      payload: {
+        'chatUid': chatUid,
+      },
+    ).then((resp) {
       deleteChat(chatUid: chatUid, skipNotify: true);
     });
   }
@@ -335,9 +352,11 @@ class ChatService {
     }
 
     if (skipNotify == false) {
-      return ChatSocket.emitWAck(
-              SocketChannelTypes.chat, ChatEventTypes.deleteChat, chatUid)
-          .then((resp) {
+      return AppHttpClient.message(
+        channel: SocketChannelTypes.chat,
+        type: ChatEventTypes.deleteChat,
+        payload: chatUid,
+      ).then((resp) {
         delete();
       }).onError((error, stackTrace) {
         if (error == 'No such chat found') {
@@ -350,8 +369,11 @@ class ChatService {
   }
 
   updateChatLastSeen({String? chatUid}) {
-    ChatSocket.emitWAck(SocketChannelTypes.chat,
-        ChatEventTypes.updateChatLastSeen, chatUid ?? 'all');
+    AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.updateChatLastSeen,
+      payload: chatUid ?? 'all',
+    );
   }
 
   getChat({int? chatId, String? chatUid}) {

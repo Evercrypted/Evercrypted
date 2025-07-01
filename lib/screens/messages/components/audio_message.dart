@@ -165,7 +165,8 @@ class _AudioMessageState extends State<AudioMessage>
       return;
     }
     messageService
-        .downloadFile(widget.message.chatUid, widget.message.uid!)
+        .downloadFile(widget.message.chatUid, widget.message.uid!,
+            widget.message.fileKey!)
         .then((resp) {
       fileString = resp;
       setState(() {

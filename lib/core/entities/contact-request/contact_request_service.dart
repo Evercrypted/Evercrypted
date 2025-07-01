@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/objectbox.g.dart';
 
 import '../../socket/socket.dart';
@@ -21,20 +22,29 @@ class ContactRequestService {
   }
 
   Future<dynamic> createContactRequest(ContactRequest cRequest) {
-    return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
-            ContactRequestEventTypes.createContactRequests, cRequest.toJson())
-        .then((resp) {
+    final completer = Completer<dynamic>();
+    AppHttpClient.message(
+      channel: SocketChannelTypes.contactRequest,
+      type: ContactRequestEventTypes.createContactRequests,
+      payload: cRequest.toJson(),
+    ).then((resp) {
       final ContactRequest returnedContactRequest =
           ContactRequest.fromJson(resp);
       returnedContactRequest.unread = false;
       syncContactRequests([returnedContactRequest]);
+      completer.complete(returnedContactRequest);
+    }).onError((error, stackTrace) {
+      completer.completeError(error ?? 'Unknown error');
     });
+    return completer.future;
   }
 
   Future<dynamic> acceptContactRequest(ContactRequest cRequest) {
-    return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
-            ContactRequestEventTypes.acceptContactRequest, cRequest.uid)
-        .then((value) {
+    return AppHttpClient.message(
+      channel: SocketChannelTypes.contactRequest,
+      type: ContactRequestEventTypes.acceptContactRequest,
+      payload: cRequest.uid,
+    ).then((value) {
       obx.contacts.put(Contact.fromJson(value));
       obx.contactRequests.remove(cRequest.id);
     }).onError((error, stackTrace) {
@@ -45,9 +55,11 @@ class ContactRequestService {
   }
 
   Future<dynamic> cancelContactReqeuest(ContactRequest cRequest) {
-    return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
-            ContactRequestEventTypes.cancelContactRequest, cRequest.uid)
-        .then((value) {
+    return AppHttpClient.message(
+      channel: SocketChannelTypes.contactRequest,
+      type: ContactRequestEventTypes.cancelContactRequest,
+      payload: cRequest.uid,
+    ).then((value) {
       deleteContactRequest(cRequest.uid!);
     }).onError((error, stackTrace) {
       deleteContactRequest(cRequest.uid!);
@@ -55,9 +67,11 @@ class ContactRequestService {
   }
 
   Future<dynamic> declineContactRequest(ContactRequest cRequest) {
-    return ChatSocket.emitWAck(SocketChannelTypes.contactRequest,
-            ContactRequestEventTypes.declineContactRequest, cRequest.uid)
-        .then((value) {
+    return AppHttpClient.message(
+      channel: SocketChannelTypes.contactRequest,
+      type: ContactRequestEventTypes.declineContactRequest,
+      payload: cRequest.uid,
+    ).then((value) {
       deleteContactRequest(cRequest.uid!);
     }).onError((error, stackTrace) {
       if (error == 'No such contact request found') {

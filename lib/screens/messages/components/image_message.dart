@@ -124,7 +124,8 @@ class _ImageMessageState extends State<ImageMessage> {
       return;
     }
     messageService
-        .downloadFile(widget.message.chatUid, widget.message.uid!)
+        .downloadFile(widget.message.chatUid, widget.message.uid!,
+            widget.message.fileKey!)
         .then((resp) {
       imageData = base64.decode(resp);
       setState(() {
@@ -173,12 +174,16 @@ class _ImageMessageState extends State<ImageMessage> {
                     children: [
                       downloadInProgress
                           ? FadeIcon(
+                              position: Position(
+                                top: 7,
+                                left: 7,
+                              ),
                               icon: Icon(
-                              Icons.download,
-                              color: widget.message.isSender
-                                  ? Colors.white
-                                  : primaryColor,
-                            ))
+                                Icons.download,
+                                color: widget.message.isSender
+                                    ? Colors.white
+                                    : primaryColor,
+                              ))
                           : Icon(
                               Icons.download,
                               color: widget.message.isSender

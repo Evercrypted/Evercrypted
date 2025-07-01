@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/combine_keys.dart';
@@ -26,7 +28,7 @@ class AuthService {
     final algo = X25519();
     final SimpleKeyPair keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
-    final resp = await HttpClient.client.post(
+    final resp = await AppHttpClient.client.post(
       '/auth/handshake',
       body: HttpBody.json({
         'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
@@ -43,7 +45,7 @@ class AuthService {
     final algo = X25519();
     final keyPair = await algo.newKeyPair();
     final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
-    final resp = await HttpClient.client.post(
+    final resp = await AppHttpClient.client.post(
       '/auth/httpHandshake',
       body: HttpBody.json({
         'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
@@ -71,7 +73,7 @@ class AuthService {
       'email': formValues.email,
       'password': formValues.password,
     }, keys['key']);
-    return HttpClient.client
+    return AppHttpClient.client
         .post('/auth/register',
             body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
         .then(
@@ -112,12 +114,12 @@ class AuthService {
       'email': formValues.email,
       'password': formValues.password,
     }, keys['key']);
-    return HttpClient.client
+    return AppHttpClient.client
         .post('/auth/login',
             body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
         .then(
       (value) async {
-        var payload;
+        dynamic payload;
         if (value.bodyToJson['bypass'] == true) {
           payload = value.bodyToJson;
         } else {
@@ -156,7 +158,7 @@ class AuthService {
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
     final crypted = await encodePayload(
         {'type': SettingsEventTypes.login2FA, 'code': code}, keys['key']);
-    return HttpClient.client
+    return AppHttpClient.client
         .post('/auth/login2fa',
             body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
         .then(
@@ -183,22 +185,27 @@ class AuthService {
   }
 
   Future resendVerificationEmail() async {
-    return ChatSocket.emitWAck(
-        SocketChannelTypes.auth,
-        AuthEventTypes.resendVerificationEmail,
-        {'resend': true}).then((resp) async {
-      return resp;
+    final completer = Completer<dynamic>();
+    AppHttpClient.message(
+      channel: SocketChannelTypes.auth,
+      type: AuthEventTypes.resendVerificationEmail,
+      payload: {'resend': true},
+    ).then((resp) async {
+      completer.complete(resp);
+    }).onError((error, stackTrace) {
+      completer.completeError(error ?? 'Unknown error');
     });
+    return completer.future;
   }
 
   Future forgotPassword(String email) async {
     if (ChatSocket.socket?.connected == true &&
         ChatSocket.isConnected == true) {
-      return ChatSocket.emitWAck(
-        SocketChannelTypes.auth,
-        AuthEventTypes.forgotPassword,
-        {'email': email},
-      ).then((resp) => true);
+      return AppHttpClient.message(
+        channel: SocketChannelTypes.auth,
+        type: AuthEventTypes.forgotPassword,
+        payload: {'email': email},
+      );
     }
 
     final identifier =
@@ -208,7 +215,7 @@ class AuthService {
       'email': email,
     }, keys['key']);
 
-    return HttpClient.client
+    return AppHttpClient.client
         .post('/auth/forgot-password',
             body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
         .then((resp) => true);
