@@ -97,70 +97,73 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
   Widget build(BuildContext context) {
     final keyboardNotifier = ref.watch(keyboardProvider.notifier);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+    return SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(defaultPadding * 2),
+            topRight: Radius.circular(defaultPadding * 2),
+          ),
         ),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: defaultPadding,
-        right: defaultPadding,
-        top: defaultPadding * 2,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Icon(Icons.refresh,
-              size: 40, color: Theme.of(context).textTheme.titleMedium!.color),
-          const Text(
-            'Reset Password',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: defaultPadding,
+          right: defaultPadding,
+          top: defaultPadding * 2,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Icon(Icons.refresh,
+                size: 40,
+                color: Theme.of(context).textTheme.titleMedium!.color),
+            const Text(
+              'Reset Password',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: defaultPadding * 2),
-          const Text(
-            'Reset Password link will be sent to your email address',
-            style: TextStyle(
-              fontSize: 14,
+            const SizedBox(height: defaultPadding * 2),
+            const Text(
+              'Reset Password link will be sent to your email address',
+              style: TextStyle(
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: defaultPadding),
-          TextFormField(
-            readOnly: Auth.getUser != null,
-            controller: emailController,
-            decoration: const InputDecoration(
-              labelText: 'Email',
+            SizedBox(height: defaultPadding),
+            TextFormField(
+              readOnly: Auth.getUser != null,
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+              ),
+              keyboardType: TextInputType.none,
+              onTap: () {
+                if (Auth.getUser != null) {
+                  return;
+                }
+                keyboardNotifier.openKeyboard(controller: emailController);
+              },
             ),
-            keyboardType: TextInputType.none,
-            onTap: () {
-              if (Auth.getUser != null) {
-                return;
-              }
-              keyboardNotifier.openKeyboard(controller: emailController);
-            },
-          ),
-          const SizedBox(height: defaultPadding * 2),
-          PrimaryButton(
-            text: 'Submit',
-            press: _handleResetPassword,
-            child: isLoading
-                ? const SpinKitThreeBounce(
-                    color: Colors.white,
-                    size: 17,
-                  )
-                : null,
-          ),
-          const SizedBox(height: defaultPadding * 2),
-        ],
+            const SizedBox(height: defaultPadding * 2),
+            PrimaryButton(
+              text: 'Submit',
+              press: _handleResetPassword,
+              child: isLoading
+                  ? const SpinKitThreeBounce(
+                      color: Colors.white,
+                      size: 17,
+                    )
+                  : null,
+            ),
+            const SizedBox(height: defaultPadding * 2),
+          ],
+        ),
       ),
     );
   }

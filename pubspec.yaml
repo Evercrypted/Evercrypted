@@ -74,6 +74,7 @@ dependencies:
   camera: ^0.11.1
   image: ^4.5.3
   back_button_interceptor: ^8.0.4
+  mobile_scanner: ^7.0.1
 
   collection: ^1.19.1
   objectbox: ^4.2.0

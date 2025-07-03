@@ -17,6 +17,10 @@ class PasswordDialog {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight:
+            MediaQuery.of(context).size.height * 0.8, // 80% of screen height
+      ),
       builder: (BuildContext context) {
         return _PasswordBottomSheet(
           title: title,
@@ -72,7 +76,7 @@ class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
         builder: (BuildContext context) => AlertDialog(
           title: const Text('Confirm Hide Chat'),
           content: const Text(
-              'Are you sure you want to hide this chat? You will need to enter the password in the search field to see it again.'),
+              'Are you sure you want to hide this chat? You will need to enter the password in the search field on chats screen to see it again.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -88,7 +92,7 @@ class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
           ],
         ),
       ).then((confirmed) {
-        if (confirmed == true) {
+        if (confirmed == true && mounted) {
           Navigator.pop(context); // Close bottom sheet
           widget.onConfirm(_passwordController.text);
         }
@@ -164,14 +168,8 @@ class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
                     decoration: InputDecoration(
                       prefixIcon: Icon(
                         Icons.lock,
-                        color: contentColorLightTheme
-                            .withAlpha((255 * 0.64).round()),
                       ),
                       hintText: widget.hintText,
-                      hintStyle: TextStyle(
-                        color: contentColorLightTheme
-                            .withAlpha((255 * 0.64).round()),
-                      ),
                     ),
                   ),
                   const SizedBox(height: defaultPadding),

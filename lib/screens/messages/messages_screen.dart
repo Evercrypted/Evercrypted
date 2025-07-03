@@ -201,17 +201,20 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     return showModalBottomSheet(
         context: context,
         isScrollControlled: true,
+        constraints: BoxConstraints(
+          maxHeight:
+              MediaQuery.of(context).size.height * 0.8, // 80% of screen height
+        ),
         builder: (BuildContext context) {
-          debugPrint(().toString());
-          return Wrap(children: [
-            Container(
+          return SingleChildScrollView(
+            child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? contentColorLightThemeSecondary
                     : primaryColor,
                 borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20)),
+                    topLeft: Radius.circular(defaultPadding * 2),
+                    topRight: Radius.circular(defaultPadding * 2)),
               ),
               padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -258,8 +261,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                 Expanded(
                                   child: Text(
                                     baseKey == null
-                                        ? 'Chat End-to-End key is not synchronized yet. The other party needs to open Evercrypted at least once to generate base encryption key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
-                                        : 'Base-Encryption-Key has successfully been synchronized. Entered password will modify the base encryption key.',
+                                        ? 'Chat End-to-End key is not synchronized yet. The other party needs to open Evercrypted at least once after the chat is created to generate Base-Encryption-Key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
+                                        : 'Base-Encryption-Key has successfully been synchronized. Entered passwords modify the Base-Encryption-Key.',
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ),
@@ -293,6 +296,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                             color: contentColorLightTheme,
                           ),
                           decoration: InputDecoration(
+                            counterStyle: TextStyle(color: Colors.white),
                             errorMaxLines: 3,
                             suffixIcon: IconButton(
                               onPressed: () {
@@ -327,7 +331,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                               const EdgeInsets.only(bottom: defaultPadding / 2),
                           child: Center(
                             child: const Text(
-                              'Password can be Maximum 32 characters in Length. All the passwords shorter than that will automatically be reinforced with the synchronized key if the other party has already opened Evercrypted.',
+                              'Password can be Maximum 32 characters in Length.\n\nPasswords shorter than that will automatically be reinforced with the synchronized Base-Encryption-Key.',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
@@ -348,17 +352,14 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                 children: [
                                   Icon(
                                     Icons.cancel_outlined,
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
+                                    color: Colors.white,
                                     size: 24,
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
                                     'Clear',
                                     style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],
@@ -402,7 +403,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                     ),
                   )),
             ),
-          ]);
+          );
         }).then((value) {
       setState(() {
         settingsDialogOpen = false;

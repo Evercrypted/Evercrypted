@@ -116,10 +116,20 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
         showModalBottomSheet(
             context: context,
             isScrollControlled: true,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height *
+                  0.8, // 80% of screen height
+            ),
             builder: (BuildContext context) {
-              return Wrap(children: [
-                Container(
-                  color: Theme.of(context).scaffoldBackgroundColor,
+              return SingleChildScrollView(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(defaultPadding * 2),
+                      topRight: Radius.circular(defaultPadding * 2),
+                    ),
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                  ),
                   padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewInsets.bottom),
                   child: Container(
@@ -174,26 +184,16 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                     controller: _emailController);
                               },
                               keyboardType: TextInputType.none,
-                              style: TextStyle(
-                                color: contentColorLightTheme,
-                              ),
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(
                                   borderSide: BorderSide.none,
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(10)),
                                 ),
-                                fillColor: Colors.white,
                                 prefixIcon: Icon(
                                   Icons.email,
-                                  color: contentColorLightTheme
-                                      .withAlpha((255 * 0.64).round()),
                                 ),
                                 hintText: "Email",
-                                hintStyle: TextStyle(
-                                  color: contentColorLightTheme
-                                      .withAlpha((255 * 0.64).round()),
-                                ),
                               ),
                             ),
                             const SizedBox(height: defaultPadding),
@@ -208,26 +208,16 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                                     controller: _messageController);
                               },
                               keyboardType: TextInputType.none,
-                              style: TextStyle(
-                                color: contentColorLightTheme,
-                              ),
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(
                                   borderSide: BorderSide.none,
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(10)),
                                 ),
-                                fillColor: Colors.white,
                                 prefixIcon: Icon(
                                   Icons.message,
-                                  color: contentColorLightTheme
-                                      .withAlpha((255 * 0.64).round()),
                                 ),
                                 hintText: "Message",
-                                hintStyle: TextStyle(
-                                  color: contentColorLightTheme
-                                      .withAlpha((255 * 0.64).round()),
-                                ),
                               ),
                             ),
                             const SizedBox(height: defaultPadding),
@@ -240,7 +230,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                         ),
                       )),
                 ),
-              ]);
+              );
             });
       },
       backgroundColor: primaryColor,

@@ -5,6 +5,7 @@ import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/ui_constants.dart';
+import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -209,10 +210,17 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
         ),
         const SizedBox(height: 10),
         Center(
-          child: QrImageView(
-            data: gAuthURI ?? 'test',
-            version: QrVersions.auto,
-            size: 150.0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: QrImageView(
+              data: gAuthURI!,
+              version: QrVersions.auto,
+              embeddedImage: AssetImage('assets/icons/logo.png'),
+              size: MediaQuery.of(context).size.width * 0.7,
+            ),
           ),
         ),
         const SizedBox(height: 15),
@@ -232,9 +240,10 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () => _launchUrl(),
-          child: const Text('Open with Google Authenticator'),
+        PrimaryButton(
+          press: () => _launchUrl(),
+          textColor: Colors.white,
+          text: 'Open with Google Authenticator',
         ),
         const SizedBox(height: 10),
         const Divider(

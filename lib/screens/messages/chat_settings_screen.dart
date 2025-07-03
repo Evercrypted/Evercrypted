@@ -177,7 +177,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                     ref: ref,
                     title: 'Hide Chat',
                     description:
-                        'This chat will be hidden from your chat list. You can access it by entering the password in the search field.',
+                        'This chat will be hidden from your chat list. You can access it by entering the password in the search field on chats screen.',
                     hintText: 'Enter password to hide chat',
                     confirmButtonText: 'Hide Chat',
                     onConfirm: (password) {

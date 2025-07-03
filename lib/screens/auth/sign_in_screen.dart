@@ -206,9 +206,9 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(25.0)),
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height *
+                            0.8, // 80% of screen height
                       ),
                       builder: (BuildContext context) => const ResetPassword(),
                     );
