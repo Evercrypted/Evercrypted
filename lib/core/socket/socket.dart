@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:cryptography_plus/helpers.dart';
@@ -50,6 +51,21 @@ class ChatSocket {
 
   static num tries = 0;
 
+  static String _getSocketUrl() {
+    // Use different URLs based on platform and debug mode
+    if (kDebugMode) {
+      if (Platform.isAndroid) {
+        return 'http://10.0.2.2:4000'; // Android emulator
+      } else if (Platform.isIOS) {
+        return 'http://localhost:4000'; // iOS simulator
+      } else {
+        return 'http://localhost:4000'; // Desktop/Web
+      }
+    } else {
+      return 'https://test-api.evercrypted.com:8443'; // Production
+    }
+  }
+
   static const channelsToListen = [
     SocketChannelTypes.chat,
     SocketChannelTypes.error,
@@ -59,6 +75,27 @@ class ChatSocket {
     SocketChannelTypes.message,
     SocketChannelTypes.auth,
   ];
+
+  static initializeConnectionListener() {
+    // Listen to connection status changes
+    isConnectedSubject.distinct().listen((connected) async {
+      if (connected) {
+        debugPrint('ChatSocket: Connection established, processing queue');
+        // Wait for connection to stabilize and ensure key is available
+        await Future.delayed(Duration(seconds: 3));
+
+        // Double-check we're still connected and have a key
+        if (isConnected == true && key != null) {
+          debugPrint(
+              'ChatSocket: Connection verified, starting queue processing');
+          await actionQueueService.processQueue();
+        } else {
+          debugPrint(
+              'ChatSocket: Connection lost or no key after delay, skipping queue processing');
+        }
+      }
+    });
+  }
 
   static getAuthAndIdentifier() async {
     final identifier =
@@ -158,37 +195,43 @@ class ChatSocket {
     options = options.setExtraHeaders(authAndIdentifier['headers']);
 
     io.cache.clear();
-    socket = io.io('http://10.0.2.2:4000', options.build());
-    // socket = io.io('http://localhost:4000', options.build());
-    // socket = io.io('https://test-api.evercrypted.com:8443', options.build());
+    final socketUrl = _getSocketUrl();
+    debugPrint('ChatSocket: Connecting to $socketUrl');
+    socket = io.io(socketUrl, options.build());
 
     if (socket?.connected != true) {
       debugPrint('connecting');
       socket?.connect();
     }
 
-    socket?.onConnectError((error) {
-      debugPrint('connect error: $error');
-    });
-
     socket?.onConnect((_) async {
       debugPrint('connected');
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
-      actionQueueService.processQueue();
-      setListeners();
+
+      // Set connection status before processing queue
       isConnected = true;
       isConnectedSubject.add(isConnected!);
+
+      // Process queued actions immediately on connect
+      await actionQueueService.processQueue();
+
+      setListeners();
     });
 
     socket?.onReconnect((data) async {
       debugPrint('reconnected');
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
-      actionQueueService.processQueue();
-      setListeners();
+
+      // Set connection status before processing queue
       isConnected = true;
       isConnectedSubject.add(isConnected!);
+
+      // Process queued actions immediately on reconnect
+      await actionQueueService.processQueue();
+
+      setListeners();
     });
 
     socket?.on('disconnect', (data) {
@@ -203,7 +246,8 @@ class ChatSocket {
         isConnected = false;
         isConnectedSubject.add(isConnected!);
       } else {
-        debugPrint(data is String ? data : data.toString());
+        debugPrint('onError: ${data is String ? data : data.toString()}');
+        disconnectWS();
         isConnected = false;
         isConnectedSubject.add(isConnected!);
       }
@@ -219,12 +263,7 @@ class ChatSocket {
     });
 
     socket?.onDisconnect((_) {
-      isConnected = false;
-      isConnectedSubject.add(isConnected!);
-      disconnectWS();
-    });
-
-    socket?.onConnectError((data) {
+      debugPrint('disconnected');
       isConnected = false;
       isConnectedSubject.add(isConnected!);
       disconnectWS();

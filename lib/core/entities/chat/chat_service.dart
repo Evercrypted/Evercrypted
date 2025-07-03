@@ -17,6 +17,7 @@ import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -60,8 +61,30 @@ class ChatService {
 
     for (var chat in allChats) {
       final dbChat = obx.chats.get(chat.id);
-      dbChat?.messages.addAll(chat.messagesList);
-      obx.chats.put(dbChat!);
+      if (dbChat != null) {
+        // Only add messages that don't already exist to prevent uniqueId conflicts
+        debugPrint(
+            'ChatService: Syncing ${chat.messagesList.length} messages for chat ${chat.uid}');
+        int addedCount = 0;
+        int skippedCount = 0;
+
+        for (var newMessage in chat.messagesList) {
+          final existingMessage = dbChat.messages.firstWhereOrNull((msg) =>
+              msg.uid == newMessage.uid || msg.uniqueId == newMessage.uniqueId);
+          if (existingMessage == null) {
+            dbChat.messages.add(newMessage);
+            addedCount++;
+          } else {
+            skippedCount++;
+            debugPrint(
+                'ChatService: Skipped duplicate message uid=${newMessage.uid}, uniqueId=${newMessage.uniqueId}');
+          }
+        }
+
+        debugPrint(
+            'ChatService: Added $addedCount messages, skipped $skippedCount duplicates for chat ${chat.uid}');
+        obx.chats.put(dbChat);
+      }
     }
 
     if (allChats.isNotEmpty) {

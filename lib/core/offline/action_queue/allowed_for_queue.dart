@@ -6,7 +6,8 @@ import 'package:overlay_support/overlay_support.dart';
 import '../../../ui_constants.dart';
 
 const allowedForQueue = [
-  '${SocketChannelTypes.message}/${MessageEventTypes.sendMessage}'
+  '${SocketChannelTypes.message}/${MessageEventTypes.sendMessage}',
+  '${SocketChannelTypes.message}/${MessageEventTypes.sendFile}',
 ];
 
 showQueuedNotification() {

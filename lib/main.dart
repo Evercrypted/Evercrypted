@@ -78,6 +78,10 @@ void main() async {
 
   await Rhttp.init();
   await AppHttpClient.initialize();
+
+  // Initialize ChatSocket connection listener for queue processing
+  ChatSocket.initializeConnectionListener();
+
   // await SentryFlutter.init(
   //   (options) {
   //     options.dsn =

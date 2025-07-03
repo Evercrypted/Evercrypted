@@ -5,7 +5,9 @@ import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
+import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/main.dart';
@@ -25,11 +27,17 @@ import 'package:flutter_sound/public/flutter_sound_player.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:swipe_to/swipe_to.dart';
 
-import '../../core/entities/message/message_model.dart';
 import '../../ui_constants.dart';
 import '../../widgets/primary_button.dart';
 import 'components/chat_input_field.dart';
 import 'components/message.dart';
+
+class MessageObject {
+  final Message message;
+  final ChatMessage chatMessage;
+
+  MessageObject({required this.message, required this.chatMessage});
+}
 
 class MessagesScreen extends ConsumerStatefulWidget {
   final Chat chat;
@@ -61,12 +69,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   StreamSubscription? _isarSubscription;
 
-  PagingState<int, Message> _pagingState = PagingState();
+  PagingState<int, MessageObject> _pagingState = PagingState();
 
-  List<Message> obxAddedMessages = [];
+  List<MessageObject> obxAddedMessages = [];
 
   late StreamSubscription isConnectedListener;
   bool isConnected = ChatSocket.isConnectedSubject.value;
+  StreamSubscription? messageStatusListener;
 
   final fabKey = GlobalKey<ExpandableFabState>();
   bool showFab = false;
@@ -81,6 +90,42 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       setState(() {
         this.isConnected = isConnected;
       });
+    });
+
+    // Listen for message status updates from queue processing
+    messageStatusListener = ActionQueueService
+        .messageStatusUpdatesSubject.stream
+        .where((message) => message.chatUid == widget.chat.uid)
+        .listen((updatedMessage) {
+      debugPrint(
+          'MessagesScreen: Received message status update for message ${updatedMessage.id} ${updatedMessage.successfullySent} ${updatedMessage.queueId} ${updatedMessage.couldNotSend}');
+      setState(() {
+        // Update message in obxAddedMessages if it exists
+        final index = obxAddedMessages
+            .indexWhere((m) => m.message.id == updatedMessage.id);
+        if (index != -1) {
+          debugPrint('found message ${updatedMessage.id} in obxAddedMessages');
+          obxAddedMessages[index] = MessageObject(
+              message: updatedMessage,
+              chatMessage: prepareMessage(updatedMessage));
+        }
+
+        // Update message in _pagingState if it exists
+        if (_pagingState.pages != null) {
+          final updatedPages = _pagingState.pages!.map((page) {
+            return page.map((message) {
+              return message.message.id == updatedMessage.id
+                  ? MessageObject(
+                      message: updatedMessage,
+                      chatMessage: prepareMessage(updatedMessage))
+                  : message;
+            }).toList();
+          }).toList();
+          _pagingState = _pagingState.copyWith(pages: updatedPages);
+        }
+      });
+      debugPrint(
+          'MessagesScreen: Updated message ${updatedMessage.id} status in UI');
     });
 
     chat = widget.chat;
@@ -120,6 +165,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   @override
   void dispose() async {
     isConnectedListener.cancel();
+    messageStatusListener?.cancel();
     _isarSubscription?.cancel();
     _passController.dispose();
     _pagingState.reset();
@@ -388,13 +434,19 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     _isarSubscription?.cancel();
     _isarSubscription = queryChanged.listen((messages) {
       messages.retainWhere((element) =>
-          obxAddedMessages.firstWhereOrNull((el) => el.id == element.id) ==
+          obxAddedMessages
+                  .firstWhereOrNull((el) => el.message.id == element.id) ==
               null &&
-          _pagingState.items?.firstWhereOrNull((el) => el.id == element.id) ==
+          _pagingState.items
+                  ?.firstWhereOrNull((el) => el.message.id == element.id) ==
               null);
       if (messages.isNotEmpty) {
         setState(() {
-          obxAddedMessages = [...messages, ...obxAddedMessages];
+          obxAddedMessages = [
+            ...messages.map((e) =>
+                MessageObject(message: e, chatMessage: prepareMessage(e))),
+            ...obxAddedMessages
+          ];
         });
       }
     });
@@ -404,15 +456,19 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     try {
       final newItems = await _messageService.getMessagesFromDB(
           widget.chat.id, pageKey, _pageSize);
-      newItems.retainWhere((element) =>
-          _pagingState.items?.firstWhereOrNull((el) => el.id == element.id) ==
+      final newItemsObjects = newItems
+          .map((e) => MessageObject(message: e, chatMessage: prepareMessage(e)))
+          .toList();
+      newItemsObjects.retainWhere((element) =>
+          _pagingState.items
+              ?.firstWhereOrNull((el) => el.message.id == element.message.id) ==
           null);
       final isLastPage = newItems.length < _pageSize;
       if (isLastPage) {
         setState(() {
           _pagingState = _pagingState.copyWith(pages: [
             ...?_pagingState.pages,
-            newItems,
+            newItemsObjects,
           ], keys: [
             ...?_pagingState.keys,
             pageKey,
@@ -421,7 +477,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       } else {
         setState(() {
           _pagingState = _pagingState.copyWith(
-              pages: [...?_pagingState.pages, newItems],
+              pages: [...?_pagingState.pages, newItemsObjects],
               keys: [...?_pagingState.keys, pageKey],
               hasNextPage: true,
               isLoading: false);
@@ -484,6 +540,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   ChatMessage prepareMessage(Message item) {
+    print(
+        'prepareMessage: successfullySent: ${item.successfullySent}, queueId: ${item.queueId}, couldNotSend: ${item.couldNotSend}');
     return ChatMessage(
       uid: item.uid,
       chatUid: widget.chat.uid,
@@ -679,35 +737,45 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         delegate: SliverChildListDelegate(
                           [
                             ...obxAddedMessages.map((e) => MessageWidget(
-                                  key: Key(e.id.toString()),
+                                  key: Key(
+                                      '${e.message.id}_${e.message.successfullySent}_${e.message.queueId}_${baseKey}_$pass'),
                                   chat: chat,
-                                  message: prepareMessage(e),
+                                  message: e.chatMessage
+                                      .copyWith(baseKey: baseKey, pass: pass),
                                   player: player,
+                                  sender: chat.participants.firstWhereOrNull(
+                                      (element) =>
+                                          element.uid == e.message.authorId),
                                 )),
                           ],
                         ),
                       ),
                     if (_pagingState.items?.isNotEmpty ?? false)
-                      PagedSliverList<int, Message>(
+                      PagedSliverList<int, MessageObject>(
                         state: _pagingState,
                         fetchNextPage: () {
                           _fetchPage(_pagingState.keys?.last == 0
                               ? 1
                               : _pagingState.keys!.last + 1);
                         },
-                        builderDelegate: PagedChildBuilderDelegate<Message>(
-                            newPageProgressIndicatorBuilder: (context) =>
-                                Container(),
-                            itemBuilder: (context, item, index) {
-                              return MessageWidget(
-                                key: Key(item.id.toString()),
-                                chat: chat,
-                                message: prepareMessage(item),
-                                sender: chat.participants.firstWhereOrNull(
-                                    (element) => element.uid == item.authorId),
-                                player: player,
-                              );
-                            }),
+                        builderDelegate:
+                            PagedChildBuilderDelegate<MessageObject>(
+                                newPageProgressIndicatorBuilder: (context) =>
+                                    Container(),
+                                itemBuilder: (context, item, index) {
+                                  return MessageWidget(
+                                    key: Key(
+                                        '${item.message.id}_${item.message.successfullySent}_${item.message.queueId}_${baseKey}_$pass'),
+                                    chat: chat,
+                                    message: item.chatMessage
+                                        .copyWith(baseKey: baseKey, pass: pass),
+                                    sender: chat.participants.firstWhereOrNull(
+                                        (element) =>
+                                            element.uid ==
+                                            item.message.authorId),
+                                    player: player,
+                                  );
+                                }),
                       ),
                   ],
                 ),

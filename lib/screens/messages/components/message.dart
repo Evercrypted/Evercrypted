@@ -250,10 +250,12 @@ class MessageStatusDot extends StatelessWidget {
       }
     }
 
+    print('MessageStatusDot: status: $status');
+
     return status != null
         ? Icon(
             status == MessageStatus.couldNotSend
-                ? Icons.pause_circle
+                ? Icons.error
                 : Icons.check_circle,
             size: 22,
             color: dotColor(status!),

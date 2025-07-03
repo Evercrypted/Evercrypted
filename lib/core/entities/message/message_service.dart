@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/http.dart';
@@ -121,7 +122,6 @@ class MessageService {
     Future<int> saveActionForLater() async {
       final writingToQueueCompleter = Completer<int>();
       final action = ActionQueue(
-          isHttp: true,
           channel: 'files',
           type: MessageEventTypes.sendFile,
           payload: json.encode(payload),
@@ -197,16 +197,32 @@ class MessageService {
               type: MessageEventTypes.sendFile,
               payload: decoded)
           .then((resp) async {
-        msg.uid = resp['messageUid'];
-        msg.uniqueId = msg.chatUid + resp['messageUid'];
-        msg.successfullySent = true;
-        msg.queueId = null;
-        msg.filepath = await saveFile(
-            file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
-        deleteFile(queueId: queueId!);
-        writeNewMessageToObx(msg).then((value) {
-          complete.complete(message);
-        });
+        // Check if a message with this messageUid already exists
+        final existingQuery =
+            obx.messages.query(Message_.uid.equals(resp['messageUid'])).build();
+        final existingMessage = existingQuery.findFirst();
+        existingQuery.close();
+
+        if (existingMessage != null && existingMessage.id != msg.id) {
+          // A message with this UID already exists, remove the queued duplicate
+          final msgIdToRemove = msg.id;
+          obx.messages.remove(msgIdToRemove);
+          deleteFile(queueId: queueId!);
+          debugPrint(
+              'MessageService: Message with uid ${resp['messageUid']} already exists, removed queued duplicate');
+        } else {
+          // Update the queued message with server response
+          msg.uid = resp['messageUid'];
+          msg.uniqueId = msg.chatUid + resp['messageUid'];
+          msg.successfullySent = true;
+          msg.queueId = null;
+          msg.filepath = await saveFile(
+              file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
+          deleteFile(queueId: queueId!);
+          writeNewMessageToObx(msg).then((value) {
+            complete.complete(message);
+          });
+        }
       }).onError((error, stackTrace) async {
         msg.successfullySent = false;
         msg.error = 'Could not send file';
@@ -231,14 +247,30 @@ class MessageService {
             'file': file,
           },
         ).then((resp) async {
-          message.uid = resp['messageUid'];
-          message.uniqueId = message.chatUid + resp['messageUid'];
-          message.successfullySent = true;
-          message.filepath = await saveFile(
-              file: file, chatUid: message.chatUid, msgUid: message.uid);
-          writeNewMessageToObx(message).then((value) {
-            complete.complete(message);
-          });
+          // Check if a message with this messageUid already exists
+          final existingQuery = obx.messages
+              .query(Message_.uid.equals(resp['messageUid']))
+              .build();
+          final existingMessage = existingQuery.findFirst();
+          existingQuery.close();
+
+          if (existingMessage != null && existingMessage.id != message.id) {
+            // A message with this UID already exists, remove this duplicate
+            final msgIdToRemove = message.id;
+            obx.messages.remove(msgIdToRemove);
+            debugPrint(
+                'MessageService: Message with uid ${resp['messageUid']} already exists, removed duplicate');
+          } else {
+            // Update the message with server response
+            message.uid = resp['messageUid'];
+            message.uniqueId = message.chatUid + resp['messageUid'];
+            message.successfullySent = true;
+            message.filepath = await saveFile(
+                file: file, chatUid: message.chatUid, msgUid: message.uid);
+            writeNewMessageToObx(message).then((value) {
+              complete.complete(message);
+            });
+          }
         }).onError((error, stackTrace) async {
           message.successfullySent = false;
           message.error = 'Could not send file';
@@ -301,12 +333,36 @@ class MessageService {
   }
 
   writeNewMessageToObx(Message message) async {
+    // Check if a message with this uid or uniqueId already exists
+    final existingByUidQuery = message.uid != null
+        ? obx.messages.query(Message_.uid.equals(message.uid!)).build()
+        : null;
+    final existingByUid = existingByUidQuery?.findFirst();
+    existingByUidQuery?.close();
+
+    final existingByUniqueIdQuery = message.uniqueId != null
+        ? obx.messages
+            .query(Message_.uniqueId.equals(message.uniqueId!))
+            .build()
+        : null;
+    final existingByUniqueId = existingByUniqueIdQuery?.findFirst();
+    existingByUniqueIdQuery?.close();
+
+    if (existingByUid != null || existingByUniqueId != null) {
+      debugPrint(
+          'MessageService: Message with uid ${message.uid} or uniqueId ${message.uniqueId} already exists, skipping duplicate');
+      return;
+    }
+
     final query = obx.chats.query(Chat_.uid.equals(message.chatUid)).build();
-    final Chat chat = query.findFirst()!;
+    final Chat? chat = query.findFirst();
     query.close();
-    chat.lastMessageTime = DateTime.now();
-    chat.messages.add(message);
-    obx.chats.put(chat);
+
+    if (chat != null) {
+      chat.lastMessageTime = DateTime.now();
+      chat.messages.add(message);
+      obx.chats.put(chat);
+    }
   }
 
   Future<void> deleteAllMessages(String chatUid) async {
