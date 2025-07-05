@@ -177,7 +177,9 @@ class _MessageWidgetState extends State<MessageWidget> {
                 ? Center(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(context).primaryColor.withAlpha(
+                              (255 * 0.1).round(),
+                            ),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       padding: const EdgeInsets.symmetric(

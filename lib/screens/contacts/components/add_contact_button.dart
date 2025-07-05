@@ -9,8 +9,10 @@ import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:evercrypted/core/offline/action_queue/allowed_for_queue.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
+import 'package:evercrypted/widgets/secret_keyboard/qr_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 class AddContactButton extends ConsumerStatefulWidget {
@@ -225,7 +227,49 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                               text: 'SEND REQUEST',
                               press: submitForm,
                               color: primaryColor,
-                            )
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: defaultPadding / 2),
+                              child: Text(
+                                '- or -',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                            PrimaryButton(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.qr_code_scanner,
+                                        color: Colors.white),
+                                    const SizedBox(width: defaultPadding / 2),
+                                    Text('SCAN QR CODE',
+                                        style: TextStyle(color: Colors.white)),
+                                  ],
+                                ),
+                                press: () {
+                                  Navigator.pop(context);
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    constraints: BoxConstraints(
+                                      maxHeight:
+                                          MediaQuery.of(context).size.height *
+                                              0.8, // 80% of screen height
+                                    ),
+                                    builder: (context) => QrScanner(
+                                      whenScanned: (value) {
+                                        if (value != null) {
+                                          _emailController.text = value;
+                                          _messageController.text =
+                                              'Hello, it\'s ${Auth.getUser?.email ?? 'me'}! I just scanned your QR code and want to add you as a contact.';
+                                          submitForm();
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                    ),
+                                  );
+                                })
                           ],
                         ),
                       )),

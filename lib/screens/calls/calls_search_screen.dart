@@ -36,11 +36,13 @@ class CallsSearchScreen extends StatelessWidget {
                   fillColor: Colors.white,
                   prefixIcon: Icon(
                     Icons.search,
-                    color: contentColorLightTheme.withOpacity(0.64),
+                    color:
+                        contentColorLightTheme.withAlpha((255 * 0.64).round()),
                   ),
                   hintText: "Search",
                   hintStyle: TextStyle(
-                    color: contentColorLightTheme.withOpacity(0.64),
+                    color:
+                        contentColorLightTheme.withAlpha((255 * 0.64).round()),
                   ),
                 ),
               ),

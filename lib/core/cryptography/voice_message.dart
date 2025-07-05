@@ -4,8 +4,6 @@ import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:cryptography_plus/cryptography_plus.dart';
 
-import 'package:evercrypted/core/extensions/list_map_with_index_extension.dart';
-
 class EncryptedRecording {
   final String iv;
   final String mac;

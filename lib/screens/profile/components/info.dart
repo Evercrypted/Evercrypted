@@ -25,7 +25,7 @@ class Info extends StatelessWidget {
                   .textTheme
                   .bodyLarge!
                   .color!
-                  .withOpacity(0.8),
+                  .withAlpha((255 * 0.8).round()),
             ),
           ),
           Text(info),

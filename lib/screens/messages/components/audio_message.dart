@@ -269,7 +269,7 @@ class _AudioMessageState extends State<AudioMessage>
                     height: 2,
                     color: widget.message.isSender
                         ? Colors.white
-                        : primaryColor.withOpacity(0.4),
+                        : primaryColor.withAlpha((255 * 0.4).round()),
                   ),
                   Positioned(
                     left: controller == null

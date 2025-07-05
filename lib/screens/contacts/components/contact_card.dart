@@ -46,8 +46,11 @@ class ContactCard extends ConsumerWidget {
         child: Text(
           contact.email!,
           style: TextStyle(
-            color:
-                Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.64),
+            color: Theme.of(context)
+                .textTheme
+                .bodyLarge!
+                .color!
+                .withAlpha((255 * 0.64).round()),
           ),
         ),
       ),

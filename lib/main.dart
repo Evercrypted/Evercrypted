@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/objectbox.dart';
 import 'package:evercrypted/core/helpers/navigator_observer.dart';

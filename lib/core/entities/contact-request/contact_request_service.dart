@@ -4,7 +4,6 @@ import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/objectbox.g.dart';
 
-import '../../socket/socket.dart';
 import '../../socket/socket_channels.dart';
 import '../contact/contact_service.dart';
 import '../../socket/event_types/contact_request_event_types.dart';

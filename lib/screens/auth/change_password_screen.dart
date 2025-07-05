@@ -90,7 +90,7 @@ class ChangePasswordScreen extends StatelessWidget {
                         .textTheme
                         .bodyLarge!
                         .color!
-                        .withOpacity(0.64),
+                        .withAlpha((255 * 0.64).round()),
                   ),
             ),
           ),

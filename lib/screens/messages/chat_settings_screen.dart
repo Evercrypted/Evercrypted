@@ -255,7 +255,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                       content: 'Are you sure you want to delete this chat?',
                       confirmText: 'Delete',
                     ).then((confirmed) {
-                      if (confirmed && mounted) {
+                      if (confirmed && context.mounted) {
                         Navigator.popUntil(context, (route) => route.isFirst);
                         ModalRoute.of(context)!.completed.then(
                             (_) => chatService.deleteChat(chatUid: chat.uid));
@@ -287,7 +287,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                       content: 'Are you sure you want to leave this chat?',
                       confirmText: 'Leave',
                     ).then((confirmed) {
-                      if (confirmed && mounted) {
+                      if (confirmed && context.mounted) {
                         Navigator.popUntil(context, (route) => route.isFirst);
                         ModalRoute.of(context)!.completed.then(
                             (_) => chatService.leaveChat(chatUid: chat.uid));

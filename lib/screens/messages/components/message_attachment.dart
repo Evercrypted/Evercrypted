@@ -11,7 +11,9 @@ class MessageAttachment extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.08),
+      color: Theme.of(context).textTheme.bodyLarge!.color!.withAlpha(
+            (255 * 0.08).round(),
+          ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -79,7 +81,7 @@ class MessageAttachmentCard extends StatelessWidget {
                         .textTheme
                         .bodyLarge!
                         .color!
-                        .withOpacity(0.8),
+                        .withAlpha((255 * 0.8).round()),
                   ),
             )
           ],

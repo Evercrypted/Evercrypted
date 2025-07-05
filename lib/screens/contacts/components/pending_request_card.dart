@@ -23,8 +23,11 @@ class PendingRequestCard extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.fromLTRB(5, 4, 3, 5),
         decoration: BoxDecoration(
-            color:
-                Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.25),
+            color: Theme.of(context)
+                .textTheme
+                .bodyLarge!
+                .color!
+                .withAlpha((255 * 0.25).round()),
             borderRadius: const BorderRadius.all(Radius.circular(20))),
         child: const Icon(
           Icons.person_search,
@@ -50,7 +53,11 @@ class PendingRequestCard extends StatelessWidget {
       subtitle: Text(
         'Request was ${isReceived ? 'received' : 'sent'} ${contactRequest!.timeSent != null ? timeago.format(contactRequest!.timeSent!) : null}',
         style: TextStyle(
-          color: Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.5),
+          color: Theme.of(context)
+              .textTheme
+              .bodyLarge!
+              .color!
+              .withAlpha((255 * 0.5).round()),
         ),
       ),
       expandedAlignment: Alignment.centerLeft,
@@ -66,7 +73,7 @@ class PendingRequestCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withAlpha((255 * 0.3).round()),
               borderRadius: const BorderRadius.all(Radius.circular(10)),
             ),
             child: Text(

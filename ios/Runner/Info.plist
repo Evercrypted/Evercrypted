@@ -73,6 +73,8 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>Take and send photos</string>
+	<string>This app needs camera access to take and send photos, and scan QR codes</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photos access to get QR codes and photos from photo library</string>
 </dict>
 </plist>

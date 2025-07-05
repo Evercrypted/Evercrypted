@@ -41,7 +41,7 @@ class SuggestedContacts extends StatelessWidget {
                       .textTheme
                       .titleSmall!
                       .color!
-                      .withOpacity(0.32),
+                      .withAlpha((255 * 0.32).round()),
                 ),
           ),
         ),

@@ -11,13 +11,11 @@ import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/http.dart';
-import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

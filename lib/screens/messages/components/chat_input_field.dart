@@ -523,7 +523,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                                                           const CameraWidget()))
                                               .then((jpgBytes) {
                                             if (jpgBytes != null) {
-                                              if (mounted) {
+                                              if (context.mounted) {
                                                 sendImage(jpgBytes, context);
                                               }
                                             }

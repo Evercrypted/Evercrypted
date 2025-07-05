@@ -36,7 +36,7 @@ class _HighlightedButtonState extends State<HighlightedButton> {
         duration: const Duration(milliseconds: 100),
         decoration: BoxDecoration(
           color: isPressed
-              ? Colors.white.withOpacity(0.3)
+              ? Colors.white.withAlpha((255 * 0.3).round())
               : widget.backgroundColor ?? Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -44,7 +44,7 @@ class _HighlightedButtonState extends State<HighlightedButton> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: widget.isActive
-                ? Colors.white.withOpacity(0.2)
+                ? Colors.white.withAlpha((255 * 0.2).round())
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),

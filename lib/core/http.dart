@@ -9,7 +9,6 @@ import 'package:evercrypted/core/offline/action_queue/allowed_for_queue.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/main.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:rhttp/rhttp.dart';
 
 class AppHttpClient {
@@ -45,10 +44,7 @@ class AppHttpClient {
 
   static addAuth() async {
     try {
-      // Don't dispose client if it doesn't exist yet
-      if (client != null) {
-        client.dispose();
-      }
+      client.dispose();
     } catch (e) {
       debugPrint('AppHttpClient: Error disposing client: $e');
     }

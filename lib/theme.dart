@@ -8,7 +8,7 @@ ThemeData lightThemeData(BuildContext context) {
   return ThemeData.light().copyWith(
     primaryColor: primaryColor,
     scaffoldBackgroundColor: Colors.white,
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: Colors.white,
     ),
     appBarTheme: appBarTheme,
@@ -39,7 +39,7 @@ ThemeData darkThemeData(BuildContext context) {
   return ThemeData.dark().copyWith(
     primaryColor: primaryColor,
     scaffoldBackgroundColor: contentColorLightTheme,
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: contentColorLightThemeSecondary,
     ),
     appBarTheme: appBarTheme.copyWith(

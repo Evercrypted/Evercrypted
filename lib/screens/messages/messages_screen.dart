@@ -213,8 +213,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                     ? contentColorLightThemeSecondary
                     : primaryColor,
                 borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(defaultPadding * 2),
-                    topRight: Radius.circular(defaultPadding * 2)),
+                    topLeft: Radius.circular(defaultPadding),
+                    topRight: Radius.circular(defaultPadding)),
               ),
               padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).viewInsets.bottom),

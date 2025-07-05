@@ -146,7 +146,8 @@ class _FileMessageState extends State<FileMessage>
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        color: primaryColor.withOpacity(widget.message.isSender ? 1 : 0.1),
+        color: primaryColor
+            .withAlpha((widget.message.isSender ? 255 : (255 * 0.1).round())),
       ),
       child: Row(
         children: [

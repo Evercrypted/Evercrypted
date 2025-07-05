@@ -42,8 +42,9 @@ class ProfilePic extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color:
-              Theme.of(context).textTheme.bodyLarge!.color!.withOpacity(0.08),
+          color: Theme.of(context).textTheme.bodyLarge!.color!.withAlpha(
+                (255 * 0.08).round(),
+              ),
         ),
       ),
       child: Stack(

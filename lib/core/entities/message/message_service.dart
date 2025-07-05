@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
@@ -13,7 +12,6 @@ import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:rhttp/rhttp.dart';
 
 import 'message_model.dart';
 
