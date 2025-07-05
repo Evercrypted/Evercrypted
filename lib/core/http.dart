@@ -60,8 +60,9 @@ class AppHttpClient {
     List<SimpleInterceptor> interceptorsList = [];
 
     try {
-      final cryptedToken = await encodePayload(authToken, ChatSocket.key);
-      final cryptedOtpToken = await encodePayload(otpToken, ChatSocket.key);
+      final cryptedToken = await encodePayload(authToken, ChatSocket.key, true);
+      final cryptedOtpToken =
+          await encodePayload(otpToken, ChatSocket.key, true);
       final from = Auth.getUser?.uid;
 
       if (cryptedToken != null) {
@@ -145,7 +146,8 @@ class AppHttpClient {
       try {
         final crypted = await encodePayload(
             {'channel': channel, 'type': type, 'payload': payload},
-            ChatSocket.key);
+            ChatSocket.key,
+            true);
 
         final response = await client.post('/socket/handle-message',
             body: HttpBody.json(crypted));
@@ -154,6 +156,7 @@ class AppHttpClient {
           response.bodyToJson['crypted'],
           response.bodyToJson['iv'],
           ChatSocket.key,
+          true,
         );
 
         debugPrint(decodedPayload.toString());

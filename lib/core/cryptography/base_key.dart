@@ -1,9 +1,9 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:jwk_plus/jwk_plus.dart';
+import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ChatKeys {
@@ -42,33 +42,25 @@ class BaseKey {
       aOptions: AndroidOptions());
 
   static Future<Base64KeyData> generateKeys() async {
-    final algo = X25519();
-    final SimpleKeyPair keyPair = await algo.newKeyPair();
-    final SimplePublicKey publicKey = await keyPair.extractPublicKey();
-    final jwkJSONStringFromKeyPair = (await Jwk.fromKeyPair(keyPair)).toJson();
-    final jwkJSONFromPublic = Jwk.fromPublicKey(publicKey).toJson();
-    final base64KeyPair =
-        base64Encode(utf8.encode(jsonEncode(jwkJSONStringFromKeyPair)));
-    final base64PublicKey =
-        base64Encode(utf8.encode(jsonEncode(jwkJSONFromPublic)));
+    final keyPair = EverCrypto.generateKyberKeyPair();
+    final base64KeyPair = base64Encode(keyPair.secretKey);
+    final base64PublicKey = base64Encode(keyPair.publicKey);
     return Base64KeyData(keyPair: base64KeyPair, publicKey: base64PublicKey);
   }
 
   static Future<String?> combine(
-      String keyPairBytesBase64, String pubKeyBytesBase64) async {
-    final algorithm = X25519();
-    final keyPairJson =
-        jsonDecode(utf8.decode(base64Decode(keyPairBytesBase64)));
-    final pubKeyJson = jsonDecode(utf8.decode(base64Decode(pubKeyBytesBase64)));
-    final KeyPair keyPair = Jwk.fromJson(keyPairJson).toKeyPair();
-    final PublicKey? pubKey = Jwk.fromJson(pubKeyJson).toPublicKey();
-    if (pubKey == null) return null;
-    final sharedSecretKey = await algorithm.sharedSecretKey(
-      keyPair: keyPair,
-      remotePublicKey: pubKey,
-    );
-    final secretKeyData = await sharedSecretKey.extract();
-    return base64Encode(secretKeyData.bytes);
+      String secretKeyBytesBase64, String ciphertextBytesBase64) async {
+    try {
+      final secretKey = base64Decode(secretKeyBytesBase64);
+      final ciphertext = base64Decode(ciphertextBytesBase64);
+
+      // Decapsulate the shared secret using Kyber1024
+      final sharedSecret = EverCrypto.kyberDecapsulate(ciphertext, secretKey);
+
+      return base64Encode(sharedSecret);
+    } catch (e) {
+      return null;
+    }
   }
 
   static String? pubkeyComb(List<Participant> participants) {

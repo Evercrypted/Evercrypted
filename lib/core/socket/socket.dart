@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:cryptography_plus/helpers.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
+import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
@@ -17,7 +18,6 @@ import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:jwk_plus/jwk_plus.dart';
 import 'package:rhttp/rhttp.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -38,7 +38,7 @@ List<int> getNewNonce(byteLength, random) {
 class ChatSocket {
   ChatSocket._();
   static io.Socket? socket;
-  static SimpleKeyPair? keyPair;
+  static KyberKeyPair? keyPair;
   static String? key;
   static final ActionQueueService actionQueueService = ActionQueueService();
   static final SocketEventsService socketEventsService = SocketEventsService();
@@ -115,7 +115,7 @@ class ChatSocket {
 
     final otpToken = await Auth.getOtpToken;
 
-    final cryptedToken = await encodePayload(token, keys['key']);
+    final cryptedToken = await encodePayload(token, keys['key'], true);
 
     var headers = {
       'authorization': jsonEncode(cryptedToken),
@@ -123,7 +123,7 @@ class ChatSocket {
     };
 
     if (otpToken != null) {
-      final cryptedOtpToken = await encodePayload(otpToken, keys['key']);
+      final cryptedOtpToken = await encodePayload(otpToken, keys['key'], true);
       headers['otpToken'] = jsonEncode(cryptedOtpToken);
     }
 
@@ -138,11 +138,9 @@ class ChatSocket {
     // final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
     final fcmToken = await FirebaseMessaging.instance.getToken();
     final keyCompleter = Completer<bool>();
-    final algo = X25519();
 
-    // We need the private key pair of Alice.
-    keyPair = await algo.newKeyPair();
-    final SimplePublicKey localPublicKey = await keyPair!.extractPublicKey();
+    // Generate Kyber1024 key pair
+    keyPair = EverCrypto.generateKyberKeyPair();
 
     final authAndIdentifier = await getAuthAndIdentifier();
 
@@ -152,10 +150,10 @@ class ChatSocket {
       'channel': SocketChannelTypes.general,
       'type': GeneralEventTypes.getInitialData,
       'payload': {
-        'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+        'publicKey': base64Encode(keyPair!.publicKey),
         'fcmToken': fcmToken,
       }
-    }, authAndIdentifier['key']);
+    }, authAndIdentifier['key'], true);
 
     AppHttpClient.client
         .post('/socket/handle-message',
@@ -164,13 +162,25 @@ class ChatSocket {
               'headers': authAndIdentifier['headers'],
             }))
         .then((dynamic resp) async {
-      key = await combineKeys(algo, keyPair, resp.bodyToJson['publicKey']);
+      // Server responds with ciphertext for Kyber1024 decapsulation
+      final serverCiphertext = resp.bodyToJson['ciphertext'];
+
+      if (serverCiphertext != null) {
+        // Decapsulate the shared secret using our secret key and server's ciphertext
+        final sharedSecret = EverCrypto.kyberDecapsulate(
+          base64Decode(serverCiphertext),
+          keyPair!.secretKey,
+        );
+        key = base64Encode(sharedSecret);
+      }
+
       keyCompleter.complete(true);
       if (key != null) {
         final payload = await decodePayload(
           resp.bodyToJson['crypted'],
           resp.bodyToJson['iv'],
           key,
+          true,
         );
         socketEventsService.handleGeneralEvent('getInitialData', payload);
       }
@@ -288,6 +298,7 @@ class ChatSocket {
               data['crypted'],
               data['iv'],
               key,
+              true,
             );
           } else {
             payload = data;
@@ -329,12 +340,13 @@ class ChatSocket {
       }
     } else {
       final crypted =
-          await encodePayload({'type': type, 'payload': payload}, key);
+          await encodePayload({'type': type, 'payload': payload}, key, true);
       socket?.emitWithAck(channel, crypted, ack: (resp) async {
         payload = await decodePayload(
           resp['crypted'],
           resp['iv'],
           key,
+          true,
         );
         debugPrint(payload.toString());
         if (payload['error'] != null) {
@@ -349,7 +361,7 @@ class ChatSocket {
 
   static void emit(String channel, String type, dynamic payload) async {
     final crypted =
-        await encodePayload({'type': type, 'payload': payload}, key);
+        await encodePayload({'type': type, 'payload': payload}, key, true);
     socket?.emit(channel, crypted);
   }
 

@@ -35,8 +35,11 @@ dynamic encodePayloadOld(message, key, [bool notHex = false]) async {
 // New implementations using flutter_ever_crypto
 dynamic decodePayload(crypted, iv, key, [bool notHex = false]) async {
   try {
+    // Handle different key formats:
+    // - notHex = true: key is base64-encoded (from Kyber1024)
+    // - notHex = false: key is hex-encoded (legacy)
     final Uint8List keyBytes = notHex == true
-        ? Uint8List.fromList(utf8.encode(key))
+        ? base64.decode(key)
         : Uint8List.fromList(hex.decode(key));
     final Uint8List nonceBytes = base64.decode(iv);
     final Uint8List ciphertextBytes = base64.decode(crypted);
@@ -55,8 +58,11 @@ dynamic decodePayload(crypted, iv, key, [bool notHex = false]) async {
 
 dynamic encodePayload(message, key, [bool notHex = false]) async {
   try {
+    // Handle different key formats:
+    // - notHex = true: key is base64-encoded (from Kyber1024)
+    // - notHex = false: key is hex-encoded (legacy)
     final Uint8List keyBytes = notHex == true
-        ? Uint8List.fromList(utf8.encode(key))
+        ? base64.decode(key)
         : Uint8List.fromList(hex.decode(key));
     final Uint8List nonceBytes = EverCrypto.generateXChaChaNonce();
     final Uint8List plaintextBytes =

@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/combine_keys.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
@@ -11,8 +12,8 @@ import 'package:evercrypted/core/socket/event_types/auth_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
+import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jwk_plus/jwk_plus.dart';
 import 'package:retry/retry.dart';
 import 'package:rhttp/rhttp.dart';
 
@@ -25,33 +26,55 @@ class AuthForm {
 
 class AuthService {
   Future<Map<String, dynamic>> loginHandshake(identifier) async {
-    final algo = X25519();
-    final SimpleKeyPair keyPair = await algo.newKeyPair();
-    final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
+    final keyPair = EverCrypto.generateKyberKeyPair();
     final resp = await AppHttpClient.client.post(
       '/auth/handshake',
       body: HttpBody.json({
-        'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+        'publicKey': base64Encode(keyPair.publicKey),
         'identifier': identifier,
       }),
     );
+
+    // Server responds with ciphertext for Kyber1024 decapsulation
+    final serverCiphertext = resp.bodyToJson['ciphertext'];
+    String? key;
+
+    if (serverCiphertext != null) {
+      // Decapsulate the shared secret using our secret key and server's ciphertext
+      final sharedSecret = EverCrypto.kyberDecapsulate(
+        base64Decode(serverCiphertext),
+        keyPair.secretKey,
+      );
+      key = base64Encode(sharedSecret);
+    }
+
     return {
-      'key': await combineKeys(algo, keyPair, resp.bodyToJson['publicKey']),
-      'publicKey': resp.bodyToJson['publicKey'],
+      'key': key,
     };
   }
 
   Future<String> otpHandshake() async {
-    final algo = X25519();
-    final keyPair = await algo.newKeyPair();
-    final SimplePublicKey localPublicKey = await keyPair.extractPublicKey();
+    final keyPair = EverCrypto.generateKyberKeyPair();
     final resp = await AppHttpClient.client.post(
       '/auth/httpHandshake',
       body: HttpBody.json({
-        'publicKey': Jwk.fromPublicKey(localPublicKey).toJson(),
+        'publicKey': base64Encode(keyPair.publicKey),
       }),
     );
-    return combineKeys(algo, keyPair, resp.bodyToJson['publicKey']);
+
+    // Server responds with ciphertext for Kyber1024 decapsulation
+    final serverCiphertext = resp.bodyToJson['ciphertext'];
+
+    if (serverCiphertext != null) {
+      // Decapsulate the shared secret using our secret key and server's ciphertext
+      final sharedSecret = EverCrypto.kyberDecapsulate(
+        base64Decode(serverCiphertext),
+        keyPair.secretKey,
+      );
+      return base64Encode(sharedSecret);
+    }
+
+    throw Exception('Server did not return ciphertext');
   }
 
   Future<Map<String, dynamic>> getLoginEncKey(identifier) async {
@@ -72,7 +95,7 @@ class AuthService {
     final crypted = await encodePayload({
       'email': formValues.email,
       'password': formValues.password,
-    }, keys['key']);
+    }, keys['key'], true);
     return AppHttpClient.client
         .post('/auth/register',
             body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
@@ -82,6 +105,7 @@ class AuthService {
           value.bodyToJson['crypted'],
           value.bodyToJson['iv'],
           keys['key'],
+          true,
         );
         if (payload['error'] != null) {
           return {
@@ -112,7 +136,7 @@ class AuthService {
     final crypted = await encodePayload({
       'email': formValues.email,
       'password': formValues.password,
-    }, keys['key']);
+    }, keys['key'], true);
     return AppHttpClient.client
         .post('/auth/login',
             body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
@@ -126,6 +150,7 @@ class AuthService {
             value.bodyToJson['crypted'],
             value.bodyToJson['iv'],
             keys['key'],
+            true,
           );
         }
         if (payload['error'] != null) {
@@ -155,7 +180,7 @@ class AuthService {
         DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
     final crypted = await encodePayload(
-        {'type': SettingsEventTypes.login2FA, 'code': code}, keys['key']);
+        {'type': SettingsEventTypes.login2FA, 'code': code}, keys['key'], true);
     return AppHttpClient.client
         .post('/auth/login2fa',
             body: HttpBody.json({'crypted': crypted, 'identifier': identifier}))
@@ -165,6 +190,7 @@ class AuthService {
           value.bodyToJson['crypted'],
           value.bodyToJson['iv'],
           keys['key'],
+          true,
         );
         if (payload['status'] == 'ok') {
           await Auth.setOtpToken(otpToken: payload['payload']['otpToken']);
@@ -210,7 +236,7 @@ class AuthService {
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
     final crypted = await encodePayload({
       'email': email,
-    }, keys['key']);
+    }, keys['key'], true);
 
     return AppHttpClient.client
         .post('/auth/forgot-password',
