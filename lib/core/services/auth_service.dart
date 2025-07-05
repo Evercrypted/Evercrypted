@@ -81,7 +81,6 @@ class AuthService {
         final payload = await decodePayload(
           value.bodyToJson['crypted'],
           value.bodyToJson['iv'],
-          value.bodyToJson['mac'],
           keys['key'],
         );
         if (payload['error'] != null) {
@@ -126,7 +125,6 @@ class AuthService {
           payload = await decodePayload(
             value.bodyToJson['crypted'],
             value.bodyToJson['iv'],
-            value.bodyToJson['mac'],
             keys['key'],
           );
         }
@@ -166,7 +164,6 @@ class AuthService {
         final payload = await decodePayload(
           value.bodyToJson['crypted'],
           value.bodyToJson['iv'],
-          value.bodyToJson['mac'],
           keys['key'],
         );
         if (payload['status'] == 'ok') {

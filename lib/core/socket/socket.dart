@@ -170,7 +170,6 @@ class ChatSocket {
         final payload = await decodePayload(
           resp.bodyToJson['crypted'],
           resp.bodyToJson['iv'],
-          resp.bodyToJson['mac'],
           key,
         );
         socketEventsService.handleGeneralEvent('getInitialData', payload);
@@ -288,7 +287,6 @@ class ChatSocket {
             payload = await decodePayload(
               data['crypted'],
               data['iv'],
-              data['mac'],
               key,
             );
           } else {
@@ -336,7 +334,6 @@ class ChatSocket {
         payload = await decodePayload(
           resp['crypted'],
           resp['iv'],
-          resp['mac'],
           key,
         );
         debugPrint(payload.toString());

@@ -103,13 +103,10 @@ class _AudioMessageState extends State<AudioMessage>
       return;
     }
     late final Uint8List recording;
-    if (widget.message.pass != null &&
-        widget.message.iv != null &&
-        widget.message.mac != null) {
+    if (widget.message.pass != null && widget.message.iv != null) {
       recording = await decodeRecording(
           key: widget.message.pass!,
           iv: widget.message.iv!,
-          mac: widget.message.mac!,
           cryptedRecording: fileString!);
     } else {
       recording = await decodeRecording(

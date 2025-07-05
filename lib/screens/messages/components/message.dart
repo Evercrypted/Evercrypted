@@ -64,7 +64,7 @@ class _MessageWidgetState extends State<MessageWidget> {
       return;
     }
     ChatMessage msg = widget.message;
-    if (msg.iv == null || msg.mac == null) return;
+    if (msg.iv == null) return;
     if (msg.withBaseKey) {
       if (msg.baseKey != null) {
         if (msg.pass != null) {
@@ -107,7 +107,6 @@ class _MessageWidgetState extends State<MessageWidget> {
             decrypted = await decodePayload(
               inProcess.text,
               inProcess.iv,
-              inProcess.mac,
               inProcess.pass,
               true,
             );
@@ -118,7 +117,6 @@ class _MessageWidgetState extends State<MessageWidget> {
             decryptedDuration = await decodePayload(
               inProcess.duration,
               inProcess.durationIV,
-              inProcess.durationMAC,
               inProcess.pass,
               true,
             );

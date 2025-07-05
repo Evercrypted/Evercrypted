@@ -62,7 +62,6 @@ class _FileMessageState extends State<FileMessage>
           decrypted = await decodePayload(
             downloaded,
             widget.message.iv,
-            widget.message.mac,
             widget.message.pass,
             true,
           );

@@ -153,7 +153,6 @@ class AppHttpClient {
         final decodedPayload = await decodePayload(
           response.bodyToJson['crypted'],
           response.bodyToJson['iv'],
-          response.bodyToJson['mac'],
           ChatSocket.key,
         );
 

@@ -3,30 +3,35 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 
 class EncryptedRecording {
   final String iv;
-  final String mac;
+  final String? mac;
   final String cryptedRecording;
 
-  EncryptedRecording(this.cryptedRecording, this.iv, this.mac);
+  EncryptedRecording(
+      {required this.cryptedRecording, required this.iv, this.mac});
 }
 
-Future<EncryptedRecording?> encodeRecording(key, Uint8List recording,
+// Old implementations using cryptography_plus
+Future<EncryptedRecording?> encodeRecordingOld(key, Uint8List recording,
     [bool notHex = true]) async {
   try {
     final algorithm = Chacha20.poly1305Aead();
     final SecretBox secretBox = await algorithm.encrypt(recording,
         secretKey:
             SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
-    return EncryptedRecording(base64.encode(secretBox.cipherText),
-        base64.encode(secretBox.nonce), base64.encode(secretBox.mac.bytes));
+    return EncryptedRecording(
+        cryptedRecording: base64.encode(secretBox.cipherText),
+        iv: base64.encode(secretBox.nonce),
+        mac: base64.encode(secretBox.mac.bytes));
   } catch (e) {
     return null;
   }
 }
 
-Future<Uint8List> decodeRecording(
+Future<Uint8List> decodeRecordingOld(
     {String? key,
     String? iv,
     String? mac,
@@ -49,4 +54,59 @@ Future<Uint8List> decodeRecording(
     recording = base64Decode(cryptedRecording);
   }
   return recording;
+}
+
+// New implementations using flutter_ever_crypto
+Future<EncryptedRecording?> encodeRecording(key, Uint8List recording,
+    [bool notHex = true]) async {
+  try {
+    final Uint8List keyBytes = notHex == true
+        ? Uint8List.fromList(utf8.encode(key))
+        : Uint8List.fromList(hex.decode(key));
+    final Uint8List nonceBytes = EverCrypto.generateXChaChaNonce();
+
+    final ciphertextBytes = EverCrypto.xchachaEncrypt(
+      keyBytes,
+      nonceBytes,
+      recording,
+    );
+
+    return EncryptedRecording(
+      cryptedRecording: base64.encode(ciphertextBytes),
+      iv: base64.encode(nonceBytes),
+    );
+  } catch (e) {
+    return null;
+  }
+}
+
+Future<Uint8List> decodeRecording(
+    {String? key,
+    String? iv,
+    required String cryptedRecording,
+    bool notHex = true,
+    bool isEncrypted = true}) async {
+  try {
+    late final Uint8List recording;
+    if (isEncrypted && key != null && iv != null) {
+      final Uint8List keyBytes = notHex == true
+          ? Uint8List.fromList(utf8.encode(key))
+          : Uint8List.fromList(hex.decode(key));
+      final Uint8List nonceBytes = base64.decode(iv);
+      final Uint8List ciphertextBytes = base64.decode(cryptedRecording);
+
+      final decryptedBytes = EverCrypto.xchachaDecrypt(
+        keyBytes,
+        nonceBytes,
+        ciphertextBytes,
+      );
+
+      recording = decryptedBytes;
+    } else {
+      recording = base64Decode(cryptedRecording);
+    }
+    return recording;
+  } catch (e) {
+    throw Exception('Failed to decode recording: $e');
+  }
 }

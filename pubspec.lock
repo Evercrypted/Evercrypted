@@ -61,10 +61,10 @@ packages:
     dependency: transitive
     description:
       name: asn1lib
-      sha256: "0511d6be23b007e95105ae023db599aea731df604608978dada7f9faf2637623"
+      sha256: "9a8f69025044eb466b9b60ef3bc3ac99b4dc6c158ae9c56d25eeccf5bc56d024"
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.4"
+    version: "1.6.5"
   async:
     dependency: transitive
     description:
@@ -486,6 +486,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_ever_crypto:
+    dependency: "direct main"
+    description:
+      name: flutter_ever_crypto
+      sha256: "7825c9302ed4f4d022b77362508490255fc90dbe8e2d7507c2f2d23655316dfa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.4"
   flutter_expandable_fab:
     dependency: "direct main"
     description:

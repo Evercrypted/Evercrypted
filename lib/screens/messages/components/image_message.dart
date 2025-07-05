@@ -65,15 +65,13 @@ class _ImageMessageState extends State<ImageMessage> {
     if (downloaded != null) {
       if (widget.message.encryptionStatus == EncryptionStatus.encrypted ||
           widget.message.encryptionStatus == EncryptionStatus.decrypted &&
-              widget.message.iv != null &&
-              widget.message.mac != null) {
+              widget.message.iv != null) {
         if (widget.message.pass != null) {
           late dynamic decrypted;
           try {
             decrypted = await decodePayload(
               downloaded,
               widget.message.iv,
-              widget.message.mac,
               widget.message.pass,
               true,
             );

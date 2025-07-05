@@ -574,7 +574,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
               item.playbackDurationMicroSeconds != null
           ? int.parse(item.playbackDurationMicroSeconds!)
           : null,
-      encryptionStatus: item.iv != null && item.mac != null
+      encryptionStatus: item.iv != null
           ? EncryptionStatus.encrypted
           : EncryptionStatus.notEncrypted,
     );
