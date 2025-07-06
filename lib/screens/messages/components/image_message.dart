@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/widgets/fade_icon.dart';
@@ -66,15 +67,38 @@ class _ImageMessageState extends State<ImageMessage> {
       if (widget.message.encryptionStatus == EncryptionStatus.encrypted ||
           widget.message.encryptionStatus == EncryptionStatus.decrypted &&
               widget.message.iv != null) {
-        if (widget.message.pass != null) {
+        if (widget.message.pass != null || widget.message.baseKey != null) {
           late dynamic decrypted;
           try {
-            decrypted = await decodePayload(
-              downloaded,
-              widget.message.iv,
-              widget.message.pass,
-              true,
-            );
+            // Use the same SHA256-based key derivation as encryption
+            String? inputForHashing;
+
+            if (widget.message.baseKey != null) {
+              if (widget.message.pass != null) {
+                // Combine baseKey and pass
+                inputForHashing =
+                    widget.message.baseKey! + widget.message.pass!;
+              } else {
+                // Use baseKey only
+                inputForHashing = widget.message.baseKey!;
+              }
+            } else if (widget.message.pass != null) {
+              // Use pass only
+              inputForHashing = widget.message.pass!;
+            }
+
+            if (inputForHashing != null) {
+              // Hash the input to ensure exactly 32 bytes (same as encryption)
+              final hash = sha256.convert(utf8.encode(inputForHashing));
+              final hashedKey = base64Encode(hash.bytes);
+
+              decrypted = await decodePayload(
+                downloaded,
+                widget.message.iv,
+                hashedKey,
+                true,
+              );
+            }
           } catch (e) {
             decrypted = null;
           }

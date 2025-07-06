@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
@@ -66,24 +67,33 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
   }
 
   void setFullKey() {
-    if (widget.baseKey != null) {
-      withBaseKey = true;
-      if (widget.pass != null) {
-        fullKey = widget.baseKey!.substring(0, 32 - widget.pass!.length) +
-            widget.pass!;
-      } else {
-        fullKey = widget.baseKey!;
-      }
-    } else {
-      if (widget.pass != null) {
-        if (widget.pass!.length < 32) {
-          fullKey = widget.pass! + '0' * (32 - widget.pass!.length);
+    try {
+      String? inputForHashing;
+
+      if (widget.baseKey != null) {
+        withBaseKey = true;
+        if (widget.pass != null) {
+          // Combine baseKey and pass
+          inputForHashing = widget.baseKey! + widget.pass!;
         } else {
-          fullKey = widget.pass!;
+          // Use baseKey only
+          inputForHashing = widget.baseKey!;
         }
       } else {
-        fullKey = null;
+        if (widget.pass != null) {
+          // Use pass only
+          inputForHashing = widget.pass!;
+        } else {
+          fullKey = null;
+          return;
+        }
       }
+
+      // ALWAYS hash the input to ensure exactly 32 bytes
+      final hash = sha256.convert(utf8.encode(inputForHashing));
+      fullKey = base64Encode(hash.bytes);
+    } catch (e) {
+      fullKey = null;
     }
   }
 
@@ -94,7 +104,11 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     dynamic encr = message;
 
     if (fullKey != null) {
-      encr = await encodePayload(message, fullKey, true);
+      try {
+        encr = await encodePayload(message, fullKey, true);
+      } catch (e) {
+        rethrow;
+      }
     }
     _messageService.sendMessage(encr, widget.chatId, withBaseKey);
     _messageField.clear();

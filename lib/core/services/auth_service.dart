@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/combine_keys.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';

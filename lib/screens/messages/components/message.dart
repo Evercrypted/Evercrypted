@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
@@ -65,25 +67,37 @@ class _MessageWidgetState extends State<MessageWidget> {
     }
     ChatMessage msg = widget.message;
     if (msg.iv == null) return;
+
+    // Use the same SHA256-based key derivation as encryption
+    String? inputForHashing;
+
     if (msg.withBaseKey) {
       if (msg.baseKey != null) {
         if (msg.pass != null) {
-          msg.pass =
-              msg.baseKey!.substring(0, 32 - msg.pass!.length) + msg.pass!;
+          // Combine baseKey and pass
+          inputForHashing = msg.baseKey! + msg.pass!;
         } else {
-          msg.pass = msg.baseKey!;
+          // Use baseKey only
+          inputForHashing = msg.baseKey!;
         }
-        msg = await decrypt(msg);
       }
     } else {
       if (msg.pass != null) {
-        if (msg.pass!.length < 32) {
-          msg.pass = msg.pass! + '0' * (32 - msg.pass!.length);
-        }
-        msg.pass = msg.pass;
-        msg = await decrypt(msg);
+        // Use pass only
+        inputForHashing = msg.pass!;
       }
     }
+
+    if (inputForHashing != null) {
+      // ALWAYS hash the input to ensure exactly 32 bytes (same as encryption)
+      final hash = sha256.convert(utf8.encode(inputForHashing));
+      final hashedKey = base64Encode(hash.bytes);
+
+      // Update the message with the hashed key
+      msg.pass = hashedKey;
+      msg = await decrypt(msg);
+    }
+
     if (mounted) {
       setState(() {
         message = msg;
@@ -249,8 +263,6 @@ class MessageStatusDot extends StatelessWidget {
           return primaryColor;
       }
     }
-
-    print('MessageStatusDot: status: $status');
 
     return status != null
         ? Icon(
