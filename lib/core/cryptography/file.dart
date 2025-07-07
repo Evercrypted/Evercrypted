@@ -51,8 +51,11 @@ Future<Uint8List> decodeFileOld(
 // New implementations using flutter_ever_crypto
 Future<EncryptedFile?> encodeFile(key, filePath, [bool notHex = true]) async {
   try {
+    // Handle different key formats:
+    // - notHex = true: key is base64-encoded (from Kyber1024 or chat)
+    // - notHex = false: key is hex-encoded (legacy)
     final Uint8List keyBytes = notHex == true
-        ? Uint8List.fromList(utf8.encode(key))
+        ? base64.decode(key)
         : Uint8List.fromList(hex.decode(key));
     final Uint8List nonceBytes = EverCrypto.generateXChaChaNonce();
 
@@ -76,8 +79,11 @@ Future<EncryptedFile?> encodeFile(key, filePath, [bool notHex = true]) async {
 Future<Uint8List> decodeFile(String key, String iv, List<int> cryptedFile,
     [bool notHex = true]) async {
   try {
+    // Handle different key formats:
+    // - notHex = true: key is base64-encoded (from Kyber1024 or chat)
+    // - notHex = false: key is hex-encoded (legacy)
     final Uint8List keyBytes = notHex == true
-        ? Uint8List.fromList(utf8.encode(key))
+        ? base64.decode(key)
         : Uint8List.fromList(hex.decode(key));
     final Uint8List nonceBytes = base64.decode(iv);
     final Uint8List ciphertextBytes = Uint8List.fromList(cryptedFile);

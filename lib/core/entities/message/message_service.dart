@@ -234,6 +234,8 @@ class MessageService {
         });
       });
     } else {
+      print('DEBUG: Sending file: $file');
+      print('DEBUG: message: ${message?.toJson()}');
       final saveToQueueIfNeeded = await checkIfSocketConnectedAndQueueIfNeeded(
           json.encode(payload), file);
       if (saveToQueueIfNeeded == false) {

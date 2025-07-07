@@ -60,8 +60,11 @@ Future<Uint8List> decodeRecordingOld(
 Future<EncryptedRecording?> encodeRecording(key, Uint8List recording,
     [bool notHex = true]) async {
   try {
+    // Handle different key formats:
+    // - notHex = true: key is base64-encoded (from Kyber1024 or chat)
+    // - notHex = false: key is hex-encoded (legacy)
     final Uint8List keyBytes = notHex == true
-        ? Uint8List.fromList(utf8.encode(key))
+        ? base64.decode(key)
         : Uint8List.fromList(hex.decode(key));
     final Uint8List nonceBytes = EverCrypto.generateXChaChaNonce();
 
@@ -89,8 +92,11 @@ Future<Uint8List> decodeRecording(
   try {
     late final Uint8List recording;
     if (isEncrypted && key != null && iv != null) {
+      // Handle different key formats:
+      // - notHex = true: key is base64-encoded (from Kyber1024 or chat)
+      // - notHex = false: key is hex-encoded (legacy)
       final Uint8List keyBytes = notHex == true
-          ? Uint8List.fromList(utf8.encode(key))
+          ? base64.decode(key)
           : Uint8List.fromList(hex.decode(key));
       final Uint8List nonceBytes = base64.decode(iv);
       final Uint8List ciphertextBytes = base64.decode(cryptedRecording);

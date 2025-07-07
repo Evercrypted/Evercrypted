@@ -541,8 +541,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   ChatMessage prepareMessage(Message item) {
-    print(
-        'prepareMessage: successfullySent: ${item.successfullySent}, queueId: ${item.queueId}, couldNotSend: ${item.couldNotSend}');
     return ChatMessage(
       uid: item.uid,
       chatUid: widget.chat.uid,
@@ -570,10 +568,10 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       withBaseKey: item.withBaseKey ?? false,
       fileKey: item.fileKey,
       filePath: item.filepath,
-      decodedDuration: (item.durationIV == null || item.durationMAC == null) &&
-              item.playbackDurationMicroSeconds != null
-          ? int.parse(item.playbackDurationMicroSeconds!)
-          : null,
+      decodedDuration:
+          item.durationIV == null && item.playbackDurationMicroSeconds != null
+              ? int.parse(item.playbackDurationMicroSeconds!)
+              : null,
       encryptionStatus: item.iv != null
           ? EncryptionStatus.encrypted
           : EncryptionStatus.notEncrypted,
