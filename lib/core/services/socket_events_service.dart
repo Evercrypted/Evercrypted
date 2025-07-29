@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/fernet.dart';
+import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
@@ -82,6 +84,8 @@ class SocketEventsService {
   }
 
   handleAuthEvent(String type, dynamic payload) {
+    print('handleAuthEvent: $type');
+    print(payload);
     switch (type) {
       case AuthEventTypes.emailVerified:
         Auth.updateEmailVerified(emailVerified: true);
@@ -221,7 +225,7 @@ class SocketEventsService {
     switch (type) {
       case ChatEventTypes.chatCreated:
         Chat chat = Chat.fromJson(payload['chat']);
-        chatService.addChat(chat);
+        chatService.addChat(chat, isNewlyCreated: false);
         String creatorEmail = chat.participants
             .firstWhere((element) => element.uid != userId)
             .email!;
@@ -274,7 +278,13 @@ class SocketEventsService {
         break;
       case ChatEventTypes.addedToChat:
         final chat = Chat.fromJson(payload['chat']);
-        chatService.addChat(chat);
+        chatService.addChat(chat,
+            isNewlyCreated: false); // This is an existing group
+
+        // If I was added to a group chat, automatically request group key
+        if (!chat.isOneToOne) {
+          await GroupKeyExchange.ensureGroupKey(chat.uid, chat.isOneToOne);
+        }
         messageService
             .writeNewMessageToObx(Message.fromJson(payload['sysMessage']));
         LocalNotification.instance.displayNotification(
@@ -328,6 +338,11 @@ class SocketEventsService {
         final Chat chat = Chat.fromJson(payload['chat']);
         chatService.updateChatFromResp(chat);
         break;
+      case ChatEventTypes.keyExchange:
+        final String chatUid = payload['chatUid'];
+        final String ciphertext = payload['ciphertext'];
+        await _handleKeyExchange(chatUid, ciphertext);
+        break;
       default:
         return;
     }
@@ -337,6 +352,15 @@ class SocketEventsService {
     switch (type) {
       case MessageEventTypes.messageReceived:
         Message message = Message.fromJson(payload['message']);
+
+        // Process group key exchange messages in background (don't store in DB)
+        if (message.messageType == MessageTypes.requestForAGroupKey ||
+            message.messageType == MessageTypes.responseForAGroupKey) {
+          await MessageProcessor.processMessage(message);
+          return; // Don't store these protocol messages in DB or show in UI
+        }
+
+        // Store regular messages in DB
         await messageService.writeNewMessageToObx(message);
 
         List<Chat> chats = obx.chats.getAll();
@@ -363,6 +387,7 @@ class SocketEventsService {
               'New message from $chatname',
               json.encode({
                 'type': NotificationEventTypes.goToChatPage,
+                'chatId': chat.id,
               }),
             );
           }
@@ -370,6 +395,20 @@ class SocketEventsService {
         break;
       default:
         return;
+    }
+  }
+
+  Future<void> _handleKeyExchange(String chatUid, String ciphertext) async {
+    // Store the encapsulated data and trigger key decapsulation
+    await BaseKey.setKeys(
+      chatUid: chatUid,
+      ciphertext: ciphertext,
+    );
+
+    // Trigger the _checkKeys logic to decapsulate the secret
+    final chat = chatService.getChat(chatUid: chatUid);
+    if (chat != null) {
+      await chatService.checkKeys(chat);
     }
   }
 }

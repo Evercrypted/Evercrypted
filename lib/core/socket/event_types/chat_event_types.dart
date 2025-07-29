@@ -16,4 +16,5 @@ class ChatEventTypes {
   static const leftChat = 'leftChat';
   static const updatePubKey = 'updatePubKey';
   static const chatUpdated = 'chatUpdated';
+  static const keyExchange = 'keyExchange';
 }

@@ -4,9 +4,11 @@ import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/fernet.dart';
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
+import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
+import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
@@ -25,11 +27,29 @@ class ChatService {
   ProfileService profileService = ProfileService();
   MessageService messageService = MessageService();
 
-  Chat addChat(Chat chat) {
-    _checkKeys(chat);
+  Chat addChat(Chat chat, {bool isNewlyCreated = false}) {
+    checkKeys(chat);
 
     final int id = obx.chats.put(chat);
     chat.id = id;
+
+    // Auto-generate group key ONLY for newly created group chats where I'm the creator
+    if (!chat.isOneToOne && isNewlyCreated) {
+      final userId = Auth.user?.uid;
+      final isCreator =
+          chat.participants.any((p) => p.uid == userId && p.isCreator == true);
+      debugPrint(
+          'ChatService.addChat: Group chat ${chat.uid}, isNewlyCreated: $isNewlyCreated, userId: $userId, isCreator: $isCreator');
+      if (isCreator) {
+        debugPrint(
+            'ChatService.addChat: Calling createAndDistributeGroupKey for chat ${chat.uid}');
+        GroupKeyExchange.createAndDistributeGroupKey(chat.uid);
+      } else {
+        debugPrint(
+            'ChatService.addChat: Not creator - will request group key later');
+      }
+    }
+
     return chat;
   }
 
@@ -67,6 +87,13 @@ class ChatService {
         int skippedCount = 0;
 
         for (var newMessage in chat.messagesList) {
+          // Process group key exchange messages in background (don't store in DB)
+          if (newMessage.messageType == MessageTypes.requestForAGroupKey ||
+              newMessage.messageType == MessageTypes.responseForAGroupKey) {
+            await MessageProcessor.processMessage(newMessage);
+            continue; // Don't store these protocol messages in DB
+          }
+
           final existingMessage = dbChat.messages.firstWhereOrNull((msg) =>
               msg.uid == newMessage.uid || msg.uniqueId == newMessage.uniqueId);
           if (existingMessage == null) {
@@ -115,8 +142,12 @@ class ChatService {
       payload: newChatDTO.toJson(),
     ).then((resp) async {
       final Chat returnedChat = Chat.fromJson(resp['chat']);
-      await BaseKey.setKeys(chatUid: returnedChat.uid, private: keys.keyPair);
-      final Chat chat = addChat(returnedChat);
+      await BaseKey.setKeys(
+        chatUid: returnedChat.uid,
+        private: keys.keyPair,
+        isInitiator: true,
+      );
+      final Chat chat = addChat(returnedChat, isNewlyCreated: true);
       complete.complete(chat);
     });
     return complete.future;
@@ -158,14 +189,15 @@ class ChatService {
       type: ChatEventTypes.createGroupChat,
       payload: newGroupChatDTO.toJson(),
     ).then((resp) {
-      final Chat chat = addChat(Chat.fromJson(resp['chat']));
+      final Chat chat =
+          addChat(Chat.fromJson(resp['chat']), isNewlyCreated: true);
       return complete.complete(chat);
     });
     return complete.future;
   }
 
   openOneToOneChat(BuildContext context, WidgetRef ref, Contact contact) {
-    List<Chat> chats = ref.read(chatsProvider);
+    List<Chat> chats = ChatState.chats;
     Chat? foundChat = chats
         .where((element) => (element.isOneToOne &&
             element.participants
@@ -232,7 +264,7 @@ class ChatService {
       if (chatFromDb == null) {
         completer.completeError(false);
       }
-      chatFromDb!.participants.remove(participant);
+      chatFromDb!.participants.removeWhere((p) => p.uid == participant.uid);
       obx.chats.put(chatFromDb);
       completer.complete(true);
     }).catchError((error) {
@@ -258,7 +290,7 @@ class ChatService {
     query.close();
 
     if (chatInDb != null) {
-      _checkKeys(chat);
+      checkKeys(chat);
       chat.id = chatInDb.id;
       obx.chats.put(chat);
     }
@@ -266,83 +298,100 @@ class ChatService {
 
   _doSyncForAllChats(List<Chat> chats) async {
     for (var chat in chats) {
-      _checkKeys(chat);
+      checkKeys(chat);
     }
   }
 
-  _checkKeys(Chat chat) async {
-    generateKeys(thisParticipant, otherParticipant) {
-      BaseKey.generateKeys().then((generatedKeys) {
-        thisParticipant.pubKey = generatedKeys.publicKey;
-        final generatedPubKeyComb =
-            BaseKey.pubkeyComb([thisParticipant, otherParticipant]);
-
-        if (generatedPubKeyComb != null) {
-          BaseKey.combine(generatedKeys.keyPair, otherParticipant.pubKey!)
-              .then((baseKey) {
-            if (baseKey != null) {
-              BaseKey.setKeys(
-                  chatUid: chat.uid,
-                  baseKey: baseKey.substring(0, 32),
-                  private: generatedKeys.keyPair,
-                  pubCombo: generatedPubKeyComb);
-              updatePubKey(
-                chatUid: chat.uid,
-                pubKey: generatedKeys.publicKey,
-              );
-            }
-          });
-        } else {
-          //means that the other participant has not yet shared their key yet and we should only set private key
-          BaseKey.setKeys(chatUid: chat.uid, private: generatedKeys.keyPair);
-        }
-      });
-    }
-
-    //only check for oneToOne chats
+  checkKeys(Chat chat) async {
+    // Only check for oneToOne chats
     if (!chat.isOneToOne || chat.participants.length != 2) {
       return;
-    } else {
-      final thisParticipant = chat.participants
-          .firstWhereOrNull((element) => element.uid == Auth.getUser!.uid);
-      final otherParticipant = chat.participants
-          .firstWhereOrNull((element) => element.uid != Auth.getUser!.uid);
-      if (thisParticipant == null || otherParticipant == null) {
-        return;
+    }
+
+    final thisParticipant = chat.participants
+        .firstWhereOrNull((element) => element.uid == Auth.getUser!.uid);
+    final otherParticipant = chat.participants
+        .firstWhereOrNull((element) => element.uid != Auth.getUser!.uid);
+
+    if (thisParticipant == null || otherParticipant == null) {
+      return;
+    }
+
+    final ChatKeys? keys = await BaseKey.getKeys(chat.uid);
+
+    // Determine if this device initiated the chat (has isInitiator flag or created the chat)
+    final bool isInitiator = keys?.isInitiator ??
+        chat.participants
+            .any((p) => p.uid == Auth.getUser!.uid && p.isCreator == true);
+
+    if (isInitiator) {
+      // INITIATOR LOGIC: Generate key pair and wait for encapsulated secret
+      if (keys == null || keys.private == null) {
+        // Generate new Kyber key pair
+        final generatedKeys = await BaseKey.generateKeys();
+        await BaseKey.setKeys(
+          chatUid: chat.uid,
+          private: generatedKeys.keyPair,
+          isInitiator: true,
+        );
+
+        // Share public key with other participant
+        updatePubKey(
+          chatUid: chat.uid,
+          pubKey: generatedKeys.publicKey,
+        );
+      } else if (keys.ciphertext != null && keys.baseKey == null) {
+        // We have encapsulated data from recipient, decapsulate it
+        final baseKey =
+            await BaseKey.decapsulate(keys.private!, keys.ciphertext!);
+        if (baseKey != null) {
+          await BaseKey.setKeys(
+            chatUid: chat.uid,
+            baseKey: baseKey,
+          );
+        }
       }
-      String? pubKeyComb =
-          BaseKey.pubkeyComb([thisParticipant, otherParticipant]);
-      final ChatKeys? keys = await BaseKey.getKeys(chat.uid);
-      if (pubKeyComb != null) {
-        //if not null, both participants have shared their keys
-        if (keys == null || keys.private == null) {
-          //if keys is null or private is null then this device is not yet synced and we should generate a new key
-          generateKeys(thisParticipant, otherParticipant);
-        } else {
-          //means that both participants have shared their keys and we should check if pubKeys match
-          if (keys.pubCombo != pubKeyComb) {
-            //if pubKeys do not match then we should reset the sync
-            BaseKey.combine(keys.private!, otherParticipant.pubKey!)
-                .then((baseKey) {
-              if (baseKey != null) {
-                BaseKey.setKeys(
-                    chatUid: chat.uid,
-                    baseKey: baseKey.substring(0, 32),
-                    pubCombo: pubKeyComb);
-              }
-            });
-          }
-          //else all is good
+    } else {
+      // RECIPIENT LOGIC: Use initiator's public key to encapsulate shared secret
+      if (otherParticipant.pubKey != null &&
+          (keys == null || keys.baseKey == null)) {
+        // Generate our own key pair for future use
+        final ourKeys = await BaseKey.generateKeys();
+
+        // Encapsulate shared secret using initiator's public key
+        final encapsulationResult =
+            await BaseKey.encapsulate(otherParticipant.pubKey!);
+
+        if (encapsulationResult != null) {
+          // Store the shared secret as our base key
+          await BaseKey.setKeys(
+            chatUid: chat.uid,
+            baseKey: encapsulationResult.sharedSecret,
+            private: ourKeys.keyPair,
+            isInitiator: false,
+          );
+
+          // Share our public key and send encapsulated data back to initiator
+          await _sendEncapsulatedSecret(
+              chat.uid, ourKeys.publicKey, encapsulationResult.ciphertext);
         }
-      } else {
-        //if pubKeyComb is null one of the participant has not yet shared their key
-        if (keys == null || keys.private == null) {
-          //if keys is null or private is null then this device is not yet synced and we should generate a new key
-          generateKeys(thisParticipant, otherParticipant);
-        }
-        //else it means that the other participant has not yet shared their key and we should wait
       }
     }
+  }
+
+  Future<void> _sendEncapsulatedSecret(
+      String chatUid, String ourPublicKey, String ciphertext) async {
+    // Send both our public key and the encapsulated secret to the server
+    // The server will forward the encapsulated secret to the initiator
+    AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.keyExchange,
+      payload: {
+        'chatUid': chatUid,
+        'pubKey': ourPublicKey,
+        'ciphertext': ciphertext,
+      },
+    );
   }
 
   Future<bool> findContactChatAndDelete(

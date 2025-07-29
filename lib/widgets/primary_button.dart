@@ -88,7 +88,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                     horizontal: defaultPadding, vertical: defaultPadding / 2)
                 : widget.padding,
             backgroundColor: widget.needsActivation && !isActivated
-                ? Colors.grey
+                ? Colors.grey.shade400
                 : widget.color,
           ),
           onPressed: widget.needsActivation && !isActivated

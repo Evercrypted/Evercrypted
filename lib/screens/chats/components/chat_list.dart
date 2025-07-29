@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/services/hidden_chat_service.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
@@ -7,26 +9,49 @@ import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ChatList extends ConsumerWidget {
+class ChatList extends ConsumerStatefulWidget {
   const ChatList({super.key, required this.searchValue});
 
   final String searchValue;
+  @override
+  ChatListState createState() => ChatListState();
+}
+
+class ChatListState extends ConsumerState<ChatList> {
+  StreamSubscription<List<Chat>>? chatsSubscription;
+  List<Chat> chats = ChatState.chats;
+  final HiddenChatService hiddenChatService = HiddenChatService();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final List<Chat> chats = ref.watch(chatsProvider);
+  void initState() {
+    super.initState();
+    chatsSubscription = ChatState.subject.listen((newChats) {
+      setState(() {
+        chats = newChats;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    chatsSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
-    final HiddenChatService hiddenChatService = HiddenChatService();
 
     // Get hidden chat UIDs
     final hiddenChatUids = hiddenChatService.getHiddenChatUids(profile);
 
     // Get chats that match the search password
-    final chatsMatchingPassword = searchValue.isNotEmpty
-        ? hiddenChatService.getChatsMatchingPassword(searchValue, profile)
+    final chatsMatchingPassword = widget.searchValue.isNotEmpty
+        ? hiddenChatService.getChatsMatchingPassword(
+            widget.searchValue, profile)
         : <String>{};
 
-    if (searchValue.isNotEmpty) {
+    if (widget.searchValue.isNotEmpty) {
       return ListView.builder(
         itemCount: chats.length,
         itemBuilder: (context, index) {
@@ -41,7 +66,7 @@ class ChatList extends ConsumerWidget {
                           chatParticipantNames(chat: chat, widgetRef: ref)
                               .join(' , '))
                       .toLowerCase()
-                      .contains(searchValue.toLowerCase()))) {
+                      .contains(widget.searchValue.toLowerCase()))) {
             return ChatCard(
               chat: chat,
               press: () => Navigator.push(
@@ -60,28 +85,25 @@ class ChatList extends ConsumerWidget {
       );
     } else {
       // When not searching, filter out hidden chats
-      return ListView.builder(
-        itemCount: chats.length,
-        itemBuilder: (context, index) {
-          final chat = chats[index];
-
-          // Don't show hidden chats
-          if (hiddenChatUids.contains(chat.uid)) {
-            return const SizedBox.shrink();
-          }
-
-          return ChatCard(
-            chat: chat,
-            press: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MessagesScreen(
-                  chat: chats[index],
+      return ListView(
+        children: [
+          for (var chat in chats)
+            if (hiddenChatUids.contains(chat.uid))
+              const SizedBox.shrink()
+            else
+              ChatCard(
+                key: Key(chat.uid),
+                chat: chat,
+                press: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MessagesScreen(
+                      chat: chat,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+        ],
       );
     }
   }

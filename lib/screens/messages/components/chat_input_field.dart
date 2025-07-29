@@ -2,7 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
+import 'package:evercrypted/main.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
@@ -92,6 +96,10 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       // ALWAYS hash the input to ensure exactly 32 bytes
       final hash = sha256.convert(utf8.encode(inputForHashing));
       fullKey = base64Encode(hash.bytes);
+      
+      debugPrint('ChatInputField.setFullKey: Set encryption key for chat ${widget.chatId}');
+      debugPrint('ChatInputField.setFullKey: baseKey: ${widget.baseKey?.substring(0, 8) ?? 'null'}...');
+      debugPrint('ChatInputField.setFullKey: fullKey: ${fullKey?.substring(0, 8) ?? 'null'}... (userId: ${Auth.user?.uid})');
     } catch (e) {
       fullKey = null;
     }
@@ -101,18 +109,78 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     if (message.isEmpty) {
       return;
     }
-    dynamic encr = message;
-
+    
+    // Check if we have a key for encryption
     if (fullKey != null) {
+      // We have the key - encrypt and send normally
+      dynamic encr = message;
       try {
         encr = await encodePayload(message, fullKey, true);
       } catch (e) {
         rethrow;
       }
+      _messageService.sendMessage(encr, widget.chatId, withBaseKey);
+      _messageField.clear();
+      ref.read(keyboardProvider.notifier).close();
+    } else {
+      // No encryption key available - queue message regardless of chat type
+      final chat = obx.chats.get(int.parse(widget.chatId));
+      if (widget.baseKey == null && chat != null) {
+        // Queue message until key is available (works for both one-to-one and group chats)
+        await _queueMessageUntilKeyExchange(
+          chat.uid,
+          text: message,
+          messageType: MessageTypes.text,
+        );
+        _messageField.clear();
+        ref.read(keyboardProvider.notifier).close();
+        
+        // Show user feedback that message is queued
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(chat.isOneToOne 
+                ? 'Message queued - waiting for secure connection'
+                : 'Message queued - waiting for group encryption key'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        // Send normally (fallback case)
+        _messageService.sendMessage(message, widget.chatId, withBaseKey);
+        _messageField.clear();
+        ref.read(keyboardProvider.notifier).close();
+      }
     }
-    _messageService.sendMessage(encr, widget.chatId, withBaseKey);
-    _messageField.clear();
-    ref.read(keyboardProvider.notifier).close();
+  }
+
+  Future<void> _queueMessageUntilKeyExchange(
+    String chatUid, {
+    String? text,
+    String? messageType,
+    Uint8List? fileData,
+    String? fileName,
+    int? duration,
+    List<double>? waveData,
+  }) async {
+    // Store in action queue with special type for key-pending messages
+    final action = ActionQueue(
+      channel: SocketChannelTypes.message,
+      type: 'sendMessagePendingKey',
+      payload: json.encode({
+        'chatUid': chatUid,
+        'text': text,
+        'messageType': messageType ?? MessageTypes.text,
+        'fileData': fileData != null ? base64Encode(fileData) : null,
+        'fileName': fileName,
+        'duration': duration,
+        'waveData': waveData,
+      }),
+      createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+    );
+    obx.actionQueues.put(action);
+    debugPrint('Queued $messageType message for chat $chatUid until key exchange completes');
   }
 
   onRecording(Uint8List recordingData, int recordingMicroSeconds) {
@@ -187,15 +255,46 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         fileToSend = encrypted.cryptedRecording;
       }
     } else {
-      messageToSend = Message(
-        authorId: userId!,
-        messageType: MessageTypes.audio,
-        playbackDurationMicroSeconds: recordingMicroSeconds.toString(),
-        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-        chatUid: widget.chatId,
-        withBaseKey: withBaseKey,
-      );
-      fileToSend = base64.encode(utf8.encode(recordingData.toString()));
+      // No encryption key available - queue audio message regardless of chat type
+      final chat = obx.chats.get(int.parse(widget.chatId));
+      if (widget.baseKey == null && chat != null) {
+        // Queue audio message until key is available
+        await _queueMessageUntilKeyExchange(
+          chat.uid,
+          messageType: MessageTypes.audio,
+          fileData: recordingData!,
+          duration: recordingMicroSeconds!,
+        );
+        
+        setState(() {
+          sendingFile = false;
+          dropRecording();
+        });
+        
+        // Show user feedback
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(chat.isOneToOne 
+                ? 'Audio message queued - waiting for secure connection'
+                : 'Audio message queued - waiting for group encryption key'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return;
+      } else {
+        // Send unencrypted (fallback case)
+        messageToSend = Message(
+          authorId: userId!,
+          messageType: MessageTypes.audio,
+          playbackDurationMicroSeconds: recordingMicroSeconds.toString(),
+          createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+          chatUid: widget.chatId,
+          withBaseKey: withBaseKey,
+        );
+        fileToSend = base64.encode(utf8.encode(recordingData.toString()));
+      }
     }
     setState(() {
       sendingFile = true;
@@ -285,15 +384,46 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       );
       fileToSend = ecnrypted['crypted'];
     } else {
-      messageToSend = Message(
-        authorId: userId!,
-        messageType: MessageTypes.file,
-        text: file!.name,
-        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-        chatUid: widget.chatId,
-        withBaseKey: withBaseKey,
-      );
-      fileToSend = base64.encode(utf8.encode(file!.bytes.toString()));
+      // No encryption key available - queue file message regardless of chat type
+      final chat = obx.chats.get(int.parse(widget.chatId));
+      if (widget.baseKey == null && chat != null) {
+        // Queue file message until key is available
+        await _queueMessageUntilKeyExchange(
+          chat.uid,
+          messageType: MessageTypes.file,
+          fileData: file!.bytes!,
+          fileName: file!.name,
+        );
+        
+        setState(() {
+          sendingFile = false;
+          file = null;
+        });
+        
+        // Show user feedback
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(chat.isOneToOne 
+                ? 'File queued - waiting for secure connection'
+                : 'File queued - waiting for group encryption key'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return;
+      } else {
+        // Send unencrypted (fallback case)
+        messageToSend = Message(
+          authorId: userId!,
+          messageType: MessageTypes.file,
+          text: file!.name,
+          createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+          chatUid: widget.chatId,
+          withBaseKey: withBaseKey,
+        );
+        fileToSend = base64.encode(utf8.encode(file!.bytes.toString()));
+      }
     }
     setState(() {
       sendingFile = true;
@@ -351,15 +481,45 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       );
       fileToSend = encrypted['crypted'];
     } else {
-      messageToSend = Message(
-        authorId: userId!,
-        messageType: MessageTypes.image,
-        text: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
-        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-        chatUid: widget.chatId,
-        withBaseKey: withBaseKey,
-      );
-      fileToSend = base64.encode(jpgBytes);
+      // No encryption key available - queue image message regardless of chat type
+      final chat = obx.chats.get(int.parse(widget.chatId));
+      if (widget.baseKey == null && chat != null) {
+        // Queue image message until key is available
+        await _queueMessageUntilKeyExchange(
+          chat.uid,
+          messageType: MessageTypes.image,
+          fileData: jpgBytes,
+          fileName: 'image_${widget.chatId}_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
+        
+        setState(() {
+          sendingFile = false;
+        });
+        
+        // Show user feedback
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(chat.isOneToOne 
+                ? 'Image queued - waiting for secure connection'
+                : 'Image queued - waiting for group encryption key'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return;
+      } else {
+        // Send unencrypted (fallback case)
+        messageToSend = Message(
+          authorId: userId!,
+          messageType: MessageTypes.image,
+          text: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+          chatUid: widget.chatId,
+          withBaseKey: withBaseKey,
+        );
+        fileToSend = base64.encode(jpgBytes);
+      }
     }
 
     setState(() {

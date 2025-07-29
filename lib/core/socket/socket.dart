@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography_plus/helpers.dart';
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
@@ -183,6 +184,11 @@ class ChatSocket {
           true,
         );
         socketEventsService.handleGeneralEvent('getInitialData', payload);
+        
+        // After establishing WebSocket encryption, trigger key exchange checks
+        // This will cause the chat service to check for pending key exchanges
+        // and complete the Kyber key exchange process for any chats that need it
+        await _checkPendingKeyExchanges();
       }
     });
     return keyCompleter.future;
@@ -376,5 +382,24 @@ class ChatSocket {
   static resetConnection() {
     disconnectWS();
     connectWS();
+  }
+
+  static Future<void> _checkPendingKeyExchanges() async {
+    try {
+      // Get all chats and trigger key exchange checks
+      final chatService = ChatService();
+      final chats = obx.chats.getAll();
+      
+      // Check each one-to-one chat for pending key exchanges
+      for (final chat in chats) {
+        if (chat.isOneToOne) {
+          await chatService.checkKeys(chat);
+        }
+      }
+      
+      debugPrint('ChatSocket: Completed pending key exchange checks for ${chats.length} chats');
+    } catch (e) {
+      debugPrint('ChatSocket: Error checking pending key exchanges: $e');
+    }
   }
 }

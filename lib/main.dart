@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/objectbox.dart';
 import 'package:evercrypted/core/helpers/navigator_observer.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
@@ -446,7 +446,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
     final chats = obx.chats.getAll();
 
     if (chats.isNotEmpty) {
-      ref.read(chatsProvider.notifier).setChats(chats);
+      ChatState.setChats(chats);
     }
   }
 
@@ -489,13 +489,12 @@ class AuthGateState extends ConsumerState<AuthGate> {
         .watch()
         .map((query) => query.find())
         .listen((contacts) {
-      print('contacts: ${contacts.map((e) => e.toJson()).toList()}');
       ref.read(contactsProvider.notifier).setContacts(contacts);
     });
     //chats
     chatsListener =
         obx.chats.query().watch().map((query) => query.find()).listen((chats) {
-      ref.read(chatsProvider.notifier).setChats(chats);
+      ChatState.setChats(chats);
     });
     //messages
   }

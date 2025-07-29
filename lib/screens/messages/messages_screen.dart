@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/base_key.dart';
+import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
+import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
@@ -80,6 +81,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   final fabKey = GlobalKey<ExpandableFabState>();
   bool showFab = false;
   bool settingsDialogOpen = false;
+  StreamSubscription<List<Chat>>? chatsSubscription;
 
   @override
   void initState() {
@@ -134,7 +136,28 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     basekeyListener = BaseKey.baseKeySubject.stream.listen((chatUid) {
       if (chatUid == chat.uid) {
+        debugPrint(
+            'MessagesScreen.basekeyListener: Base key changed for chat ${chat.uid}');
         setBaseKey();
+      }
+    });
+
+    chatsSubscription = ChatState.subject.listen((chats) {
+      late final Chat? chatOrNull;
+      chatOrNull = chats.firstWhereOrNull((c) => c.uid == widget.chat.uid);
+      if (chatOrNull != null) {
+        setState(() {
+          chat = chatOrNull!;
+        });
+        debugPrint('MessagesScreen.build: Chat updated: ${chat.uid}');
+        setBaseKey();
+      } else {
+        Navigator.popUntil(context, (r) => r.isFirst);
+      }
+
+      if (chat.name == null) {
+        participantNames =
+            chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
       }
     });
 
@@ -170,15 +193,29 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     _passController.dispose();
     _pagingState.reset();
     basekeyListener?.cancel();
+    chatsSubscription?.cancel();
     super.dispose();
   }
 
   Future<String?> setBaseKey() async {
     final completer = Completer<String?>();
-    BaseKey.getKeys(chat.uid).then((keys) {
-      setState(() {
-        baseKey = keys?.baseKey;
-      });
+    BaseKey.getKeys(chat.uid).then((keys) async {
+      debugPrint(
+          'MessagesScreen.setBaseKey: Retrieved keys for chat ${chat.uid} (isOneToOne: ${chat.isOneToOne})');
+      debugPrint(
+          'MessagesScreen.setBaseKey: baseKey: ${keys?.baseKey?.substring(0, 8) ?? 'null'}... (userId: ${Auth.user?.uid})');
+
+      if (keys?.baseKey == null) {
+        debugPrint(
+            'MessagesScreen.setBaseKey: No baseKey found, calling ensureGroupKey');
+        await GroupKeyExchange.ensureGroupKey(chat.uid, chat.isOneToOne);
+      } else {
+        setState(() {
+          baseKey = keys
+              ?.baseKey; // This will be groupKey for group chats, Kyber key for one-to-one
+        });
+      }
+
       completer.complete(keys?.baseKey);
     });
     return completer.future;
@@ -382,17 +419,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                   children: [
                                     Icon(
                                       Icons.health_and_safety_outlined,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
+                                      color: Colors.white,
                                       size: 24,
                                     ),
                                     const SizedBox(width: 10),
                                     Text("Use Password",
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface))
+                                        style: TextStyle(color: Colors.white))
                                   ],
                                 ),
                               ),
@@ -580,24 +612,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<List<Chat>>(chatsProvider, (prev, next) {
-      setState(() {
-        late final Chat? chatOrNull;
-        chatOrNull = next.firstWhereOrNull((c) => c.uid == widget.chat.uid);
-        if (chatOrNull != null) {
-          chat = chatOrNull;
-          setBaseKey();
-        } else {
-          Navigator.popUntil(context, (r) => r.isFirst);
-        }
-      });
-
-      if (chat.name == null) {
-        participantNames =
-            chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
-      }
-    });
-
     return Scaffold(
         appBar: ConnectionStatusAppbar(
           isConnected: isConnected,

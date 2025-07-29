@@ -1,8 +1,10 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
-import 'package:evercrypted/core/entities/chat/chat_riverpod.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
+import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/services/hidden_chat_service.dart';
@@ -30,11 +32,29 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
   HiddenChatService hiddenChatService = HiddenChatService();
   late Participant user;
   late Chat chat;
+  StreamSubscription<List<Chat>>? chatsSubscription;
 
   @override
   void initState() {
-    chat = widget.chat;
     super.initState();
+    chat = widget.chat;
+    chatsSubscription = ChatState.subject.listen((chats) {
+      late final Chat? chatOrNull;
+      chatOrNull = chats.firstWhereOrNull((c) => c.uid == widget.chat.uid);
+      if (chatOrNull != null) {
+        setState(() {
+          chat = chatOrNull!;
+        });
+      } else {
+        Navigator.popUntil(context, (r) => r.isFirst);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    chatsSubscription?.cancel();
+    super.dispose();
   }
 
   Future<bool> _showConfirmationDialog({
@@ -70,20 +90,8 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<List<Chat>>(chatsProvider, (prev, next) {
-      setState(() {
-        late final Chat? chatOrNull;
-        chatOrNull = next.firstWhereOrNull((c) => c.uid == widget.chat.uid);
-        if (chatOrNull != null) {
-          chat = chatOrNull;
-        } else {
-          Navigator.popUntil(context, (r) => r.isFirst);
-        }
-      });
-    });
-
-    user = chat.participants.firstWhere((p) => p.email == Auth.getUser!.email);
     final profile = ref.watch(profileProvider);
+    user = chat.participants.firstWhere((p) => p.email == Auth.getUser!.email);
 
     return Scaffold(
         appBar: AppBar(
@@ -208,8 +216,16 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                   user: user,
                   participant: participant,
                   participantsLenght: chat.participants.length,
-                  remove: () => chatService.removeParticipantFromChat(
-                      chat: chat, participant: participant),
+                  remove: () => _showConfirmationDialog(
+                    title: 'Remove Participant',
+                    content: 'Are you sure you want to remove ${participant.name ?? participant.email} from this chat?',
+                    confirmText: 'Remove',
+                  ).then((confirmed) {
+                    if (confirmed) {
+                      chatService.removeParticipantFromChat(
+                          chat: chat, participant: participant);
+                    }
+                  }),
                 ),
             ],
             if ((user.isCreator || user.isAdmin) && !chat.isOneToOne) ...[

@@ -115,6 +115,14 @@ class MessageService {
     return complete.future;
   }
 
+  sendGroupKeyRequest(Message message) {
+    AppHttpClient.message(
+      channel: SocketChannelTypes.message,
+      type: MessageEventTypes.sendMessage,
+      payload: message.toJson(),
+    );
+  }
+
   dynamic checkIfSocketConnectedAndQueueIfNeeded(payload, file) async {
     final completer = Completer<dynamic>();
     Future<int> saveActionForLater() async {

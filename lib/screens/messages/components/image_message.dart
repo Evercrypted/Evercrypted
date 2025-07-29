@@ -43,23 +43,24 @@ class _ImageMessageState extends State<ImageMessage> {
     setImage(oldWidget: oldWidget);
   }
 
-  setImage({ImageMessage? oldWidget}) async {
-    if (widget.message.pass == oldWidget?.message.pass) {
+  setImage({ImageMessage? oldWidget, dynamic file}) async {
+    if (oldWidget != null && widget.message.pass == oldWidget.message.pass) {
       return;
     }
-    // print(widget.message.toJson());
 
-    late dynamic downloaded;
-    if (widget.message.queueId != null) {
-      downloaded =
-          await messageService.getMessageFile(queueId: widget.message.queueId);
-    } else {
-      downloaded = await messageService.getMessageFile(
-          chatUid: widget.message.chatUid, msgUid: widget.message.uid);
-      if (downloaded == null) {
-        setState(() {
-          needDownload = true;
-        });
+    dynamic downloaded = file;
+    if (downloaded == null) {
+      if (widget.message.queueId != null) {
+        downloaded = await messageService.getMessageFile(
+            queueId: widget.message.queueId);
+      } else {
+        downloaded = await messageService.getMessageFile(
+            chatUid: widget.message.chatUid, msgUid: widget.message.uid);
+        if (downloaded == null) {
+          setState(() {
+            needDownload = true;
+          });
+        }
       }
     }
 
@@ -113,7 +114,7 @@ class _ImageMessageState extends State<ImageMessage> {
       } else if (decryptionStatus == null) {
         setState(() {
           decryptionStatus = EncryptionStatus.notEncrypted;
-          imageData = downloaded = base64.decode(downloaded);
+          imageData = base64.decode(downloaded);
         });
       }
     }
@@ -130,7 +131,7 @@ class _ImageMessageState extends State<ImageMessage> {
         .downloadFile(widget.message.chatUid, widget.message.uid!,
             widget.message.fileKey!)
         .then((resp) {
-      imageData = base64.decode(resp);
+      setImage(file: resp);
       setState(() {
         downloadInProgress = false;
         needDownload = false;

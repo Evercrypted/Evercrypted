@@ -12,7 +12,6 @@ import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:evercrypted/widgets/secret_keyboard/qr_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 class AddContactButton extends ConsumerStatefulWidget {
@@ -76,16 +75,17 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
       ).then((value) {
         if (value == null) return;
         if (value) {
-          form.currentState?.reset();
           final cRequest = ContactRequest(
               recipientEmail: _emailController.text,
               message: _messageController.text);
+          form.currentState?.reset();
           _contactRequestService.createContactRequest(cRequest).then((resp) {
             widget.afterCallback?.call();
+            print('created');
             if (mounted) {
               _emailController.clear();
               _messageController.clear();
-              Navigator.pop(context);
+              Navigator.popUntil(context, (route) => route.isFirst);
             }
           }).onError((error, stackTrace) {
             if (mounted) {

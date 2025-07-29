@@ -11,6 +11,8 @@ class MessageTypes {
   static const image = 'image';
   static const video = 'video';
   static const system = 'system';
+  static const requestForAGroupKey = 'requestForAGroupKey';
+  static const responseForAGroupKey = 'responseForAGroupKey';
 }
 
 @Entity()

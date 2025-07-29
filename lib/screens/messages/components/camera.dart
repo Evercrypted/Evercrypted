@@ -216,7 +216,6 @@ class _CameraWidgetState extends State<CameraWidget> {
             ),
           Container(
             width: double.infinity,
-            color: primaryColor,
             padding: const EdgeInsets.only(
                 left: defaultPadding,
                 right: defaultPadding,
@@ -234,7 +233,7 @@ class _CameraWidgetState extends State<CameraWidget> {
                             color: Colors.white,
                           ),
                           label: const Text(
-                            'Decline',
+                            'Cancel',
                             style: TextStyle(color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -244,7 +243,6 @@ class _CameraWidgetState extends State<CameraWidget> {
                                 right: defaultPadding),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(color: Colors.white),
                             ),
                           ),
                         ),
@@ -254,17 +252,20 @@ class _CameraWidgetState extends State<CameraWidget> {
                           icon: const Icon(
                             Icons.send,
                             size: 24,
-                            color: primaryColor,
+                            color: Colors.white,
                           ),
                           label: const Text(
                             'Send',
-                            style: TextStyle(fontSize: 18),
+                            style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
                           iconAlignment: IconAlignment.end,
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.only(
+                                top: defaultPadding / 2,
+                                bottom: defaultPadding / 2,
                                 left: defaultPadding,
                                 right: defaultPadding / 1.5),
+                            backgroundColor: primaryColor,
                           ),
                         ),
                       ])
