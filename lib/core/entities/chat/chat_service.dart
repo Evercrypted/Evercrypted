@@ -119,11 +119,30 @@ class ChatService {
     obx.chats.putMany(allChats);
 
     if (chatsToDelete.isNotEmpty) {
-      for (var chat in chatsToDelete) {
-        final List<int> messageIds = chat.messages.map((m) => m.id).toList();
-        obx.messages.removeMany(messageIds);
-        obx.chats.remove(chat.id);
-      }
+      // Process chat deletions in parallel for better performance
+      final List<Future<void>> deletionFutures =
+          chatsToDelete.map((chat) async {
+        try {
+          // Clean up all message files for this chat in background (fire-and-forget)
+          final filePaths =
+              await messageService.buildFilePathsForMessages(chat.messages);
+          if (filePaths.isNotEmpty) {
+            messageService.deleteFiles(filePaths);
+          }
+
+          // Remove messages and chat from database immediately
+          final List<int> messageIds = chat.messages.map((m) => m.id).toList();
+          obx.messages.removeMany(messageIds);
+          obx.chats.remove(chat.id);
+        } catch (error) {
+          debugPrint('Failed to delete chat ${chat.uid}: $error');
+          // Continue with other chat deletions even if one fails
+        }
+      }).toList();
+
+      // Wait for all chat deletions to complete
+      await Future.wait(deletionFutures);
+      debugPrint('Completed deletion of ${chatsToDelete.length} chats');
     }
 
     completer.complete();
@@ -410,11 +429,18 @@ class ChatService {
   }
 
   deleteChat({required String chatUid, bool? skipNotify = false}) async {
-    delete() {
+    delete() async {
       final query = obx.chats.query(Chat_.uid.equals(chatUid)).build();
       final chatInDb = query.findFirst();
       query.close();
       if (chatInDb != null) {
+        // Clean up all message files in background (fire-and-forget)
+        final filePaths =
+            await messageService.buildFilePathsForMessages(chatInDb.messages);
+        if (filePaths.isNotEmpty) {
+          messageService.deleteFiles(filePaths);
+        }
+
         chatInDb.messages.clear();
         chatInDb.messages.applyToDb();
         obx.chats.remove(chatInDb.id);
@@ -426,15 +452,15 @@ class ChatService {
         channel: SocketChannelTypes.chat,
         type: ChatEventTypes.deleteChat,
         payload: chatUid,
-      ).then((resp) {
-        delete();
-      }).onError((error, stackTrace) {
+      ).then((resp) async {
+        await delete();
+      }).onError((error, stackTrace) async {
         if (error == 'No such chat found') {
-          delete();
+          await delete();
         }
       });
     } else {
-      delete();
+      await delete();
     }
   }
 

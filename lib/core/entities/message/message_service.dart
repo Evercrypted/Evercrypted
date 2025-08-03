@@ -159,6 +159,76 @@ class MessageService {
     }
   }
 
+  /// Batch delete multiple files for improved performance
+  /// Returns a map of file paths to deletion results (true = success, false = failed)
+  Future<Map<String, bool>> deleteFiles(List<String> filePaths) async {
+    final Map<String, bool> results = {};
+
+    if (filePaths.isEmpty) {
+      return results;
+    }
+
+    // Process files in parallel batches to improve performance
+    const int batchSize = 10;
+    final List<List<String>> batches = [];
+
+    for (int i = 0; i < filePaths.length; i += batchSize) {
+      final end =
+          (i + batchSize < filePaths.length) ? i + batchSize : filePaths.length;
+      batches.add(filePaths.sublist(i, end));
+    }
+
+    for (final batch in batches) {
+      final List<Future<void>> deletionFutures = batch.map((filePath) async {
+        try {
+          if (File(filePath).existsSync()) {
+            await File(filePath).delete();
+            results[filePath] = true;
+          } else {
+            results[filePath] = true; // File doesn't exist = success
+          }
+        } catch (error) {
+          debugPrint('Failed to delete file $filePath: $error');
+          results[filePath] = false;
+        }
+      }).toList();
+
+      // Wait for current batch to complete before processing next batch
+      await Future.wait(deletionFutures);
+    }
+
+    final successCount = results.values.where((success) => success).length;
+    final failCount = results.length - successCount;
+
+    if (failCount > 0) {
+      debugPrint(
+          'Batch file deletion completed: $successCount succeeded, $failCount failed');
+    } else {
+      debugPrint(
+          'Batch file deletion completed: all $successCount files deleted successfully');
+    }
+
+    return results;
+  }
+
+  /// Helper method to build file paths for messages
+  Future<List<String>> buildFilePathsForMessages(List<Message> messages) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final List<String> filePaths = [];
+
+    for (final message in messages) {
+      if (message.filepath != null && message.filepath!.isNotEmpty) {
+        filePaths.add(message.filepath!);
+      } else if (message.queueId != null) {
+        filePaths.add('${directory.path}/${message.queueId}');
+      } else if (message.uid != null) {
+        filePaths.add('${directory.path}/${message.chatUid}/${message.uid}');
+      }
+    }
+
+    return filePaths;
+  }
+
   getMessageFile({String? chatUid, String? msgUid, int? queueId}) async {
     final directory = await getApplicationDocumentsDirectory();
     final path = queueId != null
@@ -376,6 +446,23 @@ class MessageService {
   Future<void> deleteAllMessages(String chatUid) async {
     final query = obx.messages.query(Message_.chatUid.equals(chatUid)).build();
     final messages = query.find();
+
+    if (messages.isEmpty) {
+      query.close();
+      return;
+    }
+
+    // Build file paths for batch deletion
+    final filePaths = await buildFilePathsForMessages(messages);
+
+    // Fire-and-forget file deletion - don't wait for completion
+    if (filePaths.isNotEmpty) {
+      deleteFiles(filePaths).catchError((error) {
+        debugPrint('Background file deletion failed for chat $chatUid: $error');
+      });
+    }
+
+    // Remove messages from database immediately without waiting for file deletion
     final messageIds = messages.map((m) => m.id).toList();
     obx.messages.removeMany(messageIds);
     query.close();
