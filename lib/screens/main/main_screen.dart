@@ -3,6 +3,7 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/main.dart';
+import 'package:evercrypted/screens/main/contacts_tab_icon.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:flutter/material.dart';
@@ -135,7 +136,11 @@ class MainScreenState extends ConsumerState<MainScreen> {
                       initialActiveIndex: pageIndex,
                       items: [
                         TabItem(icon: Icons.messenger, title: 'Chats'),
-                        TabItem(icon: Icons.people, title: 'Contacts'),
+                        TabItem(
+                          icon: ContactsTabIcon(active: false),
+                          activeIcon: ContactsTabIcon(active: true),
+                          title: 'Contacts',
+                        ),
                         TabItem(icon: Icons.manage_accounts, title: 'Settings'),
                       ],
                       onTap: tabChangeHandler,
