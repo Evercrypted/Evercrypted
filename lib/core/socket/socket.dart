@@ -184,7 +184,7 @@ class ChatSocket {
           true,
         );
         socketEventsService.handleGeneralEvent('getInitialData', payload);
-        
+
         // After establishing WebSocket encryption, trigger key exchange checks
         // This will cause the chat service to check for pending key exchanges
         // and complete the Kyber key exchange process for any chats that need it
@@ -230,8 +230,6 @@ class ChatSocket {
 
       // Process queued actions immediately on connect
       await actionQueueService.processQueue();
-
-      setListeners();
     });
 
     socket?.onReconnect((data) async {
@@ -245,8 +243,6 @@ class ChatSocket {
 
       // Process queued actions immediately on reconnect
       await actionQueueService.processQueue();
-
-      setListeners();
     });
 
     socket?.on('disconnect', (data) {
@@ -268,12 +264,42 @@ class ChatSocket {
       }
     });
 
-    socket?.onAny((event, data) {
-      debugPrint('event $event');
+    socket?.onAny((channel, data) async {
+      debugPrint('event $channel');
       debugPrint('data $data');
-      if (event == 'error') {
+      if (channel == SocketChannelTypes.error) {
         debugPrint('error event');
         socketEventsService.handleErrorEvent(data['type'], data['payload']);
+      } else {
+        if (channelsToListen.contains(channel)) {
+          if (channel == SocketChannelTypes.error &&
+              data['message'] == 'Invalid Credentials') {
+            debugPrint('Could not connect to socket server');
+            disconnectWS();
+            isConnected = false;
+            isConnectedSubject.add(isConnected!);
+          } else {
+            dynamic payload;
+            if (key != null) {
+              payload = await decodePayload(
+                data['crypted'],
+                data['iv'],
+                key,
+                true,
+              );
+            } else {
+              payload = data;
+            }
+
+            debugPrint(
+              'got emit to $channel - ${payload.toString()}',
+            );
+            socketEventsService.handleEvent(
+                channel, payload['type'], payload['payload']);
+          }
+        } else {
+          debugPrint('Unknown event: $channel with data: $data');
+        }
       }
     });
 
@@ -283,41 +309,6 @@ class ChatSocket {
       isConnectedSubject.add(isConnected!);
       disconnectWS();
     });
-
-    setListeners();
-  }
-
-  static setListeners() {
-    for (var channel in channelsToListen) {
-      socket?.on(channel, (dynamic data) async {
-        debugPrint('raw data: $data');
-        if (channel == SocketChannelTypes.error &&
-            data['message'] == 'Invalid Credentials') {
-          debugPrint('Could not connect to socket server');
-          disconnectWS();
-          isConnected = false;
-          isConnectedSubject.add(isConnected!);
-        } else {
-          dynamic payload;
-          if (key != null) {
-            payload = await decodePayload(
-              data['crypted'],
-              data['iv'],
-              key,
-              true,
-            );
-          } else {
-            payload = data;
-          }
-
-          debugPrint(
-            'got emit to $channel - ${payload.toString()}',
-          );
-          socketEventsService.handleEvent(
-              channel, payload['type'], payload['payload']);
-        }
-      });
-    }
   }
 
   static Future<dynamic> emitWAck(String channel, String type, dynamic payload,
@@ -389,15 +380,16 @@ class ChatSocket {
       // Get all chats and trigger key exchange checks
       final chatService = ChatService();
       final chats = obx.chats.getAll();
-      
+
       // Check each one-to-one chat for pending key exchanges
       for (final chat in chats) {
         if (chat.isOneToOne) {
           await chatService.checkKeys(chat);
         }
       }
-      
-      debugPrint('ChatSocket: Completed pending key exchange checks for ${chats.length} chats');
+
+      debugPrint(
+          'ChatSocket: Completed pending key exchange checks for ${chats.length} chats');
     } catch (e) {
       debugPrint('ChatSocket: Error checking pending key exchanges: $e');
     }

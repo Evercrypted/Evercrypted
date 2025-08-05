@@ -654,7 +654,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           ],
         ),
         bottomNavigationBar: ChatInputField(
-            chatId: chat.uid,
+            chat: chat,
             baseKey: baseKey,
             pass: pass,
             player: player,
