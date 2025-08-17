@@ -1,26 +1,31 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
+import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 
-class ParticipantCard extends StatelessWidget {
+class ParticipantCard extends ConsumerWidget {
   final Participant user;
   final Participant participant;
   final int participantsLenght;
   final Function remove;
 
-  ParticipantCard(
+  const ParticipantCard(
       {super.key,
       required this.participant,
       required this.participantsLenght,
       required this.user,
       required this.remove});
 
-  final String userEmail = Auth.getUser!.email;
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final contacts = ref.watch(contactsProvider);
+    final contact = contacts.firstWhereOrNull(
+      (c) => c.contactPersonUid == participant.uid,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: defaultPadding * 2, vertical: defaultPadding * 0.5),
@@ -42,12 +47,36 @@ class ParticipantCard extends StatelessWidget {
                     width: MediaQuery.of(context).size.width -
                         4 * defaultPadding -
                         130,
-                    child: Text(
-                      participant.name ?? participant.email!,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            participant.name ?? participant.email!,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w500),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                        if (contact != null && !contact.hasActivated) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'Free',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),

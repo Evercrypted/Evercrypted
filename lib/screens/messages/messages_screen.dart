@@ -5,6 +5,7 @@ import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
+import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
@@ -610,28 +611,86 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
+  Widget _buildChatTitle() {
+    if (chat.isOneToOne) {
+      // For one-to-one chats, show premium status indicator
+      final contacts = ref.watch(contactsProvider);
+      final otherParticipant = chat.participants.firstWhere(
+        (p) => p.email != Auth.getUser!.email,
+      );
+      final contact = contacts.firstWhereOrNull(
+        (c) => c.contactPersonUid == otherParticipant.uid,
+      );
+      
+      return Row(
+        children: [
+          CircleAvatarWithActiveIndicator(
+            image: chat.avatar?.pic,
+            radius: isConnected ? 28 : 14,
+            name: (chat.name ?? participantNames),
+          ),
+          const SizedBox(width: defaultPadding * 0.5),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    chat.name ?? participantNames,
+                    style: const TextStyle(fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (contact != null && !contact.hasActivated) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Free',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      );
+    } else {
+      // For group chats, show normal title
+      return Row(
+        children: [
+          CircleAvatarWithActiveIndicator(
+            image: chat.avatar?.pic,
+            radius: isConnected ? 28 : 14,
+            name: (chat.name ?? participantNames),
+          ),
+          const SizedBox(width: defaultPadding * 0.5),
+          Expanded(
+            child: Text(
+              chat.name ?? participantNames,
+              style: const TextStyle(fontSize: 16),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: ConnectionStatusAppbar(
           isConnected: isConnected,
-          title: Row(
-            children: [
-              CircleAvatarWithActiveIndicator(
-                image: chat.avatar?.pic,
-                radius: isConnected ? 28 : 14,
-                name: (chat.name ?? participantNames),
-              ),
-              const SizedBox(width: defaultPadding * 0.5),
-              Expanded(
-                child: Text(
-                  chat.name ?? participantNames,
-                  style: const TextStyle(fontSize: 16),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+          title: _buildChatTitle(),
           actions: [
             IconButton(
               icon: const Icon(Icons.settings),

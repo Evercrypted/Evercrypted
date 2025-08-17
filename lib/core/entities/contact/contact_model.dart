@@ -38,6 +38,8 @@ class Contact {
 
   bool isFavorite;
 
+  bool hasActivated;
+
   String? get dbEmail {
     final String? appKey = Auth.appKey;
     if (appKey == null) {
@@ -82,7 +84,8 @@ class Contact {
       this.avatar,
       this.name,
       this.contactPersonUid,
-      this.isFavorite = false});
+      this.isFavorite = false,
+      this.hasActivated = false});
 
   factory Contact.fromJson(Map<String, dynamic> json) => Contact(
         uid: json['uid'] as String?,
@@ -95,6 +98,7 @@ class Contact {
         name: json['name'] as String?,
         contactPersonUid: json['contactPersonUid'] as String?,
         isFavorite: json['isFavorite'] as bool? ?? false,
+        hasActivated: json['hasActivated'] as bool? ?? false,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -104,6 +108,7 @@ class Contact {
         'contactPersonUid': contactPersonUid,
         'avatar': avatar?.toJson(),
         'isFavorite': isFavorite,
+        'hasActivated': hasActivated,
       };
 
   Contact copyWith({
@@ -112,6 +117,7 @@ class Contact {
     String? name,
     String? contactPersonUid,
     bool? isFavorite,
+    bool? hasActivated,
     Avatar? avatar,
   }) {
     return Contact(
@@ -121,6 +127,7 @@ class Contact {
       name: name ?? this.name,
       contactPersonUid: contactPersonUid ?? this.contactPersonUid,
       isFavorite: isFavorite ?? this.isFavorite,
+      hasActivated: hasActivated ?? this.hasActivated,
     );
   }
 }

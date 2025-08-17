@@ -30,17 +30,42 @@ class ContactCard extends ConsumerWidget {
         radius: 28,
         name: contact.name ?? contact.email!.split('@')[0],
       ),
-      title: contact.name != null
-          ? Text(
-              contact.name!,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+      title: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: contact.name != null
+                ? Text(
+                    contact.name!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  )
+                : Text(
+                    contact.email!.split('@')[0],
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+          ),
+          if (!contact.hasActivated) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Free',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             )
-          : Text(
-              contact.email!.split('@')[0],
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
+          ],
+        ],
+      ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: defaultPadding / 2),
         child: Text(
