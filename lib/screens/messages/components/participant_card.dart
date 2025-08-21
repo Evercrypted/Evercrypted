@@ -1,6 +1,8 @@
-import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
+import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
@@ -23,9 +25,10 @@ class ParticipantCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final contacts = ref.watch(contactsProvider);
-    final contact = contacts.firstWhereOrNull(
+    final Contact? contact = contacts.firstWhereOrNull(
       (c) => c.contactPersonUid == participant.uid,
     );
+    final profile = ref.watch(profileProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: defaultPadding * 2, vertical: defaultPadding * 0.5),
@@ -61,7 +64,8 @@ class ParticipantCard extends ConsumerWidget {
                         if (contact != null && !contact.hasActivated) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.grey,
                               borderRadius: BorderRadius.circular(12),
@@ -83,15 +87,130 @@ class ParticipantCard extends ConsumerWidget {
               ],
             ),
           ),
-          if (participantsLenght > 2 && (user.isAdmin || user.isCreator))
-            IconButton(
-              onPressed: () {
-                remove();
-              },
-              icon: const Icon(Icons.delete, color: errorColor),
-            )
+          IconButton(
+            onPressed: () {
+              _showOptionsBottomSheet(context, contact, profile);
+            },
+            icon: const Icon(Icons.more_vert),
+          )
         ],
       ),
+    );
+  }
+
+  void _showOptionsBottomSheet(
+      BuildContext context, Contact? contact, Profile? profile) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle indicator
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                if (profile != null &&
+                    contact != null &&
+                    !contact.hasActivated &&
+                    profile.activationTokenQuantity > 0)
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withAlpha((255 * 0.1).toInt()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.card_giftcard,
+                          color: primaryColor, size: 20),
+                    ),
+                    title: Text(
+                      'Activate Premium License',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: contentColorLightThemeSecondary),
+                    ),
+                    subtitle: const Text(
+                      'Give out premium license to this user',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      // TODO: Implement report functionality
+                    },
+                  ),
+                if (participantsLenght > 2 && (user.isAdmin || user.isCreator))
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: errorColor.withAlpha((255 * 0.1).toInt()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child:
+                          const Icon(Icons.delete, color: errorColor, size: 20),
+                    ),
+                    title: Text('Remove from chat',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: contentColorLightThemeSecondary)),
+                    subtitle: const Text(
+                      'Remove this participant from the chat',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      remove();
+                    },
+                  ),
+                // ListTile(
+                //   leading: Container(
+                //     padding: const EdgeInsets.all(8),
+                //     decoration: BoxDecoration(
+                //       color: Colors.orange.withAlpha((255 * 0.1).toInt()),
+                //       borderRadius: BorderRadius.circular(8),
+                //     ),
+                //     child:
+                //         const Icon(Icons.block, color: Colors.orange, size: 20),
+                //   ),
+                //   title: Text(
+                //     'Block user',
+                //     style: TextStyle(
+                //         fontWeight: FontWeight.w500,
+                //         color: contentColorLightThemeSecondary),
+                //   ),
+                //   subtitle: const Text(
+                //     'Block this user from contacting you',
+                //     style: TextStyle(fontSize: 12, color: Colors.grey),
+                //   ),
+                //   onTap: () {
+                //     Navigator.pop(context);
+                //     // TODO: Implement block functionality
+                //   },
+                // ),
+                // const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

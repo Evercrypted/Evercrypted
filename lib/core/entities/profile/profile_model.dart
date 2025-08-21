@@ -58,6 +58,21 @@ class Profile {
     }
   }
 
+  @Transient()
+  List<BlockedUser>? blockedUsers;
+
+  String? get dbBlockedUsers => blockedUsers == null
+      ? null
+      : jsonEncode(blockedUsers?.map((e) => e.toJson()).toList());
+
+  set dbBlockedUsers(String? value) {
+    blockedUsers = value == null
+        ? null
+        : (jsonDecode(value) as List)
+            .map((e) => BlockedUser.fromJson(e))
+            .toList();
+  }
+
   String? get dbEmail {
     final String? appKey = Auth.appKey;
     if (appKey == null) {
@@ -105,7 +120,8 @@ class Profile {
       this.activatedForLife = false,
       this.activationTokenQuantity = 0,
       this.subscription,
-      this.accountSettings});
+      this.accountSettings,
+      this.blockedUsers});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
         uid: json['uid'] as String,
@@ -121,6 +137,11 @@ class Profile {
         accountSettings: json['accountSettings'] != null
             ? AccountSettings.fromJson(json['accountSettings'])
             : null,
+        blockedUsers: json['blockedUsers'] != null
+            ? (json['blockedUsers'] as List)
+                .map((e) => BlockedUser.fromJson(e))
+                .toList()
+            : null,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -133,6 +154,7 @@ class Profile {
         'activatedForLife': activatedForLife,
         'activationTokenQuantity': activationTokenQuantity,
         'accountSettings': accountSettings?.toJson(),
+        'blockedUsers': blockedUsers?.map((e) => e.toJson()).toList(),
       };
 
   Profile copyWith({
@@ -145,6 +167,7 @@ class Profile {
     AccountSettings? accountSettings,
     bool? activatedForLife,
     int? activationTokenQuantity,
+    List<BlockedUser>? blockedUsers,
   }) {
     return Profile(
       uid: uid ?? this.uid,
@@ -157,6 +180,7 @@ class Profile {
       activatedForLife: activatedForLife ?? this.activatedForLife,
       activationTokenQuantity:
           activationTokenQuantity ?? this.activationTokenQuantity,
+      blockedUsers: blockedUsers ?? this.blockedUsers,
     );
   }
 }
@@ -221,5 +245,25 @@ class AccountSettings {
         'appIcon': appIcon,
         'hiddenChats': hiddenChats,
         'hiddenContacts': hiddenContacts,
+      };
+}
+
+class BlockedUser {
+  final String uid;
+  final String email;
+  final String name;
+
+  BlockedUser({required this.uid, required this.email, required this.name});
+
+  factory BlockedUser.fromJson(Map<String, dynamic> json) => BlockedUser(
+        uid: json['uid'] as String,
+        email: json['email'] as String,
+        name: json['name'] as String,
+      );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'uid': uid,
+        'email': email,
+        'name': name,
       };
 }

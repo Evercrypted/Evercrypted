@@ -92,11 +92,7 @@ class _PasswordDialogIconState extends State<PasswordDialogIcon>
               height: 12,
               width: 12,
               decoration: BoxDecoration(
-                color: !widget.chat.isOneToOne
-                    ? Colors.grey
-                    : widget.baseKey == null
-                        ? errorColor
-                        : primaryColor,
+                color: widget.baseKey == null ? errorColor : primaryColor,
                 shape: BoxShape.circle,
                 border: Border.all(
                     color: Theme.of(context).dialogTheme.backgroundColor!,

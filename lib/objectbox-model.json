@@ -98,7 +98,7 @@
     },
     {
       "id": "3:1371536200008545624",
-      "lastPropertyId": "7:8774225307899609223",
+      "lastPropertyId": "8:6110466623170020597",
       "name": "Contact",
       "properties": [
         {
@@ -140,6 +140,11 @@
           "id": "7:8774225307899609223",
           "name": "dbName",
           "type": 9
+        },
+        {
+          "id": "8:6110466623170020597",
+          "name": "hasActivated",
+          "type": 1
         }
       ],
       "relations": []
@@ -369,7 +374,7 @@
     },
     {
       "id": "6:7619996462336598562",
-      "lastPropertyId": "10:6991001352822846029",
+      "lastPropertyId": "11:8448089022275733924",
       "name": "Profile",
       "properties": [
         {
@@ -421,6 +426,11 @@
         {
           "id": "10:6991001352822846029",
           "name": "dbName",
+          "type": 9
+        },
+        {
+          "id": "11:8448089022275733924",
+          "name": "dbBlockedUsers",
           "type": 9
         }
       ],
