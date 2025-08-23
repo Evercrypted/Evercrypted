@@ -5,9 +5,12 @@ import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
+import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
@@ -50,8 +53,10 @@ class MessagesScreen extends ConsumerStatefulWidget {
 }
 
 class MessagesScreenState extends ConsumerState<MessagesScreen> {
-  final settingsForm = GlobalKey<FormState>();
   final MessageService _messageService = MessageService();
+  final ContactService _contactService = ContactService();
+  final settingsForm = GlobalKey<FormState>();
+
   final userId = Auth.user?.uid;
   late int startingCreatedAtMSE;
   int nextPageKey = 0;
@@ -611,17 +616,16 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
-  Widget _buildChatTitle() {
+  Widget _buildChatTitle(List<Contact> contacts, profile) {
     if (chat.isOneToOne) {
       // For one-to-one chats, show premium status indicator
-      final contacts = ref.watch(contactsProvider);
       final otherParticipant = chat.participants.firstWhere(
         (p) => p.email != Auth.getUser!.email,
       );
       final contact = contacts.firstWhereOrNull(
         (c) => c.contactPersonUid == otherParticipant.uid,
       );
-      
+
       return Row(
         children: [
           CircleAvatarWithActiveIndicator(
@@ -632,6 +636,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           const SizedBox(width: defaultPadding * 0.5),
           Expanded(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Text(
@@ -642,21 +647,16 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                 ),
                 if (contact != null && !contact.hasActivated) ...[
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(12),
+                  IconButton(
+                    icon: Icon(
+                      Icons.card_giftcard,
+                      color: primaryColor,
                     ),
-                    child: const Text(
-                      'Free',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                    onPressed: () {
+                      _contactService.showActivationConfirmationDialog(
+                          context, contact, profile);
+                    },
+                  )
                 ],
               ],
             ),
@@ -687,10 +687,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final contacts = ref.read(contactsProvider);
+    final profile = ref.read(profileProvider);
     return Scaffold(
         appBar: ConnectionStatusAppbar(
           isConnected: isConnected,
-          title: _buildChatTitle(),
+          title: _buildChatTitle(contacts, profile),
           actions: [
             IconButton(
               icon: const Icon(Icons.settings),

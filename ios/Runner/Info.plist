@@ -27,6 +27,8 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>otpauth</string>
+		<string>https</string>
+		<string>http</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

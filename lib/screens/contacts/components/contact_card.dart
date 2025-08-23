@@ -1,4 +1,6 @@
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
+import 'package:evercrypted/core/entities/contact/contact_service.dart';
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,6 +25,8 @@ class ContactCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+    final contactService = ContactService();
     return ListTile(
       leading: CircleAvatarWithActiveIndicator(
         image: contact.avatar?.pic,
@@ -30,41 +34,19 @@ class ContactCard extends ConsumerWidget {
         radius: 28,
         name: contact.name ?? contact.email!.split('@')[0],
       ),
-      title: Row(
-        children: [
-          Expanded(
-            flex: 1,
-            child: contact.name != null
-                ? Text(
-                    contact.name!,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  )
-                : Text(
-                    contact.email!.split('@')[0],
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-          ),
-          if (!contact.hasActivated) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(12),
+      title: Expanded(
+        flex: 1,
+        child: contact.name != null
+            ? Text(
+                contact.name!,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              )
+            : Text(
+                contact.email!.split('@')[0],
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-              child: Text(
-                'Free',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          ],
-        ],
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: defaultPadding / 2),
@@ -81,14 +63,38 @@ class ContactCard extends ConsumerWidget {
       ),
       trailing: isParticipantSelect
           ? null
-          : IconButton(
-              icon: const Icon(
-                Icons.chat,
-                color: primaryColor,
+          : SizedBox(
+              width: profile != null &&
+                      !contact.hasActivated &&
+                      profile.activationTokenQuantity > 0
+                  ? 96
+                  : 48,
+              child: Row(
+                children: [
+                  if (profile != null &&
+                      !contact.hasActivated &&
+                      profile.activationTokenQuantity > 0)
+                    IconButton(
+                      icon: Icon(
+                        Icons.card_giftcard,
+                        color: primaryColor,
+                      ),
+                      onPressed: () {
+                        contactService.showActivationConfirmationDialog(
+                            context, contact, profile);
+                      },
+                    ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.chat,
+                      color: primaryColor,
+                    ),
+                    onPressed: () {
+                      chatService.openOneToOneChat(context, ref, contact);
+                    },
+                  ),
+                ],
               ),
-              onPressed: () {
-                chatService.openOneToOneChat(context, ref, contact);
-              },
             ),
       onTap: onTap,
     );

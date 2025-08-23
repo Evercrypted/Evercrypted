@@ -220,6 +220,25 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (profile != null &&
+                  !widget.contact.hasActivated &&
+                  profile.activationTokenQuantity > 0) ...[
+                TextButton.icon(
+                  label: const Text(
+                    'Activate Premium License',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  icon: Icon(
+                    Icons.card_giftcard,
+                    color: secondaryColor,
+                  ),
+                  onPressed: () {
+                    contactService.showActivationConfirmationDialog(
+                        context, widget.contact, profile);
+                  },
+                ),
+                const SizedBox(height: 5),
+              ],
               TextButton.icon(
                 onPressed: () {
                   chatService.openOneToOneChat(context, ref, widget.contact);

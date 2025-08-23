@@ -1,8 +1,14 @@
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_service.dart';
+import 'package:evercrypted/core/http.dart';
+import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
+import 'package:evercrypted/main.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +30,7 @@ class ParticipantCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final contactService = ContactService();
     final contacts = ref.watch(contactsProvider);
     final Contact? contact = contacts.firstWhereOrNull(
       (c) => c.contactPersonUid == participant.uid,
@@ -37,51 +44,37 @@ class ParticipantCard extends ConsumerWidget {
         children: [
           Expanded(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CircleAvatarWithActiveIndicator(
                   image: participant.avatar?.pic,
                   radius: 24,
                   name: participant.name ?? participant.email,
                 ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: defaultPadding),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width -
-                        4 * defaultPadding -
-                        130,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            participant.name ?? participant.email!,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w500),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Expanded(
+                        child: Text(
+                          participant.name ?? participant.email!,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
-                        if (contact != null && !contact.hasActivated) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.grey,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              'Free',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+                      ),
+                      if (contact != null && !contact.hasActivated) ...[
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.card_giftcard,
+                          color: primaryColor,
+                        ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
               ],
@@ -89,7 +82,8 @@ class ParticipantCard extends ConsumerWidget {
           ),
           IconButton(
             onPressed: () {
-              _showOptionsBottomSheet(context, contact, profile);
+              _showOptionsBottomSheet(
+                  context, contact, profile, contactService);
             },
             icon: const Icon(Icons.more_vert),
           )
@@ -98,8 +92,8 @@ class ParticipantCard extends ConsumerWidget {
     );
   }
 
-  void _showOptionsBottomSheet(
-      BuildContext context, Contact? contact, Profile? profile) {
+  void _showOptionsBottomSheet(BuildContext context, Contact? contact,
+      Profile? profile, contactService) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -153,7 +147,8 @@ class ParticipantCard extends ConsumerWidget {
                     ),
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Implement report functionality
+                      contactService.showActivationConfirmationDialog(
+                          context, contact, profile);
                     },
                   ),
                 if (participantsLenght > 2 && (user.isAdmin || user.isCreator))
