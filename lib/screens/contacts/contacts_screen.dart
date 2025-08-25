@@ -280,18 +280,32 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                     }),
               ),
               if (!widget.isParticipantSelect)
-                InkWell(
-                    onTap: () {
+                Padding(
+                  padding: const EdgeInsets.only(right: defaultPadding / 2),
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      shadowColor: WidgetStateProperty.all(Colors.transparent),
+                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                        side: BorderSide(
+                          color: primaryColor,
+                        ),
+                      )),
+                    ),
+                    onPressed: () {
                       Navigator.pushNamed(
                           context, AddNewContactScreen.routeName);
                     },
-                    child: Tooltip(
-                      message: 'Check received / sent requests',
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        child: CheckRequestsIcon(isThereUnread: isThereUnread),
-                      ),
-                    ))
+                    child: Row(
+                      children: [
+                        Text('Requests'),
+                        SizedBox(width: defaultPadding / 2),
+                        CheckRequestsIcon(isThereUnread: isThereUnread)
+                      ],
+                    ),
+                  ),
+                )
             ],
           ),
           Expanded(
