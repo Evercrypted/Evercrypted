@@ -76,8 +76,8 @@ dependencies:
   image: ^4.5.4
   back_button_interceptor: ^8.0.4
   mobile_scanner: ^7.0.1
+  screen_protector: ^1.4.2+1
   flutter_ever_crypto: ^0.1.4
-
   collection: ^1.19.1
   objectbox: ^4.3.0
   objectbox_flutter_libs: ^4.3.0

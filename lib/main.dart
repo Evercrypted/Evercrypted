@@ -32,6 +32,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:rhttp/rhttp.dart';
+import 'package:screen_protector/screen_protector.dart';
 import 'core/entities/contact-request/contact_request_riverpod.dart';
 import 'core/entities/contact/contact_riverpod.dart';
 import 'core/socket/socket.dart';
@@ -107,8 +108,15 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> {
+  void _preventScreenshotOn() async =>
+      await ScreenProtector.preventScreenshotOn();
+  void _protectDataLeakageWithBlur() async =>
+      await ScreenProtector.protectDataLeakageWithBlur();
+
   @override
   void initState() {
+    _preventScreenshotOn();
+    _protectDataLeakageWithBlur();
     super.initState();
     BackButtonInterceptor.add(myInterceptor);
   }
