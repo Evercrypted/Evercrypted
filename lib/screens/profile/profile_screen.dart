@@ -2,7 +2,12 @@ import 'dart:async';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_service.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
+import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
@@ -30,6 +35,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   late Color dialogPickerColor;
   bool isActivated = Auth.getUser?.activated ?? false;
   StreamSubscription? authListener;
+  final TextEditingController activationCodeController =
+      TextEditingController();
 
   Future<void> _signOut() async {
     final bool? shouldSignOut = await showDialog<bool>(
@@ -90,7 +97,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  
+
                   // Header
                   Row(
                     children: [
@@ -130,9 +137,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Token Count Display
                   Container(
                     width: double.infinity,
@@ -156,8 +163,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                         ),
                         Text(
-                          profile.activationTokenQuantity == 1 
-                              ? 'Activation Token Available' 
+                          profile.activationTokenQuantity == 1
+                              ? 'Activation Token Available'
                               : 'Activation Tokens Available',
                           style: TextStyle(
                             fontSize: 16,
@@ -168,9 +175,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Description
                   Text(
                     'Use activation tokens to give premium licenses to your friends and family. Each token activates one user permanently.',
@@ -181,9 +188,110 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       height: 1.4,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
+                  // Activation Code Input Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Have an activation code?',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Enter your code to redeem activation tokens',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Builder(builder: (context) {
+                          final keyboardNotifier =
+                              ref.read(keyboardProvider.notifier);
+                          return TextFormField(
+                            controller: activationCodeController,
+                            keyboardType: TextInputType.none,
+                            onTap: () {
+                              keyboardNotifier.openKeyboard(
+                                controller: activationCodeController,
+                                onChange: (val) {
+                                  // Update controller value
+                                },
+                              );
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Enter activation code',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide:
+                                    BorderSide(color: primaryColor, width: 2),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                            ),
+                            style: const TextStyle(fontSize: 14),
+                          );
+                        }),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              _redeemActivationCode();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Redeem Code',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
                   // Buy More Button
                   SizedBox(
                     width: double.infinity,
@@ -217,9 +325,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // Close Button
                   SizedBox(
                     width: double.infinity,
@@ -253,8 +361,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _navigateToPurchaseTokens(BuildContext context) async {
     final profile = ref.read(profileProvider);
     final email = profile?.email ?? '';
-    final url = Uri.parse('https://evercrypted.com/buy?email=${Uri.encodeComponent(email)}');
-    
+    final url = Uri.parse(
+        'https://evercrypted.com/buy?email=${Uri.encodeComponent(email)}');
+
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -269,6 +378,81 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (context.mounted) {
         Navigator.pushNamed(context, ActivationMainScreen.routeName);
       }
+    }
+  }
+
+  void _redeemActivationCode() async {
+    final activationCode = activationCodeController.text.trim();
+
+    if (activationCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter an activation code'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Send activation code redemption request through socket
+      final response = await AppHttpClient.message(
+        channel: SocketChannelTypes.settings,
+        type: SettingsEventTypes.redeemActivationCode,
+        payload: {'activationCode': activationCode},
+      );
+
+      if (response['success'] == true) {
+        // Update the local profile with new activation token quantity
+        final currentProfile = ref.read(profileProvider);
+        if (currentProfile != null &&
+            response['activationTokenQuantity'] != null) {
+          final updatedProfile = currentProfile.copyWith(
+            activationTokenQuantity: response['activationTokenQuantity'],
+          );
+
+          // Sync the updated profile
+          final profileService = ProfileService();
+          profileService.syncProfile(updatedProfile);
+        }
+
+        // Clear the input field
+        activationCodeController.clear();
+
+        if (mounted) {
+          // Close the keyboard if open
+          // Close the bottom sheet
+          Navigator.pop(context);
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ??
+                  'Activation code redeemed successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text(response['error'] ?? 'Failed to redeem activation code'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (error) {
+      // Show error message for network/other errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${error.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -292,6 +476,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void dispose() {
     authListener?.cancel();
+    activationCodeController.dispose();
     super.dispose();
   }
 
@@ -383,7 +568,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 },
                 child: Container(
                   margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: primaryColor.withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(20),
@@ -412,7 +598,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       if ((profile.activationTokenQuantity) > 0) ...[
                         const SizedBox(width: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: primaryColor,
                             borderRadius: BorderRadius.circular(12),

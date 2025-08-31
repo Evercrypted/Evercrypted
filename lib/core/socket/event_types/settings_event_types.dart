@@ -4,4 +4,5 @@ class SettingsEventTypes {
   static const activate2FA = 'activate2FA';
   static const deactivate2FA = 'deactivate2FA';
   static const login2FA = 'login2FA';
+  static const redeemActivationCode = 'redeemActivationCode';
 }
