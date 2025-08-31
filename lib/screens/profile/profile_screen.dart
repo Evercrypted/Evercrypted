@@ -2,14 +2,10 @@ import 'dart:async';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
-import 'package:evercrypted/core/entities/profile/profile_service.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
-import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
-import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
-import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
+import 'package:evercrypted/screens/profile/activation_tokens_screen.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
@@ -35,8 +31,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   late Color dialogPickerColor;
   bool isActivated = Auth.getUser?.activated ?? false;
   StreamSubscription? authListener;
-  final TextEditingController activationCodeController =
-      TextEditingController();
 
   Future<void> _signOut() async {
     final bool? shouldSignOut = await showDialog<bool>(
@@ -67,395 +61,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  void _showActivationTokensBottomSheet(BuildContext context, profile) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Handle indicator
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-
-                  // Header
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withAlpha((255 * 0.1).round()),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.card_giftcard,
-                          color: primaryColor,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Activation Tokens',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Share premium licenses with friends',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Token Count Display
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withAlpha((255 * 0.05).round()),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: primaryColor.withAlpha((255 * 0.2).round()),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          '${profile.activationTokenQuantity}',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: primaryColor,
-                          ),
-                        ),
-                        Text(
-                          profile.activationTokenQuantity == 1
-                              ? 'Activation Token Available'
-                              : 'Activation Tokens Available',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Description
-                  Text(
-                    'Use activation tokens to give premium licenses to your friends and family. Each token activates one user permanently.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      height: 1.4,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Activation Code Input Section
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Have an activation code?',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Enter your code to redeem activation tokens',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Builder(builder: (context) {
-                          final keyboardNotifier =
-                              ref.read(keyboardProvider.notifier);
-                          return TextFormField(
-                            controller: activationCodeController,
-                            keyboardType: TextInputType.none,
-                            onTap: () {
-                              keyboardNotifier.openKeyboard(
-                                controller: activationCodeController,
-                                onChange: (val) {
-                                  // Update controller value
-                                },
-                              );
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Enter activation code',
-                              hintStyle: TextStyle(color: Colors.grey[400]),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide:
-                                    BorderSide(color: Colors.grey[300]!),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide:
-                                    BorderSide(color: Colors.grey[300]!),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide:
-                                    BorderSide(color: primaryColor, width: 2),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 10),
-                            ),
-                            style: const TextStyle(fontSize: 14),
-                          );
-                        }),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              _redeemActivationCode();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Text(
-                              'Redeem Code',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Buy More Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _navigateToPurchaseTokens(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.shopping_cart, size: 20),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Buy More Tokens',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Close Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Close',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _navigateToPurchaseTokens(BuildContext context) async {
-    final profile = ref.read(profileProvider);
-    final email = profile?.email ?? '';
-    final url = Uri.parse(
-        'https://evercrypted.com/buy?email=${Uri.encodeComponent(email)}');
-
-    try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        // Fallback to activation screen if URL can't be opened
-        if (context.mounted) {
-          Navigator.pushNamed(context, ActivationMainScreen.routeName);
-        }
-      }
-    } catch (e) {
-      // Fallback to activation screen on error
-      if (context.mounted) {
-        Navigator.pushNamed(context, ActivationMainScreen.routeName);
-      }
-    }
-  }
-
-  void _redeemActivationCode() async {
-    final activationCode = activationCodeController.text.trim();
-
-    if (activationCode.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter an activation code'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    try {
-      // Send activation code redemption request through socket
-      final response = await AppHttpClient.message(
-        channel: SocketChannelTypes.settings,
-        type: SettingsEventTypes.redeemActivationCode,
-        payload: {'activationCode': activationCode},
-      );
-
-      if (response['success'] == true) {
-        // Update the local profile with new activation token quantity
-        final currentProfile = ref.read(profileProvider);
-        if (currentProfile != null &&
-            response['activationTokenQuantity'] != null) {
-          final updatedProfile = currentProfile.copyWith(
-            activationTokenQuantity: response['activationTokenQuantity'],
-          );
-
-          // Sync the updated profile
-          final profileService = ProfileService();
-          profileService.syncProfile(updatedProfile);
-        }
-
-        // Clear the input field
-        activationCodeController.clear();
-
-        if (mounted) {
-          // Close the keyboard if open
-          // Close the bottom sheet
-          Navigator.pop(context);
-
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response['message'] ??
-                  'Activation code redeemed successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        // Show error message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text(response['error'] ?? 'Failed to redeem activation code'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (error) {
-      // Show error message for network/other errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${error.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -476,7 +81,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void dispose() {
     authListener?.cancel();
-    activationCodeController.dispose();
     super.dispose();
   }
 
@@ -564,7 +168,13 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
             if (profile.activatedForLife == true) ...[
               GestureDetector(
                 onTap: () {
-                  _showActivationTokensBottomSheet(context, profile);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ActivationTokensScreen(profile: profile),
+                    ),
+                  );
                 },
                 child: Container(
                   margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
@@ -873,6 +483,88 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       );
                     } else {
+                      Navigator.pushNamed(
+                          context, ActivationMainScreen.routeName);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withAlpha((255 * 0.1).round()),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      isActivated ? Icons.card_giftcard : Icons.star,
+                      color: primaryColor,
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    isActivated ? 'Activation Tokens' : 'Activate Account',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  subtitle: Consumer(builder: (context, ref, child) {
+                    if (isActivated) {
+                      final profile = ref.watch(profileProvider);
+                      final tokenCount = profile?.activationTokenQuantity ?? 0;
+                      return Text(
+                        tokenCount == 1
+                            ? '$tokenCount token available'
+                            : '$tokenCount tokens available',
+                        style: const TextStyle(fontSize: 13),
+                      );
+                    } else {
+                      return const Text(
+                        'Get premium features',
+                        style: TextStyle(fontSize: 13),
+                      );
+                    }
+                  }),
+                  trailing: Consumer(builder: (context, ref, child) {
+                    if (isActivated) {
+                      final profile = ref.watch(profileProvider);
+                      final tokenCount = profile?.activationTokenQuantity ?? 0;
+                      if (tokenCount > 0) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '$tokenCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        );
+                      } else {
+                        return Container();
+                      }
+                    } else {
+                      return Container();
+                    }
+                  }),
+                  onTap: () {
+                    if (isActivated) {
+                      // Navigate to activation tokens screen
+                      final profile = ref.read(profileProvider);
+                      if (profile != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ActivationTokensScreen(profile: profile),
+                          ),
+                        );
+                      }
+                    } else {
+                      // Navigate to activation screen
                       Navigator.pushNamed(
                           context, ActivationMainScreen.routeName);
                     }
