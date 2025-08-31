@@ -4,4 +4,5 @@ class MessageEventTypes {
   static const messageReceived = 'messageReceived';
   static const sendFile = 'sendFile';
   static const downloadFile = 'downloadFile';
+  static const deleteMessage = 'deleteMessage';
 }

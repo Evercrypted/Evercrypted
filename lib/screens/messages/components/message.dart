@@ -10,6 +10,7 @@ import 'package:evercrypted/screens/messages/components/file_message.dart';
 import 'package:evercrypted/screens/messages/components/image_message.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
 
 import '../../../ui_constants.dart';
@@ -24,13 +25,14 @@ class MessageWidget extends StatefulWidget {
     this.sender,
     required this.chat,
     required this.player,
+    this.onDelete,
   });
 
   final ChatMessage message;
   final Participant? sender;
   final Chat chat;
-
   final FlutterSoundPlayer player;
+  final Function(ChatMessage)? onDelete;
 
   @override
   State<MessageWidget> createState() => _MessageWidgetState();
@@ -151,6 +153,126 @@ class _MessageWidgetState extends State<MessageWidget> {
     return completer.future;
   }
 
+  void _showMessageOptionsBottomSheet(
+      BuildContext context, ChatMessage message) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                if (message.messageType == MessageTypes.text &&
+                    message.encryptionStatus == EncryptionStatus.decrypted &&
+                    message.decrypted != null)
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withAlpha((255 * 0.1).toInt()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child:
+                          const Icon(Icons.copy, color: primaryColor, size: 20),
+                    ),
+                    title: Text(
+                      'Copy text',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: contentColorLightThemeSecondary),
+                    ),
+                    subtitle: const Text(
+                      'Copy message text to clipboard',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Clipboard.setData(
+                          ClipboardData(text: message.decrypted!));
+                    },
+                  ),
+                if (message.messageType == MessageTypes.text &&
+                    message.encryptionStatus != EncryptionStatus.decrypted &&
+                    message.text != null)
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withAlpha((255 * 0.1).toInt()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child:
+                          const Icon(Icons.copy, color: primaryColor, size: 20),
+                    ),
+                    title: Text(
+                      'Copy text',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: contentColorLightThemeSecondary),
+                    ),
+                    subtitle: const Text(
+                      'Copy message text to clipboard',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Clipboard.setData(ClipboardData(text: message.text!));
+                    },
+                  ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: errorColor.withAlpha((255 * 0.1).toInt()),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child:
+                        const Icon(Icons.delete, color: errorColor, size: 20),
+                  ),
+                  title: Text(
+                    'Delete message',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: contentColorLightThemeSecondary),
+                  ),
+                  subtitle: const Text(
+                    'Delete this message',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    if (widget.onDelete != null) {
+                      widget.onDelete!(message);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget messageContent(ChatMessage message) {
@@ -221,7 +343,12 @@ class _MessageWidgetState extends State<MessageWidget> {
                         ),
                         const SizedBox(width: defaultPadding / 3),
                       ],
-                      messageContent(message!),
+                      GestureDetector(
+                        onLongPress: () {
+                          _showMessageOptionsBottomSheet(context, message!);
+                        },
+                        child: messageContent(message!),
+                      ),
                       if (message!.isSender) ...[
                         const SizedBox(width: defaultPadding / 4),
                         Column(

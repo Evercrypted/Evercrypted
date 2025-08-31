@@ -12,9 +12,12 @@ import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
+import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
+import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
@@ -551,6 +554,84 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     }
   }
 
+  deleteSingleMessage(ChatMessage chatMessage) async {
+    try {
+      if (chatMessage.uid != null) {
+        // Find the message in ObjectBox and delete it
+        final query =
+            obx.messages.query(Message_.uid.equals(chatMessage.uid!)).build();
+        final message = query.findFirst();
+        query.close();
+
+        if (message != null) {
+          // Delete from server if user is the author and message was successfully sent
+          if (message.authorId == userId && message.successfullySent && message.uid != null) {
+            try {
+              // Send delete request to server
+              await AppHttpClient.message(
+                channel: SocketChannelTypes.message,
+                type: MessageEventTypes.deleteMessage,
+                payload: {
+                  'messageUid': message.uid,
+                  'chatUid': message.chatUid,
+                },
+              );
+            } catch (e) {
+              // Log error but continue with local deletion
+              debugPrint('Failed to delete message from server: $e');
+            }
+          }
+
+          // Delete associated files if any
+          if (message.filepath != null && message.filepath!.isNotEmpty) {
+            await _messageService.deleteFile(
+                chatUid: message.chatUid, msgUid: message.uid);
+          }
+          // Remove message from database
+          obx.messages.remove(message.id);
+
+          // Update UI by removing from both paginated and real-time message lists
+          if (mounted) {
+            setState(() {
+              // Remove from obx added messages
+              obxAddedMessages.removeWhere(
+                  (element) => element.chatMessage.uid == chatMessage.uid);
+
+              // Remove from paginated state
+              if (_pagingState.items != null) {
+                // Update paging state with filtered items
+                final updatedPages = _pagingState.pages
+                    ?.map((page) => page
+                        .where((element) =>
+                            element.chatMessage.uid != chatMessage.uid)
+                        .toList())
+                    .toList();
+
+                _pagingState = _pagingState.copyWith(
+                  pages: updatedPages,
+                );
+              }
+            });
+
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Message deleted'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete message: $e')),
+        );
+      }
+    }
+  }
+
   deteleMessages() async {
     try {
       await _messageService.deleteAllMessages(widget.chat.uid);
@@ -820,6 +901,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                   sender: chat.participants.firstWhereOrNull(
                                       (element) =>
                                           element.uid == e.message.authorId),
+                                  onDelete: deleteSingleMessage,
                                 )),
                           ],
                         ),
@@ -848,6 +930,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                             element.uid ==
                                             item.message.authorId),
                                     player: player,
+                                    onDelete: deleteSingleMessage,
                                   );
                                 }),
                       ),
