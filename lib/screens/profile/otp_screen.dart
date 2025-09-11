@@ -9,7 +9,7 @@ import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:pinput/pinput.dart';
+import '../../widgets/custom_pin_input.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -34,6 +34,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
   String? gAuthCode;
   String? errorMessage;
   bool isOtpActive = false;
+  bool hasError = false;
 
   late StreamSubscription authListener;
 
@@ -105,11 +106,13 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
       } else {
         setState(() {
           errorMessage = 'Incorrect code';
+          hasError = true;
         });
       }
     }, onError: (e) {
       setState(() {
         errorMessage = e.toString();
+        hasError = true;
       });
       print('afterActivate2FA: $errorMessage');
     });
@@ -137,11 +140,13 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
       } else {
         setState(() {
           errorMessage = 'Incorrect code';
+          hasError = true;
         });
       }
     }, onError: (e) {
       setState(() {
         errorMessage = e.toString();
+        hasError = true;
       });
     });
   }
@@ -151,6 +156,7 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
       if (resp['error'] != null) {
         setState(() {
           errorMessage = resp['error'];
+          hasError = true;
         });
       }
     });
@@ -164,9 +170,25 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 30),
-        Pinput(
+        CustomPinInput(
           length: 6,
-          onCompleted: (pin) => loginWith2Fa(ref, pin),
+          hasError: hasError,
+          autofocus: true,
+          onCompleted: (pin) {
+            setState(() {
+              hasError = false;
+              errorMessage = null;
+            });
+            loginWith2Fa(ref, pin);
+          },
+          onChanged: (pin) {
+            if (hasError && pin.isNotEmpty) {
+              setState(() {
+                hasError = false;
+                errorMessage = null;
+              });
+            }
+          },
         ),
         const SizedBox(height: 10),
         if (errorMessage != null)
@@ -190,9 +212,25 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 30),
-        Pinput(
+        CustomPinInput(
           length: 6,
-          onCompleted: (pin) => deactivate2FA(pin),
+          hasError: hasError,
+          autofocus: true,
+          onCompleted: (pin) {
+            setState(() {
+              hasError = false;
+              errorMessage = null;
+            });
+            deactivate2FA(pin);
+          },
+          onChanged: (pin) {
+            if (hasError && pin.isNotEmpty) {
+              setState(() {
+                hasError = false;
+                errorMessage = null;
+              });
+            }
+          },
         ),
         const SizedBox(height: 10),
         if (errorMessage != null)
@@ -256,9 +294,25 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
             'After setting up your 2FA App, enter the 6-digit code from the app below to activate 2FA',
             textAlign: TextAlign.center),
         const SizedBox(height: 30),
-        Pinput(
+        CustomPinInput(
           length: 6,
-          onCompleted: (pin) => activate2FA(pin),
+          hasError: hasError,
+          autofocus: true,
+          onCompleted: (pin) {
+            setState(() {
+              hasError = false;
+              errorMessage = null;
+            });
+            activate2FA(pin);
+          },
+          onChanged: (pin) {
+            if (hasError && pin.isNotEmpty) {
+              setState(() {
+                hasError = false;
+                errorMessage = null;
+              });
+            }
+          },
         ),
         const SizedBox(height: 10),
         if (errorMessage != null)
