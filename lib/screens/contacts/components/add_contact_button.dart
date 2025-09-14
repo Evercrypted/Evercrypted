@@ -4,7 +4,8 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_riverp
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:evercrypted/core/offline/action_queue/allowed_for_queue.dart';
 import 'package:evercrypted/ui_constants.dart';
@@ -28,22 +29,44 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
 
   final ContactRequestService _contactRequestService = ContactRequestService();
 
-  final _emailController = TextEditingController();
-  final _messageController = TextEditingController();
-  final _messageFocus = FocusNode();
+  final _emailController = EvercryptedTextController();
+  final _messageController = EvercryptedTextController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _messageController.dispose();
-    _messageFocus.dispose();
     super.dispose();
   }
 
   submitForm() {
     final List<Contact> contacts = ref.read(contactsProvider);
-    if (contacts
-        .any((Contact element) => element.email == _emailController.text)) {
+    final List<ContactRequest> sentRequests = ref.read(sentRequestsProvider);
+    final email = _emailController.text;
+    final message = _messageController.text;
+
+    // Validate email
+    String? emailError = validateEmail(email);
+    if (emailError != null) {
+      showSimpleNotification(
+          Text(emailError, style: TextStyle(color: Colors.white)),
+          background: errorColor);
+      return;
+    }
+
+    // Check if email is user's own email
+    if (email == Auth.getUser?.email) {
+      showSimpleNotification(
+          const Text(
+            "You can't send a contact request to yourself",
+            style: TextStyle(color: Colors.white),
+          ),
+          background: errorColor);
+      return;
+    }
+
+    // Check if already have contact
+    if (contacts.any((Contact element) => element.email == email)) {
       showSimpleNotification(
           const Text(
             "You already have a contact with this email",
@@ -52,67 +75,86 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
           background: errorColor);
       return;
     }
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (form.currentState!.validate()) {
-      form.currentState?.save();
-      showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Confirm Contact Request'),
-          content: Text(
-              'Are you sure that you want to send a contact request to ${_emailController.text}?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Yes'),
-            ),
-          ],
-        ),
-      ).then((value) {
-        if (value == null) return;
-        if (value) {
-          final cRequest = ContactRequest(
-              recipientEmail: _emailController.text,
-              message: _messageController.text);
-          form.currentState?.reset();
-          _contactRequestService.createContactRequest(cRequest).then((resp) {
-            widget.afterCallback?.call();
-            print('created');
-            if (mounted) {
-              _emailController.clear();
-              _messageController.clear();
-              Navigator.popUntil(context, (route) => route.isFirst);
-            }
-          }).onError((error, stackTrace) {
-            if (mounted) {
-              _emailController.clear();
-              _messageController.clear();
-              Navigator.pop(context);
-            }
-            if (error == 'queued') {
-              showQueuedNotification();
-            } else {
-              showSimpleNotification(
-                  Text(
-                    error.toString(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  background: errorColor);
-            }
-          });
-        }
-      });
+
+    // Check if already sent request
+    if (sentRequests.map((e) => e.recipientEmail).contains(email)) {
+      showSimpleNotification(
+          const Text(
+            "You have already sent a contact request to this email",
+            style: TextStyle(color: Colors.white),
+          ),
+          background: errorColor);
+      return;
     }
+
+    // Validate message length
+    if (message.length > 100) {
+      showSimpleNotification(
+          const Text(
+            "Message must be 100 characters or less",
+            style: TextStyle(color: Colors.white),
+          ),
+          background: errorColor);
+      return;
+    }
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    form.currentState?.save();
+    showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Confirm Contact Request'),
+        content: Text(
+            'Are you sure that you want to send a contact request to ${_emailController.text}?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    ).then((value) {
+      if (value == null) return;
+      if (value) {
+        final cRequest = ContactRequest(
+            recipientEmail: _emailController.text,
+            message: _messageController.text);
+        form.currentState?.reset();
+        _contactRequestService.createContactRequest(cRequest).then((resp) {
+          widget.afterCallback?.call();
+          print('created');
+          if (mounted) {
+            _emailController.clear();
+            _messageController.clear();
+            Navigator.popUntil(context, (route) => route.isFirst);
+          }
+        }).onError((error, stackTrace) {
+          if (mounted) {
+            _emailController.clear();
+            _messageController.clear();
+            Navigator.pop(context);
+          }
+          if (error == 'queued') {
+            showQueuedNotification();
+          } else {
+            showSimpleNotification(
+                Text(
+                  error.toString(),
+                  style: const TextStyle(color: Colors.white),
+                ),
+                background: errorColor);
+          }
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final keyboardNotifier = ref.read(keyboardProvider.notifier);
-
     return FloatingActionButton.extended(
       onPressed: () {
         showModalBottomSheet(
@@ -163,29 +205,8 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             const SizedBox(height: defaultPadding),
-                            TextFormField(
+                            EvercryptedTextField(
                               controller: _emailController,
-                              validator: (val) {
-                                final List<ContactRequest> sentRequests =
-                                    ref.read(sentRequestsProvider);
-                                String? emailError = validateEmail(val);
-                                if (emailError != null) return emailError;
-                                if (val == Auth.getUser?.email) {
-                                  return "You can't send a contact request to yourself";
-                                } else if (sentRequests
-                                    .map((e) => e.recipientEmail)
-                                    .contains(val)) {
-                                  return "You have already sent a contact request to this email";
-                                } else {
-                                  return null;
-                                }
-                              },
-                              textInputAction: TextInputAction.next,
-                              onTap: () {
-                                keyboardNotifier.openKeyboard(
-                                    controller: _emailController);
-                              },
-                              keyboardType: TextInputType.none,
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(
                                   borderSide: BorderSide.none,
@@ -199,17 +220,9 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
                               ),
                             ),
                             const SizedBox(height: defaultPadding),
-                            TextFormField(
+                            EvercryptedTextField(
                               controller: _messageController,
-                              focusNode: _messageFocus,
-                              validator: (val) {
-                                return maxLengthValidator(val, 100);
-                              },
-                              onTap: () {
-                                keyboardNotifier.openKeyboard(
-                                    controller: _messageController);
-                              },
-                              keyboardType: TextInputType.none,
+                              maxLength: 100,
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(
                                   borderSide: BorderSide.none,
