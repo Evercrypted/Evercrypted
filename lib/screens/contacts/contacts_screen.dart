@@ -46,9 +46,8 @@ class ContactsScreen extends ConsumerStatefulWidget {
 }
 
 class ContactsScreenState extends ConsumerState<ContactsScreen> {
-  bool searching = false;
-
-  final EvercryptedTextController _searchController = EvercryptedTextController();
+  final EvercryptedTextController _searchController =
+      EvercryptedTextController();
   String searchValue = '';
   List<Participant>? participants;
   final EvercryptedTextController newGroupName = EvercryptedTextController();
@@ -157,7 +156,6 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
             .toList()
     };
 
-
     return Scaffold(
       appBar: widget.isParticipantSelect
           ? ConnectionStatusAppbar(
@@ -235,21 +233,11 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
               Expanded(
                 child: SearchHeader(
                     label: Text('Contacts', style: TextStyle(fontSize: 24)),
-                    searching: searching,
+                    searching: false,
                     searchController: _searchController,
-                    onTapHandler: () {
-                      // EvercryptedTextField handles keyboard automatically
-                    },
-                    onSearchIconPressed: () {
-                      setState(() {
-                        searching = true;
-                      });
-                      // Focus is automatically delayed until widget is built
-                      _searchController.focus();
-                    },
+                    hintText: 'Search contacts...',
                     onCloseIconPressed: () {
                       setState(() {
-                        searching = false;
                         searchValue = '';
                         _searchController.clear();
                       });

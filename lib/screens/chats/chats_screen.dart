@@ -19,8 +19,6 @@ class ChatsScreen extends ConsumerStatefulWidget {
 }
 
 class ChatsScreenState extends ConsumerState<ChatsScreen> {
-  bool searching = false;
-
   final ChatService chatService = ChatService();
 
   final EvercryptedTextController _searchController =
@@ -61,21 +59,11 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
         children: [
           SearchHeader(
               label: Text('Chats', style: TextStyle(fontSize: 24)),
-              searching: searching,
+              searching: false,
               searchController: _searchController,
-              onTapHandler: () {
-                // EvercryptedTextField handles keyboard automatically
-              },
-              onSearchIconPressed: () {
-                setState(() {
-                  searching = true;
-                });
-                // Focus is automatically delayed until widget is built
-                _searchController.focus();
-              },
+              hintText: 'Search chats...',
               onCloseIconPressed: () {
                 setState(() {
-                  searching = false;
                   searchValue = '';
                   _searchController.clear();
                 });
