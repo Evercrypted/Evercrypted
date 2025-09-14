@@ -5,7 +5,7 @@ import '../core/evercrypted-keyboard/evercrypted_text_controller.dart';
 
 /// A TextField widget that automatically integrates with the Evercrypted keyboard
 /// and handles cursor visibility without manual controller management
-class EvercryptedTextField extends ConsumerWidget {
+class EvercryptedTextField extends ConsumerStatefulWidget {
   final EvercryptedTextController controller;
   final InputDecoration? decoration;
   final TextStyle? style;
@@ -46,40 +46,73 @@ class EvercryptedTextField extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EvercryptedTextField> createState() => _EvercryptedTextFieldState();
+}
+
+class _EvercryptedTextFieldState extends ConsumerState<EvercryptedTextField> {
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    // Connect the focus node to the controller
+    widget.controller.setFocusNode(_focusNode);
+    // Set the callback to open keyboard when focus is requested
+    widget.controller.setOnFocusRequested(_openKeyboard);
+    // Set the callback to close keyboard when unfocus is requested
+    widget.controller.setOnUnfocusRequested(_closeKeyboard);
+  }
+
+  void _openKeyboard() {
+    // Trigger the same keyboard opening logic as onTap
+    ref.read(keyboardProvider.notifier).openKeyboard(
+      controller: widget.controller.textController,
+      isMultiLine: widget.isMultiLine,
+      onChange: (text) {
+        // Trigger cursor visibility and call onChanged if provided
+        widget.controller.ensureCursorVisible();
+        widget.onChanged?.call(text);
+      },
+      onClose: widget.onClose,
+      onDone: widget.onDone,
+    );
+  }
+
+  void _closeKeyboard() {
+    // Close the Evercrypted keyboard
+    ref.read(keyboardProvider.notifier).close();
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return TextField(
-      controller: controller.textController,
-      scrollController: controller.scrollController,
-      maxLines: maxLines,
-      minLines: minLines,
-      maxLength: maxLength,
-      obscureText: obscureText,
-      enabled: enabled,
-      readOnly: readOnly,
-      style: style,
-      decoration: decoration ??
+      controller: widget.controller.textController,
+      scrollController: widget.controller.scrollController,
+      focusNode: _focusNode,
+      maxLines: widget.maxLines,
+      minLines: widget.minLines,
+      maxLength: widget.maxLength,
+      obscureText: widget.obscureText,
+      enabled: widget.enabled,
+      readOnly: widget.readOnly,
+      style: widget.style,
+      decoration: widget.decoration ??
           InputDecoration(
-            hintText: hintText,
-            suffixIcon: suffixIcon,
-            prefixIcon: prefixIcon,
+            hintText: widget.hintText,
+            suffixIcon: widget.suffixIcon,
+            prefixIcon: widget.prefixIcon,
           ),
       keyboardType: TextInputType.none, // Disable system keyboard
-      onTap: () {
-        // Open Evercrypted keyboard when field is tapped
-        ref.read(keyboardProvider.notifier).openKeyboard(
-              controller: controller.textController,
-              isMultiLine: isMultiLine,
-              onChange: (text) {
-                // Trigger cursor visibility and call onChanged if provided
-                controller.ensureCursorVisible();
-                onChanged?.call(text);
-              },
-              onClose: onClose,
-              onDone: onDone,
-            );
-      },
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
+      onTap: _openKeyboard, // Use the same method as programmatic focus
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
     );
   }
 }

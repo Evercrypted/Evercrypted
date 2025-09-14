@@ -49,7 +49,6 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
   bool searching = false;
 
   final EvercryptedTextController _searchController = EvercryptedTextController();
-  final FocusNode searchFocus = FocusNode();
   String searchValue = '';
   List<Participant>? participants;
   final EvercryptedTextController newGroupName = EvercryptedTextController();
@@ -85,7 +84,6 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
     _searchController.removeListener(setSearchValue);
     _searchController.dispose();
     newGroupName.dispose();
-    searchFocus.dispose();
     super.dispose();
   }
 
@@ -238,7 +236,6 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                 child: SearchHeader(
                     label: Text('Contacts', style: TextStyle(fontSize: 24)),
                     searching: searching,
-                    searchFocus: searchFocus,
                     searchController: _searchController,
                     onTapHandler: () {
                       // EvercryptedTextField handles keyboard automatically
@@ -246,8 +243,9 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                     onSearchIconPressed: () {
                       setState(() {
                         searching = true;
-                        searchFocus.requestFocus();
                       });
+                      // Focus is automatically delayed until widget is built
+                      _searchController.focus();
                     },
                     onCloseIconPressed: () {
                       setState(() {
@@ -255,6 +253,8 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                         searchValue = '';
                         _searchController.clear();
                       });
+                      // Unfocus the search field to close the keyboard
+                      _searchController.unfocus();
                     }),
               ),
               if (!widget.isParticipantSelect)

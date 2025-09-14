@@ -25,7 +25,6 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   final EvercryptedTextController _searchController =
       EvercryptedTextController();
-  final FocusNode searchFocus = FocusNode();
   String searchValue = '';
 
   NewGroupChatDTO? newGroupChatDTO;
@@ -52,7 +51,6 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-    searchFocus.dispose();
     super.dispose();
   }
 
@@ -64,7 +62,6 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
           SearchHeader(
               label: Text('Chats', style: TextStyle(fontSize: 24)),
               searching: searching,
-              searchFocus: searchFocus,
               searchController: _searchController,
               onTapHandler: () {
                 // EvercryptedTextField handles keyboard automatically
@@ -72,8 +69,9 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
               onSearchIconPressed: () {
                 setState(() {
                   searching = true;
-                  searchFocus.requestFocus();
                 });
+                // Focus is automatically delayed until widget is built
+                _searchController.focus();
               },
               onCloseIconPressed: () {
                 setState(() {
@@ -81,6 +79,8 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
                   searchValue = '';
                   _searchController.clear();
                 });
+                // Unfocus the search field to close the keyboard
+                _searchController.unfocus();
               }),
           Expanded(
               child: ChatList(

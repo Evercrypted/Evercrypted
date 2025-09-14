@@ -6,6 +6,9 @@ class EvercryptedTextController {
   final TextEditingController textController;
   final ScrollController scrollController;
   bool _disposed = false;
+  FocusNode? _focusNode;
+  VoidCallback? _onFocusRequested;
+  VoidCallback? _onUnfocusRequested;
 
   EvercryptedTextController({
     String? initialText,
@@ -36,8 +39,56 @@ class EvercryptedTextController {
   /// Remove listener from the text controller
   void removeListener(VoidCallback listener) => textController.removeListener(listener);
 
+  /// Manually trigger focus on the text field (requests focus)
+  void focus() {
+    if (!_disposed) {
+      // Use addPostFrameCallback to ensure the widget is built before focusing
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_disposed && _focusNode != null && _onFocusRequested != null) {
+          // Request focus on the focus node which will trigger the field to become active
+          _focusNode!.requestFocus();
+          // Trigger the keyboard opening callback
+          _onFocusRequested!();
+          Future.delayed(const Duration(milliseconds: 10), () {
+            if (!_disposed) {
+              // Ensure cursor visibility after focus
+              ensureCursorVisible();
+            }
+          });
+        }
+      });
+    }
+  }
+
+  /// Manually remove focus from the text field (closes keyboard)
+  void unfocus() {
+    if (!_disposed && _focusNode != null) {
+      // Remove focus from the focus node
+      _focusNode!.unfocus();
+      // Close the Evercrypted keyboard
+      if (_onUnfocusRequested != null) {
+        _onUnfocusRequested!();
+      }
+    }
+  }
+
   /// Check if the controller is disposed
   bool get isDisposed => _disposed;
+
+  /// Set the focus node for manual focus control
+  void setFocusNode(FocusNode focusNode) {
+    _focusNode = focusNode;
+  }
+
+  /// Set the callback to trigger when focus is requested
+  void setOnFocusRequested(VoidCallback callback) {
+    _onFocusRequested = callback;
+  }
+
+  /// Set the callback to trigger when unfocus is requested
+  void setOnUnfocusRequested(VoidCallback callback) {
+    _onUnfocusRequested = callback;
+  }
 
   void ensureCursorVisible() {
     if (_disposed || !scrollController.hasClients) return;

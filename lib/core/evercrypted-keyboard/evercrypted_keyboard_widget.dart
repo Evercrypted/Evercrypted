@@ -46,7 +46,6 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
     });
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -334,7 +333,8 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                     .substring(0, controller.text.length - 1);
                                 controller
                                   ..text = newText
-                                  ..selection = TextSelection.collapsed(offset: newText.length);
+                                  ..selection = TextSelection.collapsed(
+                                      offset: newText.length);
                               });
                               await Future.delayed(
                                   const Duration(milliseconds: 100));
@@ -360,7 +360,8 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                       .substring(0, controller.text.length - 1);
                                   controller
                                     ..text = newText
-                                    ..selection = TextSelection.collapsed(offset: newText.length);
+                                    ..selection = TextSelection.collapsed(
+                                        offset: newText.length);
                                 });
                               }
                             },
@@ -483,7 +484,8 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                             final newText = controller.text + ' ';
                             controller
                               ..text = newText
-                              ..selection = TextSelection.collapsed(offset: newText.length);
+                              ..selection = TextSelection.collapsed(
+                                  offset: newText.length);
                           });
                         },
                         child: const Icon(
@@ -517,7 +519,8 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                     final newText = controller.text + "\n";
                                     controller
                                       ..text = newText
-                                      ..selection = TextSelection.collapsed(offset: newText.length);
+                                      ..selection = TextSelection.collapsed(
+                                          offset: newText.length);
                                   });
                                 },
                                 child: const Icon(Icons.subdirectory_arrow_left,

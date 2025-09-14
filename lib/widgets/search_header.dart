@@ -8,14 +8,12 @@ class SearchHeader extends StatelessWidget {
       {super.key,
       this.label,
       required this.searching,
-      required this.searchFocus,
       required this.searchController,
       required this.onSearchIconPressed,
       required this.onCloseIconPressed,
       required this.onTapHandler});
 
   final Widget? label;
-  final FocusNode searchFocus;
   final bool searching;
   final EvercryptedTextController searchController;
   final Function onTapHandler;
@@ -28,20 +26,27 @@ class SearchHeader extends StatelessWidget {
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(
         horizontal: defaultPadding,
+        vertical: defaultPadding / 2,
       ),
-      height: 44,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           if (label != null && !searching) label!,
           if (searching)
             Expanded(
-              child: EvercryptedTextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: EvercryptedTextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ),
