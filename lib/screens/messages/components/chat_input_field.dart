@@ -9,9 +9,10 @@ import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
 import 'package:evercrypted/screens/messages/components/camera.dart';
 import 'package:evercrypted/widgets/fade_icon.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +42,7 @@ class ChatInputField extends ConsumerStatefulWidget {
 }
 
 class ChatInputFieldState extends ConsumerState<ChatInputField> {
-  final TextEditingController _messageField = TextEditingController();
+  final EvercryptedTextController _messageField = EvercryptedTextController();
   final MessageService _messageService = MessageService();
   String? fullKey;
   int? recordingMicroSeconds;
@@ -117,7 +118,6 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       }
       _messageService.sendMessage(encr, widget.chat.uid, withBaseKey);
       _messageField.clear();
-      ref.read(keyboardProvider.notifier).close();
     } else {
       // No encryption key available - queue message regardless of chat type
       if (widget.baseKey == null) {
@@ -128,7 +128,6 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
           messageType: MessageTypes.text,
         );
         _messageField.clear();
-        ref.read(keyboardProvider.notifier).close();
 
         // Show user feedback that message is queued
         if (mounted) {
@@ -145,7 +144,6 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         // Send normally (fallback case)
         _messageService.sendMessage(message, widget.chat.uid, withBaseKey);
         _messageField.clear();
-        ref.read(keyboardProvider.notifier).close();
       }
     }
   }
@@ -492,7 +490,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         });
 
         // Show user feedback
-        if (mounted) {
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(chat.isOneToOne
@@ -673,79 +671,71 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                         const SizedBox(width: defaultPadding / 4),
                         if (file == null)
                           Expanded(
-                            child: TextField(
+                            child: EvercryptedTextField(
                               controller: _messageField,
-                              decoration: InputDecoration(
-                                hintText: "Type message",
-                                suffixIcon: SizedBox(
-                                  width: 96,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          const CameraWidget()))
-                                              .then((jpgBytes) {
-                                            if (jpgBytes != null) {
-                                              if (context.mounted) {
-                                                sendImage(jpgBytes, context);
-                                              }
+                              hintText: "Type message",
+                              suffixIcon: SizedBox(
+                                width: 96,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const CameraWidget()))
+                                            .then((jpgBytes) {
+                                          if (jpgBytes != null) {
+                                            if (context.mounted) {
+                                              sendImage(jpgBytes, context);
                                             }
-                                          });
-                                        },
-                                        child: Icon(
-                                          Icons.camera_alt,
-                                          color: file != null
-                                              ? primaryColor
-                                              : Theme.of(context)
-                                                  .textTheme
-                                                  .bodyLarge!
-                                                  .color!
-                                                  .withAlpha(
-                                                      (0.64 * 255).round()),
-                                        ),
+                                          }
+                                        });
+                                      },
+                                      child: Icon(
+                                        Icons.camera_alt,
+                                        color: file != null
+                                            ? primaryColor
+                                            : Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge!
+                                                .color!
+                                                .withAlpha(
+                                                    (0.64 * 255).round()),
                                       ),
-                                      InkWell(
-                                        onTap: () => _selectFile(context),
-                                        child: Icon(
-                                          Icons.attach_file,
-                                          color: file != null
-                                              ? primaryColor
-                                              : Theme.of(context)
-                                                  .textTheme
-                                                  .bodyLarge!
-                                                  .color!
-                                                  .withAlpha(
-                                                      (0.64 * 255).round()),
-                                        ),
+                                    ),
+                                    InkWell(
+                                      onTap: () => _selectFile(context),
+                                      child: Icon(
+                                        Icons.attach_file,
+                                        color: file != null
+                                            ? primaryColor
+                                            : Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge!
+                                                .color!
+                                                .withAlpha(
+                                                    (0.64 * 255).round()),
                                       ),
-                                      InkWell(
-                                        onTap: () {
-                                          sendMessage(_messageField.text);
-                                        },
-                                        onLongPress: () {},
-                                        child: Container(
-                                          margin: const EdgeInsets.only(
-                                              right: defaultPadding / 2),
-                                          child: const Icon(Icons.send,
-                                              color: primaryColor),
-                                        ),
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        sendMessage(_messageField.text);
+                                      },
+                                      onLongPress: () {},
+                                      child: Container(
+                                        margin: const EdgeInsets.only(
+                                            right: defaultPadding / 2),
+                                        child: const Icon(Icons.send,
+                                            color: primaryColor),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              onTap: () {
-                                ref
-                                    .read(keyboardProvider.notifier)
-                                    .openKeyboard(controller: _messageField);
-                              },
-                              keyboardType: TextInputType.none,
                               onSubmitted: (value) {
                                 if (value.isNotEmpty) {
                                   sendMessage(value);

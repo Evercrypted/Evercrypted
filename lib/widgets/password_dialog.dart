@@ -1,6 +1,7 @@
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -55,20 +56,36 @@ class _PasswordBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
-  final TextEditingController _passwordController = TextEditingController();
-  final FocusNode _passwordFocus = FocusNode();
+  final EvercryptedTextController _passwordController = EvercryptedTextController();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _passwordController.dispose();
-    _passwordFocus.dispose();
     super.dispose();
   }
 
   void _submit() {
-    if (_formKey.currentState!.validate()) {
-      ref.read(keyboardProvider.notifier).close();
+    // Manual validation since we're using EvercryptedTextField
+    final password = _passwordController.text;
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a password'),
+          backgroundColor: errorColor,
+        ),
+      );
+      return;
+    }
+    if (password.length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 3 characters'),
+          backgroundColor: errorColor,
+        ),
+      );
+      return;
+    }
 
       // Show confirmation dialog
       showDialog<bool>(
@@ -97,12 +114,10 @@ class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
           widget.onConfirm(_passwordController.text);
         }
       });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final keyboardNotifier = ref.read(keyboardProvider.notifier);
 
     return Wrap(
       children: [
@@ -146,25 +161,9 @@ class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: defaultPadding),
-                  TextFormField(
+                  EvercryptedTextField(
                     controller: _passwordController,
-                    focusNode: _passwordFocus,
                     obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
-                      }
-                      if (value.length < 3) {
-                        return 'Password must be at least 3 characters';
-                      }
-                      return null;
-                    },
-                    onTap: () {
-                      keyboardNotifier.openKeyboard(
-                        controller: _passwordController,
-                      );
-                    },
-                    keyboardType: TextInputType.none,
                     decoration: InputDecoration(
                       prefixIcon: Icon(
                         Icons.lock,

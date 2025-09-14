@@ -5,7 +5,8 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_riverp
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/core/services/hidden_contact_service.dart';
 import 'package:evercrypted/screens/contacts/components/add_contact_button.dart';
@@ -47,11 +48,11 @@ class ContactsScreen extends ConsumerStatefulWidget {
 class ContactsScreenState extends ConsumerState<ContactsScreen> {
   bool searching = false;
 
-  final TextEditingController _searchController = TextEditingController();
+  final EvercryptedTextController _searchController = EvercryptedTextController();
   final FocusNode searchFocus = FocusNode();
   String searchValue = '';
   List<Participant>? participants;
-  final TextEditingController newGroupName = TextEditingController();
+  final EvercryptedTextController newGroupName = EvercryptedTextController();
   final HiddenContactService hiddenContactService = HiddenContactService();
 
   @override
@@ -158,7 +159,6 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
             .toList()
     };
 
-    final keyboardNotifier = ref.read(keyboardProvider.notifier);
 
     return Scaffold(
       appBar: widget.isParticipantSelect
@@ -225,14 +225,8 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: defaultPadding * 2),
-              child: TextFormField(
+              child: EvercryptedTextField(
                 controller: newGroupName,
-                onTap: () {
-                  keyboardNotifier.openKeyboard(
-                    controller: newGroupName,
-                  );
-                },
-                keyboardType: TextInputType.none,
                 decoration: InputDecoration(
                   hintText: 'Group Name',
                 ),
@@ -247,31 +241,15 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                     searchFocus: searchFocus,
                     searchController: _searchController,
                     onTapHandler: () {
-                      keyboardNotifier.openKeyboard(
-                          controller: _searchController,
-                          onChange: (val) {
-                            setState(() {
-                              searchValue = val;
-                            });
-                          },
-                          onClose: () => searchFocus.unfocus());
+                      // EvercryptedTextField handles keyboard automatically
                     },
                     onSearchIconPressed: () {
-                      keyboardNotifier.openKeyboard(
-                          controller: _searchController,
-                          onChange: (val) {
-                            setState(() {
-                              searchValue = val;
-                            });
-                          },
-                          onClose: () => searchFocus.unfocus());
                       setState(() {
                         searching = true;
                         searchFocus.requestFocus();
                       });
                     },
                     onCloseIconPressed: () {
-                      ref.read(keyboardProvider.notifier).close();
                       setState(() {
                         searching = false;
                         searchValue = '';

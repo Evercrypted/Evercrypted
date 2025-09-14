@@ -1,8 +1,9 @@
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -26,9 +27,8 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   bool _passwordVisible = false;
   bool _shouldShowLoading = false;
   AuthForm formValues = AuthForm();
-  final TextEditingController _emailField = TextEditingController();
-  final TextEditingController _passController = TextEditingController();
-  final _passFocus = FocusNode();
+  final EvercryptedTextController _emailField = EvercryptedTextController();
+  final EvercryptedTextController _passController = EvercryptedTextController();
   final AuthService _authService = AuthService();
   final listViewController = ScrollController();
 
@@ -44,7 +44,6 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
     listViewController.dispose();
     _emailField.dispose();
     _passController.dispose();
-    _passFocus.dispose();
     super.dispose();
   }
 
@@ -62,38 +61,41 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
 
   void submitForm(BuildContext context) async {
     FocusManager.instance.primaryFocus?.unfocus();
-    ref.read(keyboardProvider.notifier).close();
-    if (_form.currentState!.validate()) {
-      if (formValues.email != null && formValues.password != null) {
-        setState(() {
-          _shouldShowLoading = true;
-        });
 
-        _authService.singIn(formValues).then((result) {
-          if (result['success'] == true) {
-            formValues = AuthForm();
-            setState(() {
-              _shouldShowLoading = false;
-            });
-          } else {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(
-                    result == null ? 'Could not login' : result['error'],
-                    style: const TextStyle(color: Colors.white)),
-                backgroundColor: errorColor,
-                dismissDirection: DismissDirection.horizontal,
-                showCloseIcon: true,
-              ));
-            }
-            setState(() {
-              _shouldShowLoading = false;
-            });
-          }
-        }).catchError((e) {
+    // Manual validation since we're using EvercryptedTextField
+    final email = _emailField.text;
+    final password = _passController.text;
+
+    // Validate email
+    final emailError = validateEmail(email);
+    if (emailError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(emailError, style: const TextStyle(color: Colors.white)),
+        backgroundColor: errorColor,
+      ));
+      return;
+    }
+
+    // Set form values
+    formValues.email = email;
+    formValues.password = password;
+
+    if (formValues.email != null && formValues.password != null) {
+      setState(() {
+        _shouldShowLoading = true;
+      });
+
+      _authService.singIn(formValues).then((result) {
+        if (result['success'] == true) {
+          formValues = AuthForm();
+          setState(() {
+            _shouldShowLoading = false;
+          });
+        } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(e.toString(),
+              content: Text(
+                  result == null ? 'Could not login' : result['error'],
                   style: const TextStyle(color: Colors.white)),
               backgroundColor: errorColor,
               dismissDirection: DismissDirection.horizontal,
@@ -103,15 +105,26 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           setState(() {
             _shouldShowLoading = false;
           });
+        }
+      }).catchError((e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text(e.toString(), style: const TextStyle(color: Colors.white)),
+            backgroundColor: errorColor,
+            dismissDirection: DismissDirection.horizontal,
+            showCloseIcon: true,
+          ));
+        }
+        setState(() {
+          _shouldShowLoading = false;
         });
-      }
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final keyboardNotifier = ref.read(keyboardProvider.notifier);
-
     return Scaffold(
         body: Padding(
       padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
@@ -136,32 +149,22 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
             key: _form,
             child: Column(
               children: [
-                TextFormField(
+                EvercryptedTextField(
                   controller: _emailField,
-                  validator: validateEmail,
                   decoration: const InputDecoration(
                     labelText: 'Email',
                   ),
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.none,
-                  onTap: () {
-                    keyboardNotifier.openKeyboard(
-                      controller: _emailField,
-                      onChange: (val) {
-                        setState(() {
-                          formValues.email = val;
-                        });
-                      },
-                    );
+                  onChanged: (val) {
+                    setState(() {
+                      formValues.email = val;
+                    });
                   },
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: defaultPadding),
-                  child: TextFormField(
+                  child: EvercryptedTextField(
                     controller: _passController,
-                    focusNode: _passFocus,
-                    textInputAction: TextInputAction.next,
-                    keyboardType: TextInputType.none,
+                    obscureText: !_passwordVisible,
                     decoration: InputDecoration(
                       labelText: 'Password',
                       errorMaxLines: 3,
@@ -176,16 +179,10 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                             : Icons.visibility_off),
                       ),
                     ),
-                    obscureText: !_passwordVisible,
-                    onTap: () {
-                      keyboardNotifier.openKeyboard(
-                        controller: _passController,
-                        onChange: (val) {
-                          setState(() {
-                            formValues.password = val;
-                          });
-                        },
-                      );
+                    onChanged: (val) {
+                      setState(() {
+                        formValues.password = val;
+                      });
                     },
                   ),
                 ),

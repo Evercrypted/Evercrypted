@@ -1,7 +1,8 @@
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -26,7 +27,7 @@ class ActivationTokensScreen extends ConsumerStatefulWidget {
 }
 
 class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> {
-  final TextEditingController activationCodeController = TextEditingController();
+  final EvercryptedTextController activationCodeController = EvercryptedTextController();
   bool isLoading = false;
 
   @override
@@ -278,20 +279,9 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Builder(builder: (context) {
-                    final keyboardNotifier = ref.read(keyboardProvider.notifier);
-                    return TextFormField(
-                      controller: activationCodeController,
-                      keyboardType: TextInputType.none,
-                      enabled: !isLoading,
-                      onTap: () {
-                        keyboardNotifier.openKeyboard(
-                          controller: activationCodeController,
-                          onChange: (val) {
-                            // Update controller value
-                          },
-                        );
-                      },
+                  EvercryptedTextField(
+                    controller: activationCodeController,
+                    enabled: !isLoading,
                       decoration: InputDecoration(
                         hintText: 'Enter activation code',
                         hintStyle: TextStyle(color: Colors.grey[400]),
@@ -310,8 +300,7 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
                       style: const TextStyle(fontSize: 14),
-                    );
-                  }),
+                    ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,

@@ -2,7 +2,8 @@ import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/core/services/hidden_contact_service.dart';
 import 'package:evercrypted/screens/profile/components/profile_pic.dart';
 import 'package:evercrypted/ui_constants.dart';
@@ -27,7 +28,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
   ContactService contactService = ContactService();
   ChatService chatService = ChatService();
   HiddenContactService hiddenContactService = HiddenContactService();
-  final TextEditingController _renamingController = TextEditingController();
+  final EvercryptedTextController _renamingController = EvercryptedTextController();
 
   bool renaming = false;
 
@@ -115,7 +116,6 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardNotifier = ref.read(keyboardProvider.notifier);
     final profile = ref.watch(profileProvider);
 
     return Scaffold(
@@ -163,13 +163,8 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                       ),
                     ),
                     width: MediaQuery.of(context).size.width - 150,
-                    child: TextFormField(
+                    child: EvercryptedTextField(
                       controller: _renamingController,
-                      onTap: () {
-                        keyboardNotifier.openKeyboard(
-                            controller: _renamingController);
-                      },
-                      keyboardType: TextInputType.none,
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(
                           borderSide: BorderSide.none,

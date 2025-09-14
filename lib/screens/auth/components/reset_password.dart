@@ -1,5 +1,6 @@
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -15,7 +16,7 @@ class ResetPassword extends ConsumerStatefulWidget {
 }
 
 class ResetPasswordState extends ConsumerState<ResetPassword> {
-  final TextEditingController emailController = TextEditingController();
+  final EvercryptedTextController emailController = EvercryptedTextController();
   final AuthService _authService = AuthService();
   bool isLoading = false;
   String? emailError;
@@ -95,7 +96,6 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardNotifier = ref.watch(keyboardProvider.notifier);
 
     return SingleChildScrollView(
       child: Container(
@@ -136,19 +136,12 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: defaultPadding),
-            TextFormField(
+            EvercryptedTextField(
               readOnly: Auth.getUser != null,
               controller: emailController,
               decoration: const InputDecoration(
                 labelText: 'Email',
               ),
-              keyboardType: TextInputType.none,
-              onTap: () {
-                if (Auth.getUser != null) {
-                  return;
-                }
-                keyboardNotifier.openKeyboard(controller: emailController);
-              },
             ),
             const SizedBox(height: defaultPadding * 2),
             PrimaryButton(

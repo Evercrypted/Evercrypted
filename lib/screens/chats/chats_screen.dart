@@ -1,6 +1,6 @@
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
 import 'package:evercrypted/core/helpers/show_snackbar.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
@@ -23,15 +23,24 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   final ChatService chatService = ChatService();
 
-  final TextEditingController _searchController = TextEditingController();
+  final EvercryptedTextController _searchController =
+      EvercryptedTextController();
   final FocusNode searchFocus = FocusNode();
   String searchValue = '';
 
   NewGroupChatDTO? newGroupChatDTO;
 
+  void _onSearchChanged() {
+    setState(() {
+      searchValue = _searchController.text;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+
+    _searchController.addListener(_onSearchChanged);
 
     // Set navigation state to chats when this screen is active
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -41,6 +50,7 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     searchFocus.dispose();
     super.dispose();
@@ -48,7 +58,6 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardNotifier = ref.read(keyboardProvider.notifier);
     return Scaffold(
       body: Column(
         children: [
@@ -58,32 +67,15 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
               searchFocus: searchFocus,
               searchController: _searchController,
               onTapHandler: () {
-                keyboardNotifier.openKeyboard(
-                  controller: _searchController,
-                  onChange: (val) {
-                    setState(() {
-                      searchValue = val;
-                    });
-                  },
-                  onClose: () => searchFocus.unfocus(),
-                );
+                // EvercryptedTextField handles keyboard automatically
               },
               onSearchIconPressed: () {
-                keyboardNotifier.openKeyboard(
-                    controller: _searchController,
-                    onChange: (val) {
-                      setState(() {
-                        searchValue = val;
-                      });
-                    },
-                    onClose: () => searchFocus.unfocus());
                 setState(() {
                   searching = true;
                   searchFocus.requestFocus();
                 });
               },
               onCloseIconPressed: () {
-                ref.read(keyboardProvider.notifier).close();
                 setState(() {
                   searching = false;
                   searchValue = '';

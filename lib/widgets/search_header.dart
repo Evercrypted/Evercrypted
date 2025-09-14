@@ -1,4 +1,6 @@
 import 'package:evercrypted/ui_constants.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:flutter/material.dart';
 
 class SearchHeader extends StatelessWidget {
@@ -15,7 +17,7 @@ class SearchHeader extends StatelessWidget {
   final Widget? label;
   final FocusNode searchFocus;
   final bool searching;
-  final TextEditingController searchController;
+  final EvercryptedTextController searchController;
   final Function onTapHandler;
   final Function onSearchIconPressed;
   final Function onCloseIconPressed;
@@ -34,11 +36,8 @@ class SearchHeader extends StatelessWidget {
           if (label != null && !searching) label!,
           if (searching)
             Expanded(
-              child: TextFormField(
-                focusNode: searchFocus,
+              child: EvercryptedTextField(
                 controller: searchController,
-                onTap: () => onTapHandler(),
-                keyboardType: TextInputType.none,
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(
                     borderSide: BorderSide.none,

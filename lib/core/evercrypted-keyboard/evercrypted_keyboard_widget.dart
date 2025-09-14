@@ -46,6 +46,7 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
     });
   }
 
+
   @override
   void initState() {
     super.initState();
@@ -129,7 +130,10 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
           onPressed: () {
             deleteSelection();
             setState(() {
-              controller.text += key;
+              final newText = controller.text + key;
+              controller
+                ..text = newText
+                ..selection = TextSelection.collapsed(offset: newText.length);
               if (isShifted && !isShiftLocked) {
                 isShifted = false;
                 activeKeyboard = Keyboards.getKeyboard(
@@ -326,8 +330,11 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                             while (isBackspaceLongPressed &&
                                 controller.text.isNotEmpty) {
                               setState(() {
-                                controller.text = controller.text
+                                final newText = controller.text
                                     .substring(0, controller.text.length - 1);
+                                controller
+                                  ..text = newText
+                                  ..selection = TextSelection.collapsed(offset: newText.length);
                               });
                               await Future.delayed(
                                   const Duration(milliseconds: 100));
@@ -349,8 +356,11 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                               deleteSelection();
                               if (controller.text.isNotEmpty) {
                                 setState(() {
-                                  controller.text = controller.text
+                                  final newText = controller.text
                                       .substring(0, controller.text.length - 1);
+                                  controller
+                                    ..text = newText
+                                    ..selection = TextSelection.collapsed(offset: newText.length);
                                 });
                               }
                             },
@@ -470,7 +480,10 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                       child: HighlightedButton(
                         onPressed: () {
                           setState(() {
-                            controller.text += ' ';
+                            final newText = controller.text + ' ';
+                            controller
+                              ..text = newText
+                              ..selection = TextSelection.collapsed(offset: newText.length);
                           });
                         },
                         child: const Icon(
@@ -501,7 +514,10 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                 ),
                                 onPressed: () {
                                   setState(() {
-                                    controller.text += "\n";
+                                    final newText = controller.text + "\n";
+                                    controller
+                                      ..text = newText
+                                      ..selection = TextSelection.collapsed(offset: newText.length);
                                   });
                                 },
                                 child: const Icon(Icons.subdirectory_arrow_left,

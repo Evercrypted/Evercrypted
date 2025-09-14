@@ -1,7 +1,8 @@
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:evercrypted/main.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -27,11 +28,11 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   bool _shouldShowLoading = false;
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _confirmController = TextEditingController();
-  final TextEditingController _passController = TextEditingController();
-  final _passFocus = FocusNode();
-  final _confirmFocus = FocusNode();
+  final EvercryptedTextController _emailController =
+      EvercryptedTextController();
+  final EvercryptedTextController _confirmController =
+      EvercryptedTextController();
+  final EvercryptedTextController _passController = EvercryptedTextController();
   final listViewController = ScrollController();
 
   final AuthService _authService = AuthService();
@@ -56,48 +57,75 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   void submitForm(BuildContext context) async {
     FocusManager.instance.primaryFocus?.unfocus();
-    ref.read(keyboardProvider.notifier).close();
 
-    if (_form.currentState!.validate()) {
-      _form.currentState!.save();
+    // Manual validation since we're using EvercryptedTextField
+    final email = _emailController.text;
+    final password = _passController.text;
+    final confirmPassword = _confirmController.text;
 
-      if (_emailController.text.isNotEmpty &&
-          _passController.text.isNotEmpty &&
-          _confirmController.text.isNotEmpty &&
-          _passController.text == _confirmController.text) {
-        setState(() {
-          _shouldShowLoading = true;
-        });
+    // Validate email
+    final emailError = validateEmail(email);
+    if (emailError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(emailError, style: const TextStyle(color: Colors.white)),
+        backgroundColor: errorColor,
+      ));
+      return;
+    }
 
-        _authService
-            .signUp(AuthForm(
-                email: _emailController.text, password: _passController.text))
-            .then((result) {
-          if (result['success']) {
-            setState(() {
-              _shouldShowLoading = false;
-            });
-            if (context.mounted) {
-              Navigator.pop(context);
-            }
-          } else {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(result['message'],
-                    style: const TextStyle(color: Colors.white)),
-                backgroundColor: errorColor,
-                dismissDirection: DismissDirection.horizontal,
-                showCloseIcon: true,
-              ));
-            }
-            setState(() {
-              _shouldShowLoading = false;
-            });
+    // Validate password
+    final passwordError = validatePassword(password);
+    if (passwordError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content:
+            Text(passwordError, style: const TextStyle(color: Colors.white)),
+        backgroundColor: errorColor,
+      ));
+      return;
+    }
+
+    // Validate confirm password
+    if (confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Field should not be empty.',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: errorColor,
+      ));
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Passwords do not match.',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: errorColor,
+      ));
+      return;
+    }
+
+    if (_emailController.text.isNotEmpty &&
+        _passController.text.isNotEmpty &&
+        _confirmController.text.isNotEmpty &&
+        _passController.text == _confirmController.text) {
+      setState(() {
+        _shouldShowLoading = true;
+      });
+
+      _authService
+          .signUp(AuthForm(
+              email: _emailController.text, password: _passController.text))
+          .then((result) {
+        if (result['success']) {
+          setState(() {
+            _shouldShowLoading = false;
+          });
+          if (context.mounted) {
+            Navigator.pop(context);
           }
-        }).catchError((e) {
+        } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(e.toString(),
+              content: Text(result['message'],
                   style: const TextStyle(color: Colors.white)),
               backgroundColor: errorColor,
               dismissDirection: DismissDirection.horizontal,
@@ -107,8 +135,21 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
           setState(() {
             _shouldShowLoading = false;
           });
+        }
+      }).catchError((e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text(e.toString(), style: const TextStyle(color: Colors.white)),
+            backgroundColor: errorColor,
+            dismissDirection: DismissDirection.horizontal,
+            showCloseIcon: true,
+          ));
+        }
+        setState(() {
+          _shouldShowLoading = false;
         });
-      }
+      });
     }
   }
 
@@ -119,14 +160,11 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
     _emailController.dispose();
     _confirmController.dispose();
     _passController.dispose();
-    _passFocus.dispose();
-    _confirmFocus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final keyboardNotifier = ref.read(keyboardProvider.notifier);
     return Scaffold(
         body: Padding(
       padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
@@ -154,27 +192,16 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
             key: _form,
             child: Column(
               children: [
-                TextFormField(
-                  validator: validateEmail,
+                EvercryptedTextField(
                   controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: 'Email',
                   ),
-                  keyboardType: TextInputType.none,
-                  onTap: () {
-                    keyboardNotifier.openKeyboard(
-                        controller: _emailController,
-                        onChange: (val) {
-                          _emailController.text = val;
-                        });
-                  },
                 ),
                 const SizedBox(height: defaultPadding * 1.5),
-                TextFormField(
-                  validator: validatePassword,
+                EvercryptedTextField(
                   controller: _passController,
-                  focusNode: _passFocus,
-                  keyboardType: TextInputType.none,
+                  obscureText: !_passwordVisible,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     errorMaxLines: 3,
@@ -189,28 +216,11 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                           : Icons.visibility_off),
                     ),
                   ),
-                  obscureText: !_passwordVisible,
-                  onTap: () {
-                    keyboardNotifier.openKeyboard(
-                        controller: _passController,
-                        onChange: (val) {
-                          _passController.text = val;
-                        });
-                  },
                 ),
                 const SizedBox(height: defaultPadding * 0.75),
-                TextFormField(
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return 'Field should not be empty.';
-                    } else if (val != _passController.text) {
-                      return 'Passwords do not match.';
-                    }
-                    return null;
-                  },
-                  keyboardType: TextInputType.none,
+                EvercryptedTextField(
                   controller: _confirmController,
-                  focusNode: _confirmFocus,
+                  obscureText: !_confirmPasswordVisible,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
                     suffixIcon: IconButton(
@@ -224,14 +234,6 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                           : Icons.visibility_off),
                     ),
                   ),
-                  obscureText: !_confirmPasswordVisible,
-                  onTap: () {
-                    keyboardNotifier.openKeyboard(
-                        controller: _confirmController,
-                        onChange: (val) {
-                          _confirmController.text = val;
-                        });
-                  },
                 ),
                 const SizedBox(height: defaultPadding * 2),
                 Padding(

@@ -11,7 +11,8 @@ import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
-import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/app_state.dart';
@@ -65,7 +66,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   int nextPageKey = 0;
   bool startedListeningToIsar = false;
   bool _passwordVisible = false;
-  final TextEditingController _passController = TextEditingController();
+  final EvercryptedTextController _passController = EvercryptedTextController();
   String? pass;
   late Chat chat;
   late String participantNames;
@@ -327,16 +328,10 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                             ),
                           ),
                         const SizedBox(height: defaultPadding / 2),
-                        TextFormField(
+                        EvercryptedTextField(
                           controller: _passController,
+                          maxLines: 1,
                           maxLength: 32,
-                          textInputAction: TextInputAction.done,
-                          onTap: () {
-                            ref
-                                .read(keyboardProvider.notifier)
-                                .openKeyboard(controller: _passController);
-                          },
-                          keyboardType: TextInputType.none,
                           obscureText: !_passwordVisible,
                           style: TextStyle(
                             color: contentColorLightTheme,
