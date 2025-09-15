@@ -230,7 +230,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
             ),
           Row(
             children: [
-              Expanded(
+              Flexible(
                 child: SearchHeader(
                     label: Text('Contacts', style: TextStyle(fontSize: 24)),
                     searching: false,
@@ -250,6 +250,8 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                   padding: const EdgeInsets.only(right: defaultPadding / 2),
                   child: ElevatedButton(
                     style: ButtonStyle(
+                      backgroundColor:
+                          WidgetStateProperty.all(Colors.transparent),
                       shadowColor: WidgetStateProperty.all(Colors.transparent),
                       shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
@@ -264,6 +266,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                           context, AddNewContactScreen.routeName);
                     },
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text('Requests'),
                         SizedBox(width: defaultPadding / 2),

@@ -57,49 +57,53 @@ class _SearchHeaderState extends State<SearchHeader> {
         horizontal: defaultPadding,
         vertical: defaultPadding / 2,
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: SizedBox(
-                height: 48,
-                child: EvercryptedTextField(
-                  controller: widget.searchController,
-                  maxLines: 1,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    hintText: widget.hintText ?? 'Search...',
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      size: 20,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Flexible(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: SizedBox(
+                  height: 48,
+                  child: EvercryptedTextField(
+                    controller: widget.searchController,
+                    maxLines: 1,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      hintText: widget.hintText ?? 'Search...',
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (hasText)
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: InkWell(
-                child: const Icon(
-                  Icons.close,
-                  size: 30,
+            if (hasText)
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: InkWell(
+                  child: const Icon(
+                    Icons.close,
+                    size: 30,
+                  ),
+                  onTap: () {
+                    widget.onCloseIconPressed();
+                  },
                 ),
-                onTap: () {
-                  widget.onCloseIconPressed();
-                },
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

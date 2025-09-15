@@ -34,20 +34,17 @@ class ContactCard extends ConsumerWidget {
         radius: 28,
         name: contact.name ?? contact.email!.split('@')[0],
       ),
-      title: Expanded(
-        flex: 1,
-        child: contact.name != null
-            ? Text(
-                contact.name!,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              )
-            : Text(
-                contact.email!.split('@')[0],
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-      ),
+      title: contact.name != null
+          ? Text(
+              contact.name!,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            )
+          : Text(
+              contact.email!.split('@')[0],
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: defaultPadding / 2),
         child: Text(
