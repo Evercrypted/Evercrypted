@@ -1,7 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import '../core/evercrypted-keyboard/evercrypted_text_controller.dart';
+
+/// Global focus manager to track if any Evercrypted field has focus
+class _EvercryptedFocusManager {
+  static final Set<FocusNode> _activeFocusNodes = <FocusNode>{};
+  static bool _closeScheduled = false;
+
+  static void registerFocusNode(FocusNode node) {
+    _activeFocusNodes.add(node);
+  }
+
+  static void unregisterFocusNode(FocusNode node) {
+    _activeFocusNodes.remove(node);
+  }
+
+  static bool get hasAnyFocus => _activeFocusNodes.any((node) => node.hasFocus);
+
+  static void scheduleKeyboardCloseIfNeeded(WidgetRef ref) {
+    if (_closeScheduled) return;
+    _closeScheduled = true;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _closeScheduled = false;
+      if (!hasAnyFocus) {
+        ref.read(keyboardProvider.notifier).close();
+      }
+    });
+  }
+}
 
 /// A TextField widget that automatically integrates with the Evercrypted keyboard
 /// and handles cursor visibility without manual controller management
@@ -63,6 +92,19 @@ class _EvercryptedTextFieldState extends ConsumerState<EvercryptedTextField> {
     widget.controller.setOnFocusRequested(_openKeyboard);
     // Set the callback to close keyboard when unfocus is requested
     widget.controller.setOnUnfocusRequested(_closeKeyboard);
+
+    // Register this focus node with the global manager
+    _EvercryptedFocusManager.registerFocusNode(_focusNode);
+    // Add focus listener to automatically hide keyboard when focus is lost
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (!_focusNode.hasFocus) {
+      // Use the global focus manager to schedule keyboard close
+      // This ensures only one close callback is scheduled per frame
+      _EvercryptedFocusManager.scheduleKeyboardCloseIfNeeded(ref);
+    }
   }
 
   void _openKeyboard() {
@@ -87,6 +129,8 @@ class _EvercryptedTextFieldState extends ConsumerState<EvercryptedTextField> {
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _EvercryptedFocusManager.unregisterFocusNode(_focusNode);
     _focusNode.dispose();
     super.dispose();
   }
