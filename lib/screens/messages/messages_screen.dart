@@ -560,7 +560,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
         if (message != null) {
           // Delete from server if user is the author and message was successfully sent
-          if (message.authorId == userId && message.successfullySent && message.uid != null) {
+          if (message.authorId == userId &&
+              message.successfullySent &&
+              message.uid != null) {
             try {
               // Send delete request to server
               await AppHttpClient.message(
@@ -695,13 +697,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   Widget _buildChatTitle(List<Contact> contacts, profile) {
     if (chat.isOneToOne) {
       // For one-to-one chats, show premium status indicator
-      final otherParticipant = chat.participants.firstWhere(
-        (p) => p.email != Auth.getUser!.email,
-      );
-      final contact = contacts.firstWhereOrNull(
-        (c) => c.contactPersonUid == otherParticipant.uid,
-      );
-
       return Row(
         children: [
           CircleAvatarWithActiveIndicator(
@@ -721,19 +716,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (contact != null && !contact.hasActivated) ...[
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(
-                      Icons.card_giftcard,
-                      color: primaryColor,
-                    ),
-                    onPressed: () {
-                      _contactService.showActivationConfirmationDialog(
-                          context, contact, profile);
-                    },
-                  )
-                ],
               ],
             ),
           ),
@@ -765,12 +747,43 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   Widget build(BuildContext context) {
     final contacts = ref.read(contactsProvider);
     final profile = ref.read(profileProvider);
+    final otherParticipant = chat.participants.firstWhere(
+      (p) => p.email != Auth.getUser!.email,
+    );
+    final contact = contacts.firstWhereOrNull(
+      (c) => c.contactPersonUid == otherParticipant.uid,
+    );
+
     return Scaffold(
         appBar: ConnectionStatusAppbar(
           isConnected: isConnected,
           title: _buildChatTitle(contacts, profile),
           actions: [
+            if (Auth.getUser!.activationTokenQuantity != null &&
+                Auth.getUser!.activationTokenQuantity! > 0 &&
+                contact != null &&
+                !contact.hasActivated) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    padding: WidgetStateProperty.all<EdgeInsets>(
+                        const EdgeInsets.all(0))),
+                icon: Icon(
+                  Icons.card_giftcard,
+                  color: primaryColor,
+                ),
+                onPressed: () {
+                  _contactService.showActivationConfirmationDialog(
+                      context, contact, profile);
+                },
+              )
+            ],
             IconButton(
+              style: ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  padding: WidgetStateProperty.all<EdgeInsets>(
+                      const EdgeInsets.all(0))),
               icon: const Icon(Icons.settings),
               color: primaryColor,
               onPressed: () {

@@ -190,6 +190,13 @@ class ChatSocket {
         // and complete the Kyber key exchange process for any chats that need it
         await _checkPendingKeyExchanges();
       }
+    }).catchError((error) {
+      debugPrint('Error during getGeneralInfoAndExchangeKey: $error');
+      debugPrint(error.toString());
+      if (error.toString().contains('Status code: 401')) {
+        Auth.clearAuth();
+      }
+      keyCompleter.complete(false);
     });
     return keyCompleter.future;
   }

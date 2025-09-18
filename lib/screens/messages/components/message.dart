@@ -68,7 +68,17 @@ class _MessageWidgetState extends State<MessageWidget> {
       return;
     }
     ChatMessage msg = widget.message;
-    if (msg.iv == null) return;
+
+    // If message has no IV, it's unencrypted - set status and return
+    if (msg.iv == null) {
+      if (mounted) {
+        setState(() {
+          message = msg;
+          encryptionStatus = EncryptionStatus.notEncrypted;
+        });
+      }
+      return;
+    }
 
     // Use the same SHA256-based key derivation as encryption
     String? inputForHashing;

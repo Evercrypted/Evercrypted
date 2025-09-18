@@ -107,6 +107,14 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       return;
     }
 
+    // Check if user has premium access - if not, send unencrypted
+    final bool hasPremium = Auth.getUser?.activated == true;
+    if (!hasPremium) {
+      _messageService.sendMessage(message, widget.chat.uid, false);
+      _messageField.clear();
+      return;
+    }
+
     // Check if we have a key for encryption
     if (fullKey != null) {
       // We have the key - encrypt and send normally
@@ -226,7 +234,20 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     String? userId = Auth.user?.uid;
     late Message messageToSend;
     late String fileToSend;
-    if (fullKey != null && fullKey!.isNotEmpty) {
+
+    // Check if user has premium access - if not, send unencrypted
+    final bool hasPremium = Auth.getUser?.activated == true;
+    if (!hasPremium) {
+      messageToSend = Message(
+        authorId: userId!,
+        messageType: MessageTypes.audio,
+        playbackDurationMicroSeconds: recordingMicroSeconds.toString(),
+        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+        chatUid: widget.chat.uid,
+        withBaseKey: false,
+      );
+      fileToSend = base64.encode(recordingData!);
+    } else if (fullKey != null && fullKey!.isNotEmpty) {
       final encrypted = await encodeRecording(fullKey!, recordingData!);
 
       final ecnryptedMicroSeconds =
@@ -361,7 +382,20 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     String? userId = Auth.user?.uid;
     late Message messageToSend;
     late String fileToSend;
-    if (fullKey != null && fullKey!.isNotEmpty) {
+
+    // Check if user has premium access - if not, send unencrypted
+    final bool hasPremium = Auth.getUser?.activated == true;
+    if (!hasPremium) {
+      messageToSend = Message(
+        authorId: userId!,
+        messageType: MessageTypes.file,
+        text: file!.name,
+        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+        chatUid: widget.chat.uid,
+        withBaseKey: false,
+      );
+      fileToSend = base64.encode(file!.bytes!);
+    } else if (fullKey != null && fullKey!.isNotEmpty) {
       final ecnrypted = await encodePayload({
         'name': file!.name,
         'bytes': file!.bytes,
@@ -454,7 +488,19 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     late Message messageToSend;
     late String fileToSend;
 
-    if (fullKey != null && fullKey!.isNotEmpty) {
+    // Check if user has premium access - if not, send unencrypted
+    final bool hasPremium = Auth.getUser?.activated == true;
+    if (!hasPremium) {
+      messageToSend = Message(
+        authorId: userId!,
+        messageType: MessageTypes.image,
+        text: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+        chatUid: widget.chat.uid,
+        withBaseKey: false,
+      );
+      fileToSend = base64.encode(jpgBytes);
+    } else if (fullKey != null && fullKey!.isNotEmpty) {
       final encrypted = await encodePayload({
         'name':
             'image_${widget.chat.uid}_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg',

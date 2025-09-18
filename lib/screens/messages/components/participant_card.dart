@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
@@ -31,6 +32,7 @@ class ParticipantCard extends ConsumerWidget {
       (c) => c.contactPersonUid == participant.uid,
     );
     final profile = ref.watch(profileProvider);
+    final authUser = Auth.getUser;
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: defaultPadding * 2, vertical: defaultPadding * 0.5),
@@ -62,11 +64,20 @@ class ParticipantCard extends ConsumerWidget {
                           maxLines: 1,
                         ),
                       ),
-                      if (contact != null && !contact.hasActivated) ...[
+                      if (authUser?.activationTokenQuantity != null &&
+                          authUser!.activationTokenQuantity! > 0 &&
+                          contact != null &&
+                          !contact.hasActivated) ...[
                         const SizedBox(width: 8),
-                        const Icon(
-                          Icons.card_giftcard,
-                          color: primaryColor,
+                        IconButton(
+                          onPressed: () {
+                            contactService.showActivationConfirmationDialog(
+                                context, contact, profile);
+                          },
+                          icon: const Icon(
+                            Icons.card_giftcard,
+                            color: primaryColor,
+                          ),
                         ),
                       ],
                     ],
@@ -75,16 +86,31 @@ class ParticipantCard extends ConsumerWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {
-              _showOptionsBottomSheet(
-                  context, contact, profile, contactService);
-            },
-            icon: const Icon(Icons.more_vert),
-          )
+          if (_hasAnyOptions(contact))
+            IconButton(
+              onPressed: () {
+                _showOptionsBottomSheet(
+                    context, contact, profile, contactService);
+              },
+              icon: const Icon(Icons.more_vert),
+            )
         ],
       ),
     );
+  }
+
+  bool _hasAnyOptions(Contact? contact) {
+    // Check if "Activate Premium License" option should be shown
+    final hasActivationOption = contact != null &&
+        !contact.hasActivated &&
+        Auth.getUser?.activationTokenQuantity != null &&
+        Auth.getUser!.activationTokenQuantity! > 0;
+
+    // Check if "Remove from chat" option should be shown
+    final hasRemoveOption =
+        participantsLenght > 2 && (user.isAdmin || user.isCreator);
+
+    return hasActivationOption || hasRemoveOption;
   }
 
   void _showOptionsBottomSheet(BuildContext context, Contact? contact,
@@ -116,10 +142,10 @@ class ParticipantCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                if (profile != null &&
-                    contact != null &&
+                if (contact != null &&
                     !contact.hasActivated &&
-                    profile.activationTokenQuantity > 0)
+                    Auth.getUser?.activationTokenQuantity != null &&
+                    Auth.getUser!.activationTokenQuantity! > 0)
                   ListTile(
                     leading: Container(
                       padding: const EdgeInsets.all(8),

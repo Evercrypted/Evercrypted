@@ -505,7 +505,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     isActivated ? 'Activation Tokens' : 'Activate Account',
                     style: const TextStyle(fontSize: 16),
                   ),
-                  subtitle: Consumer(builder: (context, ref, child) {
+                  subtitle: () {
                     if (isActivated) {
                       final profile = ref.watch(profileProvider);
                       final tokenCount = profile?.activationTokenQuantity ?? 0;
@@ -521,10 +521,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                         style: TextStyle(fontSize: 13),
                       );
                     }
-                  }),
-                  trailing: Consumer(builder: (context, ref, child) {
+                  }(),
+                  trailing: () {
                     if (isActivated) {
-                      final profile = ref.watch(profileProvider);
                       final tokenCount = profile?.activationTokenQuantity ?? 0;
                       if (tokenCount > 0) {
                         return Container(
@@ -544,12 +543,12 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                         );
                       } else {
-                        return Container();
+                        return const SizedBox();
                       }
                     } else {
-                      return Container();
+                      return const SizedBox();
                     }
-                  }),
+                  }(),
                   onTap: () {
                     if (isActivated) {
                       // Navigate to activation tokens screen

@@ -46,7 +46,8 @@ class EvercryptedTextField extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<EvercryptedTextField> createState() => _EvercryptedTextFieldState();
+  ConsumerState<EvercryptedTextField> createState() =>
+      _EvercryptedTextFieldState();
 }
 
 class _EvercryptedTextFieldState extends ConsumerState<EvercryptedTextField> {
@@ -67,16 +68,16 @@ class _EvercryptedTextFieldState extends ConsumerState<EvercryptedTextField> {
   void _openKeyboard() {
     // Trigger the same keyboard opening logic as onTap
     ref.read(keyboardProvider.notifier).openKeyboard(
-      controller: widget.controller.textController,
-      isMultiLine: widget.isMultiLine,
-      onChange: (text) {
-        // Trigger cursor visibility and call onChanged if provided
-        widget.controller.ensureCursorVisible();
-        widget.onChanged?.call(text);
-      },
-      onClose: widget.onClose,
-      onDone: widget.onDone,
-    );
+          controller: widget.controller.textController,
+          isMultiLine: widget.isMultiLine,
+          onChange: (text) {
+            // Trigger cursor visibility and call onChanged if provided
+            widget.controller.ensureCursorVisible();
+            widget.onChanged?.call(text);
+          },
+          onClose: widget.onClose,
+          onDone: widget.onDone,
+        );
   }
 
   void _closeKeyboard() {
@@ -96,8 +97,8 @@ class _EvercryptedTextFieldState extends ConsumerState<EvercryptedTextField> {
       controller: widget.controller.textController,
       scrollController: widget.controller.scrollController,
       focusNode: _focusNode,
-      maxLines: widget.maxLines,
-      minLines: widget.minLines,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
+      minLines: widget.obscureText ? 1 : widget.minLines,
       maxLength: widget.maxLength,
       obscureText: widget.obscureText,
       enabled: widget.enabled,
@@ -160,10 +161,12 @@ class AutoEvercryptedTextField extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<AutoEvercryptedTextField> createState() => _AutoEvercryptedTextFieldState();
+  ConsumerState<AutoEvercryptedTextField> createState() =>
+      _AutoEvercryptedTextFieldState();
 }
 
-class _AutoEvercryptedTextFieldState extends ConsumerState<AutoEvercryptedTextField> {
+class _AutoEvercryptedTextFieldState
+    extends ConsumerState<AutoEvercryptedTextField> {
   late EvercryptedTextController controller;
 
   @override
