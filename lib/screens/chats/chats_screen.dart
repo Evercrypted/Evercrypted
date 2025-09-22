@@ -79,7 +79,8 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
       floatingActionButton: Tooltip(
         message: 'Create New Group',
         preferBelow: false,
-        child: FloatingActionButton(
+        child: FloatingActionButton.extended(
+          label: const Text('New Group', style: TextStyle(color: Colors.white)),
           onPressed: () {
             Navigator.push(
               context,
@@ -117,7 +118,7 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
             });
           },
           backgroundColor: primaryColor,
-          child: const Icon(
+          icon: const Icon(
             Icons.group_add,
             color: Colors.white,
           ),

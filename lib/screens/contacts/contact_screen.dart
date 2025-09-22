@@ -28,7 +28,8 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
   ContactService contactService = ContactService();
   ChatService chatService = ChatService();
   HiddenContactService hiddenContactService = HiddenContactService();
-  final EvercryptedTextController _renamingController = EvercryptedTextController();
+  final EvercryptedTextController _renamingController =
+      EvercryptedTextController();
 
   bool renaming = false;
 
@@ -225,7 +226,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                   ),
                   icon: Icon(
                     Icons.card_giftcard,
-                    color: secondaryColor,
+                    color: primaryColor,
                   ),
                   onPressed: () {
                     contactService.showActivationConfirmationDialog(
@@ -318,7 +319,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                   ),
                   label: const Text(
                     'Delete Contact',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: errorColor),
                   )),
             ],
           )

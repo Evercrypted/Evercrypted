@@ -151,7 +151,18 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
               children: [
                 EvercryptedTextField(
                   controller: _emailField,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: const BorderSide(
+                        color: primaryColor,
+                        width: 1,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: BorderSide.none,
+                    ),
                     labelText: 'Email',
                   ),
                   onChanged: (val) {
@@ -165,7 +176,19 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                   child: EvercryptedTextField(
                     controller: _passController,
                     obscureText: !_passwordVisible,
+                    hintText: 'Password',
                     decoration: InputDecoration(
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                        borderSide: const BorderSide(
+                          color: primaryColor,
+                          width: 1,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                        borderSide: BorderSide.none,
+                      ),
                       labelText: 'Password',
                       errorMaxLines: 3,
                       suffixIcon: IconButton(
@@ -188,14 +211,26 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                 ),
                 const SizedBox(height: defaultPadding * 2),
                 PrimaryButton(
-                  text: 'Sign In',
                   press: () => submitForm(context),
                   child: _shouldShowLoading
                       ? const SpinKitThreeBounce(
                           color: Colors.white,
                           size: 17,
                         )
-                      : null,
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.login,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Sign In',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                 ),
                 const SizedBox(height: defaultPadding),
                 TextButton(

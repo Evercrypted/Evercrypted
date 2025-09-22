@@ -194,7 +194,18 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
               children: [
                 EvercryptedTextField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: const BorderSide(
+                        color: primaryColor,
+                        width: 1,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: BorderSide.none,
+                    ),
                     labelText: 'Email',
                   ),
                 ),
@@ -203,6 +214,17 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                   controller: _passController,
                   obscureText: !_passwordVisible,
                   decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: const BorderSide(
+                        color: primaryColor,
+                        width: 1,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: BorderSide.none,
+                    ),
                     labelText: 'Password',
                     errorMaxLines: 3,
                     suffixIcon: IconButton(
@@ -222,6 +244,17 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                   controller: _confirmController,
                   obscureText: !_confirmPasswordVisible,
                   decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: const BorderSide(
+                        color: primaryColor,
+                        width: 1,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: BorderSide.none,
+                    ),
                     labelText: 'Confirm Password',
                     suffixIcon: IconButton(
                       onPressed: () {
@@ -239,14 +272,21 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: defaultPadding),
                   child: PrimaryButton(
-                      text: 'Sign up',
                       press: () => submitForm(context),
                       child: _shouldShowLoading
                           ? const SpinKitThreeBounce(
                               color: Colors.white,
                               size: 17,
                             )
-                          : null),
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.login, color: Colors.white),
+                                SizedBox(width: 8),
+                                Text("Sign Up",
+                                    style: TextStyle(color: Colors.white))
+                              ],
+                            )),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pushReplacementNamed(

@@ -1,6 +1,4 @@
 import 'dart:typed_data';
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
 
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
@@ -150,7 +148,7 @@ class _FileMessageState extends State<FileMessage>
         vertical: defaultPadding / 2.5,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(15),
         color: primaryColor
             .withAlpha((widget.message.isSender ? 255 : (255 * 0.1).round())),
       ),

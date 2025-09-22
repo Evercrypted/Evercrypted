@@ -20,7 +20,7 @@ class TextMessage extends StatelessWidget {
       decoration: BoxDecoration(
         color: primaryColor
             .withAlpha(((message.isSender ? 1 : 0.1) * 255).round()),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Text(
         message.encryptionStatus == EncryptionStatus.decrypted

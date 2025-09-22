@@ -15,7 +15,6 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../ui_constants.dart';
 
@@ -200,7 +199,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Text(
                         'Premium',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           color: primaryColor,
                           fontWeight: FontWeight.w500,
                         ),
@@ -219,14 +218,14 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                             children: [
                               Icon(
                                 Icons.card_giftcard,
-                                size: 10,
+                                size: 14,
                                 color: Colors.white,
                               ),
                               const SizedBox(width: 2),
                               Text(
                                 '${profile.activationTokenQuantity}',
                                 style: const TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 14,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
                                 ),

@@ -153,6 +153,14 @@ class _EvercryptedTextFieldState extends ConsumerState<EvercryptedTextField> {
             hintText: widget.hintText,
             suffixIcon: widget.suffixIcon,
             prefixIcon: widget.prefixIcon,
+            border: const OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.all(Radius.circular(15)),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
           ),
       keyboardType: TextInputType.none, // Disable system keyboard
       onTap: _openKeyboard, // Use the same method as programmatic focus

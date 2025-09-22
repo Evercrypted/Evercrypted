@@ -6,6 +6,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 ThemeData lightThemeData(BuildContext context) {
   return ThemeData.light().copyWith(
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: contentColorLightTheme,
+      ),
+    ),
     primaryColor: primaryColor,
     scaffoldBackgroundColor: Colors.white,
     dialogTheme: DialogThemeData(
@@ -37,6 +42,11 @@ ThemeData darkThemeData(BuildContext context) {
   // Bydefault flutter provie us light and dark theme
   // we just modify it as our need
   return ThemeData.dark().copyWith(
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white,
+      ),
+    ),
     primaryColor: primaryColor,
     scaffoldBackgroundColor: contentColorLightTheme,
     dialogTheme: DialogThemeData(

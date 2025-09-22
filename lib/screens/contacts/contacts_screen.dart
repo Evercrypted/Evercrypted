@@ -219,13 +219,11 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
         children: [
           if (widget.isParticipantSelect && widget.isGroupCreate)
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: defaultPadding * 2),
+              padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
               child: EvercryptedTextField(
                 controller: newGroupName,
-                decoration: InputDecoration(
-                  hintText: 'Group Name',
-                ),
+                hintText: 'Enter group name',
+                prefixIcon: const Icon(Icons.group),
               ),
             ),
           Row(

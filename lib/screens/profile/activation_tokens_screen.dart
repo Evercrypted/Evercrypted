@@ -14,20 +14,22 @@ import 'package:url_launcher/url_launcher.dart';
 
 class ActivationTokensScreen extends ConsumerStatefulWidget {
   final Profile profile;
-  
+
   const ActivationTokensScreen({
     super.key,
     required this.profile,
   });
-  
+
   static const routeName = '/activation-tokens';
 
   @override
   ActivationTokensScreenState createState() => ActivationTokensScreenState();
 }
 
-class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> {
-  final EvercryptedTextController activationCodeController = EvercryptedTextController();
+class ActivationTokensScreenState
+    extends ConsumerState<ActivationTokensScreen> {
+  final EvercryptedTextController activationCodeController =
+      EvercryptedTextController();
   bool isLoading = false;
 
   @override
@@ -38,7 +40,7 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
 
   void _redeemActivationCode() async {
     final activationCode = activationCodeController.text.trim();
-    
+
     if (activationCode.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -65,23 +67,25 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
         if (response['success'] == true) {
           // Update the local profile with new activation token quantity
           final currentProfile = ref.read(profileProvider);
-          if (currentProfile != null && response['activationTokenQuantity'] != null) {
+          if (currentProfile != null &&
+              response['activationTokenQuantity'] != null) {
             final updatedProfile = currentProfile.copyWith(
               activationTokenQuantity: response['activationTokenQuantity'],
             );
-            
+
             // Sync the updated profile
             final profileService = ProfileService();
             profileService.syncProfile(updatedProfile);
           }
-          
+
           // Clear the input field
           activationCodeController.clear();
-          
+
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(response['message'] ?? 'Activation code redeemed successfully!'),
+              content: Text(response['message'] ??
+                  'Activation code redeemed successfully!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -89,7 +93,8 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(response['error'] ?? 'Failed to redeem activation code'),
+              content:
+                  Text(response['error'] ?? 'Failed to redeem activation code'),
               backgroundColor: Colors.red,
             ),
           );
@@ -116,8 +121,9 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
 
   void _navigateToPurchaseTokens() async {
     final email = widget.profile.email ?? '';
-    final url = Uri.parse('https://evercrypted.com/buy?email=${Uri.encodeComponent(email)}');
-    
+    final url = Uri.parse(
+        'https://evercrypted.com/buy?email=${Uri.encodeComponent(email)}');
+
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -138,7 +144,7 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider) ?? widget.profile;
-    
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -193,9 +199,9 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Token Count Display
             Container(
               width: double.infinity,
@@ -219,8 +225,8 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                     ),
                   ),
                   Text(
-                    profile.activationTokenQuantity == 1 
-                        ? 'Activation Token Available' 
+                    profile.activationTokenQuantity == 1
+                        ? 'Activation Token Available'
                         : 'Activation Tokens Available',
                     style: TextStyle(
                       fontSize: 16,
@@ -231,9 +237,9 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Description
             Text(
               'Use activation tokens to give premium licenses to your friends and family. Each token activates one user permanently.',
@@ -244,9 +250,9 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                 height: 1.4,
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Activation Code Input Section
             Container(
               width: double.infinity,
@@ -282,25 +288,9 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                   EvercryptedTextField(
                     controller: activationCodeController,
                     enabled: !isLoading,
-                      decoration: InputDecoration(
-                        hintText: 'Enter activation code',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: primaryColor, width: 2),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      ),
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                    hintText: 'Enter activation code',
+                    prefixIcon: const Icon(Icons.vpn_key),
+                  ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
@@ -315,13 +305,14 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                         ),
                         elevation: 0,
                       ),
-                      child: isLoading 
+                      child: isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Text(
@@ -336,9 +327,9 @@ class ActivationTokensScreenState extends ConsumerState<ActivationTokensScreen> 
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Buy More Button
             SizedBox(
               width: double.infinity,

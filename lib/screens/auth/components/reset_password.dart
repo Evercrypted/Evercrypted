@@ -96,7 +96,6 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
 
   @override
   Widget build(BuildContext context) {
-
     return SingleChildScrollView(
       child: Container(
         decoration: BoxDecoration(
@@ -139,20 +138,38 @@ class ResetPasswordState extends ConsumerState<ResetPassword> {
             EvercryptedTextField(
               readOnly: Auth.getUser != null,
               controller: emailController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                  borderSide: const BorderSide(
+                    color: primaryColor,
+                    width: 1,
+                  ),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                  borderSide: BorderSide.none,
+                ),
                 labelText: 'Email',
               ),
             ),
             const SizedBox(height: defaultPadding * 2),
             PrimaryButton(
-              text: 'Submit',
               press: _handleResetPassword,
               child: isLoading
                   ? const SpinKitThreeBounce(
                       color: Colors.white,
                       size: 17,
                     )
-                  : null,
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.email, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text("Reset Password",
+                            style: TextStyle(color: Colors.white))
+                      ],
+                    ),
             ),
             const SizedBox(height: defaultPadding * 2),
           ],
