@@ -3,6 +3,7 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -69,10 +70,10 @@ class ChatCard extends ConsumerWidget {
                       maxLines: 1,
                     ),
                     const SizedBox(height: 8),
-                    const Opacity(
+                    Opacity(
                       opacity: 0.64,
                       child: Text(
-                        'Some Text Here',
+                        timeago.format(chat.lastMessageTime!),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -81,13 +82,121 @@ class ChatCard extends ConsumerWidget {
                 ),
               ),
             ),
-            Opacity(
-              opacity: 0.64,
-              child: Text(timeago.format(chat.lastMessageTime!)),
-            ),
+            IconButton(
+              onPressed: () {
+                _showOptionsBottomSheet(context, chat);
+              },
+              icon: const Icon(Icons.more_vert, color: Colors.grey),
+            )
           ],
         ),
       ),
+    );
+  }
+
+  void _showOptionsBottomSheet(BuildContext context, Chat chat) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle indicator
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: errorColor.withAlpha((255 * 0.1).toInt()),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.delete_sweep,
+                        color: errorColor, size: 20),
+                  ),
+                  title: Text(
+                    'Clear messages',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: contentColorLightThemeSecondary),
+                  ),
+                  subtitle: const Text(
+                    'Delete all messages from this chat locally',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showClearMessagesConfirmationDialog(context, chat);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showClearMessagesConfirmationDialog(BuildContext context, Chat chat) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Clear messages'),
+          content: const Text(
+            'Are you sure you want to delete all messages from this chat? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final messageService = MessageService();
+                await messageService.deleteAllMessages(chat.uid);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: secondaryColor,
+                      content: Text(
+                        'All messages have been cleared',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: const Text(
+                'Clear',
+                style: TextStyle(color: errorColor),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

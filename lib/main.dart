@@ -437,7 +437,9 @@ class AuthGateState extends ConsumerState<AuthGate> {
     if (contactRequests.isNotEmpty) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
           contactRequests
-              .where((element) => element.recipientEmail == user!.email)
+              .where((element) =>
+                  element.recipientEmail?.toLowerCase() ==
+                  user!.email.toLowerCase())
               .toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
           .where((element) => element.authorId == user!.uid)
@@ -485,7 +487,9 @@ class AuthGateState extends ConsumerState<AuthGate> {
         .listen((contactRequests) {
       ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
           contactRequests
-              .where((element) => element.recipientEmail == user!.email)
+              .where((element) =>
+                  element.recipientEmail?.toLowerCase() ==
+                  user!.email?.toLowerCase())
               .toList());
       ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
           .where((element) => element.authorId == user!.uid)

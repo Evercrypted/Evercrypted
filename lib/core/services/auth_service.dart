@@ -91,7 +91,7 @@ class AuthService {
         DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
     final crypted = await encodePayload({
-      'email': formValues.email,
+      'email': formValues.email?.toLowerCase(),
       'password': formValues.password,
     }, keys['key'], true);
     return AppHttpClient.client
@@ -132,7 +132,7 @@ class AuthService {
         DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
     final crypted = await encodePayload({
-      'email': formValues.email,
+      'email': formValues.email?.toLowerCase(),
       'password': formValues.password,
     }, keys['key'], true);
     return AppHttpClient.client
@@ -220,12 +220,13 @@ class AuthService {
   }
 
   Future forgotPassword(String email) async {
+    final normalizedEmail = email.toLowerCase();
     if (ChatSocket.socket?.connected == true &&
         ChatSocket.isConnected == true) {
       return AppHttpClient.message(
         channel: SocketChannelTypes.auth,
         type: AuthEventTypes.forgotPassword,
-        payload: {'email': email},
+        payload: {'email': normalizedEmail},
       );
     }
 
@@ -233,7 +234,7 @@ class AuthService {
         DateTime.now().millisecondsSinceEpoch.toString() + getRandomString(32);
     final Map<String, dynamic> keys = await getLoginEncKey(identifier);
     final crypted = await encodePayload({
-      'email': email,
+      'email': normalizedEmail,
     }, keys['key'], true);
 
     return AppHttpClient.client

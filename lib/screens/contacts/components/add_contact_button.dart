@@ -55,7 +55,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
     }
 
     // Check if email is user's own email
-    if (email == Auth.getUser?.email) {
+    if (email.toLowerCase() == Auth.getUser?.email.toLowerCase()) {
       showSimpleNotification(
           const Text(
             "You can't send a contact request to yourself",
@@ -66,7 +66,8 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
     }
 
     // Check if already have contact
-    if (contacts.any((Contact element) => element.email == email)) {
+    if (contacts.any((Contact element) =>
+        element.email?.toLowerCase() == email.toLowerCase())) {
       showSimpleNotification(
           const Text(
             "You already have a contact with this email",

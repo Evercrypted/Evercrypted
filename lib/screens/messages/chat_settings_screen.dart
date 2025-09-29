@@ -91,7 +91,9 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
-    user = chat.participants.firstWhere((p) => p.email == Auth.getUser!.email);
+    debugPrint(Auth.getUser!.email);
+    user = chat.participants.firstWhere(
+        (p) => p.email?.toLowerCase() == Auth.getUser!.email.toLowerCase());
 
     return Scaffold(
         appBar: AppBar(
@@ -218,7 +220,8 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                   participantsLenght: chat.participants.length,
                   remove: () => _showConfirmationDialog(
                     title: 'Remove Participant',
-                    content: 'Are you sure you want to remove ${participant.name ?? participant.email} from this chat?',
+                    content:
+                        'Are you sure you want to remove ${participant.name ?? participant.email} from this chat?',
                     confirmText: 'Remove',
                   ).then((confirmed) {
                     if (confirmed) {
