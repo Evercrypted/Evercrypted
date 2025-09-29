@@ -63,7 +63,8 @@ class ChatSocket {
         return 'http://localhost:4000'; // Desktop/Web
       }
     } else {
-      return 'https://test-api.evercrypted.com:8443'; // Production
+      return 'http://10.0.2.2:4000'; // Production
+      // return 'https://test-api.evercrypted.com:8443'; // Production
     }
   }
 

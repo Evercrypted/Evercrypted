@@ -27,7 +27,8 @@ class AppHttpClient {
         return 'http://localhost:3001'; // Desktop/Web
       }
     } else {
-      return 'https://test-api.evercrypted.com'; // Production
+      return 'http://10.0.2.2:3001'; // Production
+      // return 'https://test-api.evercrypted.com'; // Production
     }
   }
 
