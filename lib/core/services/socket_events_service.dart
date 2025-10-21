@@ -112,7 +112,6 @@ class SocketEventsService {
   }
 
   handleGeneralEvent(String type, dynamic payload) async {
-    print(payload);
     switch (type) {
       case 'getInitialData':
         await Auth.setAuth(
