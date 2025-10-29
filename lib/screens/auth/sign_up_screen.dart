@@ -9,6 +9,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import './sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
@@ -308,6 +309,26 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                               .bodyLarge!
                               .color!
                               .withAlpha((255 * 0.64).round()),
+                        ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final uri = Uri.parse(
+                        'https://evercrypted.com/terms-of-service-and-privacy-policy');
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri,
+                          mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  child: Text(
+                    'Terms of Service & Privacy Policy',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodyLarge!
+                              .color!
+                              .withAlpha((255 * 0.5).round()),
                         ),
                   ),
                 ),

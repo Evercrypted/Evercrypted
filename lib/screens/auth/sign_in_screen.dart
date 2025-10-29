@@ -12,6 +12,7 @@ import '../../ui_constants.dart';
 import './sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   static const routeName = '/sign-in';
@@ -256,7 +257,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                   },
                   child: Text.rich(
                     TextSpan(
-                      text: "Don’t have an account? ",
+                      text: "Don't have an account? ",
                       children: [
                         TextSpan(
                           text: "Sign Up",
@@ -271,6 +272,26 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                               .bodyLarge!
                               .color!
                               .withAlpha((255 * 0.64).round()),
+                        ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final uri = Uri.parse(
+                        'https://evercrypted.com/terms-of-service-and-privacy-policy');
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri,
+                          mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  child: Text(
+                    'Terms of Service & Privacy Policy',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodyLarge!
+                              .color!
+                              .withAlpha((255 * 0.5).round()),
                         ),
                   ),
                 ),

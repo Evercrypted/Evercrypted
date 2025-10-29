@@ -629,35 +629,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 );
               },
             ),
-            Column(
-              children: [
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withAlpha((255 * 0.1).round()),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.help_outline,
-                      color: primaryColor,
-                      size: 24,
-                    ),
-                  ),
-                  title: const Text(
-                    'Help',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  subtitle: const Text(
-                    'Help center, contact us, privacy policy',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  onTap: () {
-                    // Handle help tap
-                  },
-                ),
-              ],
-            ),
 
             const SizedBox(height: 30),
 
