@@ -6,11 +6,9 @@ import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ActivationTokensScreen extends ConsumerStatefulWidget {
   final Profile profile;
@@ -115,28 +113,6 @@ class ActivationTokensScreenState
         setState(() {
           isLoading = false;
         });
-      }
-    }
-  }
-
-  void _navigateToPurchaseTokens() async {
-    final email = widget.profile.email ?? '';
-    final url = Uri.parse(
-        'https://evercrypted.com/buy?email=${Uri.encodeComponent(email)}');
-
-    try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        // Fallback to activation screen if URL can't be opened
-        if (mounted) {
-          Navigator.pushNamed(context, ActivationMainScreen.routeName);
-        }
-      }
-    } catch (e) {
-      // Fallback to activation screen on error
-      if (mounted) {
-        Navigator.pushNamed(context, ActivationMainScreen.routeName);
       }
     }
   }
@@ -325,39 +301,6 @@ class ActivationTokensScreenState
                     ),
                   ),
                 ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Buy More Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _navigateToPurchaseTokens,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.shopping_cart, size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Buy More Tokens',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
           ],

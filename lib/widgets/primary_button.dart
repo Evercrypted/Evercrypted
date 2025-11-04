@@ -59,7 +59,14 @@ class _PrimaryButtonState extends State<PrimaryButton> {
   }
 
   openActivationDialog() {
-    Navigator.pushNamed(context, ActivationMainScreen.routeName);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
+      builder: (context) => const ActivationMainScreen(),
+    );
   }
 
   get content =>

@@ -1,4 +1,4 @@
-import 'package:evercrypted/screens/activation/components/hero_card.dart';
+import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 
 class ActivationMainScreen extends StatefulWidget {
@@ -10,64 +10,179 @@ class ActivationMainScreen extends StatefulWidget {
 }
 
 class _ActivationMainScreenState extends State<ActivationMainScreen> {
-  final CarouselController controller = CarouselController(initialItem: 1);
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('Evercrypted Lifetime License'),
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.close),
-        ),
-      ),
-      body: ListView(
-        children: [
-          ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 300),
-            child: CarouselView.weighted(
-              controller: controller,
-              itemSnapping: true,
-              flexWeights: const <int>[1, 7, 1],
-              children: ImgFlow.values.map((ImgFlow image) {
-                return HeroLayoutCard(imageInfo: image);
-              }).toList(),
-            ),
+    return SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(defaultPadding * 2),
+            topRight: Radius.circular(defaultPadding * 2),
           ),
-        ],
+          color: Theme.of(context).scaffoldBackgroundColor,
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          margin: const EdgeInsets.all(defaultPadding),
+          padding: const EdgeInsets.fromLTRB(
+            defaultPadding,
+            0,
+            defaultPadding,
+            defaultPadding,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.lock,
+                size: 60,
+                color: Theme.of(context).textTheme.titleMedium!.color,
+              ),
+              const SizedBox(height: defaultPadding / 2),
+              Text(
+                "Premium License Required",
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: defaultPadding / 2),
+              Text(
+                "You need a premium license to send end-to-end encrypted or password-protected messages.",
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: defaultPadding * 1.5),
+
+              // Features list
+              _buildFeatureItem(
+                icon: Icons.enhanced_encryption,
+                title: 'Quantum-Safe End-to-End Encryption',
+                description: 'XChaCha20-Poly1305 with Kyber1024 key exchange',
+              ),
+              const SizedBox(height: defaultPadding),
+
+              _buildFeatureItem(
+                icon: Icons.message,
+                title: 'Password Encrypted Messages',
+                description:
+                    'Add optional password protection to modify encryption keys - messages get unreadable without the appropriate password',
+              ),
+              const SizedBox(height: defaultPadding),
+
+              _buildFeatureItem(
+                icon: Icons.file_present,
+                title: 'Encrypted File & Voice Messages',
+                description:
+                    'Share files and voice messages with full encryption',
+              ),
+              const SizedBox(height: defaultPadding),
+
+              _buildFeatureItem(
+                icon: Icons.security,
+                title: 'Two-Factor Authentication',
+                description: 'Extra security layer for your account',
+              ),
+              const SizedBox(height: defaultPadding),
+
+              _buildFeatureItem(
+                icon: Icons.keyboard,
+                title: 'Secure In-App Keyboard',
+                description: 'Prevent keylogging and data leaks',
+              ),
+
+              const SizedBox(height: defaultPadding * 1.5),
+
+              // CTA
+              Container(
+                padding: const EdgeInsets.all(defaultPadding),
+                decoration: BoxDecoration(
+                  color: primaryColor.withAlpha((255 * 0.1).round()),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: primaryColor.withAlpha((255 * 0.3).round()),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.verified,
+                          color: primaryColor,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Lifetime License',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'One-time payment for lifetime access',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
-}
 
-enum ImgFlow {
-  image0('The Flow', 'Sponsored | Season 1 Now Streaming',
-      'content_based_color_scheme_1.png'),
-  image1(
-    'Through the Pane',
-    'Sponsored | Season 1 Now Streaming',
-    'content_based_color_scheme_2.png',
-  ),
-  image2('Iridescence', 'Sponsored | Season 1 Now Streaming',
-      'content_based_color_scheme_3.png'),
-  image3('Sea Change', 'Sponsored | Season 1 Now Streaming',
-      'content_based_color_scheme_4.png'),
-  image4('Blue Symphony', 'Sponsored | Season 1 Now Streaming',
-      'content_based_color_scheme_5.png'),
-  image5('When It Rains', 'Sponsored | Season 1 Now Streaming',
-      'content_based_color_scheme_6.png');
-
-  const ImgFlow(this.title, this.subtitle, this.url);
-  final String title;
-  final String subtitle;
-  final String url;
+  Widget _buildFeatureItem({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: primaryColor.withAlpha((255 * 0.1).round()),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: primaryColor,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).textTheme.titleMedium!.color,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }

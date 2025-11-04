@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
-import 'package:evercrypted/screens/profile/activation_tokens_screen.dart';
+import 'package:evercrypted/screens/activation/activation_tokens_screen.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
@@ -14,6 +15,7 @@ import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../ui_constants.dart';
@@ -163,10 +165,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         actions: [
           if (profile != null) ...[
-            // Only show badge if user is activated (Premium) since Free users can't have tokens
-            if (profile.activatedForLife == true) ...[
-              GestureDetector(
-                onTap: () {
+            GestureDetector(
+              onTap: () {
+                if (profile.activatedForLife == true) {
+                  // Navigate to tokens screen for premium users
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -174,71 +176,94 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ActivationTokensScreen(profile: profile),
                     ),
                   );
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withAlpha((255 * 0.1).round()),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: primaryColor.withAlpha((255 * 0.3).round()),
-                      width: 1,
+                } else {
+                  // Show activation screen in modal for free users
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.9,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.verified,
-                        color: primaryColor,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Premium',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: primaryColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      if ((profile.activationTokenQuantity) > 0) ...[
-                        const SizedBox(width: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: primaryColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.card_giftcard,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                '${profile.activationTokenQuantity}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
+                    builder: (context) => const ActivationMainScreen(),
+                  );
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: (profile.activatedForLife == true
+                          ? primaryColor
+                          : secondaryColor)
+                      .withAlpha((255 * 0.1).round()),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: (profile.activatedForLife == true
+                            ? primaryColor
+                            : secondaryColor)
+                        .withAlpha((255 * 0.3).round()),
+                    width: 1,
                   ),
                 ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      profile.activatedForLife == true
+                          ? Icons.verified
+                          : Icons.person,
+                      color: profile.activatedForLife == true
+                          ? primaryColor
+                          : secondaryColor,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      profile.activatedForLife == true ? 'Premium' : 'Free',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: profile.activatedForLife == true
+                            ? primaryColor
+                            : secondaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (profile.activatedForLife == true &&
+                        (profile.activationTokenQuantity) > 0) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.card_giftcard,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${profile.activationTokenQuantity}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ],
+            ),
           ],
         ],
       ),
@@ -433,8 +458,14 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     if (isActivated) {
                       Navigator.pushNamed(context, OtpScreen.routeName);
                     } else {
-                      Navigator.pushNamed(
-                          context, ActivationMainScreen.routeName);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.9,
+                        ),
+                        builder: (context) => const ActivationMainScreen(),
+                      );
                     }
                   },
                 ),
@@ -482,8 +513,14 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       );
                     } else {
-                      Navigator.pushNamed(
-                          context, ActivationMainScreen.routeName);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.9,
+                        ),
+                        builder: (context) => const ActivationMainScreen(),
+                      );
                     }
                   },
                 ),
@@ -562,9 +599,15 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                         );
                       }
                     } else {
-                      // Navigate to activation screen
-                      Navigator.pushNamed(
-                          context, ActivationMainScreen.routeName);
+                      // Show activation screen in modal for free users
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.9,
+                        ),
+                        builder: (context) => const ActivationMainScreen(),
+                      );
                     }
                   },
                 ),
@@ -605,18 +648,77 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           child: const Text('Cancel'),
                         ),
                         TextButton(
-                          onPressed: () {
-                            // Clear all ObjectBox boxes
-                            obx.messages.removeAll();
-                            obx.chats.removeAll();
-                            obx.contacts.removeAll();
-                            obx.profiles.removeAll();
+                          onPressed: () async {
+                            try {
+                              // Clear all ObjectBox boxes
+                              obx.messages.removeAll();
+                              obx.chats.removeAll();
+                              obx.contacts.removeAll();
+                              obx.profiles.removeAll();
+                              obx.contactRequests.removeAll();
+                              obx.actionQueues.removeAll();
+                              obx.settings.removeAll();
 
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('All local data cleared')),
-                            );
+                              // Clear files and cache directories
+                              final directory = await getApplicationDocumentsDirectory();
+                              final cacheDirectory = await getTemporaryDirectory();
+
+                              // Delete all files in documents directory
+                              if (await directory.exists()) {
+                                await directory.list(recursive: true).forEach((entity) async {
+                                  if (entity is File) {
+                                    try {
+                                      await entity.delete();
+                                    } catch (e) {
+                                      debugPrint('Error deleting file: $e');
+                                    }
+                                  } else if (entity is Directory && entity.path != directory.path) {
+                                    try {
+                                      await entity.delete(recursive: true);
+                                    } catch (e) {
+                                      debugPrint('Error deleting directory: $e');
+                                    }
+                                  }
+                                });
+                              }
+
+                              // Delete all files in cache/temp directory
+                              if (await cacheDirectory.exists()) {
+                                await cacheDirectory.list(recursive: true).forEach((entity) async {
+                                  if (entity is File) {
+                                    try {
+                                      await entity.delete();
+                                    } catch (e) {
+                                      debugPrint('Error deleting cache file: $e');
+                                    }
+                                  } else if (entity is Directory && entity.path != cacheDirectory.path) {
+                                    try {
+                                      await entity.delete(recursive: true);
+                                    } catch (e) {
+                                      debugPrint('Error deleting cache directory: $e');
+                                    }
+                                  }
+                                });
+                              }
+
+                              if (mounted) {
+                                Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('All local data cleared')),
+                                );
+                                await _signOut();
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text('Error clearing data: $e'),
+                                      backgroundColor: errorColor),
+                                );
+                              }
+                            }
                           },
                           child: const Text(
                             'Clear',
