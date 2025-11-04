@@ -8,6 +8,7 @@ import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/screens/activation/activation_tokens_screen.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
+import 'package:evercrypted/screens/profile/delete_account_screen.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
@@ -32,6 +33,59 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   late Color dialogPickerColor;
   bool isActivated = Auth.getUser?.activated ?? false;
   StreamSubscription? authListener;
+
+  Future<void> _clearAllLocalData() async {
+    // Clear all ObjectBox boxes
+    obx.messages.removeAll();
+    obx.chats.removeAll();
+    obx.contacts.removeAll();
+    obx.profiles.removeAll();
+    obx.contactRequests.removeAll();
+    obx.actionQueues.removeAll();
+    obx.settings.removeAll();
+
+    // Clear files and cache directories
+    final directory = await getApplicationDocumentsDirectory();
+    final cacheDirectory = await getTemporaryDirectory();
+
+    // Delete all files in documents directory
+    if (await directory.exists()) {
+      await directory.list(recursive: true).forEach((entity) async {
+        if (entity is File) {
+          try {
+            await entity.delete();
+          } catch (e) {
+            debugPrint('Error deleting file: $e');
+          }
+        } else if (entity is Directory && entity.path != directory.path) {
+          try {
+            await entity.delete(recursive: true);
+          } catch (e) {
+            debugPrint('Error deleting directory: $e');
+          }
+        }
+      });
+    }
+
+    // Delete all files in cache/temp directory
+    if (await cacheDirectory.exists()) {
+      await cacheDirectory.list(recursive: true).forEach((entity) async {
+        if (entity is File) {
+          try {
+            await entity.delete();
+          } catch (e) {
+            debugPrint('Error deleting cache file: $e');
+          }
+        } else if (entity is Directory && entity.path != cacheDirectory.path) {
+          try {
+            await entity.delete(recursive: true);
+          } catch (e) {
+            debugPrint('Error deleting cache directory: $e');
+          }
+        }
+      });
+    }
+  }
 
   Future<void> _signOut() async {
     final bool? shouldSignOut = await showDialog<bool>(
@@ -60,6 +114,15 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (shouldSignOut == true) {
       await Auth.clearAuth();
     }
+  }
+
+  void _deleteAccount() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DeleteAccountScreen(),
+      ),
+    );
   }
 
   @override
@@ -650,67 +713,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                         TextButton(
                           onPressed: () async {
                             try {
-                              // Clear all ObjectBox boxes
-                              obx.messages.removeAll();
-                              obx.chats.removeAll();
-                              obx.contacts.removeAll();
-                              obx.profiles.removeAll();
-                              obx.contactRequests.removeAll();
-                              obx.actionQueues.removeAll();
-                              obx.settings.removeAll();
-
-                              // Clear files and cache directories
-                              final directory =
-                                  await getApplicationDocumentsDirectory();
-                              final cacheDirectory =
-                                  await getTemporaryDirectory();
-
-                              // Delete all files in documents directory
-                              if (await directory.exists()) {
-                                await directory
-                                    .list(recursive: true)
-                                    .forEach((entity) async {
-                                  if (entity is File) {
-                                    try {
-                                      await entity.delete();
-                                    } catch (e) {
-                                      debugPrint('Error deleting file: $e');
-                                    }
-                                  } else if (entity is Directory &&
-                                      entity.path != directory.path) {
-                                    try {
-                                      await entity.delete(recursive: true);
-                                    } catch (e) {
-                                      debugPrint(
-                                          'Error deleting directory: $e');
-                                    }
-                                  }
-                                });
-                              }
-
-                              // Delete all files in cache/temp directory
-                              if (await cacheDirectory.exists()) {
-                                await cacheDirectory
-                                    .list(recursive: true)
-                                    .forEach((entity) async {
-                                  if (entity is File) {
-                                    try {
-                                      await entity.delete();
-                                    } catch (e) {
-                                      debugPrint(
-                                          'Error deleting cache file: $e');
-                                    }
-                                  } else if (entity is Directory &&
-                                      entity.path != cacheDirectory.path) {
-                                    try {
-                                      await entity.delete(recursive: true);
-                                    } catch (e) {
-                                      debugPrint(
-                                          'Error deleting cache directory: $e');
-                                    }
-                                  }
-                                });
-                              }
+                              await _clearAllLocalData();
 
                               if (context.mounted) {
                                 Navigator.of(context).pop();
@@ -748,11 +751,15 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
             // Sign Out Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextButton(
+              child: ElevatedButton(
                 onPressed: () => _signOut(),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 child: const Text(
                   'Sign Out',
@@ -774,6 +781,28 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   color: isDarkMode ? Colors.grey[600] : Colors.grey[500],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Delete Account Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextButton(
+                onPressed: () => _deleteAccount(),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: Text(
+                  'Delete Account',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red,
+                  ),
                 ),
               ),
             ),
