@@ -660,23 +660,29 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                               obx.settings.removeAll();
 
                               // Clear files and cache directories
-                              final directory = await getApplicationDocumentsDirectory();
-                              final cacheDirectory = await getTemporaryDirectory();
+                              final directory =
+                                  await getApplicationDocumentsDirectory();
+                              final cacheDirectory =
+                                  await getTemporaryDirectory();
 
                               // Delete all files in documents directory
                               if (await directory.exists()) {
-                                await directory.list(recursive: true).forEach((entity) async {
+                                await directory
+                                    .list(recursive: true)
+                                    .forEach((entity) async {
                                   if (entity is File) {
                                     try {
                                       await entity.delete();
                                     } catch (e) {
                                       debugPrint('Error deleting file: $e');
                                     }
-                                  } else if (entity is Directory && entity.path != directory.path) {
+                                  } else if (entity is Directory &&
+                                      entity.path != directory.path) {
                                     try {
                                       await entity.delete(recursive: true);
                                     } catch (e) {
-                                      debugPrint('Error deleting directory: $e');
+                                      debugPrint(
+                                          'Error deleting directory: $e');
                                     }
                                   }
                                 });
@@ -684,24 +690,29 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                               // Delete all files in cache/temp directory
                               if (await cacheDirectory.exists()) {
-                                await cacheDirectory.list(recursive: true).forEach((entity) async {
+                                await cacheDirectory
+                                    .list(recursive: true)
+                                    .forEach((entity) async {
                                   if (entity is File) {
                                     try {
                                       await entity.delete();
                                     } catch (e) {
-                                      debugPrint('Error deleting cache file: $e');
+                                      debugPrint(
+                                          'Error deleting cache file: $e');
                                     }
-                                  } else if (entity is Directory && entity.path != cacheDirectory.path) {
+                                  } else if (entity is Directory &&
+                                      entity.path != cacheDirectory.path) {
                                     try {
                                       await entity.delete(recursive: true);
                                     } catch (e) {
-                                      debugPrint('Error deleting cache directory: $e');
+                                      debugPrint(
+                                          'Error deleting cache directory: $e');
                                     }
                                   }
                                 });
                               }
 
-                              if (mounted) {
+                              if (context.mounted) {
                                 Navigator.of(context).pop();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -710,7 +721,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 await _signOut();
                               }
                             } catch (e) {
-                              if (mounted) {
+                              if (context.mounted) {
                                 Navigator.of(context).pop();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
