@@ -40,8 +40,6 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   BytesBuilder recordingData = BytesBuilder();
   int? recordingMicroSeconds;
   List<double> recordedDecibels = [];
-  Timer? _stopRecorderTimer;
-  bool _isStopping = false;
 
   @override
   void initState() {
@@ -68,16 +66,8 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     widget.onRecordingStateChange?.call(isRecording);
   }
 
-  void _scheduleStopRecorder() {
-    _stopRecordingTimer?.cancel();
-    _stopRecordingTimer =
-        Timer(const Duration(milliseconds: 200), () => stopRecorder());
-  }
-
   @override
   void dispose() async {
-    _stopRecordingTimer?.cancel();
-    _stopRecordingTimer = null;
     if (_myRecorder != null) {
       _myRecorder!.closeRecorder();
       _myRecorder = null;
@@ -108,9 +98,6 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   }
 
   Future<void> record() async {
-    _stopRecorderTimer?.cancel();
-    _stopRecorderTimer = null;
-
     try {
       await _openRecorder();
     } catch (e) {
@@ -180,43 +167,31 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   }
 
   Future<void> stopRecorder() async {
-    if (_isStopping) {
-      return;
+    try {
+      await _myRecorder?.stopRecorder();
+    } catch (_) {
+      // recorder might not be started yet
     }
 
-    _isStopping = true;
-    _stopRecorderTimer?.cancel();
-    _stopRecorderTimer = null;
-
     try {
-      try {
-        await _myRecorder?.stopRecorder();
-      } catch (_) {
-        // recorder might not be started yet
-      }
+      await _myRecorder?.closeRecorder();
+    } catch (_) {
+      // ignore close errors
+    }
 
-      try {
-        await _myRecorder?.closeRecorder();
-      } catch (_) {
-        // ignore close errors
-      }
+    await _mRecordingDataSubscription?.cancel();
+    _mRecordingDataSubscription = null;
 
-      await _mRecordingDataSubscription?.cancel();
-      _mRecordingDataSubscription = null;
+    await _recorderProgressSub?.cancel();
+    _recorderProgressSub = null;
 
-      await _recorderProgressSub?.cancel();
-      _recorderProgressSub = null;
+    await recordingDataController?.close();
+    recordingDataController = null;
+    widget.onRecordingStateChange?.call(false);
 
-      await recordingDataController?.close();
-      recordingDataController = null;
-      widget.onRecordingStateChange?.call(false);
-
-      if (recordingData.isNotEmpty && recordingMicroSeconds != null) {
-        widget.onRecord(
-            recordingData.toBytes(), recordingMicroSeconds, recordedDecibels);
-      }
-    } finally {
-      _isStopping = false;
+    if (recordingData.isNotEmpty && recordingMicroSeconds != null) {
+      widget.onRecord(
+          recordingData.toBytes(), recordingMicroSeconds, recordedDecibels);
     }
   }
 
@@ -230,11 +205,11 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
         record();
       },
       onTapUp: (_) {
-        _scheduleStopRecorder();
+        stopRecorder();
         controller.reset();
       },
       onTapCancel: () {
-        _scheduleStopRecorder();
+        stopRecorder();
         controller.reset();
       },
       child: Row(
