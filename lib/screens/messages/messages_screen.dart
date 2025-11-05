@@ -24,6 +24,7 @@ import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
 import 'package:evercrypted/screens/messages/components/password_icon.dart';
+import 'package:evercrypted/screens/messages/components/recording_waveform_overlay.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:evercrypted/models/chat_message.dart';
@@ -92,6 +93,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   bool showFab = false;
   bool settingsDialogOpen = false;
   StreamSubscription<List<Chat>>? chatsSubscription;
+  bool _isRecording = false;
+  List<double> _recordingOverlayDecibels = const [];
 
   @override
   void initState() {
@@ -444,6 +447,18 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       setState(() {
         settingsDialogOpen = false;
       });
+    });
+  }
+
+  void _handleRecordingOverlayState(
+      bool isRecording, List<double> decibels) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isRecording = isRecording;
+      _recordingOverlayDecibels =
+          isRecording ? decibels : const <double>[];
     });
   }
 
@@ -808,7 +823,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             baseKey: baseKey,
             pass: pass,
             player: player,
-            onDelete: onDelete),
+            onDelete: onDelete,
+            onRecordingStateChange: _handleRecordingOverlayState),
         floatingActionButton: showFab
             ? ExpandableFab(
                 key: fabKey,
@@ -886,65 +902,73 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
               )
             : null,
         floatingActionButtonLocation: ExpandableFab.location,
-        body: Column(
+        body: Stack(
           children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: defaultPadding, vertical: defaultPadding / 2),
-                child: CustomScrollView(
-                  reverse: true,
-                  slivers: [
-                    if (obxAddedMessages.isNotEmpty)
-                      SliverList(
-                        delegate: SliverChildListDelegate(
-                          [
-                            ...obxAddedMessages.map((e) => MessageWidget(
-                                  key: Key(
-                                      '${e.message.id}_${e.message.successfullySent}_${e.message.queueId}_${baseKey}_$pass'),
-                                  chat: chat,
-                                  message: e.chatMessage
-                                      .copyWith(baseKey: baseKey, pass: pass),
-                                  player: player,
-                                  sender: chat.participants.firstWhereOrNull(
-                                      (element) =>
-                                          element.uid == e.message.authorId),
-                                  onDelete: deleteSingleMessage,
-                                )),
-                          ],
-                        ),
-                      ),
-                    if (_pagingState.items?.isNotEmpty ?? false)
-                      PagedSliverList<int, MessageObject>(
-                        state: _pagingState,
-                        fetchNextPage: () {
-                          _fetchPage(_pagingState.keys?.last == 0
-                              ? 1
-                              : _pagingState.keys!.last + 1);
-                        },
-                        builderDelegate:
-                            PagedChildBuilderDelegate<MessageObject>(
-                                newPageProgressIndicatorBuilder: (context) =>
-                                    Container(),
-                                itemBuilder: (context, item, index) {
-                                  return MessageWidget(
-                                    key: Key(
-                                        '${item.message.id}_${item.message.successfullySent}_${item.message.queueId}_${baseKey}_$pass'),
-                                    chat: chat,
-                                    message: item.chatMessage
-                                        .copyWith(baseKey: baseKey, pass: pass),
-                                    sender: chat.participants.firstWhereOrNull(
-                                        (element) =>
-                                            element.uid ==
-                                            item.message.authorId),
-                                    player: player,
-                                    onDelete: deleteSingleMessage,
-                                  );
-                                }),
-                      ),
-                  ],
+            Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: defaultPadding, vertical: defaultPadding / 2),
+                    child: CustomScrollView(
+                      reverse: true,
+                      slivers: [
+                        if (obxAddedMessages.isNotEmpty)
+                          SliverList(
+                            delegate: SliverChildListDelegate(
+                              [
+                                ...obxAddedMessages.map((e) => MessageWidget(
+                                      key: Key(
+                                          '${e.message.id}_${e.message.successfullySent}_${e.message.queueId}_${baseKey}_$pass'),
+                                      chat: chat,
+                                      message: e.chatMessage
+                                          .copyWith(baseKey: baseKey, pass: pass),
+                                      player: player,
+                                      sender: chat.participants.firstWhereOrNull(
+                                          (element) =>
+                                              element.uid == e.message.authorId),
+                                      onDelete: deleteSingleMessage,
+                                    )),
+                              ],
+                            ),
+                          ),
+                        if (_pagingState.items?.isNotEmpty ?? false)
+                          PagedSliverList<int, MessageObject>(
+                            state: _pagingState,
+                            fetchNextPage: () {
+                              _fetchPage(_pagingState.keys?.last == 0
+                                  ? 1
+                                  : _pagingState.keys!.last + 1);
+                            },
+                            builderDelegate:
+                                PagedChildBuilderDelegate<MessageObject>(
+                                    newPageProgressIndicatorBuilder: (context) =>
+                                        Container(),
+                                    itemBuilder: (context, item, index) {
+                                      return MessageWidget(
+                                        key: Key(
+                                            '${item.message.id}_${item.message.successfullySent}_${item.message.queueId}_${baseKey}_$pass'),
+                                        chat: chat,
+                                        message: item.chatMessage
+                                            .copyWith(baseKey: baseKey, pass: pass),
+                                        sender: chat.participants.firstWhereOrNull(
+                                            (element) =>
+                                                element.uid ==
+                                                item.message.authorId),
+                                        player: player,
+                                        onDelete: deleteSingleMessage,
+                                      );
+                                    }),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
+            ),
+            RecordingWaveformOverlay(
+              decibels: _recordingOverlayDecibels,
+              isRecording: _isRecording,
             ),
           ],
         ));

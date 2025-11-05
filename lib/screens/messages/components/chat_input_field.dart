@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
@@ -17,10 +18,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sound/flutter_sound.dart';
-import 'package:siri_wave/siri_wave.dart';
 
 import '../../../core/entities/message/message_service.dart';
 import '../../../ui_constants.dart';
+import 'audio_waveform_bars.dart';
 import 'voice_recorder_button.dart';
 
 class ChatInputField extends ConsumerStatefulWidget {
@@ -29,13 +30,15 @@ class ChatInputField extends ConsumerStatefulWidget {
   final String? baseKey;
   final FlutterSoundPlayer player;
   final Function onDelete;
+  final Function(bool, List<double>)? onRecordingStateChange;
   const ChatInputField(
       {super.key,
       required this.chat,
       required this.player,
       this.pass,
       this.baseKey,
-      required this.onDelete});
+      required this.onDelete,
+      this.onRecordingStateChange});
 
   @override
   ChatInputFieldState createState() => ChatInputFieldState();
@@ -47,17 +50,12 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
   String? fullKey;
   int? recordingMicroSeconds;
   Uint8List? recordingData;
-  bool recordingPlaying = false;
   bool sendingFile = false;
   PlatformFile? file;
   bool withBaseKey = false;
-
-  IOS7SiriWaveformController waveFromController = IOS7SiriWaveformController(
-    amplitude: 0,
-    color: primaryColor,
-    frequency: 15,
-    speed: 0.15,
-  );
+  List<double> recordingDecibels = [];
+  bool isRecording = false;
+  static const int _overlaySampleLimit = 200;
 
   @override
   void initState() {
@@ -185,36 +183,46 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         'Queued $messageType message for chat $chatUid until key exchange completes');
   }
 
-  onRecording(Uint8List recordingData, int recordingMicroSeconds) {
+  onRecording(Uint8List recordingData, int recordingMicroSeconds,
+      List<double> decibels) {
     setState(() {
       this.recordingData = recordingData;
       this.recordingMicroSeconds = recordingMicroSeconds;
+      recordingDecibels = decibels;
     });
   }
 
-  playRecording() async {
-    if (recordingData == null ||
-        recordingData!.isEmpty ||
-        recordingMicroSeconds == null) {
+  onDecibelChange(double normalizedDecibels) {
+    if (!isRecording) {
       return;
     }
-    await widget.player.openPlayer();
-    await widget.player.startPlayer(
-        fromDataBuffer: recordingData,
-        codec: Codec.pcmFloat32,
-        whenFinished: () async {
-          await widget.player.stopPlayer();
-          await widget.player.closePlayer();
-          setState(() {
-            recordingPlaying = false;
-            waveFromController = IOS7SiriWaveformController(
-              amplitude: 0,
-              color: primaryColor,
-              frequency: 15,
-              speed: 0.15,
-            );
-          });
-        });
+
+    // Collect decibel values in real-time during recording
+    setState(() {
+      recordingDecibels.add(normalizedDecibels.clamp(0.0, 1.0));
+      if (recordingDecibels.length > _overlaySampleLimit) {
+        recordingDecibels.removeRange(
+            0, recordingDecibels.length - _overlaySampleLimit);
+      }
+    });
+
+    widget.onRecordingStateChange
+        ?.call(true, List<double>.from(recordingDecibels));
+  }
+
+  void _handleRecordingToggle(bool recording) {
+    if (isRecording == recording) {
+      return;
+    }
+
+    setState(() {
+      isRecording = recording;
+      if (recording) {
+        recordingDecibels = [];
+      }
+    });
+    widget.onRecordingStateChange
+        ?.call(recording, recording ? const <double>[] : const <double>[]);
   }
 
   sendAudio(context) async {
@@ -341,14 +349,10 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       sendingFile = false;
       recordingData = null;
       recordingMicroSeconds = null;
-      recordingPlaying = false;
-      waveFromController = IOS7SiriWaveformController(
-        amplitude: 0,
-        color: primaryColor,
-        frequency: 15,
-        speed: 0.15,
-      );
+      recordingDecibels = [];
+      isRecording = false;
     });
+    widget.onRecordingStateChange?.call(false, const <double>[]);
   }
 
   _selectFile(BuildContext context) async {
@@ -588,7 +592,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
   @override
   void dispose() {
     _messageField.dispose();
-    widget.player.closePlayer();
+    // AudioWaveformBars now manages its own player
     super.dispose();
   }
 
@@ -615,6 +619,8 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                 pass: fullKey,
                 chatId: widget.chat.uid,
                 onRecord: onRecording,
+                onDecibelChange: onDecibelChange,
+                onRecordingStateChange: _handleRecordingToggle,
               ),
             const SizedBox(width: defaultPadding / 4),
             recordingData != null
@@ -631,61 +637,30 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                         ),
                         width: MediaQuery.of(context).size.width - 115,
                         height: 50,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  recordingPlaying = !recordingPlaying;
-                                  if (recordingPlaying) {
-                                    waveFromController =
-                                        IOS7SiriWaveformController(
-                                      amplitude: 0.7,
-                                      color: primaryColor,
-                                      frequency: 15,
-                                      speed: 0.15,
-                                    );
-                                    playRecording();
-                                  } else {
-                                    waveFromController =
-                                        IOS7SiriWaveformController(
-                                      amplitude: 0,
-                                      color: primaryColor,
-                                      frequency: 15,
-                                      speed: 0.15,
-                                    );
-                                    widget.player.stopPlayer();
-                                    widget.player.closePlayer();
-                                  }
-                                });
-                              },
-                              child: recordingPlaying
-                                  ? const Icon(
-                                      Icons.stop,
-                                      color: primaryColor,
-                                      size: 36,
-                                    )
-                                  : const Icon(
-                                      Icons.play_arrow,
-                                      color: primaryColor,
-                                      size: 36,
-                                    ),
-                            ),
-                            SiriWaveform.ios7(
-                              controller: waveFromController,
-                              options: IOS7SiriWaveformOptions(
-                                height: 50,
-                                width: MediaQuery.of(context).size.width - 210,
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                dropRecording();
-                              },
-                              child: Icon(Icons.cancel, color: errorColor),
-                            ),
-                          ],
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: AudioWaveformBars(
+                                    decibels: recordingDecibels,
+                                    width: constraints.maxWidth - 30, // Account for cancel icon
+                                    height: 50,
+                                    color: primaryColor,
+                                    audioData: recordingData,
+                                    durationMicroSeconds: recordingMicroSeconds,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    dropRecording();
+                                  },
+                                  child: Icon(Icons.cancel, color: errorColor),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                       IconButton(

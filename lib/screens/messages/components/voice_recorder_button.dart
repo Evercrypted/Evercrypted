@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -9,10 +10,17 @@ import '../../../ui_constants.dart';
 
 class VoiceRecorderButton extends StatefulWidget {
   const VoiceRecorderButton(
-      {super.key, this.pass, required this.chatId, required this.onRecord});
+      {super.key,
+      this.pass,
+      required this.chatId,
+      required this.onRecord,
+      this.onDecibelChange,
+      this.onRecordingStateChange});
   final String? pass;
   final String chatId;
   final Function onRecord;
+  final Function(double)? onDecibelChange;
+  final ValueChanged<bool>? onRecordingStateChange;
 
   @override
   VoiceRecorderButtonState createState() => VoiceRecorderButtonState();
@@ -26,14 +34,14 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   double progress = 0;
   FlutterSoundRecorder? _myRecorder = FlutterSoundRecorder();
 
-  String? iv;
-  String? mac;
   StreamSubscription<Uint8List>? _mRecordingDataSubscription;
-  StreamSubscription? _recorderProgressSub;
+  StreamSubscription<RecordingDisposition>? _recorderProgressSub;
   StreamController<Uint8List>? recordingDataController;
   BytesBuilder recordingData = BytesBuilder();
   int? recordingMicroSeconds;
-  bool showPreviewButton = false;
+  List<double> recordedDecibels = [];
+  Timer? _stopRecorderTimer;
+  bool _isStopping = false;
 
   @override
   void initState() {
@@ -53,17 +61,23 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   }
 
   setStatus(status) {
+    final isRecording = status == AnimationStatus.forward;
     setState(() {
-      if (status == AnimationStatus.forward) {
-        recording = true;
-      } else {
-        recording = false;
-      }
+      recording = isRecording;
     });
+    widget.onRecordingStateChange?.call(isRecording);
+  }
+
+  void _scheduleStopRecorder() {
+    _stopRecordingTimer?.cancel();
+    _stopRecordingTimer =
+        Timer(const Duration(milliseconds: 200), () => stopRecorder());
   }
 
   @override
   void dispose() async {
+    _stopRecordingTimer?.cancel();
+    _stopRecordingTimer = null;
     if (_myRecorder != null) {
       _myRecorder!.closeRecorder();
       _myRecorder = null;
@@ -84,6 +98,7 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     }
     await _myRecorder!.openRecorder();
 
+    // Keep onProgress subscription just for duration tracking
     _recorderProgressSub = _myRecorder!.onProgress!.listen((e) {
       recordingMicroSeconds = e.duration.inMicroseconds;
     });
@@ -93,12 +108,30 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   }
 
   Future<void> record() async {
-    await _openRecorder();
+    _stopRecorderTimer?.cancel();
+    _stopRecorderTimer = null;
+
+    try {
+      await _openRecorder();
+    } catch (e) {
+      controller.reset();
+      widget.onRecordingStateChange?.call(false);
+      return;
+    }
+
+    widget.onRecordingStateChange?.call(true);
     recordingData.clear();
+    recordedDecibels.clear();
+
     recordingDataController = StreamController<Uint8List>();
     _mRecordingDataSubscription =
         recordingDataController?.stream.listen((data) {
       recordingData.add(data);
+
+      // Calculate amplitude from raw PCM data
+      final amplitude = _calculateAmplitudeFromPCM(data);
+      recordedDecibels.add(amplitude);
+      widget.onDecibelChange?.call(amplitude);
     }, onDone: () {
       _mRecordingDataSubscription?.cancel();
     }, onError: (error) {
@@ -111,40 +144,97 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     );
   }
 
+  /// Calculate amplitude from PCM Float32 audio data
+  /// Returns normalized amplitude value (0.0-1.0)
+  double _calculateAmplitudeFromPCM(Uint8List data) {
+    if (data.isEmpty) return 0.0;
+
+    // Convert bytes to Float32 samples using ByteData for proper endianness handling
+    final byteData = ByteData.sublistView(data);
+    final sampleCount = data.length ~/ 4; // 4 bytes per Float32
+
+    // Calculate RMS (Root Mean Square) amplitude
+    double sum = 0.0;
+
+    for (int i = 0; i < sampleCount; i++) {
+      // Read Float32 in little-endian (standard for most platforms)
+      final sample = byteData.getFloat32(i * 4, Endian.little);
+
+      // Skip invalid/NaN/Infinity values
+      if (!sample.isFinite) continue;
+
+      sum += sample * sample;
+    }
+
+    // Calculate RMS
+    double rms = 0.0;
+    if (sampleCount > 0 && sum.isFinite) {
+      final avgSumOfSquares = sum / sampleCount;
+      if (avgSumOfSquares.isFinite && avgSumOfSquares >= 0) {
+        rms = sqrt(avgSumOfSquares);
+      }
+    }
+
+    // Apply a compression curve to make quiet sounds more visible
+    return sqrt(rms).clamp(0.0, 1.0);
+  }
+
   Future<void> stopRecorder() async {
-    await _myRecorder?.stopRecorder();
-    await _myRecorder?.closeRecorder();
+    if (_isStopping) {
+      return;
+    }
 
-    await _mRecordingDataSubscription?.cancel();
-    _mRecordingDataSubscription = null;
+    _isStopping = true;
+    _stopRecorderTimer?.cancel();
+    _stopRecorderTimer = null;
 
-    recordingDataController?.close();
-    recordingDataController = null;
+    try {
+      try {
+        await _myRecorder?.stopRecorder();
+      } catch (_) {
+        // recorder might not be started yet
+      }
 
-    if (recordingData.isNotEmpty && recordingMicroSeconds != null) {
-      widget.onRecord(recordingData.toBytes(), recordingMicroSeconds);
+      try {
+        await _myRecorder?.closeRecorder();
+      } catch (_) {
+        // ignore close errors
+      }
+
+      await _mRecordingDataSubscription?.cancel();
+      _mRecordingDataSubscription = null;
+
+      await _recorderProgressSub?.cancel();
+      _recorderProgressSub = null;
+
+      await recordingDataController?.close();
+      recordingDataController = null;
+      widget.onRecordingStateChange?.call(false);
+
+      if (recordingData.isNotEmpty && recordingMicroSeconds != null) {
+        widget.onRecord(
+            recordingData.toBytes(), recordingMicroSeconds, recordedDecibels);
+      }
+    } finally {
+      _isStopping = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) async {
+      onTapDown: (_) {
         controller.forward().then((value) {
           controller.reset();
         });
         record();
       },
-      onTapUp: (_) async {
-        Future.delayed(Duration(milliseconds: 200)).then((value) {
-          stopRecorder();
-        });
+      onTapUp: (_) {
+        _scheduleStopRecorder();
         controller.reset();
       },
-      onTapCancel: () async {
-        Future.delayed(Duration(milliseconds: 200)).then((value) {
-          stopRecorder();
-        });
+      onTapCancel: () {
+        _scheduleStopRecorder();
         controller.reset();
       },
       child: Row(
