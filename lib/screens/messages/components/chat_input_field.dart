@@ -238,37 +238,42 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
 
     // Check if user has premium access - if not, send unencrypted
     final bool hasPremium = Auth.getUser?.activated == true;
+
+    // Create combined payload with recording, duration, and decibels
+    final payload = createRecordingPayload(
+      recordingData!,
+      recordingMicroSeconds!,
+      recordingDecibels,
+    );
+
     if (!hasPremium) {
+      // Non-premium: Send as base64-encoded JSON (same format as encrypted['crypted'])
+      final jsonString = json.encode(payload);
+      fileToSend = base64.encode(utf8.encode(jsonString));
+
       messageToSend = Message(
         authorId: userId!,
         messageType: MessageTypes.audio,
-        playbackDurationMicroSeconds: recordingMicroSeconds.toString(),
         createdAtMSE: DateTime.now().millisecondsSinceEpoch,
         chatUid: widget.chat.uid,
         withBaseKey: false,
       );
-      fileToSend = base64.encode(recordingData!);
     } else if (fullKey != null && fullKey!.isNotEmpty) {
-      final encrypted = await encodeRecording(fullKey!, recordingData!);
+      // Premium: Encrypt the combined payload using encodePayload
+      // This does: JSON -> UTF-8 -> Encrypt -> Base64
+      final encrypted = await encodePayload(payload, fullKey!, true);
 
-      final ecnryptedMicroSeconds =
-          await encodePayload(recordingMicroSeconds, fullKey!, true);
-
-      if (encrypted != null && ecnryptedMicroSeconds != null) {
+      if (encrypted != null) {
         messageToSend = Message(
           authorId: userId!,
           messageType: MessageTypes.audio,
-          iv: encrypted.iv,
-          mac: encrypted.mac,
+          iv: encrypted['iv'],
           isEncrypted: true,
-          playbackDurationMicroSeconds: ecnryptedMicroSeconds['crypted'],
-          durationIV: ecnryptedMicroSeconds['iv'],
-          durationMAC: ecnryptedMicroSeconds['mac'],
           createdAtMSE: DateTime.now().millisecondsSinceEpoch,
           chatUid: widget.chat.uid,
           withBaseKey: withBaseKey,
         );
-        fileToSend = encrypted.cryptedRecording;
+        fileToSend = encrypted['crypted'];
       }
     } else {
       // No encryption key available - queue audio message regardless of chat type
@@ -280,6 +285,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
           messageType: MessageTypes.audio,
           fileData: recordingData!,
           duration: recordingMicroSeconds!,
+          waveData: recordingDecibels,
         );
 
         setState(() {
@@ -301,15 +307,22 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         return;
       } else {
         // Send unencrypted (fallback case)
+        // Create payload and encode it
+        final fallbackPayload = createRecordingPayload(
+          recordingData!,
+          recordingMicroSeconds!,
+          recordingDecibels,
+        );
+        final jsonString = json.encode(fallbackPayload);
+        fileToSend = base64.encode(utf8.encode(jsonString));
+
         messageToSend = Message(
           authorId: userId!,
           messageType: MessageTypes.audio,
-          playbackDurationMicroSeconds: recordingMicroSeconds.toString(),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch,
           chatUid: widget.chat.uid,
           withBaseKey: withBaseKey,
         );
-        fileToSend = base64.encode(utf8.encode(recordingData.toString()));
       }
     }
     setState(() {
@@ -621,8 +634,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                     child: Container(
                       margin: const EdgeInsets.symmetric(
                           horizontal: defaultPadding / 2),
-                      padding:
-                          const EdgeInsets.only(right: defaultPadding / 2),
+                      padding: const EdgeInsets.only(right: defaultPadding / 2),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: primaryColor.withAlpha((0.1 * 255).round()),
@@ -657,34 +669,39 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                           Container(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: defaultPadding / 2),
-                            padding:
-                                const EdgeInsets.only(right: defaultPadding / 2),
+                            padding: const EdgeInsets.only(
+                                right: defaultPadding / 2),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
-                              color: primaryColor.withAlpha((0.1 * 255).round()),
+                              color:
+                                  primaryColor.withAlpha((0.1 * 255).round()),
                             ),
                             width: MediaQuery.of(context).size.width - 115,
                             height: 50,
                             child: LayoutBuilder(
                               builder: (context, constraints) {
                                 return Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
                                       child: AudioWaveformBars(
                                         decibels: recordingDecibels,
-                                        width: constraints.maxWidth - 30, // Account for cancel icon
+                                        width: constraints.maxWidth -
+                                            30, // Account for cancel icon
                                         height: 50,
                                         color: primaryColor,
                                         audioData: recordingData,
-                                        durationMicroSeconds: recordingMicroSeconds,
+                                        durationMicroSeconds:
+                                            recordingMicroSeconds,
                                       ),
                                     ),
                                     InkWell(
                                       onTap: () {
                                         dropRecording();
                                       },
-                                      child: Icon(Icons.cancel, color: errorColor),
+                                      child:
+                                          Icon(Icons.cancel, color: errorColor),
                                     ),
                                   ],
                                 );
@@ -703,164 +720,164 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                         ],
                       )
                     : Expanded(
-                    child: Row(
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            widget.onDelete();
-                          },
-                          onLongPress: () {},
-                          child: Ink(
-                            child: const Icon(
-                              Icons.delete,
-                              color: errorColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: defaultPadding / 4),
-                        if (file == null)
-                          Expanded(
-                            child: EvercryptedTextField(
-                              controller: _messageField,
-                              hintText: "Type message",
-                              suffixIcon: SizedBox(
-                                width: 96,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const CameraWidget()))
-                                            .then((jpgBytes) {
-                                          if (jpgBytes != null) {
-                                            if (context.mounted) {
-                                              sendImage(jpgBytes, context);
-                                            }
-                                          }
-                                        });
-                                      },
-                                      child: Icon(
-                                        Icons.camera_alt,
-                                        color: file != null
-                                            ? primaryColor
-                                            : Theme.of(context)
-                                                .textTheme
-                                                .bodyLarge!
-                                                .color!
-                                                .withAlpha(
-                                                    (0.64 * 255).round()),
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () => _selectFile(context),
-                                      child: Icon(
-                                        Icons.attach_file,
-                                        color: file != null
-                                            ? primaryColor
-                                            : Theme.of(context)
-                                                .textTheme
-                                                .bodyLarge!
-                                                .color!
-                                                .withAlpha(
-                                                    (0.64 * 255).round()),
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        sendMessage(_messageField.text);
-                                      },
-                                      onLongPress: () {},
-                                      child: Container(
-                                        margin: const EdgeInsets.only(
-                                            right: defaultPadding / 2),
-                                        child: const Icon(Icons.send,
-                                            color: primaryColor),
-                                      ),
-                                    ),
-                                  ],
+                        child: Row(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                widget.onDelete();
+                              },
+                              onLongPress: () {},
+                              child: Ink(
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: errorColor,
                                 ),
                               ),
-                              onSubmitted: (value) {
-                                if (value.isNotEmpty) {
-                                  sendMessage(value);
-                                }
-                              },
                             ),
-                          )
-                        else ...[
-                          Expanded(
-                            child: Expanded(
-                              child: Row(
-                                children: [
-                                  const SizedBox(width: defaultPadding / 2),
-                                  Expanded(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          color: primaryColor
-                                              .withAlpha((0.1 * 255).round())),
-                                      padding: const EdgeInsets.only(
-                                          top: defaultPadding / 4,
-                                          bottom: defaultPadding / 4,
-                                          left: defaultPadding),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  file!.name,
-                                                  style: const TextStyle(
-                                                    fontSize: 18,
-                                                  ),
-                                                ),
-                                                IconButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      file = null;
-                                                    });
-                                                  },
-                                                  icon: const Icon(
-                                                    Icons.cancel,
-                                                    color: errorColor,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                            const SizedBox(width: defaultPadding / 4),
+                            if (file == null)
+                              Expanded(
+                                child: EvercryptedTextField(
+                                  controller: _messageField,
+                                  hintText: "Type message",
+                                  suffixIcon: SizedBox(
+                                    width: 96,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const CameraWidget()))
+                                                .then((jpgBytes) {
+                                              if (jpgBytes != null) {
+                                                if (context.mounted) {
+                                                  sendImage(jpgBytes, context);
+                                                }
+                                              }
+                                            });
+                                          },
+                                          child: Icon(
+                                            Icons.camera_alt,
+                                            color: file != null
+                                                ? primaryColor
+                                                : Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge!
+                                                    .color!
+                                                    .withAlpha(
+                                                        (0.64 * 255).round()),
                                           ),
-                                          IconButton(
-                                            onPressed: () {
-                                              sendFile(context);
-                                            },
-                                            icon: const Icon(
-                                              Icons.send,
-                                              color: primaryColor,
-                                            ),
+                                        ),
+                                        InkWell(
+                                          onTap: () => _selectFile(context),
+                                          child: Icon(
+                                            Icons.attach_file,
+                                            color: file != null
+                                                ? primaryColor
+                                                : Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge!
+                                                    .color!
+                                                    .withAlpha(
+                                                        (0.64 * 255).round()),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            sendMessage(_messageField.text);
+                                          },
+                                          onLongPress: () {},
+                                          child: Container(
+                                            margin: const EdgeInsets.only(
+                                                right: defaultPadding / 2),
+                                            child: const Icon(Icons.send,
+                                                color: primaryColor),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
+                                  onSubmitted: (value) {
+                                    if (value.isNotEmpty) {
+                                      sendMessage(value);
+                                    }
+                                  },
+                                ),
+                              )
+                            else ...[
+                              Expanded(
+                                child: Expanded(
+                                  child: Row(
+                                    children: [
+                                      const SizedBox(width: defaultPadding / 2),
+                                      Expanded(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              color: primaryColor.withAlpha(
+                                                  (0.1 * 255).round())),
+                                          padding: const EdgeInsets.only(
+                                              top: defaultPadding / 4,
+                                              bottom: defaultPadding / 4,
+                                              left: defaultPadding),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      file!.name,
+                                                      style: const TextStyle(
+                                                        fontSize: 18,
+                                                      ),
+                                                    ),
+                                                    IconButton(
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          file = null;
+                                                        });
+                                                      },
+                                                      icon: const Icon(
+                                                        Icons.cancel,
+                                                        color: errorColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  sendFile(context);
+                                                },
+                                                icon: const Icon(
+                                                  Icons.send,
+                                                  color: primaryColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(width: defaultPadding / 2),
-                      ],
-                    ),
-                  ),
+                            ],
+                            const SizedBox(width: defaultPadding / 2),
+                          ],
+                        ),
+                      ),
           ],
         ),
       ),

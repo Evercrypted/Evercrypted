@@ -15,9 +15,6 @@ class ChatMessage {
   final String? error;
   final String? filePath;
   final String? fileKey;
-  final String? duration;
-  final String? durationIV;
-  final String? durationMAC;
   final String? uid;
   final String chatUid;
   final int? queueId;
@@ -33,9 +30,6 @@ class ChatMessage {
     this.iv,
     this.mac,
     this.error,
-    this.duration,
-    this.durationIV,
-    this.durationMAC,
     this.decodedDuration,
     this.filePath,
     this.text = '',
@@ -64,7 +58,6 @@ class ChatMessage {
         'error': error,
         'isSystemMessage': isSystemMessage,
         'createdAtMSE': createdAtMSE,
-        'duration': duration,
         'withBaseKey': withBaseKey,
       };
 
@@ -74,9 +67,6 @@ class ChatMessage {
     String? iv,
     String? mac,
     String? error,
-    String? duration,
-    String? durationIV,
-    String? durationMAC,
     int? decodedDuration,
     String? filePath,
     String? text,
@@ -98,9 +88,6 @@ class ChatMessage {
         iv: iv ?? this.iv,
         mac: mac ?? this.mac,
         error: error ?? this.error,
-        duration: duration ?? this.duration,
-        durationIV: durationIV ?? this.durationIV,
-        durationMAC: durationMAC ?? this.durationMAC,
         decodedDuration: decodedDuration ?? this.decodedDuration,
         filePath: filePath ?? this.filePath,
         text: text ?? this.text,

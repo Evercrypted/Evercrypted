@@ -180,25 +180,29 @@ class BaseKey {
                   true, // withBaseKey = true
                 );
               } else if (messageType == MessageTypes.audio) {
-                // Handle audio message
+                // Handle audio message with combined format (recording + duration + decibels)
                 final fileData = base64Decode(payload['fileData']);
                 final duration = payload['duration'];
+                final waveData = payload['waveData'] != null
+                    ? List<double>.from(payload['waveData'])
+                    : <double>[];
 
-                final encryptedRecording =
-                    await encodeRecording(encryptionKey, fileData);
-                final encryptedDuration =
-                    await encodePayload(duration, encryptionKey, true);
+                // Create combined payload using the new format
+                final recordingPayload = createRecordingPayload(
+                  fileData,
+                  duration,
+                  waveData,
+                );
 
-                if (encryptedRecording != null && encryptedDuration != null) {
+                // Encrypt the combined payload
+                final encrypted = await encodePayload(recordingPayload, encryptionKey, true);
+
+                if (encrypted != null) {
                   final messageToSend = Message(
                     authorId: Auth.user?.uid ?? '',
                     messageType: MessageTypes.audio,
-                    iv: encryptedRecording.iv,
-                    mac: encryptedRecording.mac,
+                    iv: encrypted['iv'],
                     isEncrypted: true,
-                    playbackDurationMicroSeconds: encryptedDuration['crypted'],
-                    durationIV: encryptedDuration['iv'],
-                    durationMAC: encryptedDuration['mac'],
                     createdAtMSE: DateTime.now().millisecondsSinceEpoch,
                     chatUid: chatUid,
                     withBaseKey: true,
@@ -206,7 +210,7 @@ class BaseKey {
 
                   await messageService.sendFile(
                       message: messageToSend,
-                      file: encryptedRecording.cryptedRecording);
+                      file: encrypted['crypted']);
                 }
               } else if (messageType == MessageTypes.file ||
                   messageType == MessageTypes.image) {

@@ -127,7 +127,6 @@ class _MessageWidgetState extends State<MessageWidget> {
       try {
         if (inProcess.pass != null) {
           String? decrypted;
-          int? decryptedDuration;
           if (inProcess.messageType == MessageTypes.text &&
               inProcess.text != null) {
             decrypted = await decodePayload(
@@ -137,18 +136,7 @@ class _MessageWidgetState extends State<MessageWidget> {
               true,
             );
           }
-          if (inProcess.messageType == MessageTypes.audio &&
-              inProcess.duration != null &&
-              inProcess.decodedDuration == null) {
-            decryptedDuration = await decodePayload(
-              inProcess.duration,
-              inProcess.durationIV,
-              inProcess.pass,
-              true,
-            );
-          }
 
-          inProcess.decodedDuration = decryptedDuration ?? 0;
           inProcess.decrypted = decrypted ?? widget.message.text;
           inProcess.encryptionStatus = EncryptionStatus.decrypted;
           encryptionStatus = EncryptionStatus.decrypted;
@@ -292,7 +280,6 @@ class _MessageWidgetState extends State<MessageWidget> {
         case MessageTypes.audio:
           return AudioMessage(
             message: message,
-            player: widget.player,
           );
         case MessageTypes.file:
           return FileMessage(message: message);

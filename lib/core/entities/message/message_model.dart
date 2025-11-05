@@ -55,14 +55,6 @@ class Message {
 
   String? localPinLabel;
 
-  String? playbackDurationMicroSeconds;
-  String? durationIV;
-  String? durationMAC;
-
-  List<double>? waveData;
-  String? waveDataIV;
-  String? waveDataMAC;
-
   String? filepath;
   String? fileKey;
   bool? withBaseKey;
@@ -101,12 +93,6 @@ class Message {
       this.pinnedByUid,
       this.pinLabel,
       this.localPinLabel,
-      this.playbackDurationMicroSeconds,
-      this.durationIV,
-      this.durationMAC,
-      this.waveData,
-      this.waveDataIV,
-      this.waveDataMAC,
       this.filepath,
       this.error,
       this.withBaseKey,
@@ -126,15 +112,6 @@ class Message {
         messageType: json['messageType'] as String,
         pinnedByUid: json['pinnedByUid'] as String?,
         pinLabel: json['pinLabel'] as String?,
-        playbackDurationMicroSeconds:
-            json['playbackDurationMicroSeconds'] as String?,
-        durationIV: json['durationIV'] as String?,
-        durationMAC: json['durationMAC'] as String?,
-        waveData: (json['waveData'] as List<dynamic>?)
-            ?.map((e) => e as double)
-            .toList(),
-        waveDataIV: json['waveDataIV'] as String?,
-        waveDataMAC: json['waveDataMAC'] as String?,
         withBaseKey: json['withBaseKey'] as bool? ?? false,
         fileKey: json['fileKey'] as String?,
         additionalData: json['additionalData'] != null
@@ -154,12 +131,6 @@ class Message {
         'messageType': messageType,
         'pinnedByUid': pinnedByUid,
         'pinLabel': pinLabel,
-        'playbackDurationMicroSeconds': playbackDurationMicroSeconds,
-        'durationIV': durationIV,
-        'durationMAC': durationMAC,
-        'waveData': waveData,
-        'waveDataIV': waveDataIV,
-        'waveDataMAC': waveDataMAC,
         'withBaseKey': withBaseKey,
         'fileKey': fileKey,
         'additionalData': additionalData?.toJson(),

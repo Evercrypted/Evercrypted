@@ -678,16 +678,10 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       iv: item.iv,
       error: item.error,
       mac: item.mac,
-      duration: item.playbackDurationMicroSeconds,
-      durationIV: item.durationIV,
-      durationMAC: item.durationMAC,
       withBaseKey: item.withBaseKey ?? false,
       fileKey: item.fileKey,
       filePath: item.filepath,
-      decodedDuration:
-          item.durationIV == null && item.playbackDurationMicroSeconds != null
-              ? int.parse(item.playbackDurationMicroSeconds!)
-              : null,
+      // decodedDuration will be extracted from file payload during playback
       encryptionStatus: item.iv != null
           ? EncryptionStatus.encrypted
           : EncryptionStatus.notEncrypted,

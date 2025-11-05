@@ -379,42 +379,6 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(19, 215274320804067616),
-        name: 'playbackDurationMicroSeconds',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(20, 8079303209662869193),
-        name: 'durationIV',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(21, 5285367972022254596),
-        name: 'durationMAC',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(22, 2880708045028242042),
-        name: 'waveData',
-        type: 29,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(23, 7693812029148769164),
-        name: 'waveDataIV',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(24, 3799472876624534893),
-        name: 'waveDataMAC',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
         id: const obx_int.IdUid(25, 468166303358778510),
         name: 'filepath',
         type: 9,
@@ -594,7 +558,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [1669559858348947241],
-    retiredPropertyUids: const [1034070897028755768],
+    retiredPropertyUids: const [
+      1034070897028755768,
+      215274320804067616,
+      8079303209662869193,
+      5285367972022254596,
+      2880708045028242042,
+      7693812029148769164,
+      3799472876624534893,
+    ],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -941,25 +913,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final localPinLabelOffset = object.localPinLabel == null
             ? null
             : fbb.writeString(object.localPinLabel!);
-        final playbackDurationMicroSecondsOffset =
-            object.playbackDurationMicroSeconds == null
-            ? null
-            : fbb.writeString(object.playbackDurationMicroSeconds!);
-        final durationIVOffset = object.durationIV == null
-            ? null
-            : fbb.writeString(object.durationIV!);
-        final durationMACOffset = object.durationMAC == null
-            ? null
-            : fbb.writeString(object.durationMAC!);
-        final waveDataOffset = object.waveData == null
-            ? null
-            : fbb.writeListFloat64(object.waveData!);
-        final waveDataIVOffset = object.waveDataIV == null
-            ? null
-            : fbb.writeString(object.waveDataIV!);
-        final waveDataMACOffset = object.waveDataMAC == null
-            ? null
-            : fbb.writeString(object.waveDataMAC!);
         final filepathOffset = object.filepath == null
             ? null
             : fbb.writeString(object.filepath!);
@@ -988,12 +941,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(15, pinnedByUidOffset);
         fbb.addOffset(16, pinLabelOffset);
         fbb.addOffset(17, localPinLabelOffset);
-        fbb.addOffset(18, playbackDurationMicroSecondsOffset);
-        fbb.addOffset(19, durationIVOffset);
-        fbb.addOffset(20, durationMACOffset);
-        fbb.addOffset(21, waveDataOffset);
-        fbb.addOffset(22, waveDataIVOffset);
-        fbb.addOffset(23, waveDataMACOffset);
         fbb.addOffset(24, filepathOffset);
         fbb.addOffset(25, fileKeyOffset);
         fbb.addBool(26, object.withBaseKey);
@@ -1067,25 +1014,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final localPinLabelParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 38);
-        final playbackDurationMicroSecondsParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 40);
-        final durationIVParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 42);
-        final durationMACParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 44);
-        final waveDataParam = const fb.ListReader<double>(
-          fb.Float64Reader(),
-          lazy: false,
-        ).vTableGetNullable(buffer, rootOffset, 46);
-        final waveDataIVParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 48);
-        final waveDataMACParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 50);
         final filepathParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 52);
@@ -1118,12 +1046,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 pinnedByUid: pinnedByUidParam,
                 pinLabel: pinLabelParam,
                 localPinLabel: localPinLabelParam,
-                playbackDurationMicroSeconds: playbackDurationMicroSecondsParam,
-                durationIV: durationIVParam,
-                durationMAC: durationMACParam,
-                waveData: waveDataParam,
-                waveDataIV: waveDataIVParam,
-                waveDataMAC: waveDataMACParam,
                 filepath: filepathParam,
                 error: errorParam,
                 withBaseKey: withBaseKeyParam,
@@ -1527,59 +1449,29 @@ class Message_ {
     _entities[4].properties[17],
   );
 
-  /// See [Message.playbackDurationMicroSeconds].
-  static final playbackDurationMicroSeconds = obx.QueryStringProperty<Message>(
-    _entities[4].properties[18],
-  );
-
-  /// See [Message.durationIV].
-  static final durationIV = obx.QueryStringProperty<Message>(
-    _entities[4].properties[19],
-  );
-
-  /// See [Message.durationMAC].
-  static final durationMAC = obx.QueryStringProperty<Message>(
-    _entities[4].properties[20],
-  );
-
-  /// See [Message.waveData].
-  static final waveData = obx.QueryDoubleVectorProperty<Message>(
-    _entities[4].properties[21],
-  );
-
-  /// See [Message.waveDataIV].
-  static final waveDataIV = obx.QueryStringProperty<Message>(
-    _entities[4].properties[22],
-  );
-
-  /// See [Message.waveDataMAC].
-  static final waveDataMAC = obx.QueryStringProperty<Message>(
-    _entities[4].properties[23],
-  );
-
   /// See [Message.filepath].
   static final filepath = obx.QueryStringProperty<Message>(
-    _entities[4].properties[24],
+    _entities[4].properties[18],
   );
 
   /// See [Message.fileKey].
   static final fileKey = obx.QueryStringProperty<Message>(
-    _entities[4].properties[25],
+    _entities[4].properties[19],
   );
 
   /// See [Message.withBaseKey].
   static final withBaseKey = obx.QueryBooleanProperty<Message>(
-    _entities[4].properties[26],
+    _entities[4].properties[20],
   );
 
   /// See [Message.chat].
   static final chat = obx.QueryRelationToOne<Message, Chat>(
-    _entities[4].properties[27],
+    _entities[4].properties[21],
   );
 
   /// See [Message.dbAdditionalData].
   static final dbAdditionalData = obx.QueryStringProperty<Message>(
-    _entities[4].properties[28],
+    _entities[4].properties[22],
   );
 }
 

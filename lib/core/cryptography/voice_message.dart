@@ -116,3 +116,25 @@ Future<Uint8List> decodeRecording(
     throw Exception('Failed to decode recording: $e');
   }
 }
+
+// Helper to create combined recording payload with metadata as JSON
+// This combines recording data (base64), duration, and decibels into a single JSON object
+Map<String, dynamic> createRecordingPayload(
+    Uint8List recording,
+    int durationMicroSeconds,
+    List<double> decibels) {
+  return {
+    'recording': base64.encode(recording),
+    'duration': durationMicroSeconds,
+    'decibels': decibels,
+  };
+}
+
+// Helper to extract recording data from payload
+Map<String, dynamic> parseRecordingPayload(dynamic payload) {
+  return {
+    'recording': base64.decode(payload['recording']),
+    'duration': payload['duration'],
+    'decibels': List<double>.from(payload['decibels']),
+  };
+}
