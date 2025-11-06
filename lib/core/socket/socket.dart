@@ -90,6 +90,7 @@ class ChatSocket {
         if (isConnected == true && key != null) {
           debugPrint(
               'ChatSocket: Connection verified, starting queue processing');
+          // Process queue (includes handling messages pending key exchange)
           await actionQueueService.processQueue();
         } else {
           debugPrint(

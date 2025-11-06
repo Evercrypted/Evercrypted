@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/http.dart';
@@ -76,8 +77,21 @@ class ActionQueueService {
           'ActionQueueService: Processing ${queue.length} queued actions');
 
       if (queue.isNotEmpty) {
+        // First pass: Handle messages pending key exchange
+        final pendingKeyMessages = queue.where((a) => a.type == 'sendMessagePendingKey').toList();
+        if (pendingKeyMessages.isNotEmpty) {
+          debugPrint('ActionQueueService: Found ${pendingKeyMessages.length} messages pending key exchange, processing...');
+          await BaseKey.processAllPendingMessages();
+        }
+
+        // Second pass: Process remaining queued actions
         for (var action in queue) {
           try {
+            // Skip messages already processed in first pass
+            if (action.type == 'sendMessagePendingKey') {
+              continue;
+            }
+
             // Check connection before each action
             if (ChatSocket.isConnected != true || ChatSocket.key == null) {
               debugPrint(

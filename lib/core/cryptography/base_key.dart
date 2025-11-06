@@ -6,6 +6,7 @@ import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:flutter/foundation.dart';
@@ -139,21 +140,61 @@ class BaseKey {
     return string != null ? ChatKeys.fromJson(jsonDecode(string)) : null;
   }
 
-  static Future<void> _processQueuedMessages(String chatUid) async {
+  /// Process pending messages for all chats that have baseKeys
+  /// Call this on app startup or socket reconnect to handle messages queued before key exchange
+  static Future<void> processAllPendingMessages() async {
     try {
-      // Find all queued messages for this chat that are waiting for key exchange
+      // Find all queued messages waiting for key exchange
       final query = obx.actionQueues
           .query(ActionQueue_.type.equals('sendMessagePendingKey'))
           .build();
       final queuedActions = query.find();
       query.close();
 
-      final messageService = MessageService();
-      int processedCount = 0;
+      if (queuedActions.isEmpty) {
+        return;
+      }
 
+      debugPrint(
+          'BaseKey.processAllPendingMessages: Found ${queuedActions.length} pending messages');
+
+      // Group by chatUid
+      final Map<String, List<ActionQueue>> messagesByChat = {};
       for (final action in queuedActions) {
         try {
           final payload = jsonDecode(action.payload);
+          final chatUid = payload['chatUid'] as String?;
+          if (chatUid != null) {
+            messagesByChat.putIfAbsent(chatUid, () => []).add(action);
+          }
+        } catch (e) {
+          debugPrint(
+              'BaseKey.processAllPendingMessages: Error parsing action ${action.id}: $e');
+        }
+      }
+
+      // Process each chat's pending messages (pass actions to avoid re-querying)
+      for (final entry in messagesByChat.entries) {
+        await _processQueuedMessagesForChat(entry.key, entry.value);
+      }
+
+      debugPrint(
+          'BaseKey.processAllPendingMessages: Processed pending messages for ${messagesByChat.length} chats');
+    } catch (e) {
+      debugPrint('BaseKey.processAllPendingMessages: Error: $e');
+    }
+  }
+
+  /// Process pending messages for a specific chat (internal helper with pre-filtered actions)
+  static Future<void> _processQueuedMessagesForChat(String chatUid, List<ActionQueue> actions) async {
+    try {
+      final messageService = MessageService();
+      int processedCount = 0;
+
+      for (final action in actions) {
+        try {
+          final payload = jsonDecode(action.payload);
+          // Double-check chatUid matches
           if (payload['chatUid'] == chatUid) {
             // Get the base key that's now available
             final keys = await getKeys(chatUid);
@@ -181,6 +222,12 @@ class BaseKey {
                 );
               } else if (messageType == MessageTypes.audio) {
                 // Handle audio message with combined format (recording + duration + decibels)
+                if (payload['fileData'] == null) {
+                  debugPrint('BaseKey._processQueuedMessagesForChat: Skipping audio message with null fileData');
+                  obx.actionQueues.remove(action.id);
+                  continue;
+                }
+
                 final fileData = base64Decode(payload['fileData']);
                 final duration = payload['duration'];
                 final waveData = payload['waveData'] != null
@@ -215,6 +262,12 @@ class BaseKey {
               } else if (messageType == MessageTypes.file ||
                   messageType == MessageTypes.image) {
                 // Handle file/image message
+                if (payload['fileData'] == null || payload['fileName'] == null) {
+                  debugPrint('BaseKey._processQueuedMessagesForChat: Skipping file/image message with null data');
+                  obx.actionQueues.remove(action.id);
+                  continue;
+                }
+
                 final fileData = base64Decode(payload['fileData']);
                 final fileName = payload['fileName'];
 
@@ -251,11 +304,40 @@ class BaseKey {
 
       if (processedCount > 0) {
         debugPrint(
-            'BaseKey: Processed $processedCount queued messages for chat $chatUid');
+            'BaseKey._processQueuedMessagesForChat: Processed $processedCount queued messages for chat $chatUid');
       }
     } catch (e) {
       debugPrint(
-          'BaseKey: Error processing queued messages for chat $chatUid: $e');
+          'BaseKey._processQueuedMessagesForChat: Error processing queued messages for chat $chatUid: $e');
+    }
+  }
+
+  /// Process pending messages when a specific chat's key becomes available
+  /// This is the original method called from setKeys
+  static Future<void> _processQueuedMessages(String chatUid) async {
+    try {
+      // Find all queued messages for this chat
+      final query = obx.actionQueues
+          .query(ActionQueue_.type.equals('sendMessagePendingKey'))
+          .build();
+      final queuedActions = query.find();
+      query.close();
+
+      // Filter to this chat and process
+      final chatActions = queuedActions.where((action) {
+        try {
+          final payload = jsonDecode(action.payload);
+          return payload['chatUid'] == chatUid;
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+
+      if (chatActions.isNotEmpty) {
+        await _processQueuedMessagesForChat(chatUid, chatActions);
+      }
+    } catch (e) {
+      debugPrint('BaseKey._processQueuedMessages: Error: $e');
     }
   }
 

@@ -315,7 +315,7 @@ class MessageService {
       print('DEBUG: Sending file: $file');
       print('DEBUG: message: ${message?.toJson()}');
       final saveToQueueIfNeeded = await checkIfSocketConnectedAndQueueIfNeeded(
-          json.encode(payload), file);
+          {'message': message!.toJson(), 'file': file}, file);
       if (saveToQueueIfNeeded == false) {
         AppHttpClient.message(
           channel: SocketChannelTypes.message,
