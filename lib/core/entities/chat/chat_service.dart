@@ -75,16 +75,20 @@ class ChatService {
     });
 
     List<Chat> allChats = [...chatsToUpdate, ...chatsToPut];
-    obx.chats.putMany(allChats);
+    if (allChats.isNotEmpty) {
+      _doSyncForAllChats(allChats);
+
+      obx.chats.putMany(allChats);
+    }
 
     for (var chat in allChats) {
-      final dbChat = obx.chats.get(chat.id);
+      final query = obx.chats.query(Chat_.uid.equals(chat.uid)).build();
+      final dbChat = query.findFirst();
+      query.close();
       if (dbChat != null) {
         // Only add messages that don't already exist to prevent uniqueId conflicts
         debugPrint(
             'ChatService: Syncing ${chat.messagesList.length} messages for chat ${chat.uid}');
-        int addedCount = 0;
-        int skippedCount = 0;
 
         for (var newMessage in chat.messagesList) {
           // Process group key exchange messages in background (don't store in DB)
@@ -98,25 +102,11 @@ class ChatService {
               msg.uid == newMessage.uid || msg.uniqueId == newMessage.uniqueId);
           if (existingMessage == null) {
             dbChat.messages.add(newMessage);
-            addedCount++;
-          } else {
-            skippedCount++;
-            debugPrint(
-                'ChatService: Skipped duplicate message uid=${newMessage.uid}, uniqueId=${newMessage.uniqueId}');
           }
         }
-
-        debugPrint(
-            'ChatService: Added $addedCount messages, skipped $skippedCount duplicates for chat ${chat.uid}');
         obx.chats.put(dbChat);
       }
     }
-
-    if (allChats.isNotEmpty) {
-      _doSyncForAllChats(allChats);
-    }
-
-    obx.chats.putMany(allChats);
 
     if (chatsToDelete.isNotEmpty) {
       // Process chat deletions in parallel for better performance

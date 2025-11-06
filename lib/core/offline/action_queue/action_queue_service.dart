@@ -80,7 +80,7 @@ class ActionQueueService {
         // First pass: Handle messages pending key exchange
         final pendingKeyMessages = queue.where((a) => a.type == 'sendMessagePendingKey').toList();
         if (pendingKeyMessages.isNotEmpty) {
-          debugPrint('ActionQueueService: Found ${pendingKeyMessages.length} messages pending key exchange, processing...');
+          debugPrint('userLog: Found ${pendingKeyMessages.length} messages pending key exchange in action queue, processing...');
           await BaseKey.processAllPendingMessages();
         }
 

@@ -202,12 +202,9 @@ class BaseKey {
               // Create the encryption key (same logic as ChatInputField)
               final hash = sha256.convert(utf8.encode(keys!.baseKey!));
               final encryptionKey = base64Encode(hash.bytes);
-              
-              debugPrint('BaseKey._processQueuedMessages: Processing queued messages for chat $chatUid');
-              debugPrint('BaseKey._processQueuedMessages: baseKey: ${keys!.baseKey!.substring(0, 8)}...');
-              debugPrint('BaseKey._processQueuedMessages: encryptionKey: ${encryptionKey.substring(0, 8)}... (userId: ${Auth.user?.uid})');
 
               final messageType = payload['messageType'] ?? MessageTypes.text;
+              debugPrint('userLog: Processing queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
 
               if (messageType == MessageTypes.text) {
                 // Handle text message
@@ -220,6 +217,7 @@ class BaseKey {
                   chatUid,
                   true, // withBaseKey = true
                 );
+                debugPrint('userLog: Successfully sent queued text message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
               } else if (messageType == MessageTypes.audio) {
                 // Handle audio message with combined format (recording + duration + decibels)
                 if (payload['fileData'] == null) {
@@ -258,6 +256,7 @@ class BaseKey {
                   await messageService.sendFile(
                       message: messageToSend,
                       file: encrypted['crypted']);
+                  debugPrint('userLog: Successfully sent queued audio message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
                 }
               } else if (messageType == MessageTypes.file ||
                   messageType == MessageTypes.image) {
@@ -289,6 +288,7 @@ class BaseKey {
 
                 await messageService.sendFile(
                     message: messageToSend, file: encryptedFile['crypted']);
+                debugPrint('userLog: Successfully sent queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
               }
 
               // Remove from queue
@@ -304,7 +304,7 @@ class BaseKey {
 
       if (processedCount > 0) {
         debugPrint(
-            'BaseKey._processQueuedMessagesForChat: Processed $processedCount queued messages for chat $chatUid');
+            'userLog: Completed processing $processedCount queued messages for chat $chatUid. User: ${Auth.user?.uid}');
       }
     } catch (e) {
       debugPrint(

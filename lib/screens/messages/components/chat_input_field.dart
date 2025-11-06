@@ -105,7 +105,10 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
 
     // Check if user has premium access - if not, send unencrypted
     final bool hasPremium = Auth.getUser?.activated == true;
+    debugPrint('userLog: sendMessage called for chat ${widget.chat.uid}. hasPremium: $hasPremium, fullKey: ${fullKey != null ? "present" : "null"}, baseKey: ${widget.baseKey != null ? "present" : "null"}, pass: ${widget.pass != null ? "present" : "null"}. User: ${Auth.user?.uid}');
+
     if (!hasPremium) {
+      debugPrint('userLog: Sending unencrypted message (non-premium user) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
       _messageService.sendMessage(message, widget.chat.uid, false);
       _messageField.clear();
       return;
@@ -114,6 +117,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     // Check if we have a key for encryption
     if (fullKey != null) {
       // We have the key - encrypt and send normally
+      debugPrint('userLog: Sending encrypted message with fullKey for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
       dynamic encr = message;
       try {
         encr = await encodePayload(message, fullKey, true);
@@ -124,7 +128,9 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       _messageField.clear();
     } else {
       // No encryption key available - queue message regardless of chat type
+      debugPrint('userLog: No fullKey available for chat ${widget.chat.uid}. Checking if should queue... User: ${Auth.user?.uid}');
       if (widget.baseKey == null) {
+        debugPrint('userLog: baseKey is null, queueing message for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
         // Queue message until key is available (works for both one-to-one and group chats)
         await _queueMessageUntilKeyExchange(
           widget.chat.uid,
@@ -146,6 +152,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         }
       } else {
         // Send normally (fallback case)
+        debugPrint('userLog: baseKey is present but fullKey is null - sending unencrypted (fallback) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
         _messageService.sendMessage(message, widget.chat.uid, withBaseKey);
         _messageField.clear();
       }
@@ -176,9 +183,9 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       }),
       createdAtMSE: DateTime.now().millisecondsSinceEpoch,
     );
-    obx.actionQueues.put(action);
+    final actionId = obx.actionQueues.put(action);
     debugPrint(
-        'Queued $messageType message for chat $chatUid until key exchange completes');
+        'userLog: Queued $messageType message (actionId: $actionId) for chat $chatUid until key exchange completes. User: ${Auth.user?.uid}');
   }
 
   onRecording(Uint8List recordingData, int recordingMicroSeconds,
@@ -279,6 +286,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       // No encryption key available - queue audio message regardless of chat type
       final chat = obx.chats.get(int.parse(widget.chat.uid));
       if (widget.baseKey == null && chat != null) {
+        debugPrint('userLog: Queueing audio message for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
         // Queue audio message until key is available
         await _queueMessageUntilKeyExchange(
           chat.uid,
@@ -307,6 +315,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         return;
       } else {
         // Send unencrypted (fallback case)
+        debugPrint('userLog: Sending unencrypted audio (fallback) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
         // Create payload and encode it
         final fallbackPayload = createRecordingPayload(
           recordingData!,
