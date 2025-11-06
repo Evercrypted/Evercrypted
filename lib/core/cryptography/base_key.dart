@@ -211,11 +211,12 @@ class BaseKey {
                 final encryptedMessage =
                     await encodePayload(payload['text'], encryptionKey, true);
 
-                // Send the encrypted message
+                // Send the encrypted message, updating the existing optimistic message
                 await messageService.sendMessage(
                   encryptedMessage,
                   chatUid,
                   true, // withBaseKey = true
+                  queueId: action.id, // Update optimistic message instead of creating new one
                 );
                 debugPrint('userLog: Successfully sent queued text message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
               } else if (messageType == MessageTypes.audio) {
@@ -255,7 +256,8 @@ class BaseKey {
 
                   await messageService.sendFile(
                       message: messageToSend,
-                      file: encrypted['crypted']);
+                      file: encrypted['crypted'],
+                      optimisticMessageQueueId: action.id); // Update optimistic message
                   debugPrint('userLog: Successfully sent queued audio message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
                 }
               } else if (messageType == MessageTypes.file ||
@@ -287,7 +289,9 @@ class BaseKey {
                 );
 
                 await messageService.sendFile(
-                    message: messageToSend, file: encryptedFile['crypted']);
+                    message: messageToSend,
+                    file: encryptedFile['crypted'],
+                    optimisticMessageQueueId: action.id); // Update optimistic message
                 debugPrint('userLog: Successfully sent queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
               }
 

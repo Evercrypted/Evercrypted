@@ -143,18 +143,6 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
           messageType: MessageTypes.text,
         );
         _messageField.clear();
-
-        // Show user feedback that message is queued
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(widget.chat.isOneToOne
-                  ? 'Message queued - waiting for secure connection'
-                  : 'Message queued - waiting for group encryption key'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
       } else {
         // Send normally (fallback case)
         debugPrint(
@@ -192,6 +180,41 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     final actionId = obx.actionQueues.put(action);
     debugPrint(
         'userLog: Queued $messageType message (actionId: $actionId) for chat $chatUid until key exchange completes. User: ${Auth.user?.uid}');
+
+    // For audio/file/image messages, save the file locally for immediate display
+    String? filepath;
+    bool isEncrypted = false;  // Start as unencrypted, will be encrypted when sent
+
+    if (messageType == MessageTypes.audio && fileData != null && duration != null) {
+      // Create the recording payload and save it locally (unencrypted for now)
+      final payload = createRecordingPayload(fileData, duration, waveData ?? []);
+      final jsonString = json.encode(payload);
+      final fileToSave = base64.encode(utf8.encode(jsonString));
+
+      // Save file with queueId for temporary storage
+      filepath = await _messageService.saveFile(
+        file: fileToSave,
+        queueId: actionId,
+      );
+    }
+
+    // Create optimistic UI message entry to show the queued message
+    final optimisticMessage = Message(
+      authorId: Auth.user!.uid,
+      text: text ?? fileName,
+      messageType: messageType ?? MessageTypes.text,
+      createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+      chatUid: chatUid,
+      queueId: actionId,
+      successfullySent: false, // Mark as not sent yet
+      uniqueId: '${DateTime.now().millisecondsSinceEpoch}$chatUid$actionId',
+      withBaseKey: true, // Will be encrypted when key arrives
+      isEncrypted: isEncrypted, // False for now, will be true when encrypted and sent
+      filepath: filepath, // For audio/file/image messages to be accessible
+    );
+
+    // Save to ObjectBox for immediate UI display
+    await _messageService.writeNewMessageToObx(optimisticMessage);
   }
 
   onRecording(Uint8List recordingData, int recordingMicroSeconds,
@@ -306,18 +329,6 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
           sendingFile = false;
           dropRecording();
         });
-
-        // Show user feedback
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(widget.chat.isOneToOne
-                  ? 'Audio message queued - waiting for secure connection'
-                  : 'Audio message queued - waiting for group encryption key'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
         return;
       } else {
         // Send unencrypted (fallback case)
@@ -450,18 +461,6 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
           sendingFile = false;
           file = null;
         });
-
-        // Show user feedback
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(widget.chat.isOneToOne
-                  ? 'File queued - waiting for secure connection'
-                  : 'File queued - waiting for group encryption key'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
         return;
       } else {
         // Send unencrypted (fallback case)
@@ -559,18 +558,6 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         setState(() {
           sendingFile = false;
         });
-
-        // Show user feedback
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(chat.isOneToOne
-                  ? 'Image queued - waiting for secure connection'
-                  : 'Image queued - waiting for group encryption key'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
         return;
       } else {
         // Send unencrypted (fallback case)

@@ -59,28 +59,76 @@ class MessageService {
   }
 
   Future<Message> sendMessage(
-      dynamic message, String chatUid, bool withBaseKey) async {
+      dynamic message, String chatUid, bool withBaseKey, {int? queueId}) async {
     Message messageToSend;
-    if (message is String) {
-      messageToSend = Message(
-        authorId: userId!,
-        text: message,
-        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-        chatUid: chatUid,
-        withBaseKey: withBaseKey,
-      );
+
+    // Check if we're updating an existing optimistic message
+    if (queueId != null) {
+      final optimisticQuery = obx.messages
+          .query(Message_.queueId.equals(queueId))
+          .build();
+      final existingMessage = optimisticQuery.findFirst();
+      optimisticQuery.close();
+
+      if (existingMessage != null) {
+        messageToSend = existingMessage;
+        // Update with encrypted content
+        if (message is String) {
+          messageToSend.text = message;
+        } else {
+          messageToSend.text = message['crypted'];
+          messageToSend.iv = message['iv'];
+          messageToSend.mac = message['mac'];
+          messageToSend.isEncrypted = true;
+        }
+        messageToSend.withBaseKey = withBaseKey;
+      } else {
+        // Fallback: create new message if optimistic message not found
+        if (message is String) {
+          messageToSend = Message(
+            authorId: userId!,
+            text: message,
+            createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+            chatUid: chatUid,
+            withBaseKey: withBaseKey,
+          );
+        } else {
+          messageToSend = Message(
+            authorId: userId!,
+            text: message['crypted'],
+            createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+            chatUid: chatUid,
+            iv: message['iv'],
+            mac: message['mac'],
+            isEncrypted: true,
+            withBaseKey: withBaseKey,
+          );
+        }
+      }
     } else {
-      messageToSend = Message(
-        authorId: userId!,
-        text: message['crypted'],
-        createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-        chatUid: chatUid,
-        iv: message['iv'],
-        mac: message['mac'],
-        isEncrypted: true,
-        withBaseKey: withBaseKey,
-      );
+      // Create new message (normal flow)
+      if (message is String) {
+        messageToSend = Message(
+          authorId: userId!,
+          text: message,
+          createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+          chatUid: chatUid,
+          withBaseKey: withBaseKey,
+        );
+      } else {
+        messageToSend = Message(
+          authorId: userId!,
+          text: message['crypted'],
+          createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+          chatUid: chatUid,
+          iv: message['iv'],
+          mac: message['mac'],
+          isEncrypted: true,
+          withBaseKey: withBaseKey,
+        );
+      }
     }
+
     Completer<Message> complete = Completer();
     AppHttpClient.message(
       channel: SocketChannelTypes.message,
@@ -100,16 +148,31 @@ class MessageService {
         messageToSend.uid = resp['messageUid'];
         messageToSend.uniqueId = chatUid + resp['messageUid'];
         messageToSend.successfullySent = true;
+        messageToSend.queueId = null; // Clear queueId when successfully sent
       }
-      writeNewMessageToObx(messageToSend).then((value) {
+
+      // Update existing message or write new one
+      if (queueId != null && messageToSend.id > 0) {
+        obx.messages.put(messageToSend);
         complete.complete(messageToSend);
-      });
+      } else {
+        writeNewMessageToObx(messageToSend).then((value) {
+          complete.complete(messageToSend);
+        });
+      }
     }).onError((error, stackTrace) {
       messageToSend.successfullySent = false;
       messageToSend.error = 'Could not send message';
-      writeNewMessageToObx(messageToSend).then((value) {
+
+      // Update existing message or write new one
+      if (queueId != null && messageToSend.id > 0) {
+        obx.messages.put(messageToSend);
         complete.complete(messageToSend);
-      });
+      } else {
+        writeNewMessageToObx(messageToSend).then((value) {
+          complete.complete(messageToSend);
+        });
+      }
       complete.completeError(error!);
     });
     return complete.future;
@@ -263,8 +326,31 @@ class MessageService {
       required String file,
       dynamic payload,
       bool isFromQueue = false,
-      int? queueId}) async {
+      int? queueId,
+      int? optimisticMessageQueueId}) async {
     Completer<Message> complete = Completer();
+
+    // Check if we need to update an existing optimistic message
+    Message? existingOptimisticMessage;
+    if (optimisticMessageQueueId != null) {
+      final optimisticQuery = obx.messages
+          .query(Message_.queueId.equals(optimisticMessageQueueId))
+          .build();
+      existingOptimisticMessage = optimisticQuery.findFirst();
+      optimisticQuery.close();
+
+      if (existingOptimisticMessage != null && message != null) {
+        // Update the existing optimistic message with the actual file data
+        message = existingOptimisticMessage
+          ..iv = message.iv
+          ..mac = message.mac
+          ..messageType = message.messageType
+          ..text = message.text
+          ..isEncrypted = true
+          ..withBaseKey = message.withBaseKey;
+      }
+    }
+
     if (isFromQueue) {
       final decoded = json.decode(payload);
       final msg = Message.fromJson(decoded['message']);
@@ -312,16 +398,25 @@ class MessageService {
         });
       });
     } else {
-      print('DEBUG: Sending file: $file');
-      print('DEBUG: message: ${message?.toJson()}');
+      debugPrint('DEBUG: Sending file: $file');
+      debugPrint('DEBUG: message: ${message?.toJson()}');
+
+      if (message == null) {
+        complete.completeError('Message is null');
+        return complete.future;
+      }
+
+      // Capture non-null message for use in async callbacks
+      final messageToSend = message;
+
       final saveToQueueIfNeeded = await checkIfSocketConnectedAndQueueIfNeeded(
-          {'message': message!.toJson(), 'file': file}, file);
+          {'message': messageToSend.toJson(), 'file': file}, file);
       if (saveToQueueIfNeeded == false) {
         AppHttpClient.message(
           channel: SocketChannelTypes.message,
           type: MessageEventTypes.sendFile,
           payload: {
-            'message': message!.toJson(),
+            'message': messageToSend.toJson(),
             'file': file,
           },
         ).then((resp) async {
@@ -332,44 +427,59 @@ class MessageService {
           final existingMessage = existingQuery.findFirst();
           existingQuery.close();
 
-          if (existingMessage != null && existingMessage.id != message.id) {
+          if (existingMessage != null && existingMessage.id != messageToSend.id) {
             // A message with this UID already exists, remove this duplicate
-            final msgIdToRemove = message.id;
+            final msgIdToRemove = messageToSend.id;
             obx.messages.remove(msgIdToRemove);
             debugPrint(
                 'MessageService: Message with uid ${resp['messageUid']} already exists, removed duplicate');
           } else {
             // Update the message with server response
-            message.uid = resp['messageUid'];
-            message.uniqueId = message.chatUid + resp['messageUid'];
-            message.successfullySent = true;
-            message.filepath = await saveFile(
-                file: file, chatUid: message.chatUid, msgUid: message.uid);
-            writeNewMessageToObx(message).then((value) {
-              complete.complete(message);
-            });
+            messageToSend.uid = resp['messageUid'];
+            messageToSend.uniqueId = messageToSend.chatUid + resp['messageUid'];
+            messageToSend.successfullySent = true;
+            messageToSend.queueId = null; // Clear queueId when successfully sent
+            messageToSend.filepath = await saveFile(
+                file: file, chatUid: messageToSend.chatUid, msgUid: messageToSend.uid);
+
+            // If updating optimistic message, use put; otherwise use writeNewMessageToObx
+            if (optimisticMessageQueueId != null && messageToSend.id > 0) {
+              obx.messages.put(messageToSend);
+              complete.complete(messageToSend);
+            } else {
+              writeNewMessageToObx(messageToSend).then((value) {
+                complete.complete(messageToSend);
+              });
+            }
           }
         }).onError((error, stackTrace) async {
-          message.successfullySent = false;
-          message.error = 'Could not send file';
-          message.filepath = await saveFile(
+          messageToSend.successfullySent = false;
+          messageToSend.error = 'Could not send file';
+          messageToSend.filepath = await saveFile(
               file: file,
-              chatUid: message.chatUid,
+              chatUid: messageToSend.chatUid,
               msgUid: DateTime.now().microsecondsSinceEpoch.toString());
-          writeNewMessageToObx(message).then((value) {
-            complete.complete(message);
-          });
+
+          // If updating optimistic message, use put; otherwise use writeNewMessageToObx
+          if (optimisticMessageQueueId != null && messageToSend.id > 0) {
+            obx.messages.put(messageToSend);
+            complete.complete(messageToSend);
+          } else {
+            writeNewMessageToObx(messageToSend).then((value) {
+              complete.complete(messageToSend);
+            });
+          }
         });
-      } else if (saveToQueueIfNeeded['status'] == 'queued' && message != null) {
-        message.successfullySent = false;
-        message.queueId = saveToQueueIfNeeded['queuedItemId'];
-        message.uid = DateTime.now().millisecondsSinceEpoch.toString() +
+      } else if (saveToQueueIfNeeded['status'] == 'queued') {
+        messageToSend.successfullySent = false;
+        messageToSend.queueId = saveToQueueIfNeeded['queuedItemId'];
+        messageToSend.uid = DateTime.now().millisecondsSinceEpoch.toString() +
             saveToQueueIfNeeded['queuedItemId'].toString();
-        message.uniqueId = DateTime.now().millisecondsSinceEpoch.toString() +
-            message.chatUid +
+        messageToSend.uniqueId = DateTime.now().millisecondsSinceEpoch.toString() +
+            messageToSend.chatUid +
             saveToQueueIfNeeded['queuedItemId'].toString();
-        writeNewMessageToObx(message).then((value) {
-          complete.complete(message);
+        writeNewMessageToObx(messageToSend).then((value) {
+          complete.complete(messageToSend);
         });
       }
     }
@@ -459,6 +569,7 @@ class MessageService {
     if (filePaths.isNotEmpty) {
       deleteFiles(filePaths).catchError((error) {
         debugPrint('Background file deletion failed for chat $chatUid: $error');
+        return <String, bool>{}; // Return empty map on error
       });
     }
 
