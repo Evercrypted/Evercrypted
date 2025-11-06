@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
+import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
@@ -154,9 +155,13 @@ class MessageService {
       // Update existing message or write new one
       if (queueId != null && messageToSend.id > 0) {
         obx.messages.put(messageToSend);
+        // Emit status update for UI to react
+        ActionQueueService.messageStatusUpdatesSubject.add(messageToSend);
         complete.complete(messageToSend);
       } else {
         writeNewMessageToObx(messageToSend).then((value) {
+          // Emit status update for UI to react
+          ActionQueueService.messageStatusUpdatesSubject.add(messageToSend);
           complete.complete(messageToSend);
         });
       }
@@ -382,6 +387,8 @@ class MessageService {
               file: decoded['file'], chatUid: msg.chatUid, msgUid: msg.uid);
           deleteFile(queueId: queueId!);
           writeNewMessageToObx(msg).then((value) {
+            // Emit status update for UI to react
+            ActionQueueService.messageStatusUpdatesSubject.add(msg);
             complete.complete(message);
           });
         }
@@ -445,9 +452,13 @@ class MessageService {
             // If updating optimistic message, use put; otherwise use writeNewMessageToObx
             if (optimisticMessageQueueId != null && messageToSend.id > 0) {
               obx.messages.put(messageToSend);
+              // Emit status update for UI to react
+              ActionQueueService.messageStatusUpdatesSubject.add(messageToSend);
               complete.complete(messageToSend);
             } else {
               writeNewMessageToObx(messageToSend).then((value) {
+                // Emit status update for UI to react
+                ActionQueueService.messageStatusUpdatesSubject.add(messageToSend);
                 complete.complete(messageToSend);
               });
             }

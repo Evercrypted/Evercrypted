@@ -109,8 +109,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         .messageStatusUpdatesSubject.stream
         .where((message) => message.chatUid == widget.chat.uid)
         .listen((updatedMessage) {
-      debugPrint(
-          'MessagesScreen: Received message status update for message ${updatedMessage.id} ${updatedMessage.successfullySent} ${updatedMessage.queueId} ${updatedMessage.couldNotSend}');
       setState(() {
         // Update message in obxAddedMessages if it exists
         final index = obxAddedMessages
