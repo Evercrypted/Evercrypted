@@ -1,6 +1,8 @@
 import 'package:evercrypted/main.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'evercrypted_keyboard_riverpod.g.dart';
 
 /// State class to hold keyboard-related state
 class KeyboardState {
@@ -53,9 +55,10 @@ class KeyboardState {
 }
 
 /// Notifier class to manage keyboard state changes
-class KeyboardNotifier extends StateNotifier<KeyboardState> {
-  KeyboardNotifier()
-      : super(KeyboardState(controller: TextEditingController()));
+@riverpod
+class KeyboardNotifier extends _$KeyboardNotifier {
+  @override
+  KeyboardState build() => KeyboardState(controller: TextEditingController());
 
   void close() {
     shouldShowKeyboard.value = false;
@@ -99,9 +102,3 @@ class KeyboardNotifier extends StateNotifier<KeyboardState> {
     );
   }
 }
-
-/// Provider for the keyboard state
-final keyboardProvider =
-    StateNotifierProvider<KeyboardNotifier, KeyboardState>((ref) {
-  return KeyboardNotifier();
-});

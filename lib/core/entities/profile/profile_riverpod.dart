@@ -1,15 +1,15 @@
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class ProfileNotifier extends StateNotifier<Profile?> {
-  // We initialize the list of todos to an empty list
-  ProfileNotifier() : super(null);
+part 'profile_riverpod.g.dart';
+
+@riverpod
+class ProfileNotifier extends _$ProfileNotifier {
+  // We initialize the profile to null
+  @override
+  Profile? build() => null;
 
   void setProfile(Profile profile) {
     state = profile;
   }
 }
-
-final profileProvider = StateNotifierProvider<ProfileNotifier, Profile?>((ref) {
-  return ProfileNotifier();
-});

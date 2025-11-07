@@ -1,10 +1,14 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'contact_model.dart';
 
-class ContactsNotifier extends StateNotifier<List<Contact>> {
-  // We initialize the list of todos to an empty list
-  ContactsNotifier() : super([]);
+part 'contact_riverpod.g.dart';
+
+@riverpod
+class Contacts extends _$Contacts {
+  // We initialize the list of contacts to an empty list
+  @override
+  List<Contact> build() => [];
 
   void setContacts(List<Contact> contacts) {
     state = [...contacts];
@@ -14,8 +18,3 @@ class ContactsNotifier extends StateNotifier<List<Contact>> {
     state = [contact, ...state];
   }
 }
-
-final contactsProvider =
-    StateNotifierProvider<ContactsNotifier, List<Contact>>((ref) {
-  return ContactsNotifier();
-});

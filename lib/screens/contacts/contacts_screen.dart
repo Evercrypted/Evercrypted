@@ -90,7 +90,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
   Widget build(BuildContext context) {
     final List<Contact> contacts = ref.watch(contactsProvider);
     final List<ContactRequest> receivedRequests =
-        ref.watch(receivedRequestsProvider);
+        ref.watch(receivedContactRequestsProvider);
     final profile = ref.watch(profileProvider);
 
     final isThereUnread =

@@ -33,7 +33,7 @@ class ContactsTabIconState extends ConsumerState<ContactsTabIcon>
 
   @override
   Widget build(BuildContext context) {
-    final receivedRequests = ref.watch(receivedRequestsProvider);
+    final receivedRequests = ref.watch(receivedContactRequestsProvider);
     final isThereUnread =
         receivedRequests.where((element) => element.unread == true).isNotEmpty;
 

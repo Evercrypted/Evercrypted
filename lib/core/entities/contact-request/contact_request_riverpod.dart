@@ -1,9 +1,13 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class SentContactRequestsNotifier extends StateNotifier<List<ContactRequest>> {
-  // We initialize the list of todos to an empty list
-  SentContactRequestsNotifier() : super([]);
+part 'contact_request_riverpod.g.dart';
+
+@riverpod
+class SentContactRequests extends _$SentContactRequests {
+  // We initialize the list of sent requests to an empty list
+  @override
+  List<ContactRequest> build() => [];
 
   void setSentRequests(List<ContactRequest> sentRequests) {
     state = [...sentRequests];
@@ -14,16 +18,11 @@ class SentContactRequestsNotifier extends StateNotifier<List<ContactRequest>> {
   }
 }
 
-final sentRequestsProvider =
-    StateNotifierProvider<SentContactRequestsNotifier, List<ContactRequest>>(
-        (ref) {
-  return SentContactRequestsNotifier();
-});
-
-class ReceivedContactRequestsNotifier
-    extends StateNotifier<List<ContactRequest>> {
-  // We initialize the list of todos to an empty list
-  ReceivedContactRequestsNotifier() : super([]);
+@riverpod
+class ReceivedContactRequests extends _$ReceivedContactRequests {
+  // We initialize the list of received requests to an empty list
+  @override
+  List<ContactRequest> build() => [];
 
   void setReceivedRequests(List<ContactRequest> receivedRequests) {
     state = [...receivedRequests];
@@ -33,8 +32,3 @@ class ReceivedContactRequestsNotifier
     state = [receivedRequest, ...state];
   }
 }
-
-final receivedRequestsProvider = StateNotifierProvider<
-    ReceivedContactRequestsNotifier, List<ContactRequest>>((ref) {
-  return ReceivedContactRequestsNotifier();
-});

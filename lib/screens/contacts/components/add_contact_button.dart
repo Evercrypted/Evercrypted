@@ -41,7 +41,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
 
   submitForm() {
     final List<Contact> contacts = ref.read(contactsProvider);
-    final List<ContactRequest> sentRequests = ref.read(sentRequestsProvider);
+    final List<ContactRequest> sentRequests = ref.read(sentContactRequestsProvider);
     final email = _emailController.text;
     final message = _messageController.text;
 

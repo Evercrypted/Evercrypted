@@ -1,4 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'navigation_state.g.dart';
 
 enum MainNavigationTab { chats, contacts, profile }
 
@@ -18,9 +20,11 @@ class NavigationState {
   }
 }
 
-class NavigationNotifier extends StateNotifier<NavigationState> {
-  NavigationNotifier()
-      : super(const NavigationState(currentTab: MainNavigationTab.chats));
+@riverpod
+class Navigation extends _$Navigation {
+  @override
+  NavigationState build() =>
+      const NavigationState(currentTab: MainNavigationTab.chats);
 
   void setCurrentTab(MainNavigationTab tab) {
     state = state.copyWith(currentTab: tab);
@@ -49,8 +53,3 @@ class NavigationNotifier extends StateNotifier<NavigationState> {
     }
   }
 }
-
-final navigationProvider =
-    StateNotifierProvider<NavigationNotifier, NavigationState>((ref) {
-  return NavigationNotifier();
-});

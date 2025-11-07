@@ -435,13 +435,13 @@ class AuthGateState extends ConsumerState<AuthGate> {
     //contactRequests
     final contactRequests = obx.contactRequests.getAll();
     if (contactRequests.isNotEmpty) {
-      ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
+      ref.read(receivedContactRequestsProvider.notifier).setReceivedRequests(
           contactRequests
               .where((element) =>
                   element.recipientEmail?.toLowerCase() ==
                   user!.email.toLowerCase())
               .toList());
-      ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
+      ref.read(sentContactRequestsProvider.notifier).setSentRequests(contactRequests
           .where((element) => element.authorId == user!.uid)
           .toList());
     }
@@ -485,13 +485,13 @@ class AuthGateState extends ConsumerState<AuthGate> {
         .watch()
         .map((query) => query.find())
         .listen((contactRequests) {
-      ref.read(receivedRequestsProvider.notifier).setReceivedRequests(
+      ref.read(receivedContactRequestsProvider.notifier).setReceivedRequests(
           contactRequests
               .where((element) =>
                   element.recipientEmail?.toLowerCase() ==
                   user!.email?.toLowerCase())
               .toList());
-      ref.read(sentRequestsProvider.notifier).setSentRequests(contactRequests
+      ref.read(sentContactRequestsProvider.notifier).setSentRequests(contactRequests
           .where((element) => element.authorId == user!.uid)
           .toList());
     });

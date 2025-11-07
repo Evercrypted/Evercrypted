@@ -57,8 +57,8 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
       body: Consumer(
           builder: (BuildContext context, WidgetRef ref, Widget? child) {
         List<ContactRequest> receivedRequests =
-            ref.watch(receivedRequestsProvider);
-        List<ContactRequest> sentRequests = ref.watch(sentRequestsProvider);
+            ref.watch(receivedContactRequestsProvider);
+        List<ContactRequest> sentRequests = ref.watch(sentContactRequestsProvider);
         return _selectedIndex == 0
             ? ReceivedRequestsList(
                 receivedRequests: receivedRequests,
