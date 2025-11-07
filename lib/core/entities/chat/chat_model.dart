@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/fernet.dart';
+import 'package:evercrypted/core/cryptography/db-encryption.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:objectbox/objectbox.dart';
@@ -54,8 +54,8 @@ class Chat {
         } else {
           return e
               .copyWith(
-                  email: fernetEncrypt(e.email, appKey),
-                  name: fernetEncrypt(e.name, appKey))
+                  email: encryptForDb(e.email, appKey),
+                  name: encryptForDb(e.name, appKey))
               .toJson(lastSawChatInMiliseconds: true);
         }
       }).toList());
@@ -73,8 +73,8 @@ class Chat {
         participants = (jsonDecode(value) as List<dynamic>).map((e) {
           return Participant.fromJson(e, lastSawChatInMiliseconds: true)
               .copyWith(
-            email: fernetDecrypt(e['email'], appKey),
-            name: fernetDecrypt(e['name'], appKey),
+            email: decryptForDb(e['email'], appKey),
+            name: decryptForDb(e['name'], appKey),
           );
         }).toList();
       }

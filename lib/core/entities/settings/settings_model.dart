@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:objectbox/objectbox.dart';
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/fernet.dart';
+import 'package:evercrypted/core/cryptography/db-encryption.dart';
 
 @Entity()
 class Settings {
@@ -16,7 +16,7 @@ class Settings {
     if (appKey == null) {
       return jsonEncode(availableKeyboards);
     } else {
-      return fernetEncrypt(jsonEncode(availableKeyboards), appKey);
+      return encryptForDb(jsonEncode(availableKeyboards), appKey);
     }
   }
 
@@ -28,8 +28,8 @@ class Settings {
       if (appKey == null) {
         availableKeyboards = List<String>.from(jsonDecode(value));
       } else {
-        availableKeyboards =
-            List<String>.from(jsonDecode(fernetDecrypt(value, appKey)));
+        availableKeyboards = List<String>.from(
+            jsonDecode(decryptForDb(value, appKey) ?? '["English"]'));
       }
     }
   }

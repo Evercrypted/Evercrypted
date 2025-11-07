@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/fernet.dart';
+import 'package:evercrypted/core/cryptography/db-encryption.dart';
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
@@ -78,7 +78,7 @@ class Profile {
     if (appKey == null) {
       return email;
     } else {
-      return fernetEncrypt(email, appKey);
+      return encryptForDb(email, appKey);
     }
   }
 
@@ -88,7 +88,7 @@ class Profile {
       email = value;
       return;
     } else {
-      email = fernetDecrypt(value, appKey);
+      email = decryptForDb(value, appKey);
     }
   }
 
@@ -97,7 +97,7 @@ class Profile {
     if (appKey == null) {
       return name;
     } else {
-      return fernetEncrypt(name, appKey);
+      return encryptForDb(name, appKey);
     }
   }
 
@@ -107,7 +107,7 @@ class Profile {
       name = value;
       return;
     } else {
-      name = fernetDecrypt(value, appKey);
+      name = decryptForDb(value, appKey);
     }
   }
 

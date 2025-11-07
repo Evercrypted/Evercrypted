@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/base_key.dart';
-import 'package:evercrypted/core/cryptography/fernet.dart';
+import 'package:evercrypted/core/cryptography/db-encryption.dart';
 import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
@@ -378,7 +378,7 @@ class SocketEventsService {
         if (chat != null) {
           chatService.updateChatLastSeen(chatUid: chat.uid);
           if (AppState.openedChatId != message.chatUid) {
-            String chatname;
+            String? chatname;
             if (chat.name != null && chat.name!.isNotEmpty) {
               chatname = chat.name!;
             } else {
@@ -387,8 +387,8 @@ class SocketEventsService {
               final otherParticipant = chat.participants
                   .firstWhere((element) => element.uid != userId);
               chatname = otherParticipant.name != null
-                  ? fernetDecrypt(otherParticipant.name, appKey)
-                  : fernetDecrypt(otherParticipant.email, appKey);
+                  ? decryptForDb(otherParticipant.name, appKey)
+                  : decryptForDb(otherParticipant.email, appKey);
             }
             LocalNotification.instance.displayNotification(
               'Message',
