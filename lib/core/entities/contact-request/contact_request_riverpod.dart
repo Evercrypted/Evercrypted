@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'contact_request_riverpod.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class SentContactRequests extends _$SentContactRequests {
   // We initialize the list of sent requests to an empty list
   @override
@@ -18,7 +18,7 @@ class SentContactRequests extends _$SentContactRequests {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class ReceivedContactRequests extends _$ReceivedContactRequests {
   // We initialize the list of received requests to an empty list
   @override

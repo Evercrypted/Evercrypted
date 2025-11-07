@@ -20,7 +20,7 @@ final class NavigationProvider
           argument: null,
           retry: null,
           name: r'navigationProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -41,7 +41,7 @@ final class NavigationProvider
   }
 }
 
-String _$navigationHash() => r'3510a977d2243b04b4db45c321e11be2257ced83';
+String _$navigationHash() => r'9af8ee0dad8b51333d7d09387f666358e84e9d99';
 
 abstract class _$Navigation extends $Notifier<NavigationState> {
   NavigationState build();

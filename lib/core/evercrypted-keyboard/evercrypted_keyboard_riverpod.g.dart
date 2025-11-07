@@ -23,7 +23,7 @@ final class KeyboardNotifierProvider
           argument: null,
           retry: null,
           name: r'keyboardProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -44,7 +44,7 @@ final class KeyboardNotifierProvider
   }
 }
 
-String _$keyboardNotifierHash() => r'78e5e236298336ea260cc8d7fa4c1207498c9be6';
+String _$keyboardNotifierHash() => r'cd487be9758fa1aef38ecf73434153908c7fee3a';
 
 /// Notifier class to manage keyboard state changes
 

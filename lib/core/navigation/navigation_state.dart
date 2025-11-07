@@ -20,7 +20,7 @@ class NavigationState {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class Navigation extends _$Navigation {
   @override
   NavigationState build() =>

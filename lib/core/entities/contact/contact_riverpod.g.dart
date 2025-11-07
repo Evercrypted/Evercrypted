@@ -20,7 +20,7 @@ final class ContactsProvider
           argument: null,
           retry: null,
           name: r'contactsProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -41,7 +41,7 @@ final class ContactsProvider
   }
 }
 
-String _$contactsHash() => r'09e9ae6a3c51e9c4d35e6dc5dc2a58c120ee82ff';
+String _$contactsHash() => r'39ce309266f52dcbc5595735dbcae73e897fada4';
 
 abstract class _$Contacts extends $Notifier<List<Contact>> {
   List<Contact> build();

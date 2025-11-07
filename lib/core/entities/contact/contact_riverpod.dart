@@ -4,7 +4,7 @@ import 'contact_model.dart';
 
 part 'contact_riverpod.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class Contacts extends _$Contacts {
   // We initialize the list of contacts to an empty list
   @override

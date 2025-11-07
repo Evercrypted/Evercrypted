@@ -55,7 +55,7 @@ class KeyboardState {
 }
 
 /// Notifier class to manage keyboard state changes
-@riverpod
+@Riverpod(keepAlive: true)
 class KeyboardNotifier extends _$KeyboardNotifier {
   @override
   KeyboardState build() => KeyboardState(controller: TextEditingController());

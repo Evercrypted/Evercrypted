@@ -20,7 +20,7 @@ final class SentContactRequestsProvider
           argument: null,
           retry: null,
           name: r'sentContactRequestsProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -42,7 +42,7 @@ final class SentContactRequestsProvider
 }
 
 String _$sentContactRequestsHash() =>
-    r'6aa2e3047e2cfe2f4191323209eff9842fa1a312';
+    r'046a0cfd3d0b246e922961320fe25c7c5ecfca51';
 
 abstract class _$SentContactRequests extends $Notifier<List<ContactRequest>> {
   List<ContactRequest> build();
@@ -71,7 +71,7 @@ final class ReceivedContactRequestsProvider
           argument: null,
           retry: null,
           name: r'receivedContactRequestsProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -93,7 +93,7 @@ final class ReceivedContactRequestsProvider
 }
 
 String _$receivedContactRequestsHash() =>
-    r'e068add3cfe894ce17ed3df36e52aaa857579354';
+    r'f4bb4226617ef2b4d9eace0022cd8b6aba6cfeb9';
 
 abstract class _$ReceivedContactRequests
     extends $Notifier<List<ContactRequest>> {
