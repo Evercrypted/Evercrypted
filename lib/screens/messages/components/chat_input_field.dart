@@ -183,11 +183,15 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
 
     // For audio/file/image messages, save the file locally for immediate display
     String? filepath;
-    bool isEncrypted = false;  // Start as unencrypted, will be encrypted when sent
+    bool isEncrypted =
+        false; // Start as unencrypted, will be encrypted when sent
 
-    if (messageType == MessageTypes.audio && fileData != null && duration != null) {
+    if (messageType == MessageTypes.audio &&
+        fileData != null &&
+        duration != null) {
       // Create the recording payload and save it locally (unencrypted for now)
-      final payload = createRecordingPayload(fileData, duration, waveData ?? []);
+      final payload =
+          createRecordingPayload(fileData, duration, waveData ?? []);
       final jsonString = json.encode(payload);
       final fileToSave = base64.encode(utf8.encode(jsonString));
 
@@ -209,7 +213,8 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       successfullySent: false, // Mark as not sent yet
       uniqueId: '${DateTime.now().millisecondsSinceEpoch}$chatUid$actionId',
       withBaseKey: true, // Will be encrypted when key arrives
-      isEncrypted: isEncrypted, // False for now, will be true when encrypted and sent
+      isEncrypted:
+          isEncrypted, // False for now, will be true when encrypted and sent
       filepath: filepath, // For audio/file/image messages to be accessible
     );
 

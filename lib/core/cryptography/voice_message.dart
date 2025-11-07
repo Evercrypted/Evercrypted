@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'dart:convert';
 import 'package:convert/convert.dart';
-import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 
 class EncryptedRecording {
@@ -12,48 +11,6 @@ class EncryptedRecording {
 
   EncryptedRecording(
       {required this.cryptedRecording, required this.iv, this.mac});
-}
-
-// Old implementations using cryptography_plus
-Future<EncryptedRecording?> encodeRecordingOld(key, Uint8List recording,
-    [bool notHex = true]) async {
-  try {
-    final algorithm = Chacha20.poly1305Aead();
-    final SecretBox secretBox = await algorithm.encrypt(recording,
-        secretKey:
-            SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
-    return EncryptedRecording(
-        cryptedRecording: base64.encode(secretBox.cipherText),
-        iv: base64.encode(secretBox.nonce),
-        mac: base64.encode(secretBox.mac.bytes));
-  } catch (e) {
-    return null;
-  }
-}
-
-Future<Uint8List> decodeRecordingOld(
-    {String? key,
-    String? iv,
-    String? mac,
-    required String cryptedRecording,
-    bool notHex = true,
-    bool isEncrypted = true}) async {
-  late final Uint8List recording;
-  if (isEncrypted && key != null && iv != null && mac != null) {
-    final algorithm = Chacha20.poly1305Aead();
-    final secretBox = SecretBox(
-      base64.decode(cryptedRecording),
-      nonce: base64.decode(iv),
-      mac: Mac(base64.decode(mac)),
-    );
-    final decrypted = await algorithm.decrypt(secretBox,
-        secretKey:
-            SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
-    recording = Uint8List.fromList(decrypted);
-  } else {
-    recording = base64Decode(cryptedRecording);
-  }
-  return recording;
 }
 
 // New implementations using flutter_ever_crypto
@@ -120,9 +77,7 @@ Future<Uint8List> decodeRecording(
 // Helper to create combined recording payload with metadata as JSON
 // This combines recording data (base64), duration, and decibels into a single JSON object
 Map<String, dynamic> createRecordingPayload(
-    Uint8List recording,
-    int durationMicroSeconds,
-    List<double> decibels) {
+    Uint8List recording, int durationMicroSeconds, List<double> decibels) {
   return {
     'recording': base64.encode(recording),
     'duration': durationMicroSeconds,

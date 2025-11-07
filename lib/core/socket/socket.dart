@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:cryptography_plus/helpers.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
@@ -23,18 +21,8 @@ import 'package:rhttp/rhttp.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
-import '../cryptography/combine_keys.dart';
 import '../cryptography/payload.dart';
 import '../offline/action_queue/allowed_for_queue.dart';
-
-List<int> getNewNonce(byteLength, random) {
-  final bytes = Uint8List(byteLength);
-  fillBytesWithSecureRandom(
-    bytes,
-    random: random, // If null, the method will use Random.secure
-  );
-  return bytes;
-}
 
 class ChatSocket {
   ChatSocket._();

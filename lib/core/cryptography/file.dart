@@ -3,8 +3,6 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:convert/convert.dart';
-import 'package:cryptography_plus/cryptography_plus.dart';
-import 'package:evercrypted/core/helpers/as_uinteight_list.dart';
 import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 
 class EncryptedFile {
@@ -13,39 +11,6 @@ class EncryptedFile {
   final Uint8List cryptedFile;
 
   EncryptedFile({required this.cryptedFile, required this.iv, this.mac});
-}
-
-// Old implementations using cryptography_plus
-Future<EncryptedFile?> encodeFileOld(key, filePath,
-    [bool notHex = true]) async {
-  try {
-    final algorithm = Chacha20.poly1305Aead();
-    Uint8List bytes = File(filePath).readAsBytesSync();
-    final SecretBox secretBox = await algorithm.encrypt(bytes,
-        secretKey:
-            SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
-    return EncryptedFile(
-        cryptedFile: secretBox.cipherText.asUint8List(),
-        iv: base64.encode(secretBox.nonce),
-        mac: base64.encode(secretBox.mac.bytes));
-  } catch (e) {
-    return null;
-  }
-}
-
-Future<Uint8List> decodeFileOld(
-    String key, String iv, String mac, List<int> cryptedFile,
-    [bool notHex = true]) async {
-  final algorithm = Chacha20.poly1305Aead();
-  final secretBox = SecretBox(
-    cryptedFile,
-    nonce: base64.decode(iv),
-    mac: Mac(base64.decode(mac)),
-  );
-  final decrypted = await algorithm.decrypt(secretBox,
-      secretKey:
-          SecretKey(notHex == true ? utf8.encode(key) : hex.decode(key)));
-  return decrypted.asUint8List();
 }
 
 // New implementations using flutter_ever_crypto

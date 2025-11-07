@@ -186,7 +186,8 @@ class BaseKey {
   }
 
   /// Process pending messages for a specific chat (internal helper with pre-filtered actions)
-  static Future<void> _processQueuedMessagesForChat(String chatUid, List<ActionQueue> actions) async {
+  static Future<void> _processQueuedMessagesForChat(
+      String chatUid, List<ActionQueue> actions) async {
     try {
       final messageService = MessageService();
       int processedCount = 0;
@@ -204,7 +205,8 @@ class BaseKey {
               final encryptionKey = base64Encode(hash.bytes);
 
               final messageType = payload['messageType'] ?? MessageTypes.text;
-              debugPrint('userLog: Processing queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
+              debugPrint(
+                  'userLog: Processing queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
 
               if (messageType == MessageTypes.text) {
                 // Handle text message
@@ -216,13 +218,16 @@ class BaseKey {
                   encryptedMessage,
                   chatUid,
                   true, // withBaseKey = true
-                  queueId: action.id, // Update optimistic message instead of creating new one
+                  queueId: action
+                      .id, // Update optimistic message instead of creating new one
                 );
-                debugPrint('userLog: Successfully sent queued text message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
+                debugPrint(
+                    'userLog: Successfully sent queued text message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
               } else if (messageType == MessageTypes.audio) {
                 // Handle audio message with combined format (recording + duration + decibels)
                 if (payload['fileData'] == null) {
-                  debugPrint('BaseKey._processQueuedMessagesForChat: Skipping audio message with null fileData');
+                  debugPrint(
+                      'BaseKey._processQueuedMessagesForChat: Skipping audio message with null fileData');
                   obx.actionQueues.remove(action.id);
                   continue;
                 }
@@ -241,7 +246,8 @@ class BaseKey {
                 );
 
                 // Encrypt the combined payload
-                final encrypted = await encodePayload(recordingPayload, encryptionKey, true);
+                final encrypted =
+                    await encodePayload(recordingPayload, encryptionKey, true);
 
                 if (encrypted != null) {
                   final messageToSend = Message(
@@ -257,14 +263,18 @@ class BaseKey {
                   await messageService.sendFile(
                       message: messageToSend,
                       file: encrypted['crypted'],
-                      optimisticMessageQueueId: action.id); // Update optimistic message
-                  debugPrint('userLog: Successfully sent queued audio message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
+                      optimisticMessageQueueId:
+                          action.id); // Update optimistic message
+                  debugPrint(
+                      'userLog: Successfully sent queued audio message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
                 }
               } else if (messageType == MessageTypes.file ||
                   messageType == MessageTypes.image) {
                 // Handle file/image message
-                if (payload['fileData'] == null || payload['fileName'] == null) {
-                  debugPrint('BaseKey._processQueuedMessagesForChat: Skipping file/image message with null data');
+                if (payload['fileData'] == null ||
+                    payload['fileName'] == null) {
+                  debugPrint(
+                      'BaseKey._processQueuedMessagesForChat: Skipping file/image message with null data');
                   obx.actionQueues.remove(action.id);
                   continue;
                 }
@@ -291,8 +301,10 @@ class BaseKey {
                 await messageService.sendFile(
                     message: messageToSend,
                     file: encryptedFile['crypted'],
-                    optimisticMessageQueueId: action.id); // Update optimistic message
-                debugPrint('userLog: Successfully sent queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
+                    optimisticMessageQueueId:
+                        action.id); // Update optimistic message
+                debugPrint(
+                    'userLog: Successfully sent queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
               }
 
               // Remove from queue
@@ -344,7 +356,6 @@ class BaseKey {
       debugPrint('BaseKey._processQueuedMessages: Error: $e');
     }
   }
-
 }
 
 class Base64KeyData {
