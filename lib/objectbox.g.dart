@@ -402,6 +402,7 @@ final _entities = <obx_int.ModelEntity>[
         type: 11,
         flags: 520,
         indexId: const obx_int.IdUid(15, 7820053671879227998),
+        relationField: 'chat',
         relationTarget: 'Chat',
       ),
       obx_int.ModelProperty(
