@@ -45,11 +45,8 @@ class AppHttpClient {
   }
 
   static addAuth() async {
-    try {
-      client.dispose();
-    } catch (e) {
-      debugPrint('AppHttpClient: Error disposing client: $e');
-    }
+    // Keep reference to old client for delayed disposal
+    final oldClient = client;
 
     final authToken = await Auth.getToken;
     final otpToken = await Auth.getOtpToken;
@@ -87,6 +84,7 @@ class AppHttpClient {
                 request.addHeader(name: HttpHeaderName.from, value: from))));
       }
 
+      // Create new client FIRST before disposing old one
       client = await RhttpClient.create(
         settings: ClientSettings(
           baseUrl: _getBaseUrl(),
@@ -97,6 +95,16 @@ class AppHttpClient {
       );
 
       debugPrint('AppHttpClient: Successfully initialized with auth headers');
+
+      // Dispose old client after delay to allow in-flight requests to complete
+      Future.delayed(const Duration(seconds: 3), () {
+        try {
+          oldClient.dispose();
+          debugPrint('AppHttpClient: Old client disposed successfully');
+        } catch (e) {
+          debugPrint('AppHttpClient: Error disposing old client: $e');
+        }
+      });
     } catch (e) {
       debugPrint('AppHttpClient: Error creating client with auth: $e');
       throw Exception('Failed to create HTTP client: $e');
