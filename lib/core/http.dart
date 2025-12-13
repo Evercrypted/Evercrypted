@@ -18,18 +18,19 @@ class AppHttpClient {
 
   static String _getBaseUrl() {
     // Use different URLs based on platform and debug mode
-    if (kDebugMode) {
-      if (Platform.isAndroid) {
-        return 'http://10.0.2.2:3001'; // Android emulator
-      } else if (Platform.isIOS) {
-        return 'http://localhost:3001'; // iOS simulator
-      } else {
-        return 'http://localhost:3001'; // Desktop/Web
-      }
-    } else {
-      return 'http://10.0.2.2:3001'; // Production
-      // return 'https://test-api.evercrypted.com'; // Production
-    }
+    // if (kDebugMode) {
+    //   if (Platform.isAndroid) {
+    //     return 'http://10.0.2.2:3001'; // Android emulator
+    //   } else if (Platform.isIOS) {
+    //     return 'http://localhost:3001'; // iOS simulator
+    //   } else {
+    //     return 'http://localhost:3001'; // Desktop/Web
+    //   }
+    // } else {
+    //   return 'http://10.0.2.2:3001'; // Production
+    //   // return 'https://test-api.evercrypted.com'; // Production
+    // }
+    return 'https://api.evercrypted.com';
   }
 
   static initialize() async {

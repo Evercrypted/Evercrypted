@@ -42,18 +42,19 @@ class ChatSocket {
 
   static String _getSocketUrl() {
     // Use different URLs based on platform and debug mode
-    if (kDebugMode) {
-      if (Platform.isAndroid) {
-        return 'http://10.0.2.2:4000'; // Android emulator
-      } else if (Platform.isIOS) {
-        return 'http://localhost:4000'; // iOS simulator
-      } else {
-        return 'http://localhost:4000'; // Desktop/Web
-      }
-    } else {
-      return 'http://10.0.2.2:4000'; // Production
-      // return 'https://test-api.evercrypted.com:8443'; // Production
-    }
+    // if (kDebugMode) {
+    //   if (Platform.isAndroid) {
+    //     return 'http://10.0.2.2:4000'; // Android emulator
+    //   } else if (Platform.isIOS) {
+    //     return 'http://localhost:4000'; // iOS simulator
+    //   } else {
+    //     return 'http://localhost:4000'; // Desktop/Web
+    //   }
+    // } else {
+    //   return 'http://10.0.2.2:4000'; // Production
+    //   // return 'https://test-api.evercrypted.com:8443'; // Production
+    // }
+    return 'https://socket.evercrypted.com';
   }
 
   static const channelsToListen = [
