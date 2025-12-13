@@ -44,7 +44,7 @@ class AppHttpClient {
     ));
   }
 
-  static addAuth() async {
+  static Future<void> addAuth() async {
     // Keep reference to old client for delayed disposal
     final oldClient = client;
 
@@ -148,7 +148,6 @@ class AppHttpClient {
     } else {
       // Ensure we have a valid key
       if (ChatSocket.key == null) {
-        debugPrint('AppHttpClient: No encryption key available');
         respCompleter.completeError('No encryption key available');
         return respCompleter.future;
       }
@@ -194,7 +193,6 @@ class AppHttpClient {
           respCompleter.complete(decodedPayload);
         }
       } catch (error) {
-        debugPrint('AppHttpClient error: $error');
         respCompleter.completeError(error);
       }
     }

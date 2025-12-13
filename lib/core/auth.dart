@@ -63,7 +63,7 @@ class Auth {
         skipNotify: true,
       );
       if (ChatSocket.key != null) {
-        AppHttpClient.addAuth();
+        await AppHttpClient.addAuth();
       }
     }
     if (newIsOtpActive != null) {
