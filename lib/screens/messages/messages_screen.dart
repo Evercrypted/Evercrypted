@@ -7,7 +7,6 @@ import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
-import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
@@ -58,7 +57,6 @@ class MessagesScreen extends ConsumerStatefulWidget {
 
 class MessagesScreenState extends ConsumerState<MessagesScreen> {
   final MessageService _messageService = MessageService();
-  final ContactService _contactService = ContactService();
   final settingsForm = GlobalKey<FormState>();
 
   final userId = Auth.user?.uid;
@@ -739,38 +737,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   Widget build(BuildContext context) {
     final contacts = ref.read(contactsProvider);
     final profile = ref.read(profileProvider);
-    final otherParticipant = chat.participants.firstWhere(
-      (p) => p.email != Auth.getUser!.email,
-    );
-    final contact = contacts.firstWhereOrNull(
-      (c) => c.contactPersonUid == otherParticipant.uid,
-    );
 
     return Scaffold(
         appBar: ConnectionStatusAppbar(
           isConnected: isConnected,
           title: _buildChatTitle(contacts, profile),
           actions: [
-            if (Auth.getUser!.activationTokenQuantity != null &&
-                Auth.getUser!.activationTokenQuantity! > 0 &&
-                contact != null &&
-                !contact.hasActivated) ...[
-              const SizedBox(width: 8),
-              IconButton(
-                style: ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                    padding: WidgetStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.all(0))),
-                icon: Icon(
-                  Icons.card_giftcard,
-                  color: primaryColor,
-                ),
-                onPressed: () {
-                  _contactService.showActivationConfirmationDialog(
-                      context, contact, profile);
-                },
-              )
-            ],
             IconButton(
               style: ButtonStyle(
                   visualDensity: VisualDensity.compact,

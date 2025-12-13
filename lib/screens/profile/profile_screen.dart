@@ -6,7 +6,6 @@ import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
-import 'package:evercrypted/screens/activation/activation_tokens_screen.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
 import 'package:evercrypted/screens/profile/delete_account_screen.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
@@ -230,39 +229,28 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
           if (profile != null) ...[
             GestureDetector(
               onTap: () {
-                if (profile.activatedForLife == true) {
-                  // Navigate to tokens screen for premium users
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ActivationTokensScreen(profile: profile),
-                    ),
-                  );
-                } else {
-                  // Show activation screen in modal for free users
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height * 0.9,
-                    ),
-                    builder: (context) => const ActivationMainScreen(),
-                  );
-                }
+                // Show activation/subscription screen modal
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.9,
+                  ),
+                  builder: (context) => const ActivationMainScreen(),
+                );
               },
               child: Container(
                 margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: (profile.activatedForLife == true
+                  color: (profile.subscription?.isActive == true
                           ? primaryColor
                           : secondaryColor)
                       .withAlpha((255 * 0.1).round()),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: (profile.activatedForLife == true
+                    color: (profile.subscription?.isActive == true
                             ? primaryColor
                             : secondaryColor)
                         .withAlpha((255 * 0.3).round()),
@@ -273,56 +261,27 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      profile.activatedForLife == true
+                      profile.subscription?.isActive == true
                           ? Icons.verified
                           : Icons.person,
-                      color: profile.activatedForLife == true
+                      color: profile.subscription?.isActive == true
                           ? primaryColor
                           : secondaryColor,
                       size: 16,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      profile.activatedForLife == true ? 'Premium' : 'Free',
+                      profile.subscription?.isActive == true
+                          ? 'Premium'
+                          : 'Free',
                       style: TextStyle(
                         fontSize: 14,
-                        color: profile.activatedForLife == true
+                        color: profile.subscription?.isActive == true
                             ? primaryColor
                             : secondaryColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    if (profile.activatedForLife == true &&
-                        (profile.activationTokenQuantity) > 0) ...[
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: primaryColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.card_giftcard,
-                              size: 14,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              '${profile.activationTokenQuantity}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -595,83 +554,49 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      isActivated ? Icons.card_giftcard : Icons.star,
+                      isActivated ? Icons.verified : Icons.star,
                       color: primaryColor,
                       size: 24,
                     ),
                   ),
                   title: Text(
-                    isActivated ? 'Activation Tokens' : 'Activate Account',
+                    isActivated ? 'Manage Subscription' : 'Subscribe',
                     style: const TextStyle(fontSize: 16),
                   ),
-                  subtitle: () {
-                    if (isActivated) {
-                      final profile = ref.watch(profileProvider);
-                      final tokenCount = profile?.activationTokenQuantity ?? 0;
-                      return Text(
-                        tokenCount == 1
-                            ? '$tokenCount token available'
-                            : '$tokenCount tokens available',
-                        style: const TextStyle(fontSize: 13),
-                      );
-                    } else {
-                      return const Text(
-                        'Get premium features',
-                        style: TextStyle(fontSize: 13),
-                      );
-                    }
-                  }(),
-                  trailing: () {
-                    if (isActivated) {
-                      final tokenCount = profile?.activationTokenQuantity ?? 0;
-                      if (tokenCount > 0) {
-                        return Container(
+                  subtitle: Text(
+                    isActivated
+                        ? 'View your subscription status'
+                        : 'Get premium features',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  trailing: isActivated
+                      ? Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: primaryColor,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            '$tokenCount',
-                            style: const TextStyle(
+                          child: const Text(
+                            'Active',
+                            style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                        );
-                      } else {
-                        return const SizedBox();
-                      }
-                    } else {
-                      return const SizedBox();
-                    }
-                  }(),
+                        )
+                      : null,
                   onTap: () {
-                    if (isActivated) {
-                      // Navigate to activation tokens screen
-                      final profile = ref.read(profileProvider);
-                      if (profile != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ActivationTokensScreen(profile: profile),
-                          ),
-                        );
-                      }
-                    } else {
-                      // Show activation screen in modal for free users
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.9,
-                        ),
-                        builder: (context) => const ActivationMainScreen(),
-                      );
-                    }
+                    // Show subscription screen in modal
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.9,
+                      ),
+                      builder: (context) => const ActivationMainScreen(),
+                    );
                   },
                 ),
               ],

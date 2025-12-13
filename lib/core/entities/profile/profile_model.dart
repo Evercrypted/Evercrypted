@@ -209,22 +209,53 @@ class ProfileSubscription {
   final String? type;
   final String? startDate;
   final String? endDate;
+  final String? appleTransactionId;
+  final String? appleProductId;
+  final bool? autoRenew;
+  final bool? inGracePeriod;
 
-  ProfileSubscription(
-      {required this.active, this.type, this.startDate, this.endDate});
+  ProfileSubscription({
+    required this.active,
+    this.type,
+    this.startDate,
+    this.endDate,
+    this.appleTransactionId,
+    this.appleProductId,
+    this.autoRenew,
+    this.inGracePeriod,
+  });
+
+  /// Check if subscription is currently active (includes date validation)
+  bool get isActive {
+    if (!active) return false;
+    if (endDate != null) {
+      final end = DateTime.tryParse(endDate!);
+      if (end != null && end.isBefore(DateTime.now())) return false;
+    }
+    return true;
+  }
 
   factory ProfileSubscription.fromJson(Map<String, dynamic> json) =>
       ProfileSubscription(
-          active: json['active'] as bool,
-          type: json['type'] as String?,
-          startDate: json['from'] as String?,
-          endDate: json['to'] as String?);
+        active: json['active'] as bool,
+        type: json['type'] as String?,
+        startDate: json['startDate'] as String?,
+        endDate: json['endDate'] as String?,
+        appleTransactionId: json['appleTransactionId'] as String?,
+        appleProductId: json['appleProductId'] as String?,
+        autoRenew: json['autoRenew'] as bool?,
+        inGracePeriod: json['inGracePeriod'] as bool?,
+      );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'active': active,
         'type': type,
-        'from': startDate,
-        'to': endDate,
+        'startDate': startDate,
+        'endDate': endDate,
+        'appleTransactionId': appleTransactionId,
+        'appleProductId': appleProductId,
+        'autoRenew': autoRenew,
+        'inGracePeriod': inGracePeriod,
       };
 }
 

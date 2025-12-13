@@ -1,4 +1,3 @@
-import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
@@ -32,7 +31,6 @@ class ParticipantCard extends ConsumerWidget {
       (c) => c.contactPersonUid == participant.uid,
     );
     final profile = ref.watch(profileProvider);
-    final authUser = Auth.getUser;
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: defaultPadding * 2, vertical: defaultPadding * 0.5),
@@ -64,22 +62,6 @@ class ParticipantCard extends ConsumerWidget {
                           maxLines: 1,
                         ),
                       ),
-                      if (authUser?.activationTokenQuantity != null &&
-                          authUser!.activationTokenQuantity! > 0 &&
-                          contact != null &&
-                          !contact.hasActivated) ...[
-                        const SizedBox(width: 8),
-                        IconButton(
-                          onPressed: () {
-                            contactService.showActivationConfirmationDialog(
-                                context, contact, profile);
-                          },
-                          icon: const Icon(
-                            Icons.card_giftcard,
-                            color: primaryColor,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -100,17 +82,11 @@ class ParticipantCard extends ConsumerWidget {
   }
 
   bool _hasAnyOptions(Contact? contact) {
-    // Check if "Activate Premium License" option should be shown
-    final hasActivationOption = contact != null &&
-        !contact.hasActivated &&
-        Auth.getUser?.activationTokenQuantity != null &&
-        Auth.getUser!.activationTokenQuantity! > 0;
-
     // Check if "Remove from chat" option should be shown
     final hasRemoveOption =
         participantsLenght > 2 && (user.isAdmin || user.isCreator);
 
-    return hasActivationOption || hasRemoveOption;
+    return hasRemoveOption;
   }
 
   void _showOptionsBottomSheet(BuildContext context, Contact? contact,
@@ -142,36 +118,6 @@ class ParticipantCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                if (contact != null &&
-                    !contact.hasActivated &&
-                    Auth.getUser?.activationTokenQuantity != null &&
-                    Auth.getUser!.activationTokenQuantity! > 0)
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withAlpha((255 * 0.1).toInt()),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.card_giftcard,
-                          color: primaryColor, size: 20),
-                    ),
-                    title: Text(
-                      'Activate Premium License',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          color: contentColorLightThemeSecondary),
-                    ),
-                    subtitle: const Text(
-                      'Give out premium license to this user',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      contactService.showActivationConfirmationDialog(
-                          context, contact, profile);
-                    },
-                  ),
                 if (participantsLenght > 2 && (user.isAdmin || user.isCreator))
                   ListTile(
                     leading: Container(

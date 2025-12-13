@@ -41,7 +41,8 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
 
   submitForm() {
     final List<Contact> contacts = ref.read(contactsProvider);
-    final List<ContactRequest> sentRequests = ref.read(sentContactRequestsProvider);
+    final List<ContactRequest> sentRequests =
+        ref.read(sentContactRequestsProvider);
     final email = _emailController.text;
     final message = _messageController.text;
 
@@ -156,6 +157,7 @@ class AddContactButtonState extends ConsumerState<AddContactButton> {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
+      heroTag: 'add_contact_fab',
       onPressed: () {
         showModalBottomSheet(
             context: context,

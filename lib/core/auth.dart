@@ -55,8 +55,7 @@ class Auth {
           email: profile.email!,
           uid: profile.uid,
           emailVerified: profile.emailVerified,
-          activated: profile.activatedForLife,
-          activationTokenQuantity: profile.activationTokenQuantity);
+          subscription: profile.subscription);
     }
     if (newToken != null) {
       await Auth.setToken(
@@ -86,8 +85,7 @@ class Auth {
           email: profile.email!,
           uid: profile.uid,
           emailVerified: profile.emailVerified,
-          activated: profile.activatedForLife,
-          activationTokenQuantity: profile.activationTokenQuantity);
+          subscription: profile.subscription);
     }
     return Auth.user;
   }
@@ -207,14 +205,15 @@ class AuthUser {
   final String uid;
   final String email;
   final bool emailVerified;
-  final bool? activated;
-  final int? activationTokenQuantity;
+  final ProfileSubscription? subscription;
 
   AuthUser({
     required this.uid,
     required this.email,
     required this.emailVerified,
-    this.activated,
-    this.activationTokenQuantity,
+    this.subscription,
   });
+
+  /// Check if user has active premium subscription
+  bool get activated => subscription?.isActive ?? false;
 }

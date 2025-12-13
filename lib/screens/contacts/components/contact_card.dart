@@ -1,6 +1,4 @@
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
-import 'package:evercrypted/core/entities/contact/contact_service.dart';
-import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,8 +23,6 @@ class ContactCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profile = ref.watch(profileProvider);
-    final contactService = ContactService();
     return ListTile(
       leading: CircleAvatarWithActiveIndicator(
         image: contact.avatar?.pic,
@@ -61,36 +57,15 @@ class ContactCard extends ConsumerWidget {
       trailing: isParticipantSelect
           ? null
           : SizedBox(
-              width: profile != null &&
-                      !contact.hasActivated &&
-                      profile.activationTokenQuantity > 0
-                  ? 96
-                  : 48,
-              child: Row(
-                children: [
-                  if (profile != null &&
-                      !contact.hasActivated &&
-                      profile.activationTokenQuantity > 0)
-                    IconButton(
-                      icon: Icon(
-                        Icons.card_giftcard,
-                        color: primaryColor,
-                      ),
-                      onPressed: () {
-                        contactService.showActivationConfirmationDialog(
-                            context, contact, profile);
-                      },
-                    ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.chat,
-                      color: primaryColor,
-                    ),
-                    onPressed: () {
-                      chatService.openOneToOneChat(context, ref, contact);
-                    },
-                  ),
-                ],
+              width: 48,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.chat,
+                  color: primaryColor,
+                ),
+                onPressed: () {
+                  chatService.openOneToOneChat(context, ref, contact);
+                },
               ),
             ),
       onTap: onTap,

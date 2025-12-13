@@ -80,6 +80,7 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
         message: 'Create New Group',
         preferBelow: false,
         child: FloatingActionButton.extended(
+          heroTag: 'chats_new_group_fab',
           label: const Text('New Group', style: TextStyle(color: Colors.white)),
           onPressed: () {
             Navigator.push(

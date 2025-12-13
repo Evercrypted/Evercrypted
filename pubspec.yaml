@@ -71,6 +71,7 @@ dependencies:
   collection: ^1.19.1
   objectbox: ^5.0.1
   objectbox_flutter_libs: ^5.0.1
+  in_app_purchase: ^3.2.3
 
 dependency_overrides:
   js: ^0.7.1

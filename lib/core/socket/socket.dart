@@ -125,9 +125,27 @@ class ChatSocket {
   }
 
   static getGeneralInfoAndExchangeKey() async {
-    // for apple push notification
-    // final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
-    final fcmToken = await FirebaseMessaging.instance.getToken();
+    String? fcmToken;
+    try {
+      if (Platform.isIOS) {
+        // On iOS, we need to wait for the APNS token before requesting the FCM token
+        String? apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        if (apnsToken != null) {
+          fcmToken = await FirebaseMessaging.instance.getToken();
+        } else {
+          // Wait briefly significantly reduces the race condition
+          await Future.delayed(const Duration(seconds: 1));
+          apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+          if (apnsToken != null) {
+            fcmToken = await FirebaseMessaging.instance.getToken();
+          }
+        }
+      } else {
+        fcmToken = await FirebaseMessaging.instance.getToken();
+      }
+    } catch (e) {
+      debugPrint('Failed to get FCM token: $e');
+    }
     final keyCompleter = Completer<bool>();
 
     // Generate Kyber1024 key pair
