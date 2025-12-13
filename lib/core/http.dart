@@ -162,9 +162,24 @@ class AppHttpClient {
         final response = await client.post('/socket/handle-message',
             body: HttpBody.json(crypted));
 
+        // Check if response contains encrypted fields
+        final responseBody = response.bodyToJson;
+        if (responseBody['crypted'] == null || responseBody['iv'] == null) {
+          // Server returned an unencrypted error response
+          if (responseBody['error'] != null) {
+            respCompleter.completeError(responseBody['error']);
+          } else if (responseBody['message'] != null) {
+            respCompleter.completeError(responseBody['message']);
+          } else {
+            respCompleter.completeError(
+                'Server returned invalid response: missing encryption fields');
+          }
+          return respCompleter.future;
+        }
+
         final decodedPayload = await decodePayload(
-          response.bodyToJson['crypted'],
-          response.bodyToJson['iv'],
+          responseBody['crypted'],
+          responseBody['iv'],
           ChatSocket.key,
           true,
         );
