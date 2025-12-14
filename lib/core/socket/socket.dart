@@ -127,6 +127,9 @@ class ChatSocket {
 
   static getGeneralInfoAndExchangeKey() async {
     String? fcmToken;
+    // You may set the permission requests to "provisional" which allows the user to choose what type
+    // of notifications they would like to receive once the user receives a notification.
+    await FirebaseMessaging.instance.requestPermission(provisional: true);
     try {
       if (Platform.isIOS) {
         // On iOS, we need to wait for the APNS token before requesting the FCM token
