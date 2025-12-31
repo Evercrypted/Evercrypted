@@ -80,14 +80,27 @@ class AppleIAPService {
       return false;
     }
 
-    final product = _products.firstWhere(
-      (p) => p.id == monthlySubscriptionId,
-      orElse: () => _products.first,
-    );
-
-    final purchaseParam = PurchaseParam(productDetails: product);
-
     try {
+      final product = _products.firstWhere(
+        (p) => p.id == monthlySubscriptionId,
+      );
+
+      // Create platform specific purchase param
+      PurchaseParam purchaseParam;
+      if (Platform.isIOS) {
+        // Ensure we supply AppStoreProductDetails for iOS
+        // cast to AppStoreProductDetails if possible
+        if (product is AppStoreProductDetails) {
+          purchaseParam = AppStorePurchaseParam(productDetails: product);
+        } else {
+          debugPrint(
+              'AppleIAPService: Product is not AppStoreProductDetails on iOS');
+          purchaseParam = PurchaseParam(productDetails: product);
+        }
+      } else {
+        purchaseParam = PurchaseParam(productDetails: product);
+      }
+
       return await _iap.buyNonConsumable(purchaseParam: purchaseParam);
     } catch (e) {
       debugPrint('AppleIAPService: Purchase error: $e');
@@ -180,11 +193,15 @@ class AppleIAPService {
 
   /// Get subscription product details
   ProductDetails? getSubscriptionProduct() {
+    print(_products);
     if (_products.isEmpty) return null;
-    return _products.firstWhere(
-      (p) => p.id == monthlySubscriptionId,
-      orElse: () => _products.first,
-    );
+    try {
+      return _products.firstWhere(
+        (p) => p.id == monthlySubscriptionId,
+      );
+    } catch (_) {
+      return _products.first;
+    }
   }
 
   /// Dispose of the service
