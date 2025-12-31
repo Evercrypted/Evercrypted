@@ -46,12 +46,49 @@ class _ActivationMainScreenState extends State<ActivationMainScreen> {
   }
 
   Future<void> _restorePurchases() async {
+    if (_isLoading) return;
+
     setState(() => _isLoading = true);
+
     try {
-      await _iapService.restorePurchases();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Restoring purchases...')),
+          const SnackBar(
+            content: Text('Checking for previous purchases...'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      final foundPurchases = await _iapService.restorePurchases();
+
+      if (mounted) {
+        if (foundPurchases) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Subscription restored successfully!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No previous purchases found'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Restore failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     } finally {
@@ -63,26 +100,14 @@ class _ActivationMainScreenState extends State<ActivationMainScreen> {
   Widget build(BuildContext context) {
     final product = _iapService.getSubscriptionProduct();
 
-    return SingleChildScrollView(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(defaultPadding * 2),
-            topRight: Radius.circular(defaultPadding * 2),
-          ),
-          color: Theme.of(context).scaffoldBackgroundColor,
-        ),
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Premium Subscription'),
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
         child: Container(
-          margin: const EdgeInsets.all(defaultPadding),
-          padding: const EdgeInsets.fromLTRB(
-            defaultPadding,
-            0,
-            defaultPadding,
-            defaultPadding,
-          ),
+          padding: const EdgeInsets.all(defaultPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -182,7 +207,13 @@ class _ActivationMainScreenState extends State<ActivationMainScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'per month • Cancel anytime',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.color
+                                ?.withOpacity(0.7),
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: defaultPadding),
@@ -215,7 +246,12 @@ class _ActivationMainScreenState extends State<ActivationMainScreen> {
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: _isLoading ? null : () => _restorePurchases(),
-                      child: const Text('Restore Purchases'),
+                      child: Text(
+                        'Restore Purchases',
+                        style: TextStyle(
+                          color: primaryColor,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -263,7 +299,13 @@ class _ActivationMainScreenState extends State<ActivationMainScreen> {
               const SizedBox(height: 2),
               Text(
                 description,
-                style: Theme.of(context).textTheme.bodySmall,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.7),
+                    ),
               ),
             ],
           ),

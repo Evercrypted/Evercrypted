@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
@@ -28,6 +29,10 @@ class AppleIAPService {
   List<ProductDetails> get products => _products;
 
   bool _available = false;
+
+  // Restore purchase tracking
+  Completer<bool>? _restoreCompleter;
+  bool _isRestoring = false;
   bool get isAvailable => _available;
 
   /// Initialize the IAP service
@@ -109,13 +114,36 @@ class AppleIAPService {
   }
 
   /// Restore previous purchases
-  Future<void> restorePurchases() async {
-    if (!_available) return;
-    await _iap.restorePurchases();
+  /// Returns true if any purchases were found and restored, false otherwise
+  Future<bool> restorePurchases() async {
+    if (!_available) return false;
+
+    _isRestoring = true;
+    _restoreCompleter = Completer<bool>();
+
+    try {
+      await _iap.restorePurchases();
+
+      // Wait up to 5 seconds for restoration to complete
+      final result = await _restoreCompleter!.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          debugPrint('AppleIAPService: Restore timed out, no purchases found');
+          return false;
+        },
+      );
+
+      return result;
+    } finally {
+      _isRestoring = false;
+      _restoreCompleter = null;
+    }
   }
 
   /// Handle purchase updates from the stream
   Future<void> _handlePurchaseUpdates(List<PurchaseDetails> purchases) async {
+    bool foundRestored = false;
+
     for (final purchase in purchases) {
       debugPrint(
           'AppleIAPService: Purchase update - ${purchase.productID}: ${purchase.status}');
@@ -127,6 +155,9 @@ class AppleIAPService {
 
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
+          if (purchase.status == PurchaseStatus.restored) {
+            foundRestored = true;
+          }
           // Verify with server and activate subscription
           await _verifyAndActivatePurchase(purchase);
           break;
@@ -144,6 +175,15 @@ class AppleIAPService {
       if (purchase.pendingCompletePurchase) {
         await _iap.completePurchase(purchase);
       }
+    }
+
+    // If we're in restore mode and processed purchases, complete the restore
+    if (_isRestoring &&
+        _restoreCompleter != null &&
+        !_restoreCompleter!.isCompleted) {
+      // Small delay to ensure all purchases are processed
+      await Future.delayed(const Duration(milliseconds: 500));
+      _restoreCompleter!.complete(foundRestored);
     }
   }
 

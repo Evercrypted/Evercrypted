@@ -229,14 +229,12 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
           if (profile != null) ...[
             GestureDetector(
               onTap: () {
-                // Show activation/subscription screen modal
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.9,
+                // Navigate to subscription screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ActivationMainScreen(),
                   ),
-                  builder: (context) => const ActivationMainScreen(),
                 );
               },
               child: Container(
@@ -406,6 +404,119 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
             // Account Section
             Column(
               children: [
+                // Subscription - Featured at top when not activated
+                if (!isActivated)
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          primaryColor.withOpacity(0.15),
+                          primaryColor.withOpacity(0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: primaryColor.withOpacity(0.3),
+                        width: 2,
+                      ),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      leading: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.star,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      title: Text(
+                        'Get Premium',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
+                      subtitle: const Text(
+                        'Unlock all premium features',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        color: primaryColor,
+                        size: 18,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ActivationMainScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                else
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withAlpha((255 * 0.1).round()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.verified,
+                        color: primaryColor,
+                        size: 24,
+                      ),
+                    ),
+                    title: const Text(
+                      'Manage Subscription',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    subtitle: const Text(
+                      'View your subscription status',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'Active',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ActivationMainScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -480,13 +591,11 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     if (isActivated) {
                       Navigator.pushNamed(context, OtpScreen.routeName);
                     } else {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.9,
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ActivationMainScreen(),
                         ),
-                        builder: (context) => const ActivationMainScreen(),
                       );
                     }
                   },
@@ -535,68 +644,13 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       );
                     } else {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.9,
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ActivationMainScreen(),
                         ),
-                        builder: (context) => const ActivationMainScreen(),
                       );
                     }
-                  },
-                ),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withAlpha((255 * 0.1).round()),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      isActivated ? Icons.verified : Icons.star,
-                      color: primaryColor,
-                      size: 24,
-                    ),
-                  ),
-                  title: Text(
-                    isActivated ? 'Manage Subscription' : 'Subscribe',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  subtitle: Text(
-                    isActivated
-                        ? 'View your subscription status'
-                        : 'Get premium features',
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                  trailing: isActivated
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: primaryColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'Active',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        )
-                      : null,
-                  onTap: () {
-                    // Show subscription screen in modal
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height * 0.9,
-                      ),
-                      builder: (context) => const ActivationMainScreen(),
-                    );
                   },
                 ),
               ],
