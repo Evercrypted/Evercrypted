@@ -183,7 +183,10 @@ class AppleIAPService {
         !_restoreCompleter!.isCompleted) {
       // Small delay to ensure all purchases are processed
       await Future.delayed(const Duration(milliseconds: 500));
-      _restoreCompleter!.complete(foundRestored);
+      // Check again after delay in case timeout completed it
+      if (!_restoreCompleter!.isCompleted) {
+        _restoreCompleter!.complete(foundRestored);
+      }
     }
   }
 
