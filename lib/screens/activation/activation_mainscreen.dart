@@ -1,16 +1,19 @@
+import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/services/apple_iap_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ActivationMainScreen extends StatefulWidget {
+class ActivationMainScreen extends ConsumerStatefulWidget {
   const ActivationMainScreen({super.key});
   static const routeName = '/activation-main-screen';
 
   @override
-  State<ActivationMainScreen> createState() => _ActivationMainScreenState();
+  ConsumerState<ActivationMainScreen> createState() =>
+      _ActivationMainScreenState();
 }
 
-class _ActivationMainScreenState extends State<ActivationMainScreen> {
+class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
   final AppleIAPService _iapService = AppleIAPService();
   bool _isLoading = false;
 
@@ -93,6 +96,16 @@ class _ActivationMainScreenState extends State<ActivationMainScreen> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return 'N/A';
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return 'N/A';
     }
   }
 
@@ -195,63 +208,141 @@ class _ActivationMainScreenState extends State<ActivationMainScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      product?.price ?? 'Loading...',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: primaryColor,
-                              ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'per month • Cancel anytime',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.color
-                                ?.withOpacity(0.7),
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: defaultPadding),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          padding: const EdgeInsets.all(defaultPadding),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: _isLoading ? null : () => _subscribe(),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
+                    // Show subscription details if active, otherwise show price and CTA
+                    Builder(
+                      builder: (context) {
+                        final profile = ref.watch(profileProvider);
+                        final hasActiveSubscription =
+                            profile?.subscription?.isActive == true;
+
+                        if (hasActiveSubscription) {
+                          final subscription = profile!.subscription!;
+                          return Column(
+                            children: [
+                              // Active subscription badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
                                 ),
-                              )
-                            : const Text(
-                                'Subscribe with Apple Pay',
-                                style: TextStyle(color: Colors.white),
+                                decoration: BoxDecoration(
+                                  color: primaryColor,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  'Active Subscription',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _isLoading ? null : () => _restorePurchases(),
-                      child: Text(
-                        'Restore Purchases',
-                        style: TextStyle(
-                          color: primaryColor,
-                        ),
-                      ),
+                              const SizedBox(height: defaultPadding),
+
+                              // Subscription details
+                              _buildSubscriptionDetail(
+                                'Type',
+                                subscription.type ?? 'Monthly',
+                              ),
+                              const SizedBox(height: 8),
+                              _buildSubscriptionDetail(
+                                subscription.autoRenew ?? true
+                                    ? 'Renews on'
+                                    : 'Expires on',
+                                _formatDate(subscription.endDate),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildSubscriptionDetail(
+                                'Auto-renew',
+                                subscription.autoRenew ?? true
+                                    ? 'Enabled'
+                                    : 'Disabled',
+                              ),
+                              if (subscription.startDate != null)
+                                const SizedBox(height: 8),
+                              if (subscription.startDate != null)
+                                _buildSubscriptionDetail(
+                                  'Started on',
+                                  _formatDate(subscription.startDate),
+                                ),
+                            ],
+                          );
+                        } else {
+                          // Show price and subscribe button for non-subscribers
+                          return Column(
+                            children: [
+                              Text(
+                                product?.price ?? 'Loading...',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: primaryColor,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'per month • Cancel anytime',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color
+                                          ?.withOpacity(0.7),
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: defaultPadding),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                    padding:
+                                        const EdgeInsets.all(defaultPadding),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed:
+                                      _isLoading ? null : () => _subscribe(),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Subscribe with Apple Pay',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : () => _restorePurchases(),
+                                child: Text(
+                                  'Restore Purchases',
+                                  style: TextStyle(
+                                    color: primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -309,6 +400,31 @@ class _ActivationMainScreenState extends State<ActivationMainScreen> {
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubscriptionDetail(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withOpacity(0.7),
+              ),
+        ),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: primaryColor,
+              ),
         ),
       ],
     );

@@ -147,6 +147,25 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
+  String _getSubscriptionSubtitle(dynamic profile) {
+    if (profile?.subscription?.endDate != null) {
+      try {
+        final endDate = DateTime.parse(profile.subscription.endDate);
+        final formattedDate = '${endDate.day}/${endDate.month}/${endDate.year}';
+        final autoRenew = profile.subscription.autoRenew ?? true;
+
+        if (autoRenew) {
+          return 'Renews on $formattedDate';
+        } else {
+          return 'Expires on $formattedDate';
+        }
+      } catch (e) {
+        return 'Active subscription';
+      }
+    }
+    return 'View your subscription status';
+  }
+
   Future<bool> colorPickerDialog() async {
     return ColorPicker(
       // Use the dialogPickerColor as start color.
@@ -488,9 +507,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       'Manage Subscription',
                       style: TextStyle(fontSize: 16),
                     ),
-                    subtitle: const Text(
-                      'View your subscription status',
-                      style: TextStyle(fontSize: 13),
+                    subtitle: Text(
+                      _getSubscriptionSubtitle(profile),
+                      style: const TextStyle(fontSize: 13),
                     ),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(
