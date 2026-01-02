@@ -178,14 +178,16 @@ class AppleIAPService {
     }
 
     // If we're in restore mode and processed purchases, complete the restore
-    if (_isRestoring &&
-        _restoreCompleter != null &&
-        !_restoreCompleter!.isCompleted) {
-      // Small delay to ensure all purchases are processed
-      await Future.delayed(const Duration(milliseconds: 500));
-      // Check again after delay in case timeout completed it
-      if (!_restoreCompleter!.isCompleted) {
-        _restoreCompleter!.complete(foundRestored);
+    if (_isRestoring && _restoreCompleter != null) {
+      // Capture reference before async delay to avoid race condition
+      final completer = _restoreCompleter;
+      if (completer != null && !completer.isCompleted) {
+        // Small delay to ensure all purchases are processed
+        await Future.delayed(const Duration(milliseconds: 500));
+        // Check again after delay in case timeout completed it
+        if (!completer.isCompleted) {
+          completer.complete(foundRestored);
+        }
       }
     }
   }
