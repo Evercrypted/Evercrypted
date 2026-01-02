@@ -90,13 +90,18 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
   }
 
   Widget _keyboardButton(key,
-      {useDefualtSizes = false, rowLength = 0, specialKeysRow = false}) {
+      {useDefualtSizes = false,
+      double rowLength = 0,
+      specialKeysRow = false,
+      double? width}) {
     final screenWidth = MediaQuery.of(context).size.width - 2;
-    final keyWidth = rowLength > 0
-        ? ((screenWidth - (rowLength + 1) * 2) / rowLength)
-        : (useDefualtSizes || isSpecial
-            ? Keyboard.defaultWidth
-            : activeKeyboard.keyWidth);
+    // Calculate keyWidth. specific logic for mixed rows handles this outside or pass custom rowLength
+    final keyWidth = width ??
+        (rowLength > 0
+            ? ((screenWidth - (rowLength + 1) * 2) / rowLength)
+            : (useDefualtSizes || isSpecial
+                ? Keyboard.defaultWidth
+                : activeKeyboard.keyWidth));
 
     final EdgeInsets paddings = useDefualtSizes
         ? EdgeInsets.only(
@@ -151,6 +156,114 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
     );
   }
 
+  // --- Helper Widgets for Special Keys ---
+
+  Widget _buildShiftKey() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      width: 42, // Fixed width approx 1.25x normal key
+      height: 45,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        color: isShiftLocked ? Colors.white : Colors.white.withAlpha(40),
+      ),
+      child: HighlightedButton(
+        isActive: isShifted,
+        style: ElevatedButton.styleFrom(
+          minimumSize: Size.zero,
+          padding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+        ),
+        onPressed: () {
+          setState(() {
+            final now = DateTime.now();
+            if (lastShiftPress != null &&
+                now.difference(lastShiftPress!) <
+                    const Duration(milliseconds: 300)) {
+              isShiftLocked = !isShiftLocked;
+              isShifted = isShiftLocked;
+            } else {
+              isShiftLocked = false;
+              isShifted = !isShifted;
+            }
+            lastShiftPress = now;
+
+            activeKeyboard = Keyboards.getKeyboard(
+                language: activeLanguage,
+                activeKeyboard: activeKeyboard,
+                isShifted: isShifted,
+                isSpecial: isSpecial);
+          });
+        },
+        child: Icon(
+          isShiftLocked ? Icons.lock : Icons.arrow_upward,
+          color: isShiftLocked ? Colors.black : Colors.white,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackspaceKey(
+      {double width = 42,
+      EdgeInsetsGeometry margin = const EdgeInsets.symmetric(horizontal: 2)}) {
+    return Container(
+      margin: margin,
+      width: width,
+      height: 45,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        color: Colors.white.withAlpha(40),
+      ),
+      child: GestureDetector(
+        onLongPressStart: (_) async {
+          setState(() {
+            isBackspaceLongPressed = true;
+          });
+          while (isBackspaceLongPressed && controller.text.isNotEmpty) {
+            setState(() {
+              final newText =
+                  controller.text.substring(0, controller.text.length - 1);
+              controller
+                ..text = newText
+                ..selection = TextSelection.collapsed(offset: newText.length);
+            });
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+        },
+        onLongPressEnd: (_) {
+          setState(() {
+            isBackspaceLongPressed = false;
+          });
+        },
+        child: HighlightedButton(
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size.zero,
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent,
+          ),
+          onPressed: () {
+            deleteSelection();
+            if (controller.text.isNotEmpty) {
+              setState(() {
+                final newText =
+                    controller.text.substring(0, controller.text.length - 1);
+                controller
+                  ..text = newText
+                  ..selection = TextSelection.collapsed(offset: newText.length);
+              });
+            }
+          },
+          child: const Icon(
+            Icons.backspace_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _keyboard() {
     return Container(
         decoration: BoxDecoration(
@@ -160,8 +273,11 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
           color: primaryColor,
         ),
         width: MediaQuery.of(context).size.width,
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewPadding.bottom),
         child: Column(
           children: [
+            // Header
             Container(
               margin: EdgeInsets.symmetric(vertical: 7),
               child: Row(
@@ -184,6 +300,8 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                 ],
               ),
             ),
+
+            // Row 1 (Numbers)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               textDirection: TextDirection.ltr,
@@ -191,393 +309,305 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                 for (var key in activeKeyboard.firstRowKeys)
                   _keyboardButton(key,
                       useDefualtSizes: true,
-                      rowLength: activeKeyboard.firstRowKeys.length,
+                      rowLength: activeKeyboard.firstRowKeys.length.toDouble(),
                       specialKeysRow: isSpecial)
               ],
             ),
+
+            // Row 2
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               textDirection: TextDirection.ltr,
               children: [
                 for (var key in activeKeyboard.secondRowKeys)
                   _keyboardButton(key,
-                      rowLength: activeKeyboard.secondRowKeys.length,
+                      rowLength: activeKeyboard.secondRowKeys.length.toDouble(),
                       specialKeysRow: isSpecial)
               ],
             ),
+
+            // Row 3 (Merged with Backspace in Special Mode)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               textDirection: TextDirection.ltr,
               children: [
                 for (var key in activeKeyboard.thirdRowKeys)
                   _keyboardButton(key,
-                      rowLength: activeKeyboard.thirdRowKeys.length,
-                      specialKeysRow: isSpecial)
+                      rowLength: activeKeyboard.thirdRowKeys.length.toDouble() +
+                          (isSpecial ? 1.5 : 0),
+                      specialKeysRow: isSpecial),
+                if (isSpecial)
+                  Builder(builder: (context) {
+                    double rowLength =
+                        activeKeyboard.thirdRowKeys.length.toDouble() + 1.5;
+                    double screenWidth = MediaQuery.of(context).size.width - 2;
+                    double keyWidth =
+                        (screenWidth - (rowLength + 1) * 2) / rowLength;
+                    return _buildBackspaceKey(
+                        width: keyWidth * 1.5,
+                        margin: EdgeInsets.symmetric(
+                            horizontal: 1, vertical: 1.35));
+                  })
               ],
             ),
+
+            // Row 4 (Letters + Shift + Backspace, Normal Mode only)
             if (!isSpecial)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                textDirection: TextDirection.ltr,
-                children: [
-                  for (var key in activeKeyboard.fourthRowKeys)
-                    _keyboardButton(key,
-                        rowLength: activeKeyboard.fourthRowKeys.length)
-                ],
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  textDirection: TextDirection.ltr,
+                  children: [
+                    _buildShiftKey(),
+                    // Letters
+                    for (var key in activeKeyboard.fourthRowKeys)
+                      Builder(builder: (context) {
+                        // Calculate specific width for this row's keys
+                        // Available width = Screen - Shift(42+4) - Backspace(42+4) - Margins(2)
+                        // This is approximate but safer than fixed rowLength
+                        double availableWidth =
+                            MediaQuery.of(context).size.width -
+                                (42 + 4) -
+                                (42 + 4) -
+                                (2 * activeKeyboard.fourthRowKeys.length);
+                        return _keyboardButton(key,
+                            width: availableWidth /
+                                activeKeyboard.fourthRowKeys.length);
+                      }),
+                    _buildBackspaceKey(),
+                  ],
+                ),
               ),
+
+            // Row 5 (Space, etc)
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              width: MediaQuery.of(context).size.width,
-              height: 45,
+              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 textDirection: TextDirection.ltr,
                 children: [
-                  Row(
-                    textDirection: TextDirection.ltr,
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(
-                            left: Keyboard.defaultMargins.left,
-                            right: Keyboard.defaultMargins.right * 2),
-                        child: HighlightedButton(
-                          isActive: isShifted,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: Size.zero,
-                            padding: const EdgeInsets.only(
-                                top: 2, bottom: 2, left: 5, right: 5),
-                            fixedSize: const Size(60, 45),
-                            backgroundColor:
-                                isShiftLocked ? Colors.blue[300] : null,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              final now = DateTime.now();
-                              if (lastShiftPress != null &&
-                                  now.difference(lastShiftPress!) <
-                                      const Duration(milliseconds: 300)) {
-                                isShiftLocked = !isShiftLocked;
-                                isShifted = isShiftLocked;
-                              } else {
-                                isShiftLocked = false;
-                                isShifted = !isShifted;
-                              }
-                              lastShiftPress = now;
-
-                              activeKeyboard = Keyboards.getKeyboard(
-                                  language: activeLanguage,
-                                  activeKeyboard: activeKeyboard,
-                                  isShifted: isShifted,
-                                  isSpecial: isSpecial);
-                            });
-                          },
-                          child: Icon(
-                            isShiftLocked ? Icons.lock : Icons.arrow_circle_up,
-                            color: Colors.white,
-                            size: 25,
-                            textDirection: TextDirection.ltr,
-                          ),
-                        ),
+                  // Special / 123
+                  Container(
+                    width: 42,
+                    height: 45,
+                    margin: EdgeInsets.symmetric(horizontal: 2),
+                    child: HighlightedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: Colors.white.withAlpha(20),
                       ),
-                      Container(
-                        margin: EdgeInsets.only(
-                            left: Keyboard.defaultMargins.left,
-                            right: Keyboard.defaultMargins.right),
-                        child: HighlightedButton(
-                          isActive: isSpecial,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: Size.zero,
-                            fixedSize: const Size(60, 45),
-                            padding: const EdgeInsets.only(
-                                top: 2, bottom: 2, left: 5, right: 5),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isSpecial = !isSpecial;
-                              activeKeyboard = Keyboards.getKeyboard(
-                                  language: activeLanguage,
-                                  activeKeyboard: activeKeyboard,
-                                  isShifted: isShifted,
-                                  isSpecial: isSpecial);
-                            });
-                          },
-                          child: const Text('#?&!',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
-                              textDirection: TextDirection.ltr),
-                        ),
-                      ),
-                    ],
+                      onPressed: () {
+                        setState(() {
+                          isSpecial = !isSpecial;
+                          activeKeyboard = Keyboards.getKeyboard(
+                              language: activeLanguage,
+                              activeKeyboard: activeKeyboard,
+                              isShifted: isShifted,
+                              isSpecial: isSpecial);
+                        });
+                      },
+                      child: Text(isSpecial ? 'ABC' : '123',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                    ),
                   ),
-                  Row(
-                    textDirection: TextDirection.ltr,
-                    children: [
-                      _keyboardButton('.', useDefualtSizes: true),
-                      _keyboardButton(',', useDefualtSizes: true),
-                      _keyboardButton('?', useDefualtSizes: true),
-                      Container(
-                        margin: EdgeInsets.only(
-                            top: Keyboard.defaultMargins.top,
-                            bottom: Keyboard.defaultMargins.bottom,
-                            left: Keyboard.defaultMargins.left * 2,
-                            right: Keyboard.defaultMargins.right),
-                        child: GestureDetector(
-                          onLongPressStart: (_) async {
+
+                  // Hide Keyboard Button (Always visible now)
+                  Container(
+                    width: 42,
+                    height: 45,
+                    margin: EdgeInsets.symmetric(horizontal: 2),
+                    child: HighlightedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: Colors.transparent, // Ghost
+                      ),
+                      onPressed: () {
+                        ref.read(keyboardProvider.notifier).close();
+                      },
+                      child: Icon(Icons.keyboard_hide, color: Colors.white),
+                    ),
+                  ),
+
+                  // Shuffle
+                  Container(
+                    width: 42,
+                    height: 45,
+                    margin: EdgeInsets.symmetric(horizontal: 2),
+                    child: HighlightedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: isRandomized
+                            ? Colors.white
+                            : Colors.white.withAlpha(20),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isRandomized = !isRandomized;
+                          activeKeyboard = Keyboards.getKeyboard(
+                              language: activeLanguage,
+                              isShifted: isShifted,
+                              isSpecial: isSpecial,
+                              randomize: isRandomized);
+                        });
+                      },
+                      child: Icon(
+                          isRandomized
+                              ? Icons.shuffle_on_outlined
+                              : Icons.shuffle,
+                          color: isRandomized ? Colors.black : Colors.white),
+                    ),
+                  ),
+
+                  // Space
+                  // Space
+                  Expanded(
+                    child: GestureDetector(
+                      onHorizontalDragEnd: (details) {
+                        if (availableKeyboards.length <= 1) return;
+
+                        // Swipe logic
+                        int currentIndex =
+                            availableKeyboards.indexOf(activeLanguage);
+                        if (currentIndex == -1) currentIndex = 0;
+
+                        String newLang = activeLanguage;
+
+                        // Swipe Right (velocity > 0) -> Previous Ltr visual? Or Next?
+                        // Usually Swipe Left (finger goes left) -> Next. Swipe Right -> Prev.
+                        if (details.primaryVelocity! < 0) {
+                          // Swipe Left -> Next
+                          int nextIndex =
+                              (currentIndex + 1) % availableKeyboards.length;
+                          newLang = availableKeyboards[nextIndex];
+                        } else if (details.primaryVelocity! > 0) {
+                          // Swipe Right -> Prev
+                          int prevIndex =
+                              (currentIndex - 1 + availableKeyboards.length) %
+                                  availableKeyboards.length;
+                          newLang = availableKeyboards[prevIndex];
+                        }
+
+                        if (newLang != activeLanguage) {
+                          setState(() {
+                            activeLanguage = newLang;
+                            activeKeyboard = Keyboards.getKeyboard(
+                                language: activeLanguage,
+                                isShifted: isShifted,
+                                isSpecial: isSpecial,
+                                randomize: isRandomized);
+                          });
+                        }
+                      },
+                      child: Container(
+                        height: 45,
+                        margin: EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: Colors.white.withAlpha(40),
+                        ),
+                        child: HighlightedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5))),
+                          onPressed: () {
                             setState(() {
-                              isBackspaceLongPressed = true;
+                              final newText = controller.text + ' ';
+                              controller
+                                ..text = newText
+                                ..selection = TextSelection.collapsed(
+                                    offset: newText.length);
                             });
-                            while (isBackspaceLongPressed &&
-                                controller.text.isNotEmpty) {
+                          },
+                          child: Text(
+                              availableKeyboards.length > 1
+                                  ? '< $activeLanguage >'
+                                  : 'Space',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // . Key (kept from last time)
+                  // . Key (Only if NOT multiline)
+                  Consumer(builder: (context, ref, child) {
+                    final keyboardState = ref.watch(keyboardProvider);
+                    if (!keyboardState.isMultiLine) {
+                      return Container(
+                        width: 38,
+                        height: 45,
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        child: _keyboardButton('.',
+                            useDefualtSizes: true, rowLength: 10),
+                      );
+                    }
+                    return SizedBox.shrink();
+                  }),
+
+                  // Enter
+                  // Enter / Go Split
+                  // If multiline, show a separate Return button
+                  Consumer(builder: (context, ref, child) {
+                    final keyboardState = ref.watch(keyboardProvider);
+                    if (keyboardState.isMultiLine) {
+                      return Container(
+                        width: 42,
+                        height: 45,
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        child: HighlightedButton(
+                            style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                backgroundColor: Colors.blue),
+                            onPressed: () {
                               setState(() {
-                                final newText = controller.text
-                                    .substring(0, controller.text.length - 1);
+                                final newText = controller.text + "\n";
                                 controller
                                   ..text = newText
                                   ..selection = TextSelection.collapsed(
                                       offset: newText.length);
                               });
-                              await Future.delayed(
-                                  const Duration(milliseconds: 100));
+                            },
+                            child: Icon(Icons.keyboard_return,
+                                color: Colors.white)),
+                      );
+                    }
+                    return SizedBox.shrink();
+                  }),
+
+                  // Go / Submit Button (Always acts as specific action or close)
+                  Container(
+                    width: 42,
+                    height: 45,
+                    margin: EdgeInsets.symmetric(horizontal: 2),
+                    child: Consumer(builder: (context, ref, child) {
+                      final keyboardState = ref.watch(keyboardProvider);
+                      // This button is now strictly for Done/Close
+                      return HighlightedButton(
+                          style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.blue),
+                          onPressed: () {
+                            if (keyboardState.onDone != null) {
+                              Navigator.of(context)
+                                  .pop((text: controller.text, done: true));
+                            } else {
+                              ref.read(keyboardProvider.notifier).close();
                             }
                           },
-                          onLongPressEnd: (_) {
-                            setState(() {
-                              isBackspaceLongPressed = false;
-                            });
-                          },
-                          child: HighlightedButton(
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size.zero,
-                              fixedSize: const Size(60, 45),
-                              padding: const EdgeInsets.only(
-                                  top: 2, bottom: 2, left: 13, right: 15),
-                            ),
-                            onPressed: () {
-                              deleteSelection();
-                              if (controller.text.isNotEmpty) {
-                                setState(() {
-                                  final newText = controller.text
-                                      .substring(0, controller.text.length - 1);
-                                  controller
-                                    ..text = newText
-                                    ..selection = TextSelection.collapsed(
-                                        offset: newText.length);
-                                });
-                              }
-                            },
-                            child: const Icon(
-                              Icons.backspace,
-                              color: Colors.white,
-                              size: 30,
-                              textDirection: TextDirection.ltr,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                          child: Text("Go",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)));
+                    }),
+                  )
                 ],
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                textDirection: TextDirection.ltr,
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.3,
-                    height: 45,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      textDirection: TextDirection.ltr,
-                      children: [
-                        Material(
-                          color: Colors.transparent,
-                          child: Directionality(
-                            textDirection: TextDirection.ltr,
-                            child: InkWell(
-                                onTap: () {
-                                  ref.read(keyboardProvider.notifier).close();
-                                },
-                                child: const Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: Colors.white,
-                                  size: 40,
-                                  textDirection: TextDirection.ltr,
-                                )),
-                          ),
-                        ),
-                        if (availableKeyboards.length > 1)
-                          Material(
-                            color: Colors.transparent,
-                            child: Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    keyboardSelectOpen = !keyboardSelectOpen;
-                                  });
-                                },
-                                child: Icon(Icons.language,
-                                    color: Colors.white,
-                                    size: 25,
-                                    textDirection: TextDirection.ltr),
-                              ),
-                            ),
-                          ),
-                        // Material(
-                        //   color: Colors.transparent,
-                        //   child: Directionality(
-                        //     textDirection: TextDirection.ltr,
-                        //     child: InkWell(
-                        //         onTap: () {
-                        //           setState(() {
-                        //             shouldObscureText = !shouldObscureText;
-                        //           });
-                        //         },
-                        //         child: Icon(
-                        //           shouldObscureText
-                        //               ? Icons.visibility_off
-                        //               : Icons.visibility,
-                        //           color: Colors.white,
-                        //           size: 25,
-                        //           textDirection: TextDirection.ltr,
-                        //         )),
-                        //   ),
-                        // ),
-                        Material(
-                            color: Colors.transparent,
-                            child: Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    isRandomized = !isRandomized;
-                                    activeKeyboard = Keyboards.getKeyboard(
-                                        language: activeLanguage,
-                                        isShifted: isShifted,
-                                        isSpecial: isSpecial,
-                                        randomize: isRandomized);
-                                  });
-                                },
-                                child: Icon(
-                                  isRandomized
-                                      ? Icons.shuffle_on_outlined
-                                      : Icons.shuffle,
-                                  color: Colors.white,
-                                  size: 25,
-                                  textDirection: TextDirection.ltr,
-                                ),
-                              ),
-                            )),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(right: 7),
-                      height: 45,
-                      child: HighlightedButton(
-                        onPressed: () {
-                          setState(() {
-                            final newText = controller.text + ' ';
-                            controller
-                              ..text = newText
-                              ..selection = TextSelection.collapsed(
-                                  offset: newText.length);
-                          });
-                        },
-                        child: const Icon(
-                          Icons.space_bar,
-                          color: Colors.white,
-                          size: 25,
-                          textDirection: TextDirection.ltr,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Consumer(builder: (context, ref, child) {
-                    final keyboardState = ref.watch(keyboardProvider);
-                    return Row(
-                      textDirection: TextDirection.ltr,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        if (keyboardState.isMultiLine)
-                          Container(
-                            height: 45,
-                            margin: const EdgeInsets.only(right: 7),
-                            child: HighlightedButton(
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: Size.zero,
-                                  fixedSize: const Size(60, 45),
-                                  padding: const EdgeInsets.only(
-                                      top: 2, bottom: 2, left: 13, right: 15),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    final newText = controller.text + "\n";
-                                    controller
-                                      ..text = newText
-                                      ..selection = TextSelection.collapsed(
-                                          offset: newText.length);
-                                  });
-                                },
-                                child: const Icon(Icons.subdirectory_arrow_left,
-                                    color: Colors.white,
-                                    size: 30,
-                                    textDirection: TextDirection.ltr)),
-                          ),
-                        keyboardState.onDone != null
-                            ? Container(
-                                width: MediaQuery.of(context).size.width * 0.15,
-                                height: 45,
-                                margin:
-                                    const EdgeInsets.only(left: 4, right: 7),
-                                child: HighlightedButton(
-                                  backgroundColor: Colors.lightGreen,
-                                  onPressed: () {
-                                    Navigator.of(context).pop((
-                                      text: controller.text,
-                                      done: true,
-                                    ));
-                                  },
-                                  child: const Icon(
-                                    Icons.done,
-                                    color: Colors.white,
-                                    size: 25,
-                                    textDirection: TextDirection.ltr,
-                                  ),
-                                ),
-                              )
-                            : Container(
-                                margin:
-                                    const EdgeInsets.only(left: 4, right: 5),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: Directionality(
-                                    textDirection: TextDirection.ltr,
-                                    child: InkWell(
-                                        onTap: () {
-                                          ref
-                                              .read(keyboardProvider.notifier)
-                                              .close();
-                                        },
-                                        child: const Icon(
-                                          Icons.keyboard_arrow_down,
-                                          color: Colors.white,
-                                          size: 40,
-                                          textDirection: TextDirection.ltr,
-                                        )),
-                                  ),
-                                ),
-                              ),
-                      ],
-                    );
-                  }),
-                ],
-              ),
-            ),
+            )
           ],
         ));
   }
@@ -684,6 +714,9 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
       controller.addListener(onChangeListener);
     });
 
-    return keyboardSelectOpen ? _keyboardSelect() : _keyboard();
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: keyboardSelectOpen ? _keyboardSelect() : _keyboard(),
+    );
   }
 }

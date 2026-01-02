@@ -11,6 +11,7 @@ class Keyboard {
   double keyWidth;
   double keyHeight;
 
+  List<String> firstRowShifted;
   List<String> secondRowShifted;
   List<String> thirdRowShifted;
   List<String> fourthRowShifted;
@@ -48,6 +49,7 @@ class Keyboard {
     required this.secondRow,
     required this.thirdRow,
     required this.fourthRow,
+    this.firstRowShifted = const [],
     required this.secondRowShifted,
     required this.thirdRowShifted,
     required this.fourthRowShifted,
@@ -55,48 +57,46 @@ class Keyboard {
   });
 
   static const List<String> firstRowSpecial = [
-    '!',
-    '@',
-    '#',
-    '\$',
-    '%',
-    '^',
-    '&',
-    '*',
-    '(',
-    ')',
-    '_',
-    '+'
-  ];
-  static const List<String> secondRowSpecial = [
-    '`',
-    '~',
-    '-',
-    '=',
     '[',
     ']',
     '{',
     '}',
-    '\\',
-    '|'
+    '#',
+    '%',
+    '^',
+    '*',
+    '+',
+    '='
+  ];
+  static const List<String> secondRowSpecial = [
+    '-',
+    '/',
+    ':',
+    ';',
+    '(',
+    ')',
+    '\$',
+    '&',
+    '@',
+    '"'
   ];
   static const List<String> thirdRowSpecial = [
-    ';',
-    ':',
-    '\'',
-    '"',
-    ',',
+    '`', // Backtick
+    '~',
+    '_',
+    '\\',
+    '|',
     '.',
-    '/',
+    ',',
     '?',
-    '<',
-    '>'
+    '!',
+    '\''
   ];
 
   get firstRowKeys => isSpecial
       ? firstRowSpecial
       : isShifted
-          ? firstRowSpecial
+          ? (firstRowShifted.isNotEmpty ? firstRowShifted : firstRow)
           : firstRow;
 
   get secondRowKeys => isSpecial
