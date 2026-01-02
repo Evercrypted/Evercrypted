@@ -205,7 +205,6 @@ class Avatar {
 }
 
 class ProfileSubscription {
-  final bool active;
   final String? type;
   final String? startDate;
   final String? endDate;
@@ -215,7 +214,6 @@ class ProfileSubscription {
   final bool? inGracePeriod;
 
   ProfileSubscription({
-    required this.active,
     this.type,
     this.startDate,
     this.endDate,
@@ -225,19 +223,22 @@ class ProfileSubscription {
     this.inGracePeriod,
   });
 
-  /// Check if subscription is currently active (includes date validation)
+  /// Check if subscription is currently active
+  /// A subscription is active if endDate is in the future
   bool get isActive {
-    if (!active) return false;
-    if (endDate != null) {
-      final end = DateTime.tryParse(endDate!);
-      if (end != null && end.isBefore(DateTime.now())) return false;
+    if (endDate == null) {
+      return false;
     }
-    return true;
+    final end = DateTime.tryParse(endDate!);
+    if (end == null) {
+      return false;
+    }
+    final isAfter = end.isAfter(DateTime.now());
+    return isAfter;
   }
 
   factory ProfileSubscription.fromJson(Map<String, dynamic> json) =>
       ProfileSubscription(
-        active: json['active'] as bool,
         type: json['type'] as String?,
         startDate: json['startDate'] as String?,
         endDate: json['endDate'] as String?,
@@ -248,7 +249,6 @@ class ProfileSubscription {
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'active': active,
         'type': type,
         'startDate': startDate,
         'endDate': endDate,
@@ -259,7 +259,6 @@ class ProfileSubscription {
       };
 
   ProfileSubscription copyWith({
-    bool? active,
     String? type,
     String? startDate,
     String? endDate,
@@ -269,7 +268,6 @@ class ProfileSubscription {
     bool? inGracePeriod,
   }) {
     return ProfileSubscription(
-      active: active ?? this.active,
       type: type ?? this.type,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
