@@ -73,9 +73,9 @@ class SocketEventsService {
         Auth.setAuth(profile: Profile.fromJson(payload['profile']));
         LocalNotification.instance.displayNotification(
             'Profile Status Changed',
-            'You account has been activated or new tokens have been added to your account',
+            'Your subscription has been updated',
             json.encode({
-              'type': NotificationEventTypes.goToReceivedContactRequestPage,
+              'type': null,
             }));
         break;
       default:

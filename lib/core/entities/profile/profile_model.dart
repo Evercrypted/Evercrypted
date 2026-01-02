@@ -257,6 +257,28 @@ class ProfileSubscription {
         'autoRenew': autoRenew,
         'inGracePeriod': inGracePeriod,
       };
+
+  ProfileSubscription copyWith({
+    bool? active,
+    String? type,
+    String? startDate,
+    String? endDate,
+    String? appleTransactionId,
+    String? appleProductId,
+    bool? autoRenew,
+    bool? inGracePeriod,
+  }) {
+    return ProfileSubscription(
+      active: active ?? this.active,
+      type: type ?? this.type,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      appleTransactionId: appleTransactionId ?? this.appleTransactionId,
+      appleProductId: appleProductId ?? this.appleProductId,
+      autoRenew: autoRenew ?? this.autoRenew,
+      inGracePeriod: inGracePeriod ?? this.inGracePeriod,
+    );
+  }
 }
 
 class AccountSettings {

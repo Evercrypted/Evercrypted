@@ -65,6 +65,7 @@ class ChatSocket {
     SocketChannelTypes.settings,
     SocketChannelTypes.message,
     SocketChannelTypes.auth,
+    SocketChannelTypes.payment,
   ];
 
   static initializeConnectionListener() {
