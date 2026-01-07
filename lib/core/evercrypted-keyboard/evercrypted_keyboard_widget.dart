@@ -2,6 +2,7 @@ import 'package:evercrypted/core/entities/settings/settings_service.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/secret_keyboard/highlighted_button.dart';
+import 'package:evercrypted/widgets/secret_keyboard/key_popup_button.dart';
 import 'package:evercrypted/widgets/secret_keyboard/keyboard.dart';
 import 'package:evercrypted/widgets/secret_keyboard/keyboards.dart';
 import 'package:flutter/material.dart';
@@ -103,18 +104,6 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                 ? Keyboard.defaultWidth
                 : activeKeyboard.keyWidth));
 
-    final EdgeInsets paddings = useDefualtSizes
-        ? EdgeInsets.only(
-            top: Keyboard.defaultPaddings.top,
-            bottom: Keyboard.defaultPaddings.bottom,
-            left: Keyboard.defaultPaddings.left,
-            right: Keyboard.defaultPaddings.right)
-        : EdgeInsets.only(
-            top: activeKeyboard.keyPaddings.top,
-            bottom: activeKeyboard.keyPaddings.bottom,
-            left: activeKeyboard.keyPaddings.left,
-            right: activeKeyboard.keyPaddings.right);
-
     return Container(
       width: keyWidth,
       height: specialKeysRow ? 60 : 45,
@@ -125,33 +114,28 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
         borderRadius: BorderRadius.circular(10),
         color: Colors.white.withAlpha(20),
       ),
-      child: GestureDetector(
-        child: HighlightedButton(
-          style: ElevatedButton.styleFrom(
-            minimumSize: Size.zero,
-            padding: paddings,
-          ),
-          onPressed: () {
-            deleteSelection();
-            setState(() {
-              final newText = controller.text + key;
-              controller
-                ..text = newText
-                ..selection = TextSelection.collapsed(offset: newText.length);
-              if (isShifted && !isShiftLocked) {
-                isShifted = false;
-                activeKeyboard = Keyboards.getKeyboard(
-                    language: activeLanguage,
-                    activeKeyboard: activeKeyboard,
-                    isShifted: false,
-                    isSpecial: isSpecial);
-              }
-            });
-          },
-          child: Text(key,
-              style: const TextStyle(color: Colors.white, fontSize: 20),
-              textDirection: TextDirection.ltr),
-        ),
+      child: KeyPopupButton(
+        keyLabel: key,
+        width: keyWidth,
+        height: specialKeysRow ? 60 : 45,
+        textStyle: const TextStyle(color: Colors.white, fontSize: 20),
+        onPressed: () {
+          deleteSelection();
+          setState(() {
+            final newText = controller.text + key;
+            controller
+              ..text = newText
+              ..selection = TextSelection.collapsed(offset: newText.length);
+            if (isShifted && !isShiftLocked) {
+              isShifted = false;
+              activeKeyboard = Keyboards.getKeyboard(
+                  language: activeLanguage,
+                  activeKeyboard: activeKeyboard,
+                  isShifted: false,
+                  isSpecial: isSpecial);
+            }
+          });
+        },
       ),
     );
   }
