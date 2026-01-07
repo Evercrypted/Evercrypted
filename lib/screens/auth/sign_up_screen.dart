@@ -1,10 +1,13 @@
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
+import 'package:evercrypted/core/services/firebase_auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/widgets/evercrypted_text_field.dart';
+import 'package:evercrypted/widgets/social_login_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'dart:io' show Platform;
 
 import './sign_in_screen.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +32,8 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   bool _shouldShowLoading = false;
+  bool _googleLoading = false;
+  bool _appleLoading = false;
   final EvercryptedTextController _emailController =
       EvercryptedTextController();
   final EvercryptedTextController _confirmController =
@@ -37,6 +42,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
   final listViewController = ScrollController();
 
   final AuthService _authService = AuthService();
+  final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
 
   scrollToBottom() {
     if (shouldShowKeyboard.value) {
@@ -151,6 +157,58 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
           _shouldShowLoading = false;
         });
       });
+    }
+  }
+
+  void _handleGoogleSignIn() async {
+    setState(() {
+      _googleLoading = true;
+    });
+
+    final result = await _firebaseAuthService.signInWithGoogle();
+
+    if (!mounted) return;
+
+    setState(() {
+      _googleLoading = false;
+    });
+
+    if (result['success'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          result['error'] ?? 'Google sign-in failed',
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: errorColor,
+        dismissDirection: DismissDirection.horizontal,
+        showCloseIcon: true,
+      ));
+    }
+  }
+
+  void _handleAppleSignIn() async {
+    setState(() {
+      _appleLoading = true;
+    });
+
+    final result = await _firebaseAuthService.signInWithApple();
+
+    if (!mounted) return;
+
+    setState(() {
+      _appleLoading = false;
+    });
+
+    if (result['success'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          result['error'] ?? 'Apple sign-in failed',
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: errorColor,
+        dismissDirection: DismissDirection.horizontal,
+        showCloseIcon: true,
+      ));
     }
   }
 
@@ -288,6 +346,31 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                                     style: TextStyle(color: Colors.white))
                               ],
                             )),
+                ),
+                const OrDivider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SocialLoginIconButton(
+                      provider: SocialProvider.google,
+                      onPressed: _handleGoogleSignIn,
+                      isLoading: _googleLoading,
+                    ),
+                    if (Platform.isIOS) ...[
+                      const SizedBox(width: defaultPadding * 1.5),
+                      Container(
+                        height: 30,
+                        width: 1,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                      const SizedBox(width: defaultPadding * 1.5),
+                      SocialLoginIconButton(
+                        provider: SocialProvider.apple,
+                        onPressed: _handleAppleSignIn,
+                        isLoading: _appleLoading,
+                      ),
+                    ],
+                  ],
                 ),
                 TextButton(
                   onPressed: () => Navigator.pushReplacementNamed(

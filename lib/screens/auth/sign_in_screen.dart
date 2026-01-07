@@ -1,11 +1,14 @@
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
+import 'package:evercrypted/core/services/firebase_auth_service.dart';
 import 'package:evercrypted/core/helpers/field_validators.dart';
 import 'package:evercrypted/main.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/widgets/evercrypted_text_field.dart';
+import 'package:evercrypted/widgets/social_login_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'dart:io' show Platform;
 
 import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
@@ -27,10 +30,13 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   final _form = GlobalKey<FormState>();
   bool _passwordVisible = false;
   bool _shouldShowLoading = false;
+  bool _googleLoading = false;
+  bool _appleLoading = false;
   AuthForm formValues = AuthForm();
   final EvercryptedTextController _emailField = EvercryptedTextController();
   final EvercryptedTextController _passController = EvercryptedTextController();
   final AuthService _authService = AuthService();
+  final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
   final listViewController = ScrollController();
 
   @override
@@ -121,6 +127,58 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           _shouldShowLoading = false;
         });
       });
+    }
+  }
+
+  void _handleGoogleSignIn() async {
+    setState(() {
+      _googleLoading = true;
+    });
+
+    final result = await _firebaseAuthService.signInWithGoogle();
+
+    if (!mounted) return;
+
+    setState(() {
+      _googleLoading = false;
+    });
+
+    if (result['success'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          result['error'] ?? 'Google sign-in failed',
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: errorColor,
+        dismissDirection: DismissDirection.horizontal,
+        showCloseIcon: true,
+      ));
+    }
+  }
+
+  void _handleAppleSignIn() async {
+    setState(() {
+      _appleLoading = true;
+    });
+
+    final result = await _firebaseAuthService.signInWithApple();
+
+    if (!mounted) return;
+
+    setState(() {
+      _appleLoading = false;
+    });
+
+    if (result['success'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          result['error'] ?? 'Apple sign-in failed',
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: errorColor,
+        dismissDirection: DismissDirection.horizontal,
+        showCloseIcon: true,
+      ));
     }
   }
 
@@ -233,7 +291,59 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                           ],
                         ),
                 ),
-                const SizedBox(height: defaultPadding),
+                const OrDivider(),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, SignUpScreen.routeName);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(
+                        color: Theme.of(context).primaryColor,
+                        width: 1.5,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Sign up with email',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: defaultPadding * 1.5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SocialLoginIconButton(
+                      provider: SocialProvider.google,
+                      onPressed: _handleGoogleSignIn,
+                      isLoading: _googleLoading,
+                    ),
+                    if (Platform.isIOS) ...[
+                      const SizedBox(width: defaultPadding * 1.5),
+                      Container(
+                        height: 30,
+                        width: 1,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                      const SizedBox(width: defaultPadding * 1.5),
+                      SocialLoginIconButton(
+                        provider: SocialProvider.apple,
+                        onPressed: _handleAppleSignIn,
+                        isLoading: _appleLoading,
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: defaultPadding * 1.5),
                 TextButton(
                   onPressed: () {
                     showModalBottomSheet(
@@ -251,30 +361,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                     style: TextStyle(color: Theme.of(context).primaryColor),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, SignUpScreen.routeName);
-                  },
-                  child: Text.rich(
-                    TextSpan(
-                      text: "Don't have an account? ",
-                      children: [
-                        TextSpan(
-                          text: "Sign Up",
-                          style:
-                              TextStyle(color: Theme.of(context).primaryColor),
-                        ),
-                      ],
-                    ),
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyLarge!
-                              .color!
-                              .withAlpha((255 * 0.64).round()),
-                        ),
-                  ),
-                ),
+                const SizedBox(height: defaultPadding * 2),
                 TextButton(
                   onPressed: () async {
                     final uri = Uri.parse(
