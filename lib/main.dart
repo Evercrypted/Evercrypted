@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
@@ -61,8 +62,6 @@ void main() async {
   );
 
   // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);s
-
-  await FirebaseMessaging.instance.requestPermission(provisional: true);
 
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
@@ -213,19 +212,8 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
     _checkNotifications();
 
-    requestFcmPermissions();
-
-    fcmTokenListener =
-        FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
-      if (ChatSocket.key != null && ChatSocket.isConnected == true) {
-        AppHttpClient.message(
-            channel: SocketChannelTypes.general,
-            type: GeneralEventTypes.updateFcmToken,
-            payload: {
-              'fcmToken': fcmToken,
-            });
-      }
-    });
+    initializeFcmToken();
+    _setupFcmTokenListener();
 
     authListener = Auth.authSubject.stream.listen((shouldFire) async {
       _authFlow();
@@ -313,17 +301,104 @@ class AuthGateState extends ConsumerState<AuthGate> {
     );
   }
 
-  void requestFcmPermissions() async {
+  /// Initializes FCM token following Firebase best practices for iOS SDK 10.4.0+
+  /// On iOS: waits for APNS token before requesting FCM token
+  /// Then sends the token to the server
+  void initializeFcmToken() async {
     final messaging = FirebaseMessaging.instance;
+
+    // Request permission first
     await messaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
       carPlay: false,
       criticalAlert: false,
-      provisional: false,
+      provisional: true,
       sound: true,
     );
+
+    String? fcmToken;
+
+    try {
+      if (Platform.isIOS) {
+        debugPrint('FCM: iOS detected, checking APNS token first...');
+
+        // For iOS SDK 10.4.0+, wait for APNS token before making FCM API calls
+        String? apnsToken;
+        for (int attempt = 1; attempt <= 5 && apnsToken == null; attempt++) {
+          apnsToken = await messaging.getAPNSToken();
+          if (apnsToken != null) {
+            debugPrint('FCM: APNS token obtained on attempt $attempt');
+            break;
+          }
+          debugPrint('FCM: APNS token not ready, waiting ${attempt * 2}s...');
+          await Future.delayed(Duration(seconds: attempt * 2));
+        }
+
+        if (apnsToken != null) {
+          // APNS token is available, safe to make FCM API calls
+          fcmToken = await messaging.getToken();
+          debugPrint('FCM: Token obtained: ${fcmToken?.substring(0, 20)}...');
+        } else {
+          debugPrint(
+              'FCM: WARNING - APNS token unavailable, push notifications will not work');
+        }
+      } else {
+        // Android - get FCM token directly
+        debugPrint('FCM: Android detected, fetching token directly...');
+        fcmToken = await messaging.getToken();
+        debugPrint(
+            'FCM: Token obtained: ${fcmToken != null ? "${fcmToken.substring(0, 20)}..." : "null"}');
+      }
+
+      // Store FCM token in Auth for later use
+      if (fcmToken != null) {
+        await Auth.setFcmToken(newFcmToken: fcmToken);
+        debugPrint('FCM: Token stored in Auth');
+      }
+
+      // Send token to server if we have one and are connected
+      if (fcmToken != null &&
+          ChatSocket.key != null &&
+          ChatSocket.isConnected == true) {
+        AppHttpClient.message(
+          channel: SocketChannelTypes.general,
+          type: GeneralEventTypes.updateFcmToken,
+          payload: {
+            'fcmToken': fcmToken,
+          },
+        );
+        debugPrint('FCM: Token sent to server');
+      } else if (fcmToken != null) {
+        debugPrint(
+            'FCM: Token obtained but not connected yet, will be sent on token refresh or connection');
+      }
+    } catch (e) {
+      debugPrint('FCM: Error initializing token: $e');
+    }
+  }
+
+  void _setupFcmTokenListener() {
+    fcmTokenListener =
+        FirebaseMessaging.instance.onTokenRefresh.listen((newFcmToken) async {
+      debugPrint('FCM: Token refreshed');
+
+      // Store in Auth
+      await Auth.setFcmToken(newFcmToken: newFcmToken);
+
+      // Send to server if connected
+      if (ChatSocket.key != null && ChatSocket.isConnected == true) {
+        AppHttpClient.message(
+          channel: SocketChannelTypes.general,
+          type: GeneralEventTypes.updateFcmToken,
+          payload: {
+            'fcmToken': newFcmToken,
+          },
+        );
+        debugPrint('FCM: Updated token sent to server');
+      }
+    });
   }
 
   void _authFlow() async {
@@ -441,9 +516,10 @@ class AuthGateState extends ConsumerState<AuthGate> {
                   element.recipientEmail?.toLowerCase() ==
                   user!.email.toLowerCase())
               .toList());
-      ref.read(sentContactRequestsProvider.notifier).setSentRequests(contactRequests
-          .where((element) => element.authorId == user!.uid)
-          .toList());
+      ref.read(sentContactRequestsProvider.notifier).setSentRequests(
+          contactRequests
+              .where((element) => element.authorId == user!.uid)
+              .toList());
     }
 
     //contacts
@@ -491,9 +567,10 @@ class AuthGateState extends ConsumerState<AuthGate> {
                   element.recipientEmail?.toLowerCase() ==
                   user!.email?.toLowerCase())
               .toList());
-      ref.read(sentContactRequestsProvider.notifier).setSentRequests(contactRequests
-          .where((element) => element.authorId == user!.uid)
-          .toList());
+      ref.read(sentContactRequestsProvider.notifier).setSentRequests(
+          contactRequests
+              .where((element) => element.authorId == user!.uid)
+              .toList());
     });
     //contacts
     contactsListener = obx.contacts

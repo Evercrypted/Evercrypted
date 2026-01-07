@@ -20,6 +20,7 @@ class Auth {
   static String? refreshToken;
   static bool? isOtpActive;
   static String? otpToken;
+  static String? fcmToken;
   static String? appKey;
 
   static const storage = FlutterSecureStorage(
@@ -188,6 +189,25 @@ class Auth {
       return;
     }
     authSubject.add(true);
+  }
+
+  static get getFcmToken async {
+    try {
+      if (fcmToken == null) {
+        final fromStorage = await storage.read(key: 'fcmToken');
+        fcmToken = fromStorage;
+      }
+      return fcmToken;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static setFcmToken({String? newFcmToken}) async {
+    Auth.fcmToken = newFcmToken;
+    if (newFcmToken != null) {
+      await storage.write(key: 'fcmToken', value: newFcmToken);
+    }
   }
 
   static clearAuth() async {

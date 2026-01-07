@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
@@ -15,7 +14,7 @@ import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:rhttp/rhttp.dart';
 import 'package:rxdart/subjects.dart';
@@ -127,30 +126,6 @@ class ChatSocket {
   }
 
   static getGeneralInfoAndExchangeKey() async {
-    String? fcmToken;
-    // You may set the permission requests to "provisional" which allows the user to choose what type
-    // of notifications they would like to receive once the user receives a notification.
-    await FirebaseMessaging.instance.requestPermission(provisional: true);
-    try {
-      if (Platform.isIOS) {
-        // On iOS, we need to wait for the APNS token before requesting the FCM token
-        String? apnsToken = await FirebaseMessaging.instance.getAPNSToken();
-        if (apnsToken != null) {
-          fcmToken = await FirebaseMessaging.instance.getToken();
-        } else {
-          // Wait briefly significantly reduces the race condition
-          await Future.delayed(const Duration(seconds: 1));
-          apnsToken = await FirebaseMessaging.instance.getAPNSToken();
-          if (apnsToken != null) {
-            fcmToken = await FirebaseMessaging.instance.getToken();
-          }
-        }
-      } else {
-        fcmToken = await FirebaseMessaging.instance.getToken();
-      }
-    } catch (e) {
-      debugPrint('Failed to get FCM token: $e');
-    }
     final keyCompleter = Completer<bool>();
 
     // Generate Kyber1024 key pair
@@ -159,6 +134,9 @@ class ChatSocket {
     final authAndIdentifier = await getAuthAndIdentifier();
 
     if (authAndIdentifier == null) return;
+
+    // Get FCM token from Auth storage
+    final fcmToken = await Auth.getFcmToken;
 
     final body = await encodePayload({
       'channel': SocketChannelTypes.general,
