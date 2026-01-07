@@ -62,6 +62,8 @@
 	<string>Evercrypted uses the microphone to record voice messages.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photos access to get QR codes and photos from photo library</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Evercrypted uses FaceID to secure your account access.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

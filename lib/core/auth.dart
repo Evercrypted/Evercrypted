@@ -210,6 +210,19 @@ class Auth {
     }
   }
 
+  static Future<bool> get getIsBiometricEnabled async {
+    try {
+      final fromStorage = await storage.read(key: 'biometric_enabled');
+      return fromStorage == 'true';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static setBiometricEnabled(bool enabled) async {
+    await storage.write(key: 'biometric_enabled', value: enabled.toString());
+  }
+
   static clearAuth() async {
     Auth.user = null;
     obx.profiles.removeAll();

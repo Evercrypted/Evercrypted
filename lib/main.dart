@@ -40,6 +40,7 @@ import 'core/socket/socket.dart';
 import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'firebase_options.dart';
+import 'services/biometric_service.dart';
 // import 'package:sentry_flutter/sentry_flutter.dart';
 
 late ObjectBox obx;
@@ -196,6 +197,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   bool isOtpActiveAndNoToken = false;
   bool tokenAndUserNotLoaded = false;
   bool isAuthCheckComplete = false;
+  bool isBiometricLocked = false;
 
   late StreamSubscription authListener;
   late StreamSubscription resetConnectionListener;
@@ -214,6 +216,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
     initializeFcmToken();
     _setupFcmTokenListener();
+    _checkBiometric();
 
     authListener = Auth.authSubject.stream.listen((shouldFire) async {
       _authFlow();
@@ -247,7 +250,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (!isAuthCheckComplete) {
+    if (!isAuthCheckComplete || isBiometricLocked) {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
@@ -399,6 +402,24 @@ class AuthGateState extends ConsumerState<AuthGate> {
         debugPrint('FCM: Updated token sent to server');
       }
     });
+  }
+
+  Future<void> _checkBiometric() async {
+    final token = await Auth.getToken;
+    if (token == null) return;
+
+    final biometricService = ref.read(biometricServiceProvider);
+    final enabled = await biometricService.isBiometricEnabled();
+    if (enabled) {
+      if (mounted) setState(() => isBiometricLocked = true);
+      final authenticated = await biometricService.authenticate();
+      if (authenticated) {
+        if (mounted) setState(() => isBiometricLocked = false);
+      } else {
+        // failed to authenticate, maybe exit app or show retry button
+        // staying locked for now
+      }
+    }
   }
 
   void _authFlow() async {

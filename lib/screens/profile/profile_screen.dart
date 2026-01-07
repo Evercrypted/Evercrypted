@@ -5,6 +5,7 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/main.dart';
+import 'package:evercrypted/services/biometric_service.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
 import 'package:evercrypted/screens/profile/delete_account_screen.dart';
@@ -31,13 +32,36 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class ProfileScreenState extends ConsumerState<ProfileScreen> {
   late Color dialogPickerColor;
   bool isActivated = Auth.getUser?.activated ?? false;
+  bool _biometricEnabled = false;
   StreamSubscription? authListener;
+
+  @override
+  void initState() {
+    super.initState();
+    dialogPickerColor = errorColor;
+    _loadBiometricState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(navigationProvider.notifier).navigateToProfile();
+    });
+    authListener = Auth.authSubject.distinct().listen((shouldFire) {
+      if (mounted) {
+        setState(() {
+          isActivated = Auth.getUser?.activated ?? false;
+        });
+      }
+    });
+  }
+
+  Future<void> _loadBiometricState() async {
+    final enabled =
+        await ref.read(biometricServiceProvider).isBiometricEnabled();
+    if (mounted) setState(() => _biometricEnabled = enabled);
+  }
 
   Future<void> _clearAllLocalData() async {
     // Clear all ObjectBox boxes
     obx.messages.removeAll();
     obx.chats.removeAll();
-    obx.contacts.removeAll();
     obx.profiles.removeAll();
     obx.contactRequests.removeAll();
     obx.actionQueues.removeAll();
@@ -122,23 +146,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
         builder: (context) => const DeleteAccountScreen(),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    dialogPickerColor = errorColor;
-
-    // Set navigation state to profile when this screen is active
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationProvider.notifier).navigateToProfile();
-    });
-
-    authListener = Auth.authSubject.distinct().listen((shouldFire) {
-      setState(() {
-        isActivated = Auth.getUser?.activated ?? false;
-      });
-    });
   }
 
   @override
@@ -619,6 +626,61 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     }
                   },
                 ),
+
+                Consumer(builder: (context, ref, child) {
+                  final biometricService = ref.read(biometricServiceProvider);
+                  return ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withAlpha((255 * 0.1).round()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.fingerprint,
+                        color: primaryColor,
+                        size: 24,
+                      ),
+                    ),
+                    title: const Text(
+                      'Biometric Unlock',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    subtitle: Text(
+                      _biometricEnabled ? 'Enabled' : 'Disabled',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    trailing: Switch(
+                      value: _biometricEnabled,
+                      activeTrackColor: primaryColor,
+                      onChanged: (value) async {
+                        final canCheck =
+                            await biometricService.isBiometricAvailable();
+                        if (!canCheck) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Biometric authentication not available on this device')),
+                            );
+                          }
+                          return;
+                        }
+
+                        final authenticated =
+                            await biometricService.authenticate();
+                        if (authenticated) {
+                          await biometricService.setBiometricEnabled(value);
+                          if (mounted) {
+                            setState(() {
+                              _biometricEnabled = value;
+                            });
+                          }
+                        }
+                      },
+                    ),
+                  );
+                }),
                 ListTile(
                   leading: Opacity(
                     opacity: isActivated ? 1.0 : 0.5,

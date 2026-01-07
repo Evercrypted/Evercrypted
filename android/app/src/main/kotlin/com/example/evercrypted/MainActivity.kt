@@ -1,9 +1,9 @@
 package com.example.evercrypted
 
 import com.prongbang.screenprotect.AndroidScreenProtector
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity: FlutterActivity() {
+class MainActivity: FlutterFragmentActivity() {
     private val screenProtector by lazy { AndroidScreenProtector.newInstance(this) }
     
     override fun onWindowFocusChanged(hasFocus: Boolean) {
