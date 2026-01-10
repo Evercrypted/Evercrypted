@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/db-encryption.dart';
 import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
@@ -141,9 +140,6 @@ class ChatService {
 
   Future<Chat> createNewChat(NewOneToOneChatDTO newChatDTO) async {
     Completer<Chat> complete = Completer();
-    final Base64KeyData keys = await BaseKey.generateKeys();
-
-    newChatDTO.pubKey = keys.publicKey;
 
     AppHttpClient.message(
       channel: SocketChannelTypes.chat,
@@ -151,11 +147,8 @@ class ChatService {
       payload: newChatDTO.toJson(),
     ).then((resp) async {
       final Chat returnedChat = Chat.fromJson(resp['chat']);
-      await BaseKey.setKeys(
-        chatUid: returnedChat.uid,
-        private: keys.keyPair,
-        isInitiator: true,
-      );
+      // Generate and store random key (unified approach for all chat types)
+      await GroupKeyExchange.createAndDistributeGroupKey(returnedChat.uid);
       final Chat chat = addChat(returnedChat, isNewlyCreated: true);
       complete.complete(chat);
     });
@@ -311,96 +304,10 @@ class ChatService {
     }
   }
 
+  /// Unified key exchange check for all chat types
+  /// Delegates to GroupKeyExchange which handles both one-to-one and group chats
   checkKeys(Chat chat) async {
-    // Only check for oneToOne chats
-    if (!chat.isOneToOne || chat.participants.length != 2) {
-      return;
-    }
-
-    final thisParticipant = chat.participants
-        .firstWhereOrNull((element) => element.uid == Auth.getUser!.uid);
-    final otherParticipant = chat.participants
-        .firstWhereOrNull((element) => element.uid != Auth.getUser!.uid);
-
-    if (thisParticipant == null || otherParticipant == null) {
-      return;
-    }
-
-    final ChatKeys? keys = await BaseKey.getKeys(chat.uid);
-
-    // Determine if this device initiated the chat (has isInitiator flag or created the chat)
-    final bool isInitiator = keys?.isInitiator ??
-        chat.participants
-            .any((p) => p.uid == Auth.getUser!.uid && p.isCreator == true);
-
-    if (isInitiator) {
-      // INITIATOR LOGIC: Generate key pair and wait for encapsulated secret
-      if (keys == null || keys.private == null) {
-        // Generate new Kyber key pair
-        final generatedKeys = await BaseKey.generateKeys();
-        await BaseKey.setKeys(
-          chatUid: chat.uid,
-          private: generatedKeys.keyPair,
-          isInitiator: true,
-        );
-
-        // Share public key with other participant
-        updatePubKey(
-          chatUid: chat.uid,
-          pubKey: generatedKeys.publicKey,
-        );
-      } else if (keys.ciphertext != null && keys.baseKey == null) {
-        // We have encapsulated data from recipient, decapsulate it
-        final baseKey =
-            await BaseKey.decapsulate(keys.private!, keys.ciphertext!);
-        if (baseKey != null) {
-          await BaseKey.setKeys(
-            chatUid: chat.uid,
-            baseKey: baseKey,
-          );
-        }
-      }
-    } else {
-      // RECIPIENT LOGIC: Use initiator's public key to encapsulate shared secret
-      if (otherParticipant.pubKey != null &&
-          (keys == null || keys.baseKey == null)) {
-        // Generate our own key pair for future use
-        final ourKeys = await BaseKey.generateKeys();
-
-        // Encapsulate shared secret using initiator's public key
-        final encapsulationResult =
-            await BaseKey.encapsulate(otherParticipant.pubKey!);
-
-        if (encapsulationResult != null) {
-          // Store the shared secret as our base key
-          await BaseKey.setKeys(
-            chatUid: chat.uid,
-            baseKey: encapsulationResult.sharedSecret,
-            private: ourKeys.keyPair,
-            isInitiator: false,
-          );
-
-          // Share our public key and send encapsulated data back to initiator
-          await _sendEncapsulatedSecret(
-              chat.uid, ourKeys.publicKey, encapsulationResult.ciphertext);
-        }
-      }
-    }
-  }
-
-  Future<void> _sendEncapsulatedSecret(
-      String chatUid, String ourPublicKey, String ciphertext) async {
-    // Send both our public key and the encapsulated secret to the server
-    // The server will forward the encapsulated secret to the initiator
-    AppHttpClient.message(
-      channel: SocketChannelTypes.chat,
-      type: ChatEventTypes.keyExchange,
-      payload: {
-        'chatUid': chatUid,
-        'pubKey': ourPublicKey,
-        'ciphertext': ciphertext,
-      },
-    );
+    await GroupKeyExchange.ensureGroupKey(chat.uid, chat.isOneToOne);
   }
 
   Future<bool> findContactChatAndDelete(

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/entities/chat/chat_service.dart';
+import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
@@ -375,15 +375,12 @@ class ChatSocket {
 
   static Future<void> _checkPendingKeyExchanges() async {
     try {
-      // Get all chats and trigger key exchange checks
-      final chatService = ChatService();
+      // Get all chats and trigger unified key exchange checks
       final chats = obx.chats.getAll();
 
-      // Check each one-to-one chat for pending key exchanges
+      // Check each chat for pending key exchanges (unified approach)
       for (final chat in chats) {
-        if (chat.isOneToOne) {
-          await chatService.checkKeys(chat);
-        }
+        await GroupKeyExchange.ensureGroupKey(chat.uid, chat.isOneToOne);
       }
 
       debugPrint(

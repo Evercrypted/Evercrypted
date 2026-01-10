@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
@@ -43,36 +42,28 @@ class GroupKeyExchange {
         'GroupKeyExchange: [CREATOR] Created and stored group key for chat $groupChatId: ${groupKey.substring(0, 8)}... (userId: ${Auth.user?.uid})');
   }
 
-  /// Check if group key exists, if not request it (called when chat opens)
-  static Future<void> ensureGroupKey(
-      String groupChatId, bool isOneToOne) async {
-    if (isOneToOne) {
-      // One-to-one chats use Kyber1024 - don't handle here
-      debugPrint(
-          'GroupKeyExchange.ensureGroupKey: Skipping one-to-one chat $groupChatId');
-      return;
-    }
-
-    // Check if we already have group key
-    final existingKeys = await BaseKey.getKeys(groupChatId);
+  /// Check if key exists, if not request it (called when chat opens)
+  /// Works for both one-to-one and group chats using unified hybrid approach
+  static Future<void> ensureGroupKey(String chatId, bool isOneToOne) async {
+    // Check if we already have key
+    final existingKeys = await BaseKey.getKeys(chatId);
     if (existingKeys?.baseKey != null) {
-      // Already have group key
+      // Already have key
       debugPrint(
-          'GroupKeyExchange.ensureGroupKey: Already have group key for chat $groupChatId: ${existingKeys!.baseKey!.substring(0, 8)}... (userId: ${Auth.user?.uid})');
+          'GroupKeyExchange.ensureGroupKey: Already have key for chat $chatId: ${existingKeys!.baseKey!.substring(0, 8)}... (userId: ${Auth.user?.uid})');
       return;
     }
 
-    // Don't have group key - request it from other members
+    // Don't have key - request it from other members
     debugPrint(
-        'GroupKeyExchange.ensureGroupKey: No group key found for chat $groupChatId - requesting from other members (userId: ${Auth.user?.uid})');
-    final existingRequestKey =
-        await BaseKey.getKeys('${groupChatId}_key_request');
+        'GroupKeyExchange.ensureGroupKey: No key found for chat $chatId - requesting from other members (userId: ${Auth.user?.uid})');
+    final existingRequestKey = await BaseKey.getKeys('${chatId}_key_request');
     if (existingRequestKey?.private != null) {
       debugPrint(
-          'GroupKeyExchange.ensureGroupKey: Already have request key for chat $groupChatId - skipping request');
+          'GroupKeyExchange.ensureGroupKey: Already have request key for chat $chatId - skipping request');
       return;
     }
-    requestGroupKey(groupChatId);
+    requestGroupKey(chatId);
   }
 
   /// Request group key by sending a message with public key
