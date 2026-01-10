@@ -160,54 +160,64 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
               ),
             ),
             const SizedBox(height: defaultPadding),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    hiddenChatService.isChatHidden(chat.uid, profile)
-                        ? primaryColor
-                        : Colors.grey,
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primaryColor.withAlpha((255 * 0.1).round()),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  hiddenChatService.isChatHidden(chat.uid, profile)
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                  color: primaryColor,
+                  size: 24,
+                ),
               ),
-              onPressed: () {
-                if (hiddenChatService.isChatHidden(chat.uid, profile)) {
-                  // Show confirmation to unhide
-                  _showConfirmationDialog(
-                    title: 'Unhide Chat',
-                    content: 'Are you sure you want to unhide this chat?',
-                    confirmText: 'Unhide',
-                    confirmColor: primaryColor,
-                  ).then((confirmed) {
-                    if (confirmed) {
-                      hiddenChatService.unhideChat(chat.uid);
-                    }
-                  });
-                } else {
-                  // Show password dialog to hide
-                  PasswordDialog.show(
-                    context: context,
-                    ref: ref,
-                    title: 'Hide Chat',
-                    description:
-                        'This chat will be hidden from your chat list. You can access it by entering the password in the search field on chats screen.',
-                    hintText: 'Enter password to hide chat',
-                    confirmButtonText: 'Hide Chat',
-                    onConfirm: (password) {
-                      hiddenChatService.hideChat(chat.uid, password);
-                      Navigator.popUntil(context, (route) => route.isFirst);
-                    },
-                  );
-                }
-              },
-              icon: Icon(
-                hiddenChatService.isChatHidden(chat.uid, profile)
-                    ? Icons.visibility
-                    : Icons.visibility_off,
-                color: Colors.white,
+              title: const Text(
+                'Hide Chat',
+                style: TextStyle(fontSize: 16),
               ),
-              label: Text(
+              subtitle: Text(
                 hiddenChatService.isChatHidden(chat.uid, profile)
-                    ? 'Unhide Chat'
-                    : 'Hide Chat',
-                style: const TextStyle(color: Colors.white),
+                    ? 'Chat is hidden'
+                    : 'Chat is visible',
+                style: const TextStyle(fontSize: 13),
+              ),
+              trailing: Switch(
+                value: hiddenChatService.isChatHidden(chat.uid, profile),
+                activeTrackColor: primaryColor,
+                onChanged: (value) {
+                  if (value) {
+                    // Show password dialog to hide
+                    PasswordDialog.show(
+                      context: context,
+                      ref: ref,
+                      title: 'Hide Chat',
+                      description:
+                          'This chat will be hidden from your chat list. You can access it by entering the password in the search field on chats screen.',
+                      hintText: 'Enter password to hide chat',
+                      confirmButtonText: 'Hide Chat',
+                      onConfirm: (password) {
+                        hiddenChatService.hideChat(chat.uid, password);
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                      },
+                    );
+                  } else {
+                    // Show confirmation to unhide
+                    _showConfirmationDialog(
+                      title: 'Unhide Chat',
+                      content: 'Are you sure you want to unhide this chat?',
+                      confirmText: 'Unhide',
+                      confirmColor: primaryColor,
+                    ).then((confirmed) {
+                      if (confirmed) {
+                        hiddenChatService.unhideChat(chat.uid);
+                      }
+                    });
+                  }
+                },
               ),
             ),
             if (!chat.isOneToOne) ...[

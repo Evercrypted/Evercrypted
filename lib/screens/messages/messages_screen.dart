@@ -83,7 +83,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   List<MessageObject> obxAddedMessages = [];
 
   late StreamSubscription isConnectedListener;
-  bool isConnected = ChatSocket.isConnectedSubject.value;
+  bool isConnected = ChatSocket.isConnectedSubject.valueOrNull ?? false;
   StreamSubscription? messageStatusListener;
 
   final fabKey = GlobalKey<ExpandableFabState>();
@@ -757,22 +757,42 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                         builder: (context) => ChatSettingsScreen(chat)));
               },
             ),
-            PasswordDialogIcon(
-              settingsDialogOpen: settingsDialogOpen,
-              pass: pass,
-              openPasswordDialog: () => openPasswordDialog(context),
-              chat: chat,
-              baseKey: baseKey,
-            ),
-            const SizedBox(width: defaultPadding / 4),
+            Container(
+              margin: const EdgeInsets.only(right: defaultPadding / 2),
+              child: InkWell(
+                onTap: () {
+                  onDelete();
+                },
+                onLongPress: () {},
+                child: Ink(
+                  child: const Icon(
+                    Icons.delete,
+                    color: errorColor,
+                  ),
+                ),
+              ),
+            )
           ],
         ),
-        bottomNavigationBar: ChatInputField(
-            chat: chat,
-            baseKey: baseKey,
-            pass: pass,
-            player: player,
-            onDelete: onDelete),
+        bottomNavigationBar: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 3, left: 6),
+              child: PasswordDialogIcon(
+                settingsDialogOpen: settingsDialogOpen,
+                pass: pass,
+                openPasswordDialog: () => openPasswordDialog(context),
+                chat: chat,
+                baseKey: baseKey,
+              ),
+            ),
+            Expanded(
+              child: ChatInputField(
+                  chat: chat, baseKey: baseKey, pass: pass, player: player),
+            ),
+          ],
+        ),
         floatingActionButton: showFab
             ? ExpandableFab(
                 key: fabKey,

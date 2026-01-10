@@ -29,14 +29,13 @@ class ChatInputField extends ConsumerStatefulWidget {
   final String? pass;
   final String? baseKey;
   final FlutterSoundPlayer player;
-  final Function onDelete;
-  const ChatInputField(
-      {super.key,
-      required this.chat,
-      required this.player,
-      this.pass,
-      this.baseKey,
-      required this.onDelete});
+  const ChatInputField({
+    super.key,
+    required this.chat,
+    required this.player,
+    this.pass,
+    this.baseKey,
+  });
 
   @override
   ChatInputFieldState createState() => ChatInputFieldState();
@@ -730,18 +729,6 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                     : Expanded(
                         child: Row(
                           children: [
-                            InkWell(
-                              onTap: () {
-                                widget.onDelete();
-                              },
-                              onLongPress: () {},
-                              child: Ink(
-                                child: const Icon(
-                                  Icons.delete,
-                                  color: errorColor,
-                                ),
-                              ),
-                            ),
                             const SizedBox(width: defaultPadding / 4),
                             if (file == null)
                               Expanded(

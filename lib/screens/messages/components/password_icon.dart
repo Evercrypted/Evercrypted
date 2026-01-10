@@ -44,12 +44,12 @@ class _PasswordDialogIconState extends State<PasswordDialogIcon>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 34,
-      height: 34,
+      width: 40,
+      height: 40,
       child: Stack(
         children: [
           IconButton(
-              visualDensity: VisualDensity.compact,
+              iconSize: 28,
               style: ButtonStyle(
                   padding: WidgetStateProperty.all<EdgeInsets>(
                       const EdgeInsets.all(0)),
@@ -75,13 +75,13 @@ class _PasswordDialogIconState extends State<PasswordDialogIcon>
                                   .animate(_flickerController)
                               : const AlwaysStoppedAnimation(1.0),
                           child: Icon(Icons.policy,
-                              size: 22,
+                              size: 28,
                               color: widget.pass == null
                                   ? errorColor
                                   : widget.color ?? primaryColor))
                       : FadeTransition(
                           opacity: const AlwaysStoppedAnimation(1.0),
-                          child: Icon(Icons.security, size: 22, color: widget.pass == null ? errorColor : widget.color ?? primaryColor))),
+                          child: Icon(Icons.security, size: 28, color: widget.pass == null ? errorColor : widget.color ?? primaryColor))),
               onPressed: () {
                 widget.openPasswordDialog();
               }),
