@@ -12,6 +12,7 @@ import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
+import 'package:swipe_to/swipe_to.dart';
 
 import '../../../ui_constants.dart';
 import '../../../models/chat_message.dart';
@@ -151,6 +152,69 @@ class _MessageWidgetState extends State<MessageWidget> {
     return completer.future;
   }
 
+  void _showDeleteConfirmationDialog(
+      BuildContext context, ChatMessage message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete Message'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Are you sure you want to delete this message?'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: errorColor.withAlpha((255 * 0.1).toInt()),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: errorColor.withAlpha((255 * 0.3).toInt()),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.warning_amber_rounded,
+                        color: errorColor, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'If this message hasn\'t been delivered to all participants yet, it will also be deleted from the server.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: errorColor.withAlpha((255 * 0.9).toInt()),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                if (widget.onDelete != null) {
+                  widget.onDelete!(message);
+                }
+              },
+              style: TextButton.styleFrom(foregroundColor: errorColor),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showMessageOptionsBottomSheet(
       BuildContext context, ChatMessage message) {
     showModalBottomSheet(
@@ -258,9 +322,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    if (widget.onDelete != null) {
-                      widget.onDelete!(message);
-                    }
+                    _showDeleteConfirmationDialog(context, message);
                   },
                 ),
               ],
@@ -318,49 +380,63 @@ class _MessageWidgetState extends State<MessageWidget> {
                       child: Text(message!.text!),
                     ),
                   )
-                : Row(
-                    mainAxisAlignment: message!.isSender
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
-                    children: [
-                      if (!message!.isSender && widget.sender != null) ...[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            EncryptionStatusIcon(status: encryptionStatus),
-                            const SizedBox(height: 2),
-                            CircleAvatarWithActiveIndicator(
-                              image: widget.sender!.avatar?.pic,
-                              radius: 12,
-                              name: widget.sender!.name ?? widget.sender!.email,
-                              initialsSize: 1,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: defaultPadding / 3),
-                      ],
-                      GestureDetector(
-                        onLongPress: () {
-                          _showMessageOptionsBottomSheet(context, message!);
-                        },
-                        child: messageContent(message!),
-                      ),
-                      if (message!.isSender) ...[
-                        const SizedBox(width: defaultPadding / 4),
-                        Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                : SwipeTo(
+                    iconOnLeftSwipe: Icons.delete,
+                    iconOnRightSwipe: Icons.delete,
+                    iconColor: errorColor,
+                    onLeftSwipe: (details) {
+                      _showDeleteConfirmationDialog(context, message!);
+                    },
+                    onRightSwipe: (details) {
+                      _showDeleteConfirmationDialog(context, message!);
+                    },
+                    child: Row(
+                      mainAxisAlignment: message!.isSender
+                          ? MainAxisAlignment.end
+                          : MainAxisAlignment.start,
+                      children: [
+                        if (!message!.isSender && widget.sender != null) ...[
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              if (encryptionStatus ==
-                                  EncryptionStatus.encrypted) ...[
-                                EncryptionStatusIcon(status: encryptionStatus),
-                                const SizedBox(height: 2),
-                              ],
-                              MessageStatusDot(status: message!.messageStatus),
-                            ]),
+                              EncryptionStatusIcon(status: encryptionStatus),
+                              const SizedBox(height: 2),
+                              CircleAvatarWithActiveIndicator(
+                                image: widget.sender!.avatar?.pic,
+                                radius: 12,
+                                name:
+                                    widget.sender!.name ?? widget.sender!.email,
+                                initialsSize: 1,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: defaultPadding / 3),
+                        ],
+                        GestureDetector(
+                          onLongPress: () {
+                            _showMessageOptionsBottomSheet(context, message!);
+                          },
+                          child: messageContent(message!),
+                        ),
+                        if (message!.isSender) ...[
+                          const SizedBox(width: defaultPadding / 4),
+                          Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (encryptionStatus ==
+                                    EncryptionStatus.encrypted) ...[
+                                  EncryptionStatusIcon(
+                                      status: encryptionStatus),
+                                  const SizedBox(height: 2),
+                                ],
+                                MessageStatusDot(
+                                    status: message!.messageStatus),
+                              ]),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
           )
         : const SizedBox();
