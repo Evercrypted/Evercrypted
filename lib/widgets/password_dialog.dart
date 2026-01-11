@@ -56,8 +56,10 @@ class _PasswordBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
-  final EvercryptedTextController _passwordController = EvercryptedTextController();
+  final EvercryptedTextController _passwordController =
+      EvercryptedTextController();
   final _formKey = GlobalKey<FormState>();
+  bool _passwordVisible = false;
 
   @override
   void dispose() {
@@ -87,38 +89,37 @@ class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
       return;
     }
 
-      // Show confirmation dialog
-      showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Confirm Hide Chat'),
-          content: const Text(
-              'Are you sure you want to hide this chat? You will need to enter the password in the search field on chats screen to see it again.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+    // Show confirmation dialog
+    showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Confirm Hide Chat'),
+        content: const Text(
+            'Are you sure you want to hide this chat? You will need to enter the password in the search field on chats screen to see it again.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: primaryColor,
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(
-                foregroundColor: primaryColor,
-              ),
-              child: const Text('Hide Chat'),
-            ),
-          ],
-        ),
-      ).then((confirmed) {
-        if (confirmed == true && mounted) {
-          Navigator.pop(context); // Close bottom sheet
-          widget.onConfirm(_passwordController.text);
-        }
-      });
+            child: const Text('Hide Chat'),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true && mounted) {
+        Navigator.pop(context); // Close bottom sheet
+        widget.onConfirm(_passwordController.text);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Wrap(
       children: [
         Container(
@@ -163,10 +164,22 @@ class _PasswordBottomSheetState extends ConsumerState<_PasswordBottomSheet> {
                   const SizedBox(height: defaultPadding),
                   EvercryptedTextField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: !_passwordVisible,
                     decoration: InputDecoration(
                       prefixIcon: Icon(
                         Icons.lock,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _passwordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _passwordVisible = !_passwordVisible;
+                          });
+                        },
                       ),
                       hintText: widget.hintText,
                     ),

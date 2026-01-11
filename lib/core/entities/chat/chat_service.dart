@@ -12,6 +12,7 @@ import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/http.dart';
+import 'package:evercrypted/core/services/hidden_chat_service.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
@@ -200,11 +201,24 @@ class ChatService {
 
   openOneToOneChat(BuildContext context, WidgetRef ref, Contact contact) {
     List<Chat> chats = ChatState.chats;
-    Chat? foundChat = chats
+
+    // Get hidden chat UIDs to filter them out
+    final profile = profileService.getProfile();
+    final hiddenChatService = HiddenChatService();
+    final hiddenChatUids = hiddenChatService.getHiddenChatUids(profile);
+
+    // Find all one-to-one chats with this contact
+    final chatsWithContact = chats
         .where((element) => (element.isOneToOne &&
             element.participants
                 .any((element) => element.uid == contact.contactPersonUid)))
+        .toList();
+
+    // Only consider non-hidden chats
+    Chat? foundChat = chatsWithContact
+        .where((chat) => !hiddenChatUids.contains(chat.uid))
         .firstOrNull;
+
     if (foundChat != null) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -216,18 +230,19 @@ class ChatService {
         (route) => route.isFirst,
       );
     } else {
+      // Capture navigator before async call to ensure navigation works
+      final navigator = Navigator.of(context);
+
+      // Create new chat if no non-hidden chat exists (server now allows multiple chats per contact)
       NewOneToOneChatDTO newChat =
           NewOneToOneChatDTO(contact: contact.contactPersonUid!);
       createNewChat(newChat).then((Chat returnedChat) {
-        if (context.mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MessagesScreen(chat: returnedChat),
-            ),
-            (route) => route.isFirst,
-          );
-        }
+        navigator.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => MessagesScreen(chat: returnedChat),
+          ),
+          (route) => route.isFirst,
+        );
       });
     }
   }

@@ -158,7 +158,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         debugPrint('MessagesScreen.build: Chat updated: ${chat.uid}');
         setBaseKey();
       } else {
-        Navigator.popUntil(context, (r) => r.isFirst);
+        if (mounted) {
+          Navigator.popUntil(context, (r) => r.isFirst);
+        }
       }
 
       if (chat.name == null) {
@@ -169,7 +171,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     setBaseKey().then((value) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        openPasswordDialog(context);
+        if (mounted) {
+          openPasswordDialog(context);
+        }
       });
     });
 
