@@ -29,11 +29,9 @@ import 'package:evercrypted/models/chat_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:swipe_to/swipe_to.dart';
 
 import '../../ui_constants.dart';
 import '../../widgets/primary_button.dart';
@@ -86,8 +84,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   bool isConnected = ChatSocket.isConnectedSubject.valueOrNull ?? false;
   StreamSubscription? messageStatusListener;
 
-  final fabKey = GlobalKey<ExpandableFabState>();
-  bool showFab = false;
   bool settingsDialogOpen = false;
   StreamSubscription<List<Chat>>? chatsSubscription;
 
@@ -533,22 +529,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     }
   }
 
-  onDelete({close = false}) {
-    if (showFab) {
-      fabKey.currentState?.toggle();
-      setState(() {
-        showFab = false;
-      });
-    } else {
-      setState(() {
-        showFab = true;
-      });
-      Future.delayed(const Duration(milliseconds: 100), () {
-        fabKey.currentState?.toggle();
-      });
-    }
-  }
-
   deleteSingleMessage(ChatMessage chatMessage) async {
     try {
       if (chatMessage.uid != null) {
@@ -625,33 +605,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to delete message: $e')),
         );
-      }
-    }
-  }
-
-  deteleMessages() async {
-    try {
-      await _messageService.deleteAllMessages(widget.chat.uid);
-
-      // Only update UI after successful deletion
-      if (mounted) {
-        setState(() {
-          _pagingState = _pagingState.copyWith(
-            pages: [],
-            keys: [],
-            hasNextPage: false,
-            isLoading: false,
-          );
-        });
-        // Double toggle - first closes "Are you sure?", second closes the FAB
-        fabKey.currentState?.toggle();
-      }
-    } catch (e) {
-      // Handle error - revert UI if needed
-      if (mounted) {
-        // Show error to user
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete messages: $e')));
       }
     }
   }
@@ -755,26 +708,25 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
               icon: const Icon(Icons.settings),
               color: primaryColor,
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ChatSettingsScreen(chat)));
+                Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChatSettingsScreen(chat)))
+                    .then((messagesCleared) {
+                  if (messagesCleared == true) {
+                    // Clear local message state when messages were deleted
+                    setState(() {
+                      obxAddedMessages.clear();
+                      _pagingState = _pagingState.copyWith(
+                        pages: [],
+                        keys: [],
+                        hasNextPage: false,
+                        isLoading: false,
+                      );
+                    });
+                  }
+                });
               },
-            ),
-            Container(
-              margin: const EdgeInsets.only(right: defaultPadding / 2),
-              child: InkWell(
-                onTap: () {
-                  onDelete();
-                },
-                onLongPress: () {},
-                child: Ink(
-                  child: const Icon(
-                    Icons.delete,
-                    color: errorColor,
-                  ),
-                ),
-              ),
             )
           ],
         ),
@@ -797,83 +749,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             ),
           ],
         ),
-        floatingActionButton: showFab
-            ? ExpandableFab(
-                key: fabKey,
-                pos: ExpandableFabPos.left,
-                openButtonBuilder: RotateFloatingActionButtonBuilder(
-                  child: const Icon(Icons.delete),
-                  fabSize: ExpandableFabSize.small,
-                  foregroundColor: Colors.white,
-                  backgroundColor: errorColor,
-                ),
-                closeButtonBuilder: DefaultFloatingActionButtonBuilder(
-                  child: const Icon(Icons.close),
-                  fabSize: ExpandableFabSize.small,
-                  foregroundColor: Colors.white,
-                  backgroundColor: primaryColor,
-                ),
-                onClose: () {
-                  setState(() {
-                    showFab = false;
-                  });
-                },
-                children: [
-                  SwipeTo(
-                      offsetDx: 0.5,
-                      onRightSwipe: (details) async {
-                        deteleMessages();
-                      },
-                      onLeftSwipe: (details) async {
-                        deteleMessages();
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: errorColor,
-                        ),
-                        padding: const EdgeInsets.all(10),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Yes!',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      )),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.black,
-                    ),
-                    padding: const EdgeInsets.all(10),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.delete_sweep,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Swipe "YES" to delete all messages',
-                          style: TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : null,
-        floatingActionButtonLocation: ExpandableFab.location,
         body: Column(
           children: [
             Expanded(

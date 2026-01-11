@@ -6,6 +6,7 @@ import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
+import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/services/hidden_chat_service.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
@@ -30,6 +31,7 @@ class ChatSettingsScreen extends ConsumerStatefulWidget {
 class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
   ChatService chatService = ChatService();
   HiddenChatService hiddenChatService = HiddenChatService();
+  MessageService messageService = MessageService();
   late Participant user;
   late Chat chat;
   StreamSubscription<List<Chat>>? chatsSubscription;
@@ -219,6 +221,60 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                   }
                 },
               ),
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: errorColor.withAlpha((255 * 0.1).round()),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.delete_sweep,
+                  color: errorColor,
+                  size: 24,
+                ),
+              ),
+              title: const Text(
+                'Clear All Messages',
+                style: TextStyle(fontSize: 16),
+              ),
+              subtitle: const Text(
+                'Delete all messages in this chat',
+                style: TextStyle(fontSize: 13),
+              ),
+              onTap: () {
+                _showConfirmationDialog(
+                  title: 'Clear All Messages',
+                  content:
+                      'Are you sure you want to delete all messages in this chat? This action cannot be undone.',
+                  confirmText: 'Clear All',
+                ).then((confirmed) async {
+                  if (confirmed) {
+                    try {
+                      await messageService.deleteAllMessages(chat.uid);
+                      if (context.mounted) {
+                        // Pop back to messages screen with result indicating messages were cleared
+                        Navigator.pop(context, true);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('All messages deleted'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to delete messages: $e'),
+                          ),
+                        );
+                      }
+                    }
+                  }
+                });
+              },
             ),
             if (!chat.isOneToOne) ...[
               const SizedBox(height: defaultPadding),
