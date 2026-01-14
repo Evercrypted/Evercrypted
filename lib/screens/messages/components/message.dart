@@ -12,7 +12,6 @@ import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
-import 'package:swipe_to/swipe_to.dart';
 
 import '../../../ui_constants.dart';
 import '../../../models/chat_message.dart';
@@ -380,63 +379,49 @@ class _MessageWidgetState extends State<MessageWidget> {
                       child: Text(message!.text!),
                     ),
                   )
-                : SwipeTo(
-                    iconOnLeftSwipe: Icons.delete,
-                    iconOnRightSwipe: Icons.delete,
-                    iconColor: errorColor,
-                    onLeftSwipe: (details) {
-                      _showDeleteConfirmationDialog(context, message!);
-                    },
-                    onRightSwipe: (details) {
-                      _showDeleteConfirmationDialog(context, message!);
-                    },
-                    child: Row(
-                      mainAxisAlignment: message!.isSender
-                          ? MainAxisAlignment.end
-                          : MainAxisAlignment.start,
-                      children: [
-                        if (!message!.isSender && widget.sender != null) ...[
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              EncryptionStatusIcon(status: encryptionStatus),
-                              const SizedBox(height: 2),
-                              CircleAvatarWithActiveIndicator(
-                                image: widget.sender!.avatar?.pic,
-                                radius: 12,
-                                name:
-                                    widget.sender!.name ?? widget.sender!.email,
-                                initialsSize: 1,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: defaultPadding / 3),
-                        ],
-                        GestureDetector(
-                          onLongPress: () {
-                            _showMessageOptionsBottomSheet(context, message!);
-                          },
-                          child: messageContent(message!),
+                : Row(
+                    mainAxisAlignment: message!.isSender
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.start,
+                    children: [
+                      if (!message!.isSender && widget.sender != null) ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            EncryptionStatusIcon(status: encryptionStatus),
+                            const SizedBox(height: 2),
+                            CircleAvatarWithActiveIndicator(
+                              image: widget.sender!.avatar?.pic,
+                              radius: 12,
+                              name: widget.sender!.name ?? widget.sender!.email,
+                              initialsSize: 1,
+                            ),
+                          ],
                         ),
-                        if (message!.isSender) ...[
-                          const SizedBox(width: defaultPadding / 4),
-                          Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                if (encryptionStatus ==
-                                    EncryptionStatus.encrypted) ...[
-                                  EncryptionStatusIcon(
-                                      status: encryptionStatus),
-                                  const SizedBox(height: 2),
-                                ],
-                                MessageStatusDot(
-                                    status: message!.messageStatus),
-                              ]),
-                        ],
+                        const SizedBox(width: defaultPadding / 3),
                       ],
-                    ),
+                      GestureDetector(
+                        onLongPress: () {
+                          _showMessageOptionsBottomSheet(context, message!);
+                        },
+                        child: messageContent(message!),
+                      ),
+                      if (message!.isSender) ...[
+                        const SizedBox(width: defaultPadding / 4),
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              if (encryptionStatus ==
+                                  EncryptionStatus.encrypted) ...[
+                                EncryptionStatusIcon(status: encryptionStatus),
+                                const SizedBox(height: 2),
+                              ],
+                              MessageStatusDot(status: message!.messageStatus),
+                            ]),
+                      ],
+                    ],
                   ),
           )
         : const SizedBox();

@@ -318,20 +318,24 @@ class AudioWaveformBarsState extends State<AudioWaveformBars> {
                         },
                       ),
                     ),
-                    // Play/Pause button overlay
+                    // Play/Pause button overlay with dedicated GestureDetector
                     if (widget.audioData != null &&
                         widget.durationMicroSeconds != null)
                       Positioned(
                         left: 0,
                         top: 0,
                         bottom: 0,
-                        child: Container(
-                          width: 40,
-                          alignment: Alignment.center,
-                          child: Icon(
-                            isPlaying ? Icons.stop : Icons.play_arrow,
-                            color: widget.color,
-                            size: 36,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: togglePlayback,
+                          child: Container(
+                            width: 40,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              isPlaying ? Icons.stop : Icons.play_arrow,
+                              color: widget.color,
+                              size: 36,
+                            ),
                           ),
                         ),
                       ),
