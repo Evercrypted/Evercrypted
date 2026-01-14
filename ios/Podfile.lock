@@ -9,6 +9,8 @@ PODS:
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
+  - audio_session (0.0.1):
+    - Flutter
   - camera_avfoundation (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.9):
@@ -60,7 +62,7 @@ PODS:
   - firebase_core (4.3.0):
     - Firebase/CoreOnly (= 12.6.0)
     - Flutter
-  - firebase_messaging (16.0.4):
+  - firebase_messaging (16.1.0):
     - Firebase/Messaging (= 12.6.0)
     - firebase_core
     - Flutter
@@ -102,12 +104,13 @@ PODS:
     - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
-  - flutter_secure_storage (6.0.0):
+  - flutter_secure_storage_darwin (10.0.0):
     - Flutter
-  - flutter_sound (9.28.0):
+    - FlutterMacOS
+  - flutter_sound (9.30.0):
     - Flutter
-    - flutter_sound_core (= 9.28.0)
-  - flutter_sound_core (9.28.0)
+    - flutter_sound_core (= 9.30.0)
+  - flutter_sound_core (9.30.0)
   - google_sign_in_ios (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -116,7 +119,7 @@ PODS:
   - GoogleDataTransport (10.1.0):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
-  - GoogleSignIn (9.0.0):
+  - GoogleSignIn (9.1.0):
     - AppAuth (~> 2.0)
     - AppCheckCore (~> 11.0)
     - GTMAppAuth (~> 5.0)
@@ -167,10 +170,10 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - ObjectBox (5.0.0)
+  - ObjectBox (5.1.1)
   - objectbox_flutter_libs (0.0.1):
     - Flutter
-    - ObjectBox (= 5.0.0)
+    - ObjectBox (= 5.1.1)
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -194,6 +197,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
@@ -202,7 +206,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_ever_crypto (from `.symlinks/plugins/flutter_ever_crypto/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
-  - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
+  - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - flutter_sound (from `.symlinks/plugins/flutter_sound/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
@@ -246,6 +250,8 @@ SPEC REPOS:
     - SwiftyGif
 
 EXTERNAL SOURCES:
+  audio_session:
+    :path: ".symlinks/plugins/audio_session/ios"
   camera_avfoundation:
     :path: ".symlinks/plugins/camera_avfoundation/ios"
   file_picker:
@@ -262,8 +268,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_ever_crypto/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
-  flutter_secure_storage:
-    :path: ".symlinks/plugins/flutter_secure_storage/ios"
+  flutter_secure_storage_darwin:
+    :path: ".symlinks/plugins/flutter_secure_storage_darwin/darwin"
   flutter_sound:
     :path: ".symlinks/plugins/flutter_sound/ios"
   google_sign_in_ios:
@@ -292,14 +298,15 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
-  camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
+  audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
+  camera_avfoundation: 5675ca25298b6f81fa0a325188e7df62cc217741
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Firebase: a451a7b61536298fd5cbfe3a746fd40443a50679
   firebase_auth: f547a06ed4933a1da2b9ac8d8c64ae09d113c8e1
   firebase_core: ba00a168e719694f38960502ceb560285603d073
-  firebase_messaging: 752f1df5294ead9d72091d4974362d00d4aec201
+  firebase_messaging: bf0e29321927edc02a563c984dbfa5b063864b15
   FirebaseAppCheckInterop: e2178171b4145013c7c1a3cc464d1d446d3a1896
   FirebaseAuth: 613c463cb43545a7fd2cd99ade09b78ac472c544
   FirebaseAuthInterop: db06756ef028006d034b6004dc0c37c24f7828d4
@@ -311,12 +318,12 @@ SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_ever_crypto: 4b7790e3c6f83a4eb3fc88bde45d9138b98c8270
   flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
-  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
-  flutter_sound: b9236a5875299aaa4cef1690afd2f01d52a3f890
-  flutter_sound_core: 427465f72d07ab8c3edbe8ffdde709ddacd3763c
+  flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
+  flutter_sound: d95194f6476c9ad211d22b3a414d852c12c7ca44
+  flutter_sound_core: 7f2626d249d3a57bfa6da892ef7e22d234482c1a
   google_sign_in_ios: 00dfa94252eb10278b64828c81bcb7158a81a53a
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
-  GoogleSignIn: c7f09cfbc85a1abf69187be091997c317cc33b77
+  GoogleSignIn: fcee2257188d5eda57a5e2b6a715550ffff9206d
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
@@ -324,9 +331,9 @@ SPEC CHECKSUMS:
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  ObjectBox: a60820ec1c903702350585d8cc99c1268c99e688
-  objectbox_flutter_libs: 9bfa6489919e9191d33d54dc25cec67ca416c13d
-  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  ObjectBox: 26871f7cce80a8bd2e610bf944aeaded730f6925
+  objectbox_flutter_libs: 28e7bd5ae78e831f141679c8a6e31632453b959f
+  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
@@ -336,7 +343,7 @@ SPEC CHECKSUMS:
   SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
-  url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
+  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
 PODFILE CHECKSUM: 7ca194027878045e00af9576aec6cde4925f9c52
 

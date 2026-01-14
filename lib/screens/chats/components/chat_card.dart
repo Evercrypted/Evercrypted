@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
@@ -95,6 +96,14 @@ class ChatCard extends ConsumerWidget {
   }
 
   void _showOptionsBottomSheet(BuildContext context, Chat chat) {
+    // Determine if the current user is the creator
+    final currentUserEmail = Auth.getUser?.email?.toLowerCase();
+    final currentUserParticipant = chat.participants.firstWhereOrNull(
+      (p) => p.email?.toLowerCase() == currentUserEmail,
+    );
+    final isCreator = currentUserParticipant?.isCreator ?? false;
+    final canDelete = isCreator || chat.isOneToOne;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -147,6 +156,37 @@ class ChatCard extends ConsumerWidget {
                     _showClearMessagesConfirmationDialog(context, chat);
                   },
                 ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: errorColor.withAlpha((255 * 0.1).toInt()),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      canDelete ? Icons.delete : Icons.exit_to_app,
+                      color: errorColor,
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    canDelete ? 'Delete chat' : 'Leave chat',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: contentColorLightThemeSecondary),
+                  ),
+                  subtitle: Text(
+                    canDelete
+                        ? 'Permanently delete this chat'
+                        : 'Leave this group chat',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showDeleteOrLeaveConfirmationDialog(
+                        context, chat, canDelete);
+                  },
+                ),
               ],
             ),
           ),
@@ -192,6 +232,48 @@ class ChatCard extends ConsumerWidget {
               child: const Text(
                 'Clear',
                 style: TextStyle(color: errorColor),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteOrLeaveConfirmationDialog(
+      BuildContext context, Chat chat, bool isDelete) {
+    final title = isDelete ? 'Delete chat' : 'Leave chat';
+    final content = isDelete
+        ? 'Are you sure you want to delete this chat? This action cannot be undone.'
+        : 'Are you sure you want to leave this chat?';
+    final confirmText = isDelete ? 'Delete' : 'Leave';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                final chatService = ChatService();
+                if (isDelete) {
+                  chatService.deleteChat(chatUid: chat.uid);
+                } else {
+                  chatService.leaveChat(chatUid: chat.uid);
+                }
+              },
+              child: Text(
+                confirmText,
+                style: const TextStyle(color: errorColor),
               ),
             ),
           ],

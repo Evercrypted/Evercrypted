@@ -10,11 +10,11 @@ part of 'navigation_state.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(Navigation)
-const navigationProvider = NavigationProvider._();
+final navigationProvider = NavigationProvider._();
 
 final class NavigationProvider
     extends $NotifierProvider<Navigation, NavigationState> {
-  const NavigationProvider._()
+  NavigationProvider._()
       : super(
           from: null,
           argument: null,
@@ -48,13 +48,12 @@ abstract class _$Navigation extends $Notifier<NavigationState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<NavigationState, NavigationState>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<NavigationState, NavigationState>,
         NavigationState,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

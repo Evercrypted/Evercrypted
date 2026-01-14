@@ -10,11 +10,11 @@ part of 'profile_riverpod.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ProfileNotifier)
-const profileProvider = ProfileNotifierProvider._();
+final profileProvider = ProfileNotifierProvider._();
 
 final class ProfileNotifierProvider
     extends $NotifierProvider<ProfileNotifier, Profile?> {
-  const ProfileNotifierProvider._()
+  ProfileNotifierProvider._()
       : super(
           from: null,
           argument: null,
@@ -48,10 +48,9 @@ abstract class _$ProfileNotifier extends $Notifier<Profile?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<Profile?, Profile?>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<Profile?, Profile?>, Profile?, Object?, Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

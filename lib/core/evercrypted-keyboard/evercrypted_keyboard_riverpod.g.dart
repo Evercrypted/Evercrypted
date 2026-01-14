@@ -11,13 +11,13 @@ part of 'evercrypted_keyboard_riverpod.dart';
 /// Notifier class to manage keyboard state changes
 
 @ProviderFor(KeyboardNotifier)
-const keyboardProvider = KeyboardNotifierProvider._();
+final keyboardProvider = KeyboardNotifierProvider._();
 
 /// Notifier class to manage keyboard state changes
 final class KeyboardNotifierProvider
     extends $NotifierProvider<KeyboardNotifier, KeyboardState> {
   /// Notifier class to manage keyboard state changes
-  const KeyboardNotifierProvider._()
+  KeyboardNotifierProvider._()
       : super(
           from: null,
           argument: null,
@@ -53,13 +53,12 @@ abstract class _$KeyboardNotifier extends $Notifier<KeyboardState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<KeyboardState, KeyboardState>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<KeyboardState, KeyboardState>,
         KeyboardState,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

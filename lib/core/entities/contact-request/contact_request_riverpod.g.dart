@@ -10,11 +10,11 @@ part of 'contact_request_riverpod.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SentContactRequests)
-const sentContactRequestsProvider = SentContactRequestsProvider._();
+final sentContactRequestsProvider = SentContactRequestsProvider._();
 
 final class SentContactRequestsProvider
     extends $NotifierProvider<SentContactRequests, List<ContactRequest>> {
-  const SentContactRequestsProvider._()
+  SentContactRequestsProvider._()
       : super(
           from: null,
           argument: null,
@@ -49,23 +49,22 @@ abstract class _$SentContactRequests extends $Notifier<List<ContactRequest>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<List<ContactRequest>, List<ContactRequest>>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<List<ContactRequest>, List<ContactRequest>>,
         List<ContactRequest>,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(ReceivedContactRequests)
-const receivedContactRequestsProvider = ReceivedContactRequestsProvider._();
+final receivedContactRequestsProvider = ReceivedContactRequestsProvider._();
 
 final class ReceivedContactRequestsProvider
     extends $NotifierProvider<ReceivedContactRequests, List<ContactRequest>> {
-  const ReceivedContactRequestsProvider._()
+  ReceivedContactRequestsProvider._()
       : super(
           from: null,
           argument: null,
@@ -101,13 +100,12 @@ abstract class _$ReceivedContactRequests
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<List<ContactRequest>, List<ContactRequest>>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<List<ContactRequest>, List<ContactRequest>>,
         List<ContactRequest>,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

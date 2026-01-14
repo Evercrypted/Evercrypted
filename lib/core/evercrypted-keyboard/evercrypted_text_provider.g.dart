@@ -13,7 +13,7 @@ part of 'evercrypted_text_provider.dart';
 /// Usage: ref.watch(evercryptedTextControllerProvider('key'))
 
 @ProviderFor(EvercryptedTextControllerNotifier)
-const evercryptedTextControllerProvider =
+final evercryptedTextControllerProvider =
     EvercryptedTextControllerNotifierFamily._();
 
 /// A provider family that creates and manages EvercryptedTextController instances
@@ -24,7 +24,7 @@ final class EvercryptedTextControllerNotifierProvider extends $NotifierProvider<
   /// A provider family that creates and manages EvercryptedTextController instances
   /// Automatically handles disposal when the provider is disposed
   /// Usage: ref.watch(evercryptedTextControllerProvider('key'))
-  const EvercryptedTextControllerNotifierProvider._(
+  EvercryptedTextControllerNotifierProvider._(
       {required EvercryptedTextControllerNotifierFamily super.from,
       required (
         String, {
@@ -93,7 +93,7 @@ final class EvercryptedTextControllerNotifierFamily extends $Family
               String, {
               String? initialText,
             })> {
-  const EvercryptedTextControllerNotifierFamily._()
+  EvercryptedTextControllerNotifierFamily._()
       : super(
           retry: null,
           name: r'evercryptedTextControllerProvider',
@@ -139,10 +139,6 @@ abstract class _$EvercryptedTextControllerNotifier
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(
-      _$args.$1,
-      initialText: _$args.initialText,
-    );
     final ref =
         this.ref as $Ref<EvercryptedTextController, EvercryptedTextController>;
     final element = ref.element as $ClassProviderElement<
@@ -150,6 +146,11 @@ abstract class _$EvercryptedTextControllerNotifier
         EvercryptedTextController,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(
+        ref,
+        () => build(
+              _$args.$1,
+              initialText: _$args.initialText,
+            ));
   }
 }
