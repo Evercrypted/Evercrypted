@@ -671,60 +671,63 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                     ),
                   )
                 : recordingData != null
-                    ? Row(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: defaultPadding / 2),
-                            padding: const EdgeInsets.only(
-                                right: defaultPadding / 2),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color:
-                                  primaryColor.withAlpha((0.1 * 255).round()),
+                    ? Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: defaultPadding / 2),
+                                padding: const EdgeInsets.only(
+                                    right: defaultPadding / 2),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: primaryColor
+                                      .withAlpha((0.1 * 255).round()),
+                                ),
+                                height: 50,
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: AudioWaveformBars(
+                                            decibels: recordingDecibels,
+                                            width: constraints.maxWidth -
+                                                30, // Account for cancel icon
+                                            height: 50,
+                                            color: primaryColor,
+                                            audioData: recordingData,
+                                            durationMicroSeconds:
+                                                recordingMicroSeconds,
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            dropRecording();
+                                          },
+                                          child: Icon(Icons.cancel,
+                                              color: errorColor),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
-                            width: MediaQuery.of(context).size.width - 115,
-                            height: 50,
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                return Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: AudioWaveformBars(
-                                        decibels: recordingDecibels,
-                                        width: constraints.maxWidth -
-                                            30, // Account for cancel icon
-                                        height: 50,
-                                        color: primaryColor,
-                                        audioData: recordingData,
-                                        durationMicroSeconds:
-                                            recordingMicroSeconds,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        dropRecording();
-                                      },
-                                      child:
-                                          Icon(Icons.cancel, color: errorColor),
-                                    ),
-                                  ],
-                                );
+                            IconButton(
+                              onPressed: () {
+                                sendAudio(context);
                               },
+                              icon: const Icon(
+                                Icons.send,
+                                color: primaryColor,
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              sendAudio(context);
-                            },
-                            icon: const Icon(
-                              Icons.send,
-                              color: primaryColor,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       )
                     : Expanded(
                         child: Row(

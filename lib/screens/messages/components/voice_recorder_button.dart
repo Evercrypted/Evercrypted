@@ -33,6 +33,8 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   bool recording = false;
   double progress = 0;
   FlutterSoundRecorder? _myRecorder = FlutterSoundRecorder();
+  bool _isRecorderOpen = false;
+  Completer<void>? _recordingStartCompleter;
 
   StreamSubscription<Uint8List>? _mRecordingDataSubscription;
   StreamSubscription<RecordingDisposition>? _recorderProgressSub;
@@ -87,6 +89,7 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
       throw RecordingPermissionException('Microphone permission not granted');
     }
     await _myRecorder!.openRecorder();
+    _isRecorderOpen = true;
 
     // Keep onProgress subscription just for duration tracking
     _recorderProgressSub = _myRecorder!.onProgress!.listen((e) {
@@ -98,9 +101,14 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   }
 
   Future<void> record() async {
+    // Create a completer to track when recording setup is complete
+    _recordingStartCompleter = Completer<void>();
+
     try {
       await _openRecorder();
     } catch (e) {
+      _recordingStartCompleter?.complete();
+      _recordingStartCompleter = null;
       controller.reset();
       widget.onRecordingStateChange?.call(false);
       return;
@@ -124,11 +132,21 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     }, onError: (error) {
       _mRecordingDataSubscription?.cancel();
     });
-    await _myRecorder?.startRecorder(
-      toStream: recordingDataController!.sink,
-      codec: Codec.pcmFloat32,
-      audioSource: AudioSource.defaultSource,
-    );
+
+    try {
+      await _myRecorder?.startRecorder(
+        toStream: recordingDataController!.sink,
+        codec: Codec.pcmFloat32,
+        audioSource: AudioSource.defaultSource,
+      );
+    } catch (e) {
+      // Recorder might have been closed during startup
+      debugPrint('startRecorder error: $e');
+    } finally {
+      // Signal that recording setup is complete (success or failure)
+      _recordingStartCompleter?.complete();
+      _recordingStartCompleter = null;
+    }
   }
 
   /// Calculate amplitude from PCM Float32 audio data
@@ -167,16 +185,25 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
   }
 
   Future<void> stopRecorder() async {
-    try {
-      await _myRecorder?.stopRecorder();
-    } catch (_) {
-      // recorder might not be started yet
+    // Wait for record() to finish starting up before we try to stop
+    if (_recordingStartCompleter != null) {
+      await _recordingStartCompleter!.future;
     }
 
-    try {
-      await _myRecorder?.closeRecorder();
-    } catch (_) {
-      // ignore close errors
+    // Only try to stop if recorder was actually opened
+    if (_isRecorderOpen) {
+      try {
+        await _myRecorder?.stopRecorder();
+      } catch (_) {
+        // recorder might not be started yet
+      }
+
+      try {
+        await _myRecorder?.closeRecorder();
+      } catch (_) {
+        // ignore close errors
+      }
+      _isRecorderOpen = false;
     }
 
     await _mRecordingDataSubscription?.cancel();
@@ -214,26 +241,40 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
       },
       child: Row(
         children: [
-          Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              CircularProgressIndicator(
-                value: 1.0,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade200),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            margin: EdgeInsets.only(
+                left: recording ? 8 : 0, right: recording ? 4 : 0),
+            child: AnimatedScale(
+              scale: recording ? 1.6 : 1.0,
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  CircularProgressIndicator(
+                    value: 1.0,
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Colors.grey.shade200),
+                  ),
+                  CircularProgressIndicator(
+                    value: progress,
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(primaryColor),
+                  ),
+                  if (recording)
+                    Text(
+                      (progress * voiceMessageDurationSeconds)
+                          .round()
+                          .toString(),
+                      style: const TextStyle(
+                          color: primaryColor, fontWeight: FontWeight.bold),
+                    )
+                  else
+                    const Icon(Icons.mic, color: primaryColor),
+                ],
               ),
-              CircularProgressIndicator(
-                value: progress,
-                valueColor: const AlwaysStoppedAnimation<Color>(primaryColor),
-              ),
-              if (recording)
-                Text(
-                  (progress * voiceMessageDurationSeconds).round().toString(),
-                  style: const TextStyle(
-                      color: primaryColor, fontWeight: FontWeight.bold),
-                )
-              else
-                const Icon(Icons.mic, color: primaryColor),
-            ],
+            ),
           ),
         ],
       ),
