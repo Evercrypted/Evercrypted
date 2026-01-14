@@ -249,192 +249,200 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
               MediaQuery.of(context).size.height * 0.8, // 80% of screen height
         ),
         builder: (BuildContext context) {
-          return SingleChildScrollView(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? contentColorLightThemeSecondary
-                    : primaryColor,
-                borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(defaultPadding),
-                    topRight: Radius.circular(defaultPadding)),
-              ),
-              padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom),
-              child: Container(
-                  margin: const EdgeInsets.all(defaultPadding),
-                  padding: const EdgeInsets.fromLTRB(
-                    defaultPadding,
-                    0,
-                    defaultPadding,
-                    defaultPadding,
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setModalState) {
+              return SingleChildScrollView(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? contentColorLightThemeSecondary
+                        : primaryColor,
+                    borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(defaultPadding),
+                        topRight: Radius.circular(defaultPadding)),
                   ),
-                  child: Form(
-                    key: settingsForm,
-                    child: Column(
-                      children: [
-                        PasswordDialogIcon(
-                            settingsDialogOpen: false,
-                            pass: pass,
-                            openPasswordDialog: () => null,
-                            chat: chat,
-                            baseKey: baseKey,
-                            color:
-                                Theme.of(context).brightness == Brightness.light
-                                    ? Colors.white
-                                    : null),
-                        if (chat.isOneToOne)
-                          Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: defaultPadding / 2),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  baseKey == null
-                                      ? Icons.warning
-                                      : Icons.check_circle,
-                                  color: baseKey == null
-                                      ? secondaryColor
-                                      : Theme.of(context).brightness ==
-                                              Brightness.light
-                                          ? Colors.white
-                                          : primaryColor,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    baseKey == null
-                                        ? 'Chat End-to-End key is not synchronized yet. The other party needs to open Evercrypted at least once after the chat is created to generate Base-Encryption-Key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
-                                        : 'Base-Encryption-Key has successfully been synchronized. Entered passwords modify the Base-Encryption-Key.',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        if (!chat.isOneToOne)
-                          Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: defaultPadding / 2),
-                            child: const Text(
-                              'All the encryption in group chats is done with only the entered password. Make sure it is hard to guess.',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        const SizedBox(height: defaultPadding / 2),
-                        EvercryptedTextField(
-                          controller: _passController,
-                          maxLines: 1,
-                          maxLength: 32,
-                          obscureText: !_passwordVisible,
-                          style: TextStyle(
-                            color: contentColorLightTheme,
-                          ),
-                          decoration: InputDecoration(
-                            counterStyle: TextStyle(color: Colors.white),
-                            errorMaxLines: 3,
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _passwordVisible = !_passwordVisible;
-                                });
-                              },
-                              icon: Icon(_passwordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
-                            ),
-                            border: const OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10)),
-                            ),
-                            fillColor: Colors.white,
-                            prefixIcon: Icon(
-                              Icons.password,
-                              color: contentColorLightTheme
-                                  .withAlpha((0.64 * 255).round()),
-                            ),
-                            hintText: "Password",
-                            hintStyle: TextStyle(
-                              color: contentColorLightTheme
-                                  .withAlpha((0.64 * 255).round()),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin:
-                              const EdgeInsets.only(bottom: defaultPadding / 2),
-                          child: Center(
-                            child: const Text(
-                              'Password can be Maximum 32 characters in Length.\n\nPasswords shorter than that will automatically be reinforced with the synchronized Base-Encryption-Key.',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: defaultPadding / 2),
-                        Row(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom),
+                  child: Container(
+                      margin: const EdgeInsets.all(defaultPadding),
+                      padding: const EdgeInsets.fromLTRB(
+                        defaultPadding,
+                        0,
+                        defaultPadding,
+                        defaultPadding,
+                      ),
+                      child: Form(
+                        key: settingsForm,
+                        child: Column(
                           children: [
-                            PrimaryButton(
-                              width: 100,
-                              color: errorColor,
-                              press: () {
-                                _passController.clear();
-                                setPass(null);
-                                Navigator.pop(context);
-                              },
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.cancel_outlined,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    'Clear',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: defaultPadding),
-                            Expanded(
-                              child: PrimaryButton(
-                                needsActivation: true,
-                                press: () {
-                                  setPass(_passController.text);
-                                  Navigator.pop(context);
-                                },
+                            PasswordDialogIcon(
+                                settingsDialogOpen: false,
+                                pass: pass,
+                                openPasswordDialog: () => null,
+                                chat: chat,
+                                baseKey: baseKey,
                                 color: Theme.of(context).brightness ==
                                         Brightness.light
-                                    ? secondaryColor
-                                    : primaryColor,
+                                    ? Colors.white
+                                    : null),
+                            if (chat.isOneToOne)
+                              Container(
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: defaultPadding / 2),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
-                                      Icons.health_and_safety_outlined,
-                                      color: Colors.white,
-                                      size: 24,
+                                      baseKey == null
+                                          ? Icons.warning
+                                          : Icons.check_circle,
+                                      color: baseKey == null
+                                          ? secondaryColor
+                                          : Theme.of(context).brightness ==
+                                                  Brightness.light
+                                              ? Colors.white
+                                              : primaryColor,
                                     ),
                                     const SizedBox(width: 10),
-                                    Text("Use Password",
-                                        style: TextStyle(color: Colors.white))
+                                    Expanded(
+                                      child: Text(
+                                        baseKey == null
+                                            ? 'Chat End-to-End key is not synchronized yet. The other party needs to open Evercrypted at least once after the chat is created to generate Base-Encryption-Key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
+                                            : 'Base-Encryption-Key has successfully been synchronized. Entered passwords modify the Base-Encryption-Key.',
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                            )
+                            if (!chat.isOneToOne)
+                              Container(
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: defaultPadding / 2),
+                                child: const Text(
+                                  'All the encryption in group chats is done with only the entered password. Make sure it is hard to guess.',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            const SizedBox(height: defaultPadding / 2),
+                            EvercryptedTextField(
+                              controller: _passController,
+                              maxLines: 1,
+                              maxLength: 32,
+                              obscureText: !_passwordVisible,
+                              style: TextStyle(
+                                color: contentColorLightTheme,
+                              ),
+                              decoration: InputDecoration(
+                                counterStyle: TextStyle(color: Colors.white),
+                                errorMaxLines: 3,
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    setModalState(() {
+                                      _passwordVisible = !_passwordVisible;
+                                    });
+                                  },
+                                  icon: Icon(_passwordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off),
+                                ),
+                                border: const OutlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10)),
+                                ),
+                                fillColor: Colors.white,
+                                prefixIcon: Icon(
+                                  Icons.password,
+                                  color: contentColorLightTheme
+                                      .withAlpha((0.64 * 255).round()),
+                                ),
+                                hintText: "Password",
+                                hintStyle: TextStyle(
+                                  color: contentColorLightTheme
+                                      .withAlpha((0.64 * 255).round()),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: defaultPadding / 2),
+                            Container(
+                              margin: const EdgeInsets.only(
+                                  bottom: defaultPadding / 2),
+                              child: Center(
+                                child: const Text(
+                                  'Password can be Maximum 32 characters in Length.\n\nPasswords shorter than that will automatically be reinforced with the synchronized Base-Encryption-Key.',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: defaultPadding / 2),
+                            Row(
+                              children: [
+                                PrimaryButton(
+                                  width: 100,
+                                  color: errorColor,
+                                  press: () {
+                                    _passController.clear();
+                                    setPass(null);
+                                    Navigator.pop(context);
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.cancel_outlined,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        'Clear',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: defaultPadding),
+                                Expanded(
+                                  child: PrimaryButton(
+                                    needsActivation: true,
+                                    press: () {
+                                      setPass(_passController.text);
+                                      Navigator.pop(context);
+                                    },
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.light
+                                        ? secondaryColor
+                                        : primaryColor,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.health_and_safety_outlined,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text("Use Password",
+                                            style:
+                                                TextStyle(color: Colors.white))
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-                  )),
-            ),
+                      )),
+                ),
+              );
+            },
           );
         }).then((value) {
       setState(() {
