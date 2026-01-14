@@ -751,6 +751,35 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         ),
         body: Column(
           children: [
+            // Warning banner when E2E key hasn't been synchronized
+            if (baseKey == null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: defaultPadding, vertical: defaultPadding / 2),
+                color: secondaryColor.withAlpha((0.15 * 255).round()),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.lock_clock,
+                      color: secondaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: defaultPadding / 2),
+                    Expanded(
+                      child: Text(
+                        'Waiting for E2E encryption key. Another chat member needs to open the app to share it.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white70
+                              : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
