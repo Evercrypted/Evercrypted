@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/db-encryption.dart';
+import 'package:evercrypted/core/cryptography/db_encryption.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:objectbox/objectbox.dart';

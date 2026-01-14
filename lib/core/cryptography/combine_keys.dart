@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 
 Future<String> combineKeys(String publicKeyBase64, String secretKeyBase64,

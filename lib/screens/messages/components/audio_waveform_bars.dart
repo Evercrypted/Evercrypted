@@ -177,7 +177,7 @@ class AudioWaveformBarsState extends State<AudioWaveformBars> {
         children: [
           // Waveform bars
           Expanded(
-            child: Container(
+            child: SizedBox(
               // Fill the entire height to make tapping easier
               height: widget.height,
               child: GestureDetector(
@@ -266,38 +266,44 @@ class AudioWaveformBarsState extends State<AudioWaveformBars> {
                           final availableWidth = constraints.maxWidth;
 
                           // Ensure we don't try to fit more bars than physically possible
-                          final maxPossibleBars = (availableWidth / (barWidth + barSpacing)).floor();
+                          final maxPossibleBars =
+                              (availableWidth / (barWidth + barSpacing))
+                                  .floor();
 
                           // Re-sample if we have more bars than we can fit
-                          final displayDecibels = normalizedDecibels.length > maxPossibleBars
-                              ? _sampleDecibels(normalizedDecibels, maxPossibleBars)
-                              : normalizedDecibels;
+                          final displayDecibels =
+                              normalizedDecibels.length > maxPossibleBars
+                                  ? _sampleDecibels(
+                                      normalizedDecibels, maxPossibleBars)
+                                  : normalizedDecibels;
 
                           return Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children:
                                 List.generate(displayDecibels.length, (index) {
-                                  final amplitude = displayDecibels[index];
-                                  // Apply a power curve to make differences more visible
-                                  final enhancedAmplitude = amplitude * amplitude;
-                                  // Minimum bar height to make it visible, max 90% of container height
-                                  final barHeight = (enhancedAmplitude *
-                                          widget.height *
-                                          0.9)
-                                      .clamp(widget.height * 0.1, widget.height * 0.9);
+                              final amplitude = displayDecibels[index];
+                              // Apply a power curve to make differences more visible
+                              final enhancedAmplitude = amplitude * amplitude;
+                              // Minimum bar height to make it visible, max 90% of container height
+                              final barHeight = (enhancedAmplitude *
+                                      widget.height *
+                                      0.9)
+                                  .clamp(
+                                      widget.height * 0.1, widget.height * 0.9);
 
-                                  return Container(
-                                    width: barWidth,
-                                    height: barHeight,
-                                    margin: EdgeInsets.symmetric(
-                                        horizontal: barSpacing / 2),
-                                    decoration: BoxDecoration(
-                                      color: widget.color,
-                                      borderRadius: BorderRadius.circular(barWidth / 2),
-                                    ),
-                                  );
-                                }),
+                              return Container(
+                                width: barWidth,
+                                height: barHeight,
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: barSpacing / 2),
+                                decoration: BoxDecoration(
+                                  color: widget.color,
+                                  borderRadius:
+                                      BorderRadius.circular(barWidth / 2),
+                                ),
+                              );
+                            }),
                           );
                         },
                       ),

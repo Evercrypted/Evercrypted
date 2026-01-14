@@ -440,15 +440,15 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          primaryColor.withOpacity(0.15),
-                          primaryColor.withOpacity(0.05),
+                          primaryColor.withAlpha((255 * 0.15).round()),
+                          primaryColor.withAlpha((255 * 0.05).round()),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: primaryColor.withOpacity(0.3),
+                        color: primaryColor.withAlpha((255 * 0.3).round()),
                         width: 2,
                       ),
                     ),

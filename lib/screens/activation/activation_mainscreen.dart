@@ -294,7 +294,7 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                                           .textTheme
                                           .bodyMedium
                                           ?.color
-                                          ?.withOpacity(0.7),
+                                        ?..withAlpha((255 * 0.7).round()),
                                     ),
                                 textAlign: TextAlign.center,
                               ),
@@ -395,7 +395,7 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                           .textTheme
                           .bodyMedium
                           ?.color
-                          ?.withOpacity(0.7),
+                          ?.withAlpha((255 * 0.7).round()),
                     ),
               ),
             ],
@@ -416,7 +416,7 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                     .textTheme
                     .bodyMedium
                     ?.color
-                    ?.withOpacity(0.7),
+                    ?.withAlpha((255 * 0.7).round()),
               ),
         ),
         Text(

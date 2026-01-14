@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:async';
 import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
@@ -238,7 +237,6 @@ class AppleIAPService {
 
   /// Get subscription product details
   ProductDetails? getSubscriptionProduct() {
-    print(_products);
     if (_products.isEmpty) return null;
     try {
       return _products.firstWhere(

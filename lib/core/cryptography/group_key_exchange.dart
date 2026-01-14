@@ -143,7 +143,7 @@ class GroupKeyExchange {
 
     await MessageService().sendGroupKeyRequest(responseMessage);
     debugPrint(
-        'GroupKeyExchange: [RESPONDER] Sent group key response to $requesterId for chat $groupChatId: ${myKeys!.baseKey!.substring(0, 8)}...');
+        'GroupKeyExchange: [RESPONDER] Sent group key response to $requesterId for chat $groupChatId: ${myKeys.baseKey!.substring(0, 8)}...');
   }
 
   /// Process group key response - extract and store group key if we requested it

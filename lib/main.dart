@@ -586,7 +586,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
           contactRequests
               .where((element) =>
                   element.recipientEmail?.toLowerCase() ==
-                  user!.email?.toLowerCase())
+                  user!.email.toLowerCase())
               .toList());
       ref.read(sentContactRequestsProvider.notifier).setSentRequests(
           contactRequests

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:objectbox/objectbox.dart';
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/db-encryption.dart';
+import 'package:evercrypted/core/cryptography/db_encryption.dart';
 
 @Entity()
 class Settings {

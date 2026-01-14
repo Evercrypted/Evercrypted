@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
-import 'package:evercrypted/core/cryptography/db-encryption.dart';
+import 'package:evercrypted/core/cryptography/db_encryption.dart';
 import 'package:objectbox/objectbox.dart';
 
 import '../profile/profile_model.dart';

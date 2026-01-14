@@ -91,7 +91,8 @@ class _AudioMessageState extends State<AudioMessage> {
 
         setState(() {
           // Extract duration
-          if (decodedPayload!['duration'] != null && widget.message.decodedDuration == null) {
+          if (decodedPayload!['duration'] != null &&
+              widget.message.decodedDuration == null) {
             widget.message.decodedDuration = decodedPayload['duration'];
           }
 
@@ -106,7 +107,7 @@ class _AudioMessageState extends State<AudioMessage> {
       }
     } catch (e) {
       // Metadata extraction failed - will show basic waveform
-      print('Failed to extract audio metadata: $e');
+      debugPrint('Failed to extract audio metadata: $e');
     }
   }
 
@@ -170,7 +171,8 @@ class _AudioMessageState extends State<AudioMessage> {
                     position: Position(top: 7.5, left: 7.2),
                     icon: Icon(
                       Icons.download,
-                      color: widget.message.isSender ? Colors.white : primaryColor,
+                      color:
+                          widget.message.isSender ? Colors.white : primaryColor,
                       size: 24,
                     ),
                   )
@@ -181,7 +183,8 @@ class _AudioMessageState extends State<AudioMessage> {
                     },
                     icon: Icon(
                       Icons.download,
-                      color: widget.message.isSender ? Colors.white : primaryColor,
+                      color:
+                          widget.message.isSender ? Colors.white : primaryColor,
                       size: 30,
                     ),
                   ),
@@ -192,7 +195,8 @@ class _AudioMessageState extends State<AudioMessage> {
                         ? "Downloading audio message..."
                         : "Audio message - Click to download",
                     style: TextStyle(
-                      color: widget.message.isSender ? Colors.white : primaryColor,
+                      color:
+                          widget.message.isSender ? Colors.white : primaryColor,
                       fontSize: 13,
                     ),
                   ),
@@ -206,7 +210,8 @@ class _AudioMessageState extends State<AudioMessage> {
                     decibels: displayDecibels,
                     width: MediaQuery.of(context).size.width * 0.55 * 0.8,
                     height: 40,
-                    color: widget.message.isSender ? Colors.white : primaryColor,
+                    color:
+                        widget.message.isSender ? Colors.white : primaryColor,
                     audioData: audioData,
                     durationMicroSeconds: widget.message.decodedDuration,
                   ),

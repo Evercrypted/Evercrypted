@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/base_key.dart';
-import 'package:evercrypted/core/cryptography/db-encryption.dart';
+import 'package:evercrypted/core/cryptography/db_encryption.dart';
 import 'package:evercrypted/core/cryptography/group_key_exchange.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_service.dart';
@@ -84,8 +84,6 @@ class SocketEventsService {
   }
 
   handleAuthEvent(String type, dynamic payload) {
-    print('handleAuthEvent: $type');
-    print(payload);
     switch (type) {
       case AuthEventTypes.emailVerified:
         Auth.updateEmailVerified(emailVerified: true);

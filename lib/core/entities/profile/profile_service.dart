@@ -3,6 +3,7 @@ import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/main.dart';
+import 'package:flutter/widgets.dart';
 
 import 'profile_model.dart';
 
@@ -48,7 +49,7 @@ class ProfileService {
       );
     } catch (e) {
       // Handle error if needed - could add logging or retry logic
-      print('Failed to update account settings on server: $e');
+      debugPrint('Failed to update account settings on server: $e');
     }
   }
 }

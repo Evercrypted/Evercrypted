@@ -500,7 +500,7 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                   borderRadius: BorderRadius.circular(5))),
                           onPressed: () {
                             setState(() {
-                              final newText = controller.text + ' ';
+                              final newText = '${controller.text} ';
                               controller
                                 ..text = newText
                                 ..selection = TextSelection.collapsed(
@@ -549,7 +549,7 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                 backgroundColor: Colors.blue),
                             onPressed: () {
                               setState(() {
-                                final newText = controller.text + "\n";
+                                final newText = "${controller.text}\n";
                                 controller
                                   ..text = newText
                                   ..selection = TextSelection.collapsed(
