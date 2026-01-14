@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import '../../../ui_constants.dart';
@@ -63,6 +64,15 @@ class AudioWaveformBarsState extends State<AudioWaveformBars> {
     playbackProgressTimer?.cancel();
 
     await _player.openPlayer();
+
+    // Force audio to play through speaker, not earpiece (iOS)
+    final session = await AudioSession.instance;
+    await session.configure(AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playback,
+      avAudioSessionCategoryOptions:
+          AVAudioSessionCategoryOptions.defaultToSpeaker,
+      avAudioSessionMode: AVAudioSessionMode.defaultMode,
+    ));
 
     setState(() {
       isPlaying = true;

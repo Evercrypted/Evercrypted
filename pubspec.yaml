@@ -61,6 +61,7 @@ dependencies:
   url_launcher: ^6.3.2
   retry: ^3.1.2
   flutter_sound: ^9.28.0
+  audio_session: ^0.2.2
   file_picker: ^10.3.3
   swipe_to: ^1.0.6
   convex_bottom_bar: ^3.2.0
