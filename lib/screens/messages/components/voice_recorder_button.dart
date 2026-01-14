@@ -244,7 +244,7 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
           AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             margin: EdgeInsets.only(
-                left: recording ? 8 : 0, right: recording ? 4 : 0),
+                left: recording ? 16 : 8, right: recording ? 4 : 0),
             child: AnimatedScale(
               scale: recording ? 1.6 : 1.0,
               duration: const Duration(milliseconds: 150),

@@ -29,12 +29,14 @@ class ChatInputField extends ConsumerStatefulWidget {
   final String? pass;
   final String? baseKey;
   final FlutterSoundPlayer player;
+  final Widget? passwordDialogWidget;
   const ChatInputField({
     super.key,
     required this.chat,
     required this.player,
     this.pass,
     this.baseKey,
+    this.passwordDialogWidget,
   });
 
   @override
@@ -615,17 +617,23 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
         margin: const EdgeInsets.only(bottom: 5),
         child: Row(
           children: [
-            const SizedBox(width: defaultPadding / 2),
+            if (widget.passwordDialogWidget != null)
+              widget.passwordDialogWidget!,
             if (sendingFile)
-              FadeIcon(
-                  position: Position(top: 4, left: 5),
-                  icon: const Icon(
-                    Icons.upload,
-                    color: primaryColor,
-                    size: 28,
-                  ))
+              Container(
+                margin: const EdgeInsets.only(left: defaultPadding / 2),
+                child: FadeIcon(
+                    position: Position(top: 4, left: 5),
+                    icon: const Icon(
+                      Icons.upload,
+                      color: primaryColor,
+                      size: 28,
+                    )),
+              )
             else if (file != null)
-              const Icon(Icons.attach_file, color: primaryColor)
+              Container(
+                  margin: const EdgeInsets.only(left: defaultPadding / 2),
+                  child: const Icon(Icons.attach_file, color: primaryColor))
             else if (file == null)
               VoiceRecorderButton(
                 pass: fullKey,

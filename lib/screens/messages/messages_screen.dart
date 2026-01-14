@@ -730,24 +730,21 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             )
           ],
         ),
-        bottomNavigationBar: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 3, left: 6),
-              child: PasswordDialogIcon(
-                settingsDialogOpen: settingsDialogOpen,
-                pass: pass,
-                openPasswordDialog: () => openPasswordDialog(context),
-                chat: chat,
-                baseKey: baseKey,
-              ),
+        bottomNavigationBar: ChatInputField(
+          chat: chat,
+          baseKey: baseKey,
+          pass: pass,
+          player: player,
+          passwordDialogWidget: Container(
+            margin: const EdgeInsets.only(left: 6),
+            child: PasswordDialogIcon(
+              settingsDialogOpen: settingsDialogOpen,
+              pass: pass,
+              openPasswordDialog: () => openPasswordDialog(context),
+              chat: chat,
+              baseKey: baseKey,
             ),
-            Expanded(
-              child: ChatInputField(
-                  chat: chat, baseKey: baseKey, pass: pass, player: player),
-            ),
-          ],
+          ),
         ),
         body: Column(
           children: [
