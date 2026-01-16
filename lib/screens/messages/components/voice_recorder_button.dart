@@ -222,62 +222,76 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     }
   }
 
+  void _startRecording() {
+    controller.forward().then((value) {
+      // Auto-stop when time limit reached
+      if (recording) {
+        _stopRecording();
+      }
+    });
+    record();
+  }
+
+  void _stopRecording() {
+    stopRecorder();
+    controller.reset();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        controller.forward().then((value) {
-          controller.reset();
-        });
-        record();
-      },
-      onTapUp: (_) {
-        stopRecorder();
-        controller.reset();
-      },
-      onTapCancel: () {
-        stopRecorder();
-        controller.reset();
-      },
-      child: Row(
-        children: [
-          AnimatedContainer(
+    return Row(
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          margin: EdgeInsets.only(
+              left: recording ? 16 : 8, right: recording ? 4 : 0),
+          child: AnimatedScale(
+            scale: recording ? 1.5 : 1.0,
             duration: const Duration(milliseconds: 150),
-            margin: EdgeInsets.only(
-                left: recording ? 16 : 8, right: recording ? 4 : 0),
-            child: AnimatedScale(
-              scale: recording ? 1.6 : 1.0,
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  CircularProgressIndicator(
-                    value: 1.0,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Colors.grey.shade200),
+            curve: Curves.easeOut,
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                CircularProgressIndicator(
+                  value: 1.0,
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.grey.shade200),
+                  strokeWidth: recording ? 8 : 5,
+                ),
+                CircularProgressIndicator(
+                  value: progress,
+                  valueColor: const AlwaysStoppedAnimation<Color>(primaryColor),
+                  strokeWidth: 8,
+                ),
+                if (recording)
+                  // Stop button overlay when recording
+                  GestureDetector(
+                    onTap: _stopRecording,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.stop,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  )
+                else
+                  // Mic button to start recording
+                  GestureDetector(
+                    onTap: _startRecording,
+                    child: const Icon(Icons.mic, color: primaryColor),
                   ),
-                  CircularProgressIndicator(
-                    value: progress,
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(primaryColor),
-                  ),
-                  if (recording)
-                    Text(
-                      (progress * voiceMessageDurationSeconds)
-                          .round()
-                          .toString(),
-                      style: const TextStyle(
-                          color: primaryColor, fontWeight: FontWeight.bold),
-                    )
-                  else
-                    const Icon(Icons.mic, color: primaryColor),
-                ],
-              ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

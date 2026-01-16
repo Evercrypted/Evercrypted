@@ -344,9 +344,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                       _passwordVisible = !_passwordVisible;
                                     });
                                   },
-                                  icon: Icon(_passwordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off),
+                                  icon: Icon(
+                                    _passwordVisible
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: contentColorLightTheme
+                                        .withAlpha((0.64 * 255).round()),
+                                  ),
                                 ),
                                 border: const OutlineInputBorder(
                                   borderSide: BorderSide.none,
