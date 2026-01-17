@@ -166,7 +166,9 @@ class ChatSocket {
         key = base64Encode(sharedSecret);
       }
 
-      keyCompleter.complete(true);
+      if (!keyCompleter.isCompleted) {
+        keyCompleter.complete(true);
+      }
       if (key != null) {
         final payload = await decodePayload(
           resp.bodyToJson['crypted'],
@@ -187,7 +189,9 @@ class ChatSocket {
       if (error.toString().contains('Status code: 401')) {
         Auth.clearAuth();
       }
-      keyCompleter.complete(false);
+      if (!keyCompleter.isCompleted) {
+        keyCompleter.complete(false);
+      }
     });
     return keyCompleter.future;
   }
@@ -368,9 +372,21 @@ class ChatSocket {
     socket = null;
   }
 
-  static resetConnection() {
-    disconnectWS();
-    connectWS();
+  static bool _isResettingConnection = false;
+
+  static resetConnection() async {
+    // Prevent concurrent resets
+    if (_isResettingConnection) {
+      debugPrint('ChatSocket: Reset already in progress, skipping');
+      return;
+    }
+    _isResettingConnection = true;
+    try {
+      disconnectWS();
+      await connectWS();
+    } finally {
+      _isResettingConnection = false;
+    }
   }
 
   static Future<void> _checkPendingKeyExchanges() async {

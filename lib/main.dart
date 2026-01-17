@@ -208,6 +208,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   StreamSubscription? contactsListener;
   StreamSubscription? chatsListener;
   Admin? admin;
+  Timer? _resetDebounceTimer;
 
   @override
   void initState() {
@@ -225,7 +226,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
     resetConnectionListener = ChatSocket.resetConnectionSubject.stream.listen(
       (shouldFire) async {
-        ChatSocket.resetConnection();
+        // Debounce rapid reconnection requests to prevent connection storms
+        _resetDebounceTimer?.cancel();
+        _resetDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+          ChatSocket.resetConnection();
+        });
       },
     );
 
@@ -241,6 +246,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   void dispose() {
     userReloadTimer?.cancel();
     ioConnectionTimer?.cancel();
+    _resetDebounceTimer?.cancel();
     authListener.cancel();
     resetConnectionListener.cancel();
     cancelListeners();
