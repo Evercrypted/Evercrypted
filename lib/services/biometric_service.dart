@@ -30,7 +30,8 @@ class BiometricService {
       return await _auth.authenticate(
         localizedReason: 'Please authenticate to access Evercrypted',
       );
-    } on PlatformException catch (_) {
+    } catch (_) {
+      // Catches PlatformException, LocalAuthException (user cancelled), etc.
       return false;
     }
   }

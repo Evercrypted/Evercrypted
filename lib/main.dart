@@ -198,6 +198,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   bool tokenAndUserNotLoaded = false;
   bool isAuthCheckComplete = false;
   bool isBiometricLocked = false;
+  bool biometricAuthFailed = false;
 
   late StreamSubscription authListener;
   late StreamSubscription resetConnectionListener;
@@ -254,27 +255,49 @@ class AuthGateState extends ConsumerState<AuthGate> {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
-          child: TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 1200),
-            tween: Tween(begin: 0.55, end: 1.0),
-            curve: Curves.easeInOut,
-            builder: (context, scale, child) {
-              return Transform.scale(
-                scale: scale,
-                child: Opacity(
-                  opacity: 0.9 + (0.1 * scale),
-                  child: SvgPicture.asset(
-                    logoTheme,
-                    width: 150,
-                    height: 150,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 1200),
+                tween: Tween(begin: 0.55, end: 1.0),
+                curve: Curves.easeInOut,
+                builder: (context, scale, child) {
+                  return Transform.scale(
+                    scale: scale,
+                    child: Opacity(
+                      opacity: 0.9 + (0.1 * scale),
+                      child: SvgPicture.asset(
+                        logoTheme,
+                        width: 150,
+                        height: 150,
+                      ),
+                    ),
+                  );
+                },
+                onEnd: () {
+                  // Seamless pulse restart
+                  if (!biometricAuthFailed) setState(() {});
+                },
+              ),
+              if (biometricAuthFailed) ...[
+                const SizedBox(height: 40),
+                ElevatedButton.icon(
+                  onPressed: () => _checkBiometric(),
+                  icon: const Icon(Icons.fingerprint),
+                  label: const Text('Try Again'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-              );
-            },
-            onEnd: () {
-              // Seamless pulse restart
-              setState(() {});
-            },
+              ],
+            ],
           ),
         ),
       );
@@ -411,13 +434,25 @@ class AuthGateState extends ConsumerState<AuthGate> {
     final biometricService = ref.read(biometricServiceProvider);
     final enabled = await biometricService.isBiometricEnabled();
     if (enabled) {
-      if (mounted) setState(() => isBiometricLocked = true);
+      if (mounted) {
+        setState(() {
+          isBiometricLocked = true;
+          biometricAuthFailed = false;
+        });
+      }
       final authenticated = await biometricService.authenticate();
       if (authenticated) {
-        if (mounted) setState(() => isBiometricLocked = false);
+        if (mounted) {
+          setState(() {
+            isBiometricLocked = false;
+            biometricAuthFailed = false;
+          });
+        }
       } else {
-        // failed to authenticate, maybe exit app or show retry button
-        // staying locked for now
+        // Authentication failed or was cancelled - show retry button
+        if (mounted) {
+          setState(() => biometricAuthFailed = true);
+        }
       }
     }
   }

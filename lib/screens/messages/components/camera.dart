@@ -240,18 +240,13 @@ class _CameraWidgetState extends State<CameraWidget> {
         children: [
           Expanded(
             child: _showPreview && jpgBytes != null
-                ? Image.memory(jpgBytes!)
-                : ClipRect(
-                    child: Center(
-                      child: AspectRatio(
-                        aspectRatio: _controller!.value.aspectRatio,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onScaleStart: _onScaleStart,
-                          onScaleUpdate: _onScaleUpdate,
-                          child: CameraPreview(_controller!),
-                        ),
-                      ),
+                ? Image.memory(jpgBytes!, fit: BoxFit.contain)
+                : Center(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onScaleStart: _onScaleStart,
+                      onScaleUpdate: _onScaleUpdate,
+                      child: CameraPreview(_controller!),
                     ),
                   ),
           ),

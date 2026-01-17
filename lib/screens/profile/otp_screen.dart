@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/http.dart';
@@ -272,10 +273,24 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 5),
-        Text(
-          gAuthCode ?? '',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        GestureDetector(
+          onTap: () {
+            if (gAuthCode != null) {
+              Clipboard.setData(ClipboardData(text: gAuthCode!));
+              showSimpleNotification(
+                const Text(
+                  "Code copied to clipboard",
+                  style: TextStyle(color: Colors.white),
+                ),
+                background: Colors.blue,
+              );
+            }
+          },
+          child: Text(
+            gAuthCode ?? '',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ),
         const SizedBox(height: 10),
         PrimaryButton(

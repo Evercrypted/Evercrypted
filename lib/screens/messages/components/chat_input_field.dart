@@ -655,26 +655,13 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                         color: primaryColor.withAlpha((0.1 * 255).round()),
                       ),
                       height: 50,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: AudioWaveformBars(
-                              decibels: recordingDecibels,
-                              width: MediaQuery.of(context).size.width - 140,
-                              height: 50,
-                              color: primaryColor,
-                              audioData: null,
-                              durationMicroSeconds: null,
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              dropRecording();
-                            },
-                            child: Icon(Icons.cancel, color: errorColor),
-                          ),
-                        ],
+                      child: AudioWaveformBars(
+                        decibels: recordingDecibels,
+                        width: MediaQuery.of(context).size.width - 100,
+                        height: 50,
+                        color: primaryColor,
+                        audioData: null,
+                        durationMicroSeconds: null,
                       ),
                     ),
                   )

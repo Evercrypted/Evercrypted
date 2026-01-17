@@ -28,13 +28,15 @@ class _CustomPinInputState extends State<CustomPinInput> {
   late List<TextEditingController> _controllers;
   late List<FocusNode> _focusNodes;
   String _pin = '';
+  bool _isHandlingPaste = false;
 
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(widget.length, (index) => TextEditingController());
+    _controllers =
+        List.generate(widget.length, (index) => TextEditingController());
     _focusNodes = List.generate(widget.length, (index) => FocusNode());
-    
+
     // Auto focus first field if requested
     if (widget.autofocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -55,15 +57,18 @@ class _CustomPinInputState extends State<CustomPinInput> {
   }
 
   void _onChanged(String value, int index) {
+    // Prevent re-entrancy during paste handling
+    if (_isHandlingPaste) return;
+
     if (value.isNotEmpty) {
       // Handle paste operation - if pasted text is longer than 1 character
       if (value.length > 1) {
         _handlePaste(value, index);
         return;
       }
-      
+
       _controllers[index].text = value.substring(value.length - 1);
-      
+
       if (index < widget.length - 1) {
         _focusNodes[index + 1].requestFocus();
       }
@@ -71,12 +76,13 @@ class _CustomPinInputState extends State<CustomPinInput> {
       // Handle deletion in current field
       _controllers[index].clear();
     }
-    
+
     _updatePin();
   }
 
   void _onKeyDown(KeyEvent event, int index) {
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.backspace) {
       if (_controllers[index].text.isEmpty && index > 0) {
         _focusNodes[index - 1].requestFocus();
         _controllers[index - 1].clear();
@@ -88,33 +94,48 @@ class _CustomPinInputState extends State<CustomPinInput> {
   }
 
   void _handlePaste(String value, int startIndex) {
+    _isHandlingPaste = true;
+
     // Extract only digits from pasted text
     String digits = value.replaceAll(RegExp(r'\D'), '');
-    
+
     // Fill available fields starting from current index
-    for (int i = 0; i < digits.length && (startIndex + i) < widget.length; i++) {
+    for (int i = 0;
+        i < digits.length && (startIndex + i) < widget.length;
+        i++) {
       _controllers[startIndex + i].text = digits[i];
     }
-    
+
+    // Ensure the first field only has 1 character (in case of paste residue)
+    if (_controllers[startIndex].text.length > 1) {
+      _controllers[startIndex].text =
+          _controllers[startIndex].text.substring(0, 1);
+    }
+
     // Focus next empty field or last field
     int nextIndex = (startIndex + digits.length).clamp(0, widget.length - 1);
     if (nextIndex < widget.length) {
       _focusNodes[nextIndex].requestFocus();
     }
-    
+
     _updatePin();
+
+    // Reset flag after a frame to allow normal operation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _isHandlingPaste = false;
+    });
   }
 
   void _updatePin() {
     _pin = _controllers.map((controller) => controller.text).join();
-    
+
     if (widget.onChanged != null) {
       widget.onChanged!(_pin);
     }
-    
+
     if (_pin.length == widget.length) {
       widget.onCompleted(_pin);
-      
+
       // Auto reset after completion if enabled
       if (widget.autoReset) {
         Future.delayed(const Duration(milliseconds: 300), () {
@@ -161,7 +182,6 @@ class _CustomPinInputState extends State<CustomPinInput> {
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(1),
               ],
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
