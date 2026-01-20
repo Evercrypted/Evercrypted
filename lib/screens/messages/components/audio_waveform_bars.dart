@@ -13,6 +13,7 @@ class AudioWaveformBars extends StatefulWidget {
   final Color color;
   final Uint8List? audioData;
   final int? durationMicroSeconds;
+  final bool isRecording;
 
   const AudioWaveformBars({
     super.key,
@@ -22,6 +23,7 @@ class AudioWaveformBars extends StatefulWidget {
     this.color = primaryColor,
     this.audioData,
     this.durationMicroSeconds,
+    this.isRecording = false,
   });
 
   @override
@@ -260,60 +262,84 @@ class AudioWaveformBarsState extends State<AudioWaveformBars> {
                 },
                 child: Stack(
                   children: [
-                    // Waveform bars with padding for button
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: widget.audioData != null &&
-                                widget.durationMicroSeconds != null
-                            ? 40.0
-                            : 0.0,
+                    // Duration text on the left when recording or when has audio data
+                    if (widget.durationMicroSeconds != null)
+                      Positioned(
+                        left: widget.audioData != null ? 30.0 : 0.0,
+                        top: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            _formatDuration(widget.durationMicroSeconds!),
+                            style: TextStyle(
+                              color: widget.color,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Calculate available width for waveform
-                          final availableWidth = constraints.maxWidth;
+                    // Waveform bars with padding for button and duration
+                    Positioned.fill(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: (widget.audioData != null &&
+                                      widget.durationMicroSeconds != null &&
+                                      !widget.isRecording
+                                  ? 30.0
+                                  : 0.0) +
+                              (widget.durationMicroSeconds != null
+                                  ? 50.0
+                                  : 0.0),
+                        ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            // Calculate available width for waveform
+                            final availableWidth = constraints.maxWidth;
 
-                          // Ensure we don't try to fit more bars than physically possible
-                          final maxPossibleBars =
-                              (availableWidth / (barWidth + barSpacing))
-                                  .floor();
+                            // Ensure we don't try to fit more bars than physically possible
+                            final maxPossibleBars =
+                                (availableWidth / (barWidth + barSpacing))
+                                    .floor();
 
-                          // Re-sample if we have more bars than we can fit
-                          final displayDecibels =
-                              normalizedDecibels.length > maxPossibleBars
-                                  ? _sampleDecibels(
-                                      normalizedDecibels, maxPossibleBars)
-                                  : normalizedDecibels;
+                            // Re-sample if we have more bars than we can fit
+                            final displayDecibels =
+                                normalizedDecibels.length > maxPossibleBars
+                                    ? _sampleDecibels(
+                                        normalizedDecibels, maxPossibleBars)
+                                    : normalizedDecibels;
 
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children:
-                                List.generate(displayDecibels.length, (index) {
-                              final amplitude = displayDecibels[index];
-                              // Apply a power curve to make differences more visible
-                              final enhancedAmplitude = amplitude * amplitude;
-                              // Minimum bar height to make it visible, max 90% of container height
-                              final barHeight = (enhancedAmplitude *
-                                      widget.height *
-                                      0.9)
-                                  .clamp(
-                                      widget.height * 0.1, widget.height * 0.9);
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: List.generate(displayDecibels.length,
+                                  (index) {
+                                final amplitude = displayDecibels[index];
+                                // Apply a power curve to make differences more visible
+                                final enhancedAmplitude = amplitude * amplitude;
+                                // Minimum bar height to make it visible, max 90% of container height
+                                final barHeight =
+                                    (enhancedAmplitude * widget.height * 0.9)
+                                        .clamp(widget.height * 0.1,
+                                            widget.height * 0.9);
 
-                              return Container(
-                                width: barWidth,
-                                height: barHeight,
-                                margin: EdgeInsets.symmetric(
-                                    horizontal: barSpacing / 2),
-                                decoration: BoxDecoration(
-                                  color: widget.color,
-                                  borderRadius:
-                                      BorderRadius.circular(barWidth / 2),
-                                ),
-                              );
-                            }),
-                          );
-                        },
+                                return Container(
+                                  width: barWidth,
+                                  height: barHeight,
+                                  margin: EdgeInsets.symmetric(
+                                      horizontal: barSpacing / 2),
+                                  decoration: BoxDecoration(
+                                    color: widget.color,
+                                    borderRadius:
+                                        BorderRadius.circular(barWidth / 2),
+                                  ),
+                                );
+                              }),
+                            );
+                          },
+                        ),
                       ),
                     ),
                     // Play/Pause button overlay with dedicated GestureDetector
@@ -410,5 +436,13 @@ class AudioWaveformBarsState extends State<AudioWaveformBars> {
     }
 
     return sampledList;
+  }
+
+  /// Format duration from microseconds to mm:ss format
+  String _formatDuration(int microseconds) {
+    final duration = Duration(microseconds: microseconds);
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 }

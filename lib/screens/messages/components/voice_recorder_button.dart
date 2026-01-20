@@ -15,12 +15,14 @@ class VoiceRecorderButton extends StatefulWidget {
       required this.chatId,
       required this.onRecord,
       this.onDecibelChange,
-      this.onRecordingStateChange});
+      this.onRecordingStateChange,
+      this.onDurationChange});
   final String? pass;
   final String chatId;
   final Function onRecord;
   final Function(double)? onDecibelChange;
   final ValueChanged<bool>? onRecordingStateChange;
+  final ValueChanged<int>? onDurationChange;
 
   @override
   VoiceRecorderButtonState createState() => VoiceRecorderButtonState();
@@ -94,6 +96,8 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
     // Keep onProgress subscription just for duration tracking
     _recorderProgressSub = _myRecorder!.onProgress!.listen((e) {
       recordingMicroSeconds = e.duration.inMicroseconds;
+      // Report duration change to parent
+      widget.onDurationChange?.call(e.duration.inMicroseconds);
     });
 
     await _myRecorder!

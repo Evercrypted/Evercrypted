@@ -43,7 +43,7 @@ class _AudioMessageState extends State<AudioMessage> {
     }
   }
 
-  setFile() async {
+  dynamic setFile() async {
     if (widget.message.queueId != null) {
       fileString =
           await messageService.getMessageFile(queueId: widget.message.queueId);
@@ -111,7 +111,7 @@ class _AudioMessageState extends State<AudioMessage> {
     }
   }
 
-  downloadFile(context) {
+  dynamic downloadFile(dynamic context) {
     setState(() {
       downloadInProgress = true;
     });
@@ -154,9 +154,11 @@ class _AudioMessageState extends State<AudioMessage> {
 
     return Container(
       width: MediaQuery.of(context).size.width * 0.55,
-      padding: const EdgeInsets.symmetric(
-        horizontal: defaultPadding * 0.75,
-        vertical: defaultPadding / 2.5,
+      padding: const EdgeInsets.only(
+        left: defaultPadding / 4,
+        right: defaultPadding * 0.75,
+        top: defaultPadding / 2.5,
+        bottom: defaultPadding / 2.5,
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),

@@ -54,6 +54,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
   bool withBaseKey = false;
   List<double> recordingDecibels = [];
   bool isRecording = false;
+  int? liveRecordingMicroseconds;
   static const int _overlaySampleLimit = 200;
 
   @override
@@ -256,6 +257,9 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       isRecording = recording;
       if (recording) {
         recordingDecibels = [];
+        liveRecordingMicroseconds = 0;
+      } else {
+        liveRecordingMicroseconds = null;
       }
     });
   }
@@ -641,6 +645,11 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                 onRecord: onRecording,
                 onDecibelChange: onDecibelChange,
                 onRecordingStateChange: _handleRecordingToggle,
+                onDurationChange: (microseconds) {
+                  setState(() {
+                    liveRecordingMicroseconds = microseconds;
+                  });
+                },
               ),
             const SizedBox(width: defaultPadding / 4),
             // Show waveform during active recording
@@ -661,7 +670,8 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                         height: 50,
                         color: primaryColor,
                         audioData: null,
-                        durationMicroSeconds: null,
+                        durationMicroSeconds: liveRecordingMicroseconds,
+                        isRecording: true,
                       ),
                     ),
                   )
