@@ -56,17 +56,18 @@ class Keyboard {
     this.alternatives = const {},
   });
 
+  // iOS-style special characters - Page 1 (123 mode)
   static const List<String> firstRowSpecial = [
-    '[',
-    ']',
-    '{',
-    '}',
-    '#',
-    '%',
-    '^',
-    '*',
-    '+',
-    '='
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '0'
   ];
   static const List<String> secondRowSpecial = [
     '-',
@@ -80,18 +81,34 @@ class Keyboard {
     '@',
     '"'
   ];
-  static const List<String> thirdRowSpecial = [
-    '`', // Backtick
-    '~',
+  static const List<String> thirdRowSpecial = ['.', ',', '?', '!', '\''];
+
+  // iOS-style special characters - Page 2 (#+= mode)
+  static const List<String> firstRowSpecial2 = [
+    '[',
+    ']',
+    '{',
+    '}',
+    '#',
+    '%',
+    '^',
+    '*',
+    '+',
+    '='
+  ];
+  static const List<String> secondRowSpecial2 = [
     '_',
     '\\',
     '|',
-    '.',
-    ',',
-    '?',
-    '!',
-    '\''
+    '~',
+    '<',
+    '>',
+    '€',
+    '£',
+    '¥',
+    '•'
   ];
+  static const List<String> thirdRowSpecial2 = ['.', ',', '?', '!', '\''];
 
   get firstRowKeys => isSpecial
       ? firstRowSpecial

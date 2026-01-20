@@ -21,6 +21,7 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
   List<String> availableKeyboards = ['English']; // Start with only English
   bool isShifted = false;
   bool isSpecial = false;
+  bool isSpecialPage2 = false; // iOS-style second page of special chars (#+=)
   bool shouldObscureText = false;
 
   String activeLanguage = 'English';
@@ -104,6 +105,13 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                 ? Keyboard.defaultWidth
                 : activeKeyboard.keyWidth));
 
+    // Get alternatives for this key (accented characters)
+    // Look up using lowercase key, then apply case transformation if shifted
+    List<String>? alternatives = activeKeyboard.getAlternatives(key);
+    if (alternatives != null && isShifted) {
+      alternatives = alternatives.map((e) => e.toUpperCase()).toList();
+    }
+
     return Container(
       width: keyWidth,
       height: specialKeysRow ? 60 : 45,
@@ -119,10 +127,28 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
         width: keyWidth,
         height: specialKeysRow ? 60 : 45,
         textStyle: const TextStyle(color: Colors.white, fontSize: 20),
+        alternatives: alternatives,
         onPressed: () {
           deleteSelection();
           setState(() {
             final newText = controller.text + key;
+            controller
+              ..text = newText
+              ..selection = TextSelection.collapsed(offset: newText.length);
+            if (isShifted && !isShiftLocked) {
+              isShifted = false;
+              activeKeyboard = Keyboards.getKeyboard(
+                  language: activeLanguage,
+                  activeKeyboard: activeKeyboard,
+                  isShifted: false,
+                  isSpecial: isSpecial);
+            }
+          });
+        },
+        onAlternativeSelected: (selected) {
+          deleteSelection();
+          setState(() {
+            final newText = controller.text + selected;
             controller
               ..text = newText
               ..selection = TextSelection.collapsed(offset: newText.length);
@@ -190,11 +216,12 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
 
   Widget _buildBackspaceKey(
       {double width = 42,
+      double height = 45,
       EdgeInsetsGeometry margin = const EdgeInsets.symmetric(horizontal: 2)}) {
     return Container(
       margin: margin,
       width: width,
-      height: 45,
+      height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
         color: Colors.white.withAlpha(40),
@@ -285,15 +312,19 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
               ),
             ),
 
-            // Row 1 (Numbers)
+            // Row 1 (Numbers / Special page 1 or 2)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               textDirection: TextDirection.ltr,
               children: [
-                for (var key in activeKeyboard.firstRowKeys)
+                for (var key in (isSpecial
+                    ? (isSpecialPage2
+                        ? Keyboard.firstRowSpecial2
+                        : Keyboard.firstRowSpecial)
+                    : activeKeyboard.firstRowKeys))
                   _keyboardButton(key,
                       useDefualtSizes: true,
-                      rowLength: activeKeyboard.firstRowKeys.length.toDouble(),
+                      rowLength: 10,
                       specialKeysRow: isSpecial)
               ],
             ),
@@ -303,37 +334,111 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
               mainAxisAlignment: MainAxisAlignment.center,
               textDirection: TextDirection.ltr,
               children: [
-                for (var key in activeKeyboard.secondRowKeys)
-                  _keyboardButton(key,
-                      rowLength: activeKeyboard.secondRowKeys.length.toDouble(),
-                      specialKeysRow: isSpecial)
+                for (var key in (isSpecial
+                    ? (isSpecialPage2
+                        ? Keyboard.secondRowSpecial2
+                        : Keyboard.secondRowSpecial)
+                    : activeKeyboard.secondRowKeys))
+                  _keyboardButton(key, rowLength: 10, specialKeysRow: isSpecial)
               ],
             ),
 
-            // Row 3 (Merged with Backspace in Special Mode)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              textDirection: TextDirection.ltr,
-              children: [
-                for (var key in activeKeyboard.thirdRowKeys)
-                  _keyboardButton(key,
-                      rowLength: activeKeyboard.thirdRowKeys.length.toDouble() +
-                          (isSpecial ? 1.5 : 0),
-                      specialKeysRow: isSpecial),
-                if (isSpecial)
-                  Builder(builder: (context) {
-                    double rowLength =
-                        activeKeyboard.thirdRowKeys.length.toDouble() + 1.5;
-                    double screenWidth = MediaQuery.of(context).size.width - 2;
-                    double keyWidth =
-                        (screenWidth - (rowLength + 1) * 2) / rowLength;
-                    return _buildBackspaceKey(
-                        width: keyWidth * 1.5,
-                        margin: EdgeInsets.symmetric(
-                            horizontal: 1, vertical: 1.35));
-                  })
-              ],
-            ),
+            // Row 3 (Special mode has shorter row + toggle key + backspace)
+            Builder(builder: (context) {
+              if (!isSpecial) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  textDirection: TextDirection.ltr,
+                  children: [
+                    for (var key in activeKeyboard.thirdRowKeys)
+                      _keyboardButton(key,
+                          rowLength:
+                              activeKeyboard.thirdRowKeys.length.toDouble(),
+                          specialKeysRow: false),
+                  ],
+                );
+              }
+
+              // Special mode - calculate key widths
+              final specialChars = isSpecialPage2
+                  ? Keyboard.thirdRowSpecial2
+                  : Keyboard.thirdRowSpecial;
+              // Available width = screen - toggle(50+4) - backspace(50+4) - margins
+              final screenWidth = MediaQuery.of(context).size.width;
+              final availableWidth = screenWidth - 50 - 4 - 50 - 4 - 20;
+              final keyWidth = availableWidth / specialChars.length;
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                textDirection: TextDirection.ltr,
+                children: [
+                  // 123/#+= toggle button
+                  Container(
+                    width: 50,
+                    height: 60,
+                    margin: EdgeInsets.symmetric(horizontal: 2, vertical: 1.35),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white.withAlpha(40),
+                    ),
+                    child: HighlightedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: Colors.transparent,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isSpecialPage2 = !isSpecialPage2;
+                        });
+                      },
+                      child: Text(
+                        isSpecialPage2 ? '123' : '#+=',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Character keys
+                  for (var key in specialChars)
+                    Container(
+                      width: keyWidth,
+                      height: 60,
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 1, vertical: 1.35),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white.withAlpha(20),
+                      ),
+                      child: KeyPopupButton(
+                        keyLabel: key,
+                        width: keyWidth,
+                        height: 60,
+                        textStyle:
+                            const TextStyle(color: Colors.white, fontSize: 20),
+                        onPressed: () {
+                          deleteSelection();
+                          setState(() {
+                            final newText = controller.text + key;
+                            controller
+                              ..text = newText
+                              ..selection = TextSelection.collapsed(
+                                  offset: newText.length);
+                          });
+                        },
+                      ),
+                    ),
+                  // Backspace
+                  _buildBackspaceKey(
+                      width: 50,
+                      height: 60,
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 2, vertical: 1.35)),
+                ],
+              );
+            }),
 
             // Row 4 (Letters + Shift + Backspace, Normal Mode only)
             if (!isSpecial)
@@ -371,7 +476,7 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 textDirection: TextDirection.ltr,
                 children: [
-                  // Special / 123
+                  // Special / 123 / #+=
                   Container(
                     width: 42,
                     height: 45,
@@ -384,6 +489,8 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                       onPressed: () {
                         setState(() {
                           isSpecial = !isSpecial;
+                          isSpecialPage2 =
+                              false; // Always reset to page 1 (numbers)
                           activeKeyboard = Keyboards.getKeyboard(
                               language: activeLanguage,
                               activeKeyboard: activeKeyboard,
@@ -394,7 +501,8 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                       child: Text(isSpecial ? 'ABC' : '123',
                           style: TextStyle(
                               color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14)),
                     ),
                   ),
 

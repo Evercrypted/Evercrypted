@@ -43,6 +43,18 @@ class Keyboards {
               fourthRow.map((e) => e.toUpperCase()).toList(),
           isShifted: isShifted,
           isSpecial: isSpecial,
+          alternatives: {
+            // Common accented alternatives for typing foreign words in English
+            'a': ['à', 'á', 'â', 'ä', 'æ', 'ã', 'å'],
+            'c': ['ç'],
+            'e': ['è', 'é', 'ê', 'ë'],
+            'i': ['î', 'ï', 'í', 'ì'],
+            'n': ['ñ'],
+            'o': ['ô', 'ö', 'ò', 'ó', 'œ', 'ø'],
+            's': ['ß', 'š'],
+            'u': ['û', 'ü', 'ù', 'ú'],
+            'y': ['ÿ'],
+          },
         );
       case ('Russian'):
         final firstRow =
@@ -132,12 +144,12 @@ class Keyboards {
       case ('Turkish'):
         final firstRow =
             activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
-        final secondRow = activeKeyboard?.secondRow ??
-            randomizeList('qwertyuıopğü'.split(''));
+        final secondRow =
+            activeKeyboard?.secondRow ?? randomizeList('qwertyuiop'.split(''));
         final thirdRow =
-            activeKeyboard?.thirdRow ?? randomizeList('asdfghjklşi'.split(''));
+            activeKeyboard?.thirdRow ?? randomizeList('asdfghjkl'.split(''));
         final fourthRow =
-            activeKeyboard?.fourthRow ?? randomizeList('zxcvbnmöç'.split(''));
+            activeKeyboard?.fourthRow ?? randomizeList('zxcvbnm'.split(''));
         return Keyboard(
           name: 'Türkçe',
           keyPaddings: (top: 2, bottom: 2, left: 2, right: 2),
@@ -156,7 +168,13 @@ class Keyboards {
           isShifted: isShifted,
           isSpecial: isSpecial,
           alternatives: {
-            // Removed i/o/u/g/s/c as they are now separate keys or covered
+            // iOS-style Turkish alternatives via long-press
+            'g': ['ğ'],
+            'u': ['ü', 'û'],
+            's': ['ş'],
+            'i': ['ı', 'î'],
+            'o': ['ö', 'ô'],
+            'c': ['ç'],
           },
         );
       case ('German'):
@@ -186,8 +204,12 @@ class Keyboards {
           isShifted: isShifted,
           isSpecial: isSpecial,
           alternatives: {
-            // Removed a/o/u/s as they are now separate keys (except ß? ß is usually missing on iOS German, or long press on s. I'll leave ß in alternatives for 's')
+            // Umlauts and other German alternatives
+            'a': ['ä', 'à', 'á', 'â'],
+            'o': ['ö', 'ò', 'ó', 'ô'],
+            'u': ['ü', 'ù', 'ú', 'û'],
             's': ['ß'],
+            'e': ['è', 'é', 'ê'],
           },
         );
       case ('Spanish'):

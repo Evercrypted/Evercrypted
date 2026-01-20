@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// A button widget that displays an iOS-style key popup when pressed.
 /// Shows a magnified preview of the key character above the pressed key.
-/// Uses a simple overflow approach that works in any context.
+/// On long press, shows a horizontal row of alternative characters (e.g., accented characters)
+/// that can be selected by sliding the finger.
 class KeyPopupButton extends StatefulWidget {
   const KeyPopupButton({
     super.key,
@@ -12,6 +14,8 @@ class KeyPopupButton extends StatefulWidget {
     this.textStyle,
     this.width,
     this.height = 45,
+    this.alternatives,
+    this.onAlternativeSelected,
   });
 
   final String keyLabel;
@@ -21,6 +25,12 @@ class KeyPopupButton extends StatefulWidget {
   final double? width;
   final double height;
 
+  /// List of alternative characters (e.g., accented characters) to show on long press
+  final List<String>? alternatives;
+
+  /// Callback when an alternative character is selected
+  final Function(String)? onAlternativeSelected;
+
   @override
   State<KeyPopupButton> createState() => _KeyPopupButtonState();
 }
@@ -28,9 +38,36 @@ class KeyPopupButton extends StatefulWidget {
 class _KeyPopupButtonState extends State<KeyPopupButton>
     with SingleTickerProviderStateMixin {
   bool isPressed = false;
+  bool isLongPressed = false;
+  int? selectedAlternativeIndex;
 
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+
+  // Store the center X position of the key when long press starts
+  double? _keyCenterX;
+
+  // Width of each alternative key in the popup (base value)
+  static const _alternativeKeyWidth = 30.0;
+
+  // Calculate the effective key width for the popup
+  double _getEffectiveKeyWidth() {
+    if (!_hasAlternatives) return _alternativeKeyWidth;
+
+    final alternativesCount = widget.alternatives!.length;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxPopupWidth = screenWidth - 20;
+    const minKeyWidth = 28.0;
+    const maxKeyWidth = 40.0;
+    const horizontalPadding = 8.0;
+
+    final idealKeyWidth = _alternativeKeyWidth.clamp(minKeyWidth, maxKeyWidth);
+    final idealPopupWidth =
+        alternativesCount * idealKeyWidth + horizontalPadding * 2;
+    return idealPopupWidth > maxPopupWidth
+        ? (maxPopupWidth - horizontalPadding * 2) / alternativesCount
+        : idealKeyWidth;
+  }
 
   @override
   void initState() {
@@ -50,6 +87,9 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
     super.dispose();
   }
 
+  bool get _hasAlternatives =>
+      widget.alternatives != null && widget.alternatives!.isNotEmpty;
+
   void _onTapDown(TapDownDetails details) {
     setState(() => isPressed = true);
     _animationController.forward();
@@ -64,6 +104,78 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
   void _onTapCancel() {
     _animationController.reverse();
     setState(() => isPressed = false);
+  }
+
+  void _onLongPressStart(LongPressStartDetails details) {
+    if (!_hasAlternatives) {
+      // No alternatives, just trigger normal press
+      widget.onPressed();
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+
+    // Get the key's render box to find its center position on screen
+    final RenderBox box = context.findRenderObject() as RenderBox;
+    final keyPosition = box.localToGlobal(Offset.zero);
+    _keyCenterX = keyPosition.dx + box.size.width / 2;
+
+    setState(() {
+      isLongPressed = true;
+      isPressed = false;
+      // Start with the first alternative selected
+      selectedAlternativeIndex = 0;
+    });
+    _animationController.forward();
+  }
+
+  void _onLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
+    if (!isLongPressed || !_hasAlternatives || _keyCenterX == null) return;
+
+    final fingerX = details.globalPosition.dx;
+    final alternativesCount = widget.alternatives!.length;
+    final effectiveKeyWidth = _getEffectiveKeyWidth();
+
+    // Calculate the popup's left edge X position
+    // The popup is centered on the key, so:
+    final popupWidth = alternativesCount * effectiveKeyWidth;
+    final popupLeftX = _keyCenterX! - popupWidth / 2;
+
+    // Calculate which alternative the finger is over
+    final fingerOffsetInPopup = fingerX - popupLeftX;
+    int newIndex = (fingerOffsetInPopup / effectiveKeyWidth).floor();
+
+    // Clamp to valid range
+    newIndex = newIndex.clamp(0, alternativesCount - 1);
+
+    if (newIndex != selectedAlternativeIndex) {
+      HapticFeedback.selectionClick();
+      setState(() {
+        selectedAlternativeIndex = newIndex;
+      });
+    }
+  }
+
+  void _onLongPressEnd(LongPressEndDetails details) {
+    if (!isLongPressed) return;
+
+    _animationController.reverse();
+
+    // Select the highlighted alternative
+    if (selectedAlternativeIndex != null &&
+        _hasAlternatives &&
+        selectedAlternativeIndex! < widget.alternatives!.length) {
+      final selected = widget.alternatives![selectedAlternativeIndex!];
+      if (widget.onAlternativeSelected != null) {
+        widget.onAlternativeSelected!(selected);
+      }
+    }
+
+    setState(() {
+      isLongPressed = false;
+      selectedAlternativeIndex = null;
+      _keyCenterX = null;
+    });
   }
 
   @override
@@ -93,12 +205,18 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
                   child: child,
                 ),
               ),
-              child: _KeyPopup(
-                keyLabel: widget.keyLabel,
-                width: popupWidth,
-                height: popupHeight,
-                bubbleTailHeight: bubbleTailHeight,
-              ),
+              child: isLongPressed && _hasAlternatives
+                  ? _AlternativesPopup(
+                      alternatives: widget.alternatives!,
+                      selectedIndex: selectedAlternativeIndex ?? 0,
+                      keyWidth: _alternativeKeyWidth,
+                    )
+                  : _KeyPopup(
+                      keyLabel: widget.keyLabel,
+                      width: popupWidth,
+                      height: popupHeight,
+                      bubbleTailHeight: bubbleTailHeight,
+                    ),
             ),
           ),
           // The actual button
@@ -108,10 +226,14 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
               onTapDown: _onTapDown,
               onTapUp: _onTapUp,
               onTapCancel: _onTapCancel,
+              onLongPressStart: _hasAlternatives ? _onLongPressStart : null,
+              onLongPressMoveUpdate:
+                  _hasAlternatives ? _onLongPressMoveUpdate : null,
+              onLongPressEnd: _hasAlternatives ? _onLongPressEnd : null,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 60),
                 decoration: BoxDecoration(
-                  color: isPressed
+                  color: isPressed || isLongPressed
                       ? Colors.white.withAlpha((255 * 0.35).round())
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
@@ -132,7 +254,108 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
   }
 }
 
-/// The popup bubble that appears above the pressed key
+/// Popup showing alternative characters in a horizontal row
+class _AlternativesPopup extends StatelessWidget {
+  const _AlternativesPopup({
+    required this.alternatives,
+    required this.selectedIndex,
+    required this.keyWidth,
+  });
+
+  final List<String> alternatives;
+  final int selectedIndex;
+  final double keyWidth;
+
+  static const _popupBackgroundColor = Color(0xFF2A2A2A);
+  static const _popupBorderColor = Color(0xFF4A4A4A);
+  static const _selectedColor = Color(0xFF007AFF);
+  static const _minKeyWidth = 28.0;
+  static const _maxKeyWidth = 40.0;
+  static const _horizontalPadding = 8.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate dynamic width based on screen size
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxPopupWidth = screenWidth - 20; // 10px margin on each side
+
+    // Calculate ideal width per alternative
+    final idealKeyWidth = keyWidth.clamp(_minKeyWidth, _maxKeyWidth);
+    final idealPopupWidth =
+        alternatives.length * idealKeyWidth + _horizontalPadding * 2;
+
+    // If ideal width exceeds max, shrink each key proportionally
+    final effectiveKeyWidth = idealPopupWidth > maxPopupWidth
+        ? (maxPopupWidth - _horizontalPadding * 2) / alternatives.length
+        : idealKeyWidth;
+
+    final popupWidth =
+        alternatives.length * effectiveKeyWidth + _horizontalPadding * 2;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Main popup bubble with alternatives
+        Container(
+          width: popupWidth,
+          height: 48,
+          padding: EdgeInsets.symmetric(horizontal: _horizontalPadding / 2),
+          decoration: BoxDecoration(
+            color: _popupBackgroundColor,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: _popupBorderColor,
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha((255 * 0.5).round()),
+                blurRadius: 10,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(alternatives.length, (index) {
+              final isSelected = index == selectedIndex;
+              return Container(
+                width: effectiveKeyWidth,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isSelected ? _selectedColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  alternatives[index],
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isSelected ? 22 : 18,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                  textDirection: TextDirection.ltr,
+                ),
+              );
+            }),
+          ),
+        ),
+        // Bubble tail (pointing down)
+        CustomPaint(
+          size: const Size(42, 8),
+          painter: _BubbleTailPainter(
+            backgroundColor: _popupBackgroundColor,
+            borderColor: _popupBorderColor,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The popup bubble that appears above the pressed key (single character)
 class _KeyPopup extends StatelessWidget {
   const _KeyPopup({
     required this.keyLabel,
