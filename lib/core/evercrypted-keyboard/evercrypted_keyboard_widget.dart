@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/entities/settings/settings_model.dart';
 import 'package:evercrypted/core/entities/settings/settings_service.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:evercrypted/ui_constants.dart';
@@ -45,7 +46,19 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
       availableKeyboards = settings != null
           ? List<String>.from(settings.availableKeyboards)
           : ['English'];
+      // Load last used keyboard language
+      if (settings != null &&
+          availableKeyboards.contains(settings.lastUsedKeyboard)) {
+        activeLanguage = settings.lastUsedKeyboard;
+        activeKeyboard = Keyboards.getKeyboard(language: activeLanguage);
+      }
     });
+  }
+
+  void saveLastUsedKeyboard(String language) {
+    final settings = SettingsService.getSettings() ?? Settings();
+    settings.lastUsedKeyboard = language;
+    SettingsService.saveSettings(settings);
   }
 
   @override
@@ -591,6 +604,7 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                 isSpecial: isSpecial,
                                 randomize: isRandomized);
                           });
+                          saveLastUsedKeyboard(newLang);
                         }
                       },
                       child: Container(
@@ -754,6 +768,7 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                             );
                             keyboardSelectOpen = false;
                           });
+                          saveLastUsedKeyboard(language);
                         },
                         child: Text(
                           language,

@@ -1,3 +1,4 @@
+import 'package:evercrypted/core/entities/settings/settings_model.dart';
 import 'package:evercrypted/core/entities/settings/settings_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/secret_keyboard/highlighted_button.dart';
@@ -79,7 +80,19 @@ class SecretInputState extends State<SecretInput>
       availableKeyboards = settings != null
           ? List<String>.from(settings.availableKeyboards)
           : ['English'];
+      // Load last used keyboard language
+      if (settings != null &&
+          availableKeyboards.contains(settings.lastUsedKeyboard)) {
+        activeLanguage = settings.lastUsedKeyboard;
+        activeKeyboard = Keyboards.getKeyboard(language: activeLanguage);
+      }
     });
+  }
+
+  void saveLastUsedKeyboard(String language) {
+    final settings = SettingsService.getSettings() ?? Settings();
+    settings.lastUsedKeyboard = language;
+    SettingsService.saveSettings(settings);
   }
 
   @override
@@ -538,38 +551,6 @@ class SecretInputState extends State<SecretInput>
                                     color: Colors.white,
                                     size: 40,
                                   )),
-                              if (availableKeyboards.length > 1)
-                                DropdownButton(
-                                    padding:
-                                        EdgeInsets.only(left: 5, right: 10),
-                                    iconSize: 0.0,
-                                    dropdownColor: secondaryColor,
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                    value: activeLanguage,
-                                    items: availableKeyboards
-                                        .map((e) => DropdownMenuItem<String>(
-                                              alignment:
-                                                  AlignmentDirectional.center,
-                                              value: e,
-                                              child: Text(
-                                                  Keyboards.abbreviations[e]!),
-                                            ))
-                                        .toList(),
-                                    onChanged: (object) {
-                                      setState(() {
-                                        activeLanguage = object!;
-                                        isShifted = false;
-                                        isSpecial = false;
-                                        isShiftLocked = false;
-                                        activeKeyboard = Keyboards.getKeyboard(
-                                            language: activeLanguage,
-                                            isShifted: false,
-                                            isSpecial: false,
-                                            randomize: isRandomized);
-                                      });
-                                    }),
                               if (widget.isSingleLine)
                                 InkWell(
                                     onTap: () {
@@ -609,16 +590,55 @@ class SecretInputState extends State<SecretInput>
                         SizedBox(
                           width: MediaQuery.of(context).size.width * 0.30,
                           height: 45,
-                          child: HighlightedButton(
-                            onPressed: () {
-                              setState(() {
-                                _textController.text += ' ';
-                              });
+                          child: GestureDetector(
+                            onHorizontalDragEnd: (details) {
+                              if (availableKeyboards.length <= 1) return;
+
+                              int currentIndex =
+                                  availableKeyboards.indexOf(activeLanguage);
+                              if (currentIndex == -1) currentIndex = 0;
+
+                              String newLang = activeLanguage;
+
+                              if (details.primaryVelocity! < 0) {
+                                // Swipe Left -> Next
+                                int nextIndex = (currentIndex + 1) %
+                                    availableKeyboards.length;
+                                newLang = availableKeyboards[nextIndex];
+                              } else if (details.primaryVelocity! > 0) {
+                                // Swipe Right -> Prev
+                                int prevIndex = (currentIndex -
+                                        1 +
+                                        availableKeyboards.length) %
+                                    availableKeyboards.length;
+                                newLang = availableKeyboards[prevIndex];
+                              }
+
+                              if (newLang != activeLanguage) {
+                                setState(() {
+                                  activeLanguage = newLang;
+                                  activeKeyboard = Keyboards.getKeyboard(
+                                      language: activeLanguage,
+                                      isShifted: isShifted,
+                                      isSpecial: isSpecial,
+                                      randomize: isRandomized);
+                                });
+                                saveLastUsedKeyboard(newLang);
+                              }
                             },
-                            child: const Icon(
-                              Icons.space_bar,
-                              color: Colors.white,
-                              size: 25,
+                            child: HighlightedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _textController.text += ' ';
+                                });
+                              },
+                              child: Text(
+                                availableKeyboards.length > 1
+                                    ? '< $activeLanguage >'
+                                    : 'Space',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
                             ),
                           ),
                         ),

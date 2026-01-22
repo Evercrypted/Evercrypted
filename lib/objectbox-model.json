@@ -408,7 +408,7 @@
     },
     {
       "id": "7:6803317875164893155",
-      "lastPropertyId": "2:8261632680851490485",
+      "lastPropertyId": "3:2891940613254682061",
       "name": "Settings",
       "properties": [
         {
@@ -420,6 +420,11 @@
         {
           "id": "2:8261632680851490485",
           "name": "dbAvailableKeyboards",
+          "type": 9
+        },
+        {
+          "id": "3:2891940613254682061",
+          "name": "dbLastUsedKeyboard",
           "type": 9
         }
       ],

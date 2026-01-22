@@ -494,7 +494,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(7, 6803317875164893155),
     name: 'Settings',
-    lastPropertyId: const obx_int.IdUid(2, 8261632680851490485),
+    lastPropertyId: const obx_int.IdUid(3, 2891940613254682061),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -506,6 +506,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(2, 8261632680851490485),
         name: 'dbAvailableKeyboards',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2891940613254682061),
+        name: 'dbLastUsedKeyboard',
         type: 9,
         flags: 0,
       ),
@@ -1180,9 +1186,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final dbAvailableKeyboardsOffset = object.dbAvailableKeyboards == null
             ? null
             : fbb.writeString(object.dbAvailableKeyboards!);
-        fbb.startTable(3);
+        final dbLastUsedKeyboardOffset = object.dbLastUsedKeyboard == null
+            ? null
+            : fbb.writeString(object.dbLastUsedKeyboard!);
+        fbb.startTable(4);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, dbAvailableKeyboardsOffset);
+        fbb.addOffset(2, dbLastUsedKeyboardOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1194,7 +1204,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
           ..dbAvailableKeyboards = const fb.StringReader(
             asciiOptimization: true,
-          ).vTableGetNullable(buffer, rootOffset, 6);
+          ).vTableGetNullable(buffer, rootOffset, 6)
+          ..dbLastUsedKeyboard = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 8);
 
         return object;
       },
@@ -1549,5 +1562,10 @@ class Settings_ {
   /// See [Settings.dbAvailableKeyboards].
   static final dbAvailableKeyboards = obx.QueryStringProperty<Settings>(
     _entities[6].properties[1],
+  );
+
+  /// See [Settings.dbLastUsedKeyboard].
+  static final dbLastUsedKeyboard = obx.QueryStringProperty<Settings>(
+    _entities[6].properties[2],
   );
 }
