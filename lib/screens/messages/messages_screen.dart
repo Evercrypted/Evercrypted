@@ -18,7 +18,7 @@ import 'package:evercrypted/core/services/app_state.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
@@ -456,7 +456,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   Future<int?> getlastMessageCreatedAtMSE() async {
-    final query = obx.messages
+    final query = ObxInit.obx.messages
         .query(Message_.chatUid.equals(widget.chat.uid))
         .order(Message_.createdAtMSE)
         .build();
@@ -468,7 +468,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   void listenToObxChanges() {
     startedListeningToIsar = true;
-    final query = obx.messages
+    final query = ObxInit.obx.messages
         .query(Message_.chatUid
             .equals(widget.chat.uid)
             .and(Message_.createdAtMSE.greaterThan(startingCreatedAtMSE)))
@@ -546,7 +546,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
       if (chatMessage.uid != null) {
         // Find the message in ObjectBox and delete it
         final query =
-            obx.messages.query(Message_.uid.equals(chatMessage.uid!)).build();
+            ObxInit.obx.messages.query(Message_.uid.equals(chatMessage.uid!)).build();
         final message = query.findFirst();
         query.close();
 
@@ -577,7 +577,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                 chatUid: message.chatUid, msgUid: message.uid);
           }
           // Remove message from database
-          obx.messages.remove(message.id);
+          ObxInit.obx.messages.remove(message.id);
 
           // Update UI by removing from both paginated and real-time message lists
           if (mounted) {

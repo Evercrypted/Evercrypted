@@ -6,7 +6,7 @@ import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/allowed_for_queue.dart';
 import 'package:evercrypted/core/socket/socket.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rhttp/rhttp.dart';
 
@@ -123,7 +123,7 @@ class AppHttpClient {
           type: type,
           payload: json.encode(payload),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch);
-      final int id = obx.actionQueues.put(action);
+      final int id = ObxInit.obx.actionQueues.put(action);
       writingToQueueCompleter.complete(id);
       return writingToQueueCompleter.future;
     }

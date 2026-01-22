@@ -13,7 +13,7 @@ import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:rhttp/rhttp.dart';
@@ -322,7 +322,7 @@ class ChatSocket {
           type: type,
           payload: json.encode(payload),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch);
-      final int id = obx.actionQueues.put(action);
+      final int id = ObxInit.obx.actionQueues.put(action);
       writingToQueueCompleter.complete(id);
       return writingToQueueCompleter.future;
     }
@@ -392,7 +392,7 @@ class ChatSocket {
   static Future<void> _checkPendingKeyExchanges() async {
     try {
       // Get all chats and trigger unified key exchange checks
-      final chats = obx.chats.getAll();
+      final chats = ObxInit.obx.chats.getAll();
 
       // Check each chat for pending key exchanges (unified approach)
       for (final chat in chats) {

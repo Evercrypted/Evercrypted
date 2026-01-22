@@ -7,7 +7,7 @@ import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -145,7 +145,7 @@ class BaseKey {
   static Future<void> processAllPendingMessages() async {
     try {
       // Find all queued messages waiting for key exchange
-      final query = obx.actionQueues
+      final query = ObxInit.obx.actionQueues
           .query(ActionQueue_.type.equals('sendMessagePendingKey'))
           .build();
       final queuedActions = query.find();
@@ -228,7 +228,7 @@ class BaseKey {
                 if (payload['fileData'] == null) {
                   debugPrint(
                       'BaseKey._processQueuedMessagesForChat: Skipping audio message with null fileData');
-                  obx.actionQueues.remove(action.id);
+                  ObxInit.obx.actionQueues.remove(action.id);
                   continue;
                 }
 
@@ -275,7 +275,7 @@ class BaseKey {
                     payload['fileName'] == null) {
                   debugPrint(
                       'BaseKey._processQueuedMessagesForChat: Skipping file/image message with null data');
-                  obx.actionQueues.remove(action.id);
+                  ObxInit.obx.actionQueues.remove(action.id);
                   continue;
                 }
 
@@ -308,7 +308,7 @@ class BaseKey {
               }
 
               // Remove from queue
-              obx.actionQueues.remove(action.id);
+              ObxInit.obx.actionQueues.remove(action.id);
               processedCount++;
             }
           }
@@ -333,7 +333,7 @@ class BaseKey {
   static Future<void> _processQueuedMessages(String chatUid) async {
     try {
       // Find all queued messages for this chat
-      final query = obx.actionQueues
+      final query = ObxInit.obx.actionQueues
           .query(ActionQueue_.type.equals('sendMessagePendingKey'))
           .build();
       final queuedActions = query.find();

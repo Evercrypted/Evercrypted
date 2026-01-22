@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
-import 'package:evercrypted/core/entities/objectbox.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/core/helpers/navigator_observer.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
@@ -43,7 +43,7 @@ import 'firebase_options.dart';
 import 'services/biometric_service.dart';
 // import 'package:sentry_flutter/sentry_flutter.dart';
 
-late ObjectBox obx;
+// ObjectBox is now accessed via ObxInit.obx for safe initialization
 
 ValueNotifier shouldShowKeyboard = ValueNotifier(false);
 
@@ -74,7 +74,7 @@ void main() async {
 
   await Auth.getAppKey;
 
-  obx = await ObjectBox.create();
+  await ObxInit.initialize();
 
   await Rhttp.init();
   await AppHttpClient.initialize();
@@ -238,7 +238,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
     if (Admin.isAvailable()) {
       // Keep a reference until no longer needed or manually closed.
-      admin = Admin(obx.store);
+      admin = Admin(ObxInit.obx.store);
     }
   }
 
@@ -564,13 +564,13 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   void _syncIsarToRiverpod() async {
     //profile
-    final profile = obx.profiles.getAll().firstOrNull;
+    final profile = ObxInit.obx.profiles.getAll().firstOrNull;
     if (profile != null) {
       ref.read(profileProvider.notifier).setProfile(profile);
     }
 
     //contactRequests
-    final contactRequests = obx.contactRequests.getAll();
+    final contactRequests = ObxInit.obx.contactRequests.getAll();
     if (contactRequests.isNotEmpty) {
       ref.read(receivedContactRequestsProvider.notifier).setReceivedRequests(
           contactRequests
@@ -585,13 +585,13 @@ class AuthGateState extends ConsumerState<AuthGate> {
     }
 
     //contacts
-    final contacts = obx.contacts.getAll();
+    final contacts = ObxInit.obx.contacts.getAll();
     if (contacts.isNotEmpty) {
       ref.read(contactsProvider.notifier).setContacts(contacts);
     }
 
     //chats
-    final chats = obx.chats.getAll();
+    final chats = ObxInit.obx.chats.getAll();
 
     if (chats.isNotEmpty) {
       ChatState.setChats(chats);
@@ -608,7 +608,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
   void _setWatchers() async {
     cancelListeners();
     //profile
-    profileListener = obx.profiles
+    profileListener = ObxInit.obx.profiles
         .query()
         .watch()
         .map((query) => query.find())
@@ -618,7 +618,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
       }
     });
     //contactRequests
-    contactRequestsListener = obx.contactRequests
+    contactRequestsListener = ObxInit.obx.contactRequests
         .query()
         .watch()
         .map((query) => query.find())
@@ -635,7 +635,7 @@ class AuthGateState extends ConsumerState<AuthGate> {
               .toList());
     });
     //contacts
-    contactsListener = obx.contacts
+    contactsListener = ObxInit.obx.contacts
         .query()
         .watch()
         .map((query) => query.find())
@@ -643,8 +643,11 @@ class AuthGateState extends ConsumerState<AuthGate> {
       ref.read(contactsProvider.notifier).setContacts(contacts);
     });
     //chats
-    chatsListener =
-        obx.chats.query().watch().map((query) => query.find()).listen((chats) {
+    chatsListener = ObxInit.obx.chats
+        .query()
+        .watch()
+        .map((query) => query.find())
+        .listen((chats) {
       ChatState.setChats(chats);
     });
     //messages

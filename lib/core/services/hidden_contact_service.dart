@@ -1,6 +1,6 @@
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 
 class HiddenContactService {
   final ProfileService _profileService = ProfileService();
@@ -26,7 +26,7 @@ class HiddenContactService {
     profile.accountSettings = updatedAccountSettings;
 
     // Save to database
-    obx.profiles.put(profile);
+    ObxInit.obx.profiles.put(profile);
 
     // Sync to server
     _profileService.updateAccountSettingsOnServer(updatedAccountSettings);
@@ -52,7 +52,7 @@ class HiddenContactService {
     profile.accountSettings = updatedAccountSettings;
 
     // Save to database
-    obx.profiles.put(profile);
+    ObxInit.obx.profiles.put(profile);
 
     // Sync to server
     _profileService.updateAccountSettingsOnServer(updatedAccountSettings);

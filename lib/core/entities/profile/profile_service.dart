@@ -2,27 +2,27 @@ import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:flutter/widgets.dart';
 
 import 'profile_model.dart';
 
 class ProfileService {
   void syncProfile(Profile profile) {
-    obx.profiles.removeAll();
-    obx.profiles.put(profile);
+    ObxInit.obx.profiles.removeAll();
+    ObxInit.obx.profiles.put(profile);
   }
 
   void updateProfileEmailVerified({required bool emailVerified}) async {
-    final profile = obx.profiles.getAll().firstOrNull;
+    final profile = ObxInit.obx.profiles.getAll().firstOrNull;
     if (profile != null) {
       profile.emailVerified = emailVerified;
-      obx.profiles.put(profile);
+      ObxInit.obx.profiles.put(profile);
     }
   }
 
   Profile? getProfile() {
-    return obx.profiles.getAll().firstOrNull;
+    return ObxInit.obx.profiles.getAll().firstOrNull;
   }
 
   updateProfileSubscription(dynamic payload) {

@@ -8,7 +8,7 @@ import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
@@ -72,7 +72,7 @@ class ActionQueueService {
       // First, clean up any orphaned messages
       await cleanupOrphanedMessages();
 
-      final queue = obx.actionQueues.getAll();
+      final queue = ObxInit.obx.actionQueues.getAll();
       debugPrint(
           'ActionQueueService: Processing ${queue.length} queued actions');
 
@@ -138,7 +138,7 @@ class ActionQueueService {
               if ((action.channel == SocketChannelTypes.message) &&
                   result != null &&
                   result['messageUid'] != null) {
-                final query = obx.messages
+                final query = ObxInit.obx.messages
                     .query(Message_.queueId.equals(action.id))
                     .build();
                 final Message? msg = query.findFirst();
@@ -148,7 +148,7 @@ class ActionQueueService {
                       'ActionQueueService: Updating message ${msg.id} with uid ${result['messageUid']}');
 
                   // Check if a message with this messageUid already exists
-                  final existingQuery = obx.messages
+                  final existingQuery = ObxInit.obx.messages
                       .query(Message_.uid.equals(result['messageUid']))
                       .build();
                   final existingMessage = existingQuery.findFirst();
@@ -159,7 +159,7 @@ class ActionQueueService {
                     // Just remove the queued duplicate
                     debugPrint(
                         'ActionQueueService: Message with uid ${result['messageUid']} already exists, removing queued duplicate');
-                    obx.messages.remove(msg.id);
+                    ObxInit.obx.messages.remove(msg.id);
                   } else {
                     // Update the queued message with server response
                     msg.successfullySent = true;
@@ -169,7 +169,7 @@ class ActionQueueService {
                         null; // Clear queue ID since it's no longer queued
                     msg.couldNotSend = false;
                     msg.error = null;
-                    obx.messages.put(msg);
+                    ObxInit.obx.messages.put(msg);
 
                     // Notify UI about the status update
                     messageStatusUpdatesSubject.add(msg);
@@ -186,7 +186,7 @@ class ActionQueueService {
                     'ActionQueueService: Result missing messageUid or not a message channel. Channel: ${action.channel}, payload: $result');
               }
               // Remove action from queue after successful processing
-              obx.actionQueues.remove(action.id);
+              ObxInit.obx.actionQueues.remove(action.id);
               debugPrint(
                   'ActionQueueService: Removed action ${action.id} from queue');
             } else {
@@ -225,7 +225,7 @@ class ActionQueueService {
       if (action.channel == SocketChannelTypes.message ||
           action.channel == 'files') {
         final query =
-            obx.messages.query(Message_.queueId.equals(action.id)).build();
+            ObxInit.obx.messages.query(Message_.queueId.equals(action.id)).build();
         final Message? msg = query.findFirst();
         query.close();
 
@@ -234,7 +234,7 @@ class ActionQueueService {
           msg.successfullySent = false;
           msg.couldNotSend = true;
           msg.error = 'Failed to send: $errorMessage';
-          obx.messages.put(msg);
+          ObxInit.obx.messages.put(msg);
 
           debugPrint(
               'ActionQueueService: Updated message ${msg.id} status to failed');
@@ -242,7 +242,7 @@ class ActionQueueService {
       }
 
       // Remove the failed action from queue
-      obx.actionQueues.remove(action.id);
+      ObxInit.obx.actionQueues.remove(action.id);
       debugPrint(
           'ActionQueueService: Removed failed action ${action.id} from queue');
     } catch (e) {
@@ -255,21 +255,21 @@ class ActionQueueService {
   Future<void> cleanupOrphanedMessages() async {
     try {
       // Get all messages with queueId
-      final query = obx.messages.query(Message_.queueId.notNull()).build();
+      final query = ObxInit.obx.messages.query(Message_.queueId.notNull()).build();
       final messagesWithQueueId = query.find();
       query.close();
 
       for (var message in messagesWithQueueId) {
         if (message.queueId != null) {
           // Check if queue item still exists
-          final queueItem = obx.actionQueues.get(message.queueId!);
+          final queueItem = ObxInit.obx.actionQueues.get(message.queueId!);
           if (queueItem == null) {
             // Queue item doesn't exist, update message status
             if (!message.successfullySent) {
               message.couldNotSend = true;
               message.error = 'Message was not sent (queue item missing)';
               message.queueId = null;
-              obx.messages.put(message);
+              ObxInit.obx.messages.put(message);
               debugPrint(
                   'ActionQueueService: Cleaned up orphaned message ${message.id}');
             }

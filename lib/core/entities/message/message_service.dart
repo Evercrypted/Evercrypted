@@ -16,7 +16,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'message_model.dart';
 
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 
 class MessageService {
   String? userId = Auth.user?.uid;
@@ -43,7 +43,7 @@ class MessageService {
 
   Future<List<Message>> getMessagesFromDB(
       int chatId, int pageKey, int pageSize) async {
-    final query = obx.messages
+    final query = ObxInit.obx.messages
         .query(Message_.chat.equals(chatId))
         .order(Message_.createdAtMSE, flags: Order.descending)
         .build();
@@ -65,7 +65,7 @@ class MessageService {
 
     // Check if we're updating an existing optimistic message
     if (queueId != null) {
-      final optimisticQuery = obx.messages
+      final optimisticQuery = ObxInit.obx.messages
           .query(Message_.queueId.equals(queueId))
           .build();
       final existingMessage = optimisticQuery.findFirst();
@@ -154,7 +154,7 @@ class MessageService {
 
       // Update existing message or write new one
       if (queueId != null && messageToSend.id > 0) {
-        obx.messages.put(messageToSend);
+        ObxInit.obx.messages.put(messageToSend);
         // Emit status update for UI to react
         ActionQueueService.messageStatusUpdatesSubject.add(messageToSend);
         complete.complete(messageToSend);
@@ -171,7 +171,7 @@ class MessageService {
 
       // Update existing message or write new one
       if (queueId != null && messageToSend.id > 0) {
-        obx.messages.put(messageToSend);
+        ObxInit.obx.messages.put(messageToSend);
         complete.complete(messageToSend);
       } else {
         writeNewMessageToObx(messageToSend).then((value) {
@@ -200,7 +200,7 @@ class MessageService {
           type: MessageEventTypes.sendFile,
           payload: json.encode(payload),
           createdAtMSE: DateTime.now().millisecondsSinceEpoch);
-      final int id = obx.actionQueues.put(action);
+      final int id = ObxInit.obx.actionQueues.put(action);
       await saveFile(file: file, queueId: id);
       writingToQueueCompleter.complete(id);
       return writingToQueueCompleter.future;
@@ -338,7 +338,7 @@ class MessageService {
     // Check if we need to update an existing optimistic message
     Message? existingOptimisticMessage;
     if (optimisticMessageQueueId != null) {
-      final optimisticQuery = obx.messages
+      final optimisticQuery = ObxInit.obx.messages
           .query(Message_.queueId.equals(optimisticMessageQueueId))
           .build();
       existingOptimisticMessage = optimisticQuery.findFirst();
@@ -366,14 +366,14 @@ class MessageService {
           .then((resp) async {
         // Check if a message with this messageUid already exists
         final existingQuery =
-            obx.messages.query(Message_.uid.equals(resp['messageUid'])).build();
+            ObxInit.obx.messages.query(Message_.uid.equals(resp['messageUid'])).build();
         final existingMessage = existingQuery.findFirst();
         existingQuery.close();
 
         if (existingMessage != null && existingMessage.id != msg.id) {
           // A message with this UID already exists, remove the queued duplicate
           final msgIdToRemove = msg.id;
-          obx.messages.remove(msgIdToRemove);
+          ObxInit.obx.messages.remove(msgIdToRemove);
           deleteFile(queueId: queueId!);
           debugPrint(
               'MessageService: Message with uid ${resp['messageUid']} already exists, removed queued duplicate');
@@ -428,7 +428,7 @@ class MessageService {
           },
         ).then((resp) async {
           // Check if a message with this messageUid already exists
-          final existingQuery = obx.messages
+          final existingQuery = ObxInit.obx.messages
               .query(Message_.uid.equals(resp['messageUid']))
               .build();
           final existingMessage = existingQuery.findFirst();
@@ -437,7 +437,7 @@ class MessageService {
           if (existingMessage != null && existingMessage.id != messageToSend.id) {
             // A message with this UID already exists, remove this duplicate
             final msgIdToRemove = messageToSend.id;
-            obx.messages.remove(msgIdToRemove);
+            ObxInit.obx.messages.remove(msgIdToRemove);
             debugPrint(
                 'MessageService: Message with uid ${resp['messageUid']} already exists, removed duplicate');
           } else {
@@ -451,7 +451,7 @@ class MessageService {
 
             // If updating optimistic message, use put; otherwise use writeNewMessageToObx
             if (optimisticMessageQueueId != null && messageToSend.id > 0) {
-              obx.messages.put(messageToSend);
+              ObxInit.obx.messages.put(messageToSend);
               // Emit status update for UI to react
               ActionQueueService.messageStatusUpdatesSubject.add(messageToSend);
               complete.complete(messageToSend);
@@ -473,7 +473,7 @@ class MessageService {
 
           // If updating optimistic message, use put; otherwise use writeNewMessageToObx
           if (optimisticMessageQueueId != null && messageToSend.id > 0) {
-            obx.messages.put(messageToSend);
+            ObxInit.obx.messages.put(messageToSend);
             complete.complete(messageToSend);
           } else {
             writeNewMessageToObx(messageToSend).then((value) {
@@ -512,7 +512,7 @@ class MessageService {
       final Message message = getMessage(chatUid, messageUid);
       message.filepath = await saveFile(
           file: resp['file'], chatUid: chatUid, msgUid: messageUid);
-      obx.messages.put(message);
+      ObxInit.obx.messages.put(message);
       completer.complete(resp['file']);
     }).onError((error, stackTrace) {
       completer.completeError('Could not download file');
@@ -521,7 +521,7 @@ class MessageService {
   }
 
   getMessage(String chatUid, String messageUid) {
-    final query = obx.messages
+    final query = ObxInit.obx.messages
         .query(Message_.chatUid
             .equals(chatUid)
             .and(Message_.uid.equals(messageUid)))
@@ -534,13 +534,13 @@ class MessageService {
   writeNewMessageToObx(Message message) async {
     // Check if a message with this uid or uniqueId already exists
     final existingByUidQuery = message.uid != null
-        ? obx.messages.query(Message_.uid.equals(message.uid!)).build()
+        ? ObxInit.obx.messages.query(Message_.uid.equals(message.uid!)).build()
         : null;
     final existingByUid = existingByUidQuery?.findFirst();
     existingByUidQuery?.close();
 
     final existingByUniqueIdQuery = message.uniqueId != null
-        ? obx.messages
+        ? ObxInit.obx.messages
             .query(Message_.uniqueId.equals(message.uniqueId!))
             .build()
         : null;
@@ -553,19 +553,19 @@ class MessageService {
       return;
     }
 
-    final query = obx.chats.query(Chat_.uid.equals(message.chatUid)).build();
+    final query = ObxInit.obx.chats.query(Chat_.uid.equals(message.chatUid)).build();
     final Chat? chat = query.findFirst();
     query.close();
 
     if (chat != null) {
       chat.lastMessageTime = DateTime.now();
       chat.messages.add(message);
-      obx.chats.put(chat);
+      ObxInit.obx.chats.put(chat);
     }
   }
 
   Future<void> deleteAllMessages(String chatUid) async {
-    final query = obx.messages.query(Message_.chatUid.equals(chatUid)).build();
+    final query = ObxInit.obx.messages.query(Message_.chatUid.equals(chatUid)).build();
     final messages = query.find();
 
     if (messages.isEmpty) {
@@ -586,7 +586,7 @@ class MessageService {
 
     // Remove messages from database immediately without waiting for file deletion
     final messageIds = messages.map((m) => m.id).toList();
-    obx.messages.removeMany(messageIds);
+    ObxInit.obx.messages.removeMany(messageIds);
     query.close();
   }
 }

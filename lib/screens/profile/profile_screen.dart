@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/services/biometric_service.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
@@ -60,12 +60,12 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _clearAllLocalData() async {
     // Clear all ObjectBox boxes
-    obx.messages.removeAll();
-    obx.chats.removeAll();
-    obx.profiles.removeAll();
-    obx.contactRequests.removeAll();
-    obx.actionQueues.removeAll();
-    obx.settings.removeAll();
+    ObxInit.obx.messages.removeAll();
+    ObxInit.obx.chats.removeAll();
+    ObxInit.obx.profiles.removeAll();
+    ObxInit.obx.contactRequests.removeAll();
+    ObxInit.obx.actionQueues.removeAll();
+    ObxInit.obx.settings.removeAll();
 
     // Clear files and cache directories
     final directory = await getApplicationDocumentsDirectory();

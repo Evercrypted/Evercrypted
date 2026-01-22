@@ -15,7 +15,7 @@ import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/services/hidden_chat_service.dart';
 import 'package:evercrypted/core/socket/event_types/chat_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +30,7 @@ class ChatService {
   Chat addChat(Chat chat, {bool isNewlyCreated = false}) {
     checkKeys(chat);
 
-    final int id = obx.chats.put(chat);
+    final int id = ObxInit.obx.chats.put(chat);
     chat.id = id;
 
     // Auto-generate group key ONLY for newly created group chats where I'm the creator
@@ -56,7 +56,7 @@ class ChatService {
   Future<void> syncChats(List<Chat> chats) async {
     Completer<void> completer = Completer();
 
-    final List<Chat> chatsInDb = obx.chats.getAll();
+    final List<Chat> chatsInDb = ObxInit.obx.chats.getAll();
 
     final Iterable<Chat> chatsToPut = chats.where((element) =>
         chatsInDb.where((dbEl) => dbEl.uid == element.uid).isEmpty);
@@ -78,11 +78,11 @@ class ChatService {
     if (allChats.isNotEmpty) {
       _doSyncForAllChats(allChats);
 
-      obx.chats.putMany(allChats);
+      ObxInit.obx.chats.putMany(allChats);
     }
 
     for (var chat in allChats) {
-      final query = obx.chats.query(Chat_.uid.equals(chat.uid)).build();
+      final query = ObxInit.obx.chats.query(Chat_.uid.equals(chat.uid)).build();
       final dbChat = query.findFirst();
       query.close();
       if (dbChat != null) {
@@ -104,7 +104,7 @@ class ChatService {
             dbChat.messages.add(newMessage);
           }
         }
-        obx.chats.put(dbChat);
+        ObxInit.obx.chats.put(dbChat);
       }
     }
 
@@ -122,8 +122,8 @@ class ChatService {
 
           // Remove messages and chat from database immediately
           final List<int> messageIds = chat.messages.map((m) => m.id).toList();
-          obx.messages.removeMany(messageIds);
-          obx.chats.remove(chat.id);
+          ObxInit.obx.messages.removeMany(messageIds);
+          ObxInit.obx.chats.remove(chat.id);
         } catch (error) {
           debugPrint('Failed to delete chat ${chat.uid}: $error');
           // Continue with other chat deletions even if one fails
@@ -259,9 +259,9 @@ class ChatService {
         'contactUids': participants.map((p) => p.uid).toList()
       },
     ).then((resp) {
-      final chatFromDb = obx.chats.get(chat.id);
+      final chatFromDb = ObxInit.obx.chats.get(chat.id);
       chatFromDb?.participants.addAll(participants);
-      obx.chats.put(chatFromDb!);
+      ObxInit.obx.chats.put(chatFromDb!);
       completer.complete(true);
     }).catchError((error) {
       completer.completeError(false);
@@ -277,12 +277,12 @@ class ChatService {
       type: ChatEventTypes.removeParticipant,
       payload: {'chatUid': chat.uid, 'participantUid': participant.uid},
     ).then((resp) {
-      final chatFromDb = obx.chats.get(chat.id);
+      final chatFromDb = ObxInit.obx.chats.get(chat.id);
       if (chatFromDb == null) {
         completer.completeError(false);
       }
       chatFromDb!.participants.removeWhere((p) => p.uid == participant.uid);
-      obx.chats.put(chatFromDb);
+      ObxInit.obx.chats.put(chatFromDb);
       completer.complete(true);
     }).catchError((error) {
       completer.completeError(false);
@@ -302,14 +302,14 @@ class ChatService {
   }
 
   updateChatFromResp(Chat chat) async {
-    final query = obx.chats.query(Chat_.uid.equals(chat.uid)).build();
+    final query = ObxInit.obx.chats.query(Chat_.uid.equals(chat.uid)).build();
     final Chat? chatInDb = query.findFirst();
     query.close();
 
     if (chatInDb != null) {
       checkKeys(chat);
       chat.id = chatInDb.id;
-      obx.chats.put(chat);
+      ObxInit.obx.chats.put(chat);
     }
   }
 
@@ -327,7 +327,7 @@ class ChatService {
 
   Future<bool> findContactChatAndDelete(
       {required String contactUid, bool skipNotify = false}) async {
-    final chats = obx.chats.getAll();
+    final chats = ObxInit.obx.chats.getAll();
     final chat = chats.firstWhereOrNull((chat) {
       return chat.participants.length == 2 &&
           chat.participants.any((participant) => participant.uid == contactUid);
@@ -342,7 +342,7 @@ class ChatService {
 
   deleteChat({required String chatUid, bool? skipNotify = false}) async {
     delete() async {
-      final query = obx.chats.query(Chat_.uid.equals(chatUid)).build();
+      final query = ObxInit.obx.chats.query(Chat_.uid.equals(chatUid)).build();
       final chatInDb = query.findFirst();
       query.close();
       if (chatInDb != null) {
@@ -355,7 +355,7 @@ class ChatService {
 
         chatInDb.messages.clear();
         chatInDb.messages.applyToDb();
-        obx.chats.remove(chatInDb.id);
+        ObxInit.obx.chats.remove(chatInDb.id);
       }
     }
 
@@ -386,9 +386,9 @@ class ChatService {
 
   getChat({int? chatId, String? chatUid}) {
     if (chatId != null) {
-      return obx.chats.get(chatId);
+      return ObxInit.obx.chats.get(chatId);
     } else if (chatUid != null) {
-      final query = obx.chats.query(Chat_.uid.equals(chatUid)).build();
+      final query = ObxInit.obx.chats.query(Chat_.uid.equals(chatUid)).build();
       final chat = query.findFirst();
       query.close();
       return chat;

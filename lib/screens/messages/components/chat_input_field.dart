@@ -7,7 +7,7 @@ import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/core/cryptography/voice_message.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
@@ -179,7 +179,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       }),
       createdAtMSE: DateTime.now().millisecondsSinceEpoch,
     );
-    final actionId = obx.actionQueues.put(action);
+    final actionId = ObxInit.obx.actionQueues.put(action);
     debugPrint(
         'userLog: Queued $messageType message (actionId: $actionId) for chat $chatUid until key exchange completes. User: ${Auth.user?.uid}');
 
@@ -554,7 +554,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       fileToSend = encrypted['crypted'];
     } else {
       // No encryption key available - queue image message regardless of chat type
-      final chat = obx.chats.get(int.parse(widget.chat.uid));
+      final chat = ObxInit.obx.chats.get(int.parse(widget.chat.uid));
       if (widget.baseKey == null && chat != null) {
         // Queue image message until key is available
         await _queueMessageUntilKeyExchange(

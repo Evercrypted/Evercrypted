@@ -1,6 +1,6 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/http.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,13 +21,13 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
 
   Future<void> _clearAllLocalData() async {
     // Clear all ObjectBox boxes
-    obx.messages.removeAll();
-    obx.chats.removeAll();
-    obx.contacts.removeAll();
-    obx.profiles.removeAll();
-    obx.contactRequests.removeAll();
-    obx.actionQueues.removeAll();
-    obx.settings.removeAll();
+    ObxInit.obx.messages.removeAll();
+    ObxInit.obx.chats.removeAll();
+    ObxInit.obx.contacts.removeAll();
+    ObxInit.obx.profiles.removeAll();
+    ObxInit.obx.contactRequests.removeAll();
+    ObxInit.obx.actionQueues.removeAll();
+    ObxInit.obx.settings.removeAll();
 
     // Clear files and cache directories
     final directory = await getApplicationDocumentsDirectory();
@@ -200,9 +200,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? Colors.grey[900]
-                          : Colors.grey[100],
+                      color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: Colors.red.withAlpha((255 * 0.3).round()),
@@ -255,9 +253,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.grey[50],
+                      color: isDarkMode ? Colors.grey[850] : Colors.grey[50],
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: CheckboxListTile(
@@ -316,7 +312,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                     child: TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
-                        foregroundColor: isDarkMode ? Colors.white : Colors.black,
+                        foregroundColor:
+                            isDarkMode ? Colors.white : Colors.black,
                       ),
                       child: const Text(
                         'Cancel',

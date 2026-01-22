@@ -2,14 +2,14 @@ import 'package:evercrypted/core/entities/contact-request/contact_request_model.
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
 
 import 'contact_model.dart';
 
 class ContactService {
   Contact? findContactByUid(String uid) {
-    final query = obx.contacts.query(Contact_.uid.equals(uid)).build();
+    final query = ObxInit.obx.contacts.query(Contact_.uid.equals(uid)).build();
     final Contact? contact = query.findFirst();
     query.close();
     return contact;
@@ -17,14 +17,14 @@ class ContactService {
 
   void createContactAndRemoveContactRequest(
       Contact contact, String contactRequestUid) async {
-    obx.contacts.put(contact);
-    final query = obx.contactRequests
+    ObxInit.obx.contacts.put(contact);
+    final query = ObxInit.obx.contactRequests
         .query(ContactRequest_.uid.equals(contactRequestUid))
         .build();
     final ContactRequest? crInDB = query.findFirst();
     query.close();
     if (crInDB != null) {
-      obx.contactRequests.remove(crInDB.id);
+      ObxInit.obx.contactRequests.remove(crInDB.id);
     }
   }
 
@@ -36,7 +36,7 @@ class ContactService {
     ).then((value) {
       final contact = findContactByUid(contactUid);
       if (contact != null) {
-        obx.contacts.remove(contact.id);
+        ObxInit.obx.contacts.remove(contact.id);
       }
     });
   }
@@ -44,7 +44,7 @@ class ContactService {
   void handleDeletedContact(String contactUid) {
     final contact = findContactByUid(contactUid);
     if (contact != null) {
-      obx.contacts.remove(contact.id);
+      ObxInit.obx.contacts.remove(contact.id);
     }
   }
 
@@ -54,12 +54,12 @@ class ContactService {
       return;
     } else {
       contact.name = newName;
-      obx.contacts.put(contact);
+      ObxInit.obx.contacts.put(contact);
     }
   }
 
   void syncContacts(List<Contact> contacts) async {
-    final List<Contact> contactsInDb = obx.contacts.getAll();
+    final List<Contact> contactsInDb = ObxInit.obx.contacts.getAll();
 
     final List<Contact> contactsToPut = contacts
         .where((element) =>
@@ -72,8 +72,8 @@ class ContactService {
         .map((e) => e.id)
         .toList();
 
-    obx.contacts.removeMany(contactsToDelete);
-    obx.contacts.putMany(contactsToPut);
+    ObxInit.obx.contacts.removeMany(contactsToDelete);
+    ObxInit.obx.contacts.putMany(contactsToPut);
   }
 
   toggleFavorite(String contactUid) async {
@@ -85,7 +85,7 @@ class ContactService {
       final contact = findContactByUid(contactUid);
       if (contact != null) {
         contact.isFavorite = !contact.isFavorite;
-        obx.contacts.put(contact);
+        ObxInit.obx.contacts.put(contact);
       }
     });
   }

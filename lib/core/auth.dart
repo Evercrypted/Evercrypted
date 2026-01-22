@@ -3,7 +3,7 @@ import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/socket.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rxdart/subjects.dart';
@@ -225,7 +225,7 @@ class Auth {
 
   static clearAuth() async {
     Auth.user = null;
-    obx.profiles.removeAll();
+    if (ObxInit.isReady) ObxInit.obx.profiles.removeAll();
     Auth.isOtpActive = false;
     await Auth.clearOtpToken(skipNotify: true);
     await Auth.clearToken(skipNotify: true);

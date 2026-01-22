@@ -7,14 +7,14 @@ import 'package:evercrypted/objectbox.g.dart';
 import '../../socket/socket_channels.dart';
 import '../contact/contact_service.dart';
 import '../../socket/event_types/contact_request_event_types.dart';
-import 'package:evercrypted/main.dart';
+import 'package:evercrypted/core/obx_init.dart';
 
 class ContactRequestService {
   final ContactService contactService = ContactService();
 
   findByUid(String uid) {
     final query =
-        obx.contactRequests.query(ContactRequest_.uid.equals(uid)).build();
+        ObxInit.obx.contactRequests.query(ContactRequest_.uid.equals(uid)).build();
     final ContactRequest? contactRequest = query.findFirst();
     query.close();
     return contactRequest;
@@ -44,11 +44,11 @@ class ContactRequestService {
       type: ContactRequestEventTypes.acceptContactRequest,
       payload: cRequest.uid,
     ).then((value) {
-      obx.contacts.put(Contact.fromJson(value));
-      obx.contactRequests.remove(cRequest.id);
+      ObxInit.obx.contacts.put(Contact.fromJson(value));
+      ObxInit.obx.contactRequests.remove(cRequest.id);
     }).onError((error, stackTrace) {
       if (error == 'No such contact request found') {
-        obx.contactRequests.remove(cRequest.id);
+        ObxInit.obx.contactRequests.remove(cRequest.id);
       }
     });
   }
@@ -82,7 +82,7 @@ class ContactRequestService {
   deleteContactRequest(String uid) {
     final crInDb = findByUid(uid);
     if (crInDb != null) {
-      obx.contactRequests.remove(crInDb.id);
+      ObxInit.obx.contactRequests.remove(crInDb.id);
     }
   }
 
@@ -90,13 +90,13 @@ class ContactRequestService {
     final crInDb = findByUid(cRequest.uid!);
     if (crInDb != null) {
       cRequest.id = crInDb.id;
-      obx.contactRequests.put(cRequest);
+      ObxInit.obx.contactRequests.put(cRequest);
     }
   }
 
   void syncContactRequests(List<ContactRequest> contactRequests) {
     final List<ContactRequest> contactRequestsInDb =
-        obx.contactRequests.getAll();
+        ObxInit.obx.contactRequests.getAll();
 
     final List<ContactRequest> contactRequestsToPut = contactRequests
         .where((element) => contactRequestsInDb
@@ -110,7 +110,7 @@ class ContactRequestService {
         .map((ContactRequest el) => el.id)
         .toList();
 
-    obx.contactRequests.removeMany(contactRequestsToDelete);
-    obx.contactRequests.putMany(contactRequestsToPut);
+    ObxInit.obx.contactRequests.removeMany(contactRequestsToDelete);
+    ObxInit.obx.contactRequests.putMany(contactRequestsToPut);
   }
 }
