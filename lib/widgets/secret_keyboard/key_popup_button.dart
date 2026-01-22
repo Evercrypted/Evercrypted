@@ -93,10 +93,7 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
   bool get _hasAlternatives =>
       widget.alternatives != null && widget.alternatives!.isNotEmpty;
 
-  void _onTapDown(TapDownDetails details) {
-    setState(() => isPressed = true);
-    _animationController.forward();
-  }
+  // Note: onPointerDown in Listener handles immediate press visual feedback
 
   void _onTapUp(TapUpDetails details) {
     _animationController.reverse();
@@ -253,31 +250,51 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
                     ),
             ),
           ),
-          // The actual button
+          // The actual button - wrapped in Listener for immediate popup response
           Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTapDown: _onTapDown,
-              onTapUp: _onTapUp,
-              onTapCancel: _onTapCancel,
-              onLongPressStart: _hasAlternatives ? _onLongPressStart : null,
-              onLongPressMoveUpdate:
-                  _hasAlternatives ? _onLongPressMoveUpdate : null,
-              onLongPressEnd: _hasAlternatives ? _onLongPressEnd : null,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 60),
-                decoration: BoxDecoration(
-                  color: isPressed || isLongPressed
-                      ? Colors.white.withAlpha((255 * 0.35).round())
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  widget.keyLabel,
-                  style: widget.textStyle ??
-                      const TextStyle(color: Colors.white, fontSize: 20),
-                  textDirection: TextDirection.ltr,
+            child: Listener(
+              // Use Listener for immediate pointer events (bypasses gesture disambiguation)
+              onPointerDown: (_) {
+                setState(() => isPressed = true);
+                _animationController.forward();
+              },
+              onPointerUp: (_) {
+                // Only handle if not in long press mode (GestureDetector handles that)
+                if (!isLongPressed) {
+                  _animationController.reverse();
+                  setState(() => isPressed = false);
+                }
+              },
+              onPointerCancel: (_) {
+                if (!isLongPressed) {
+                  _animationController.reverse();
+                  setState(() => isPressed = false);
+                }
+              },
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                // Remove onTapDown - Listener handles immediate response
+                onTapUp: _onTapUp,
+                onTapCancel: _onTapCancel,
+                onLongPressStart: _hasAlternatives ? _onLongPressStart : null,
+                onLongPressMoveUpdate:
+                    _hasAlternatives ? _onLongPressMoveUpdate : null,
+                onLongPressEnd: _hasAlternatives ? _onLongPressEnd : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 60),
+                  decoration: BoxDecoration(
+                    color: isPressed || isLongPressed
+                        ? Colors.white.withAlpha((255 * 0.35).round())
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    widget.keyLabel,
+                    style: widget.textStyle ??
+                        const TextStyle(color: Colors.white, fontSize: 20),
+                    textDirection: TextDirection.ltr,
+                  ),
                 ),
               ),
             ),
