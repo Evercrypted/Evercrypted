@@ -101,6 +101,7 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
   void _onTapUp(TapUpDetails details) {
     _animationController.reverse();
     setState(() => isPressed = false);
+    HapticFeedback.lightImpact();
     widget.onPressed();
   }
 

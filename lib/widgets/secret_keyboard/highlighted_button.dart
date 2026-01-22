@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class HighlightedButton extends StatefulWidget {
   const HighlightedButton({
@@ -29,6 +30,7 @@ class _HighlightedButtonState extends State<HighlightedButton> {
       onTapDown: (_) => setState(() => isPressed = true),
       onTapUp: (_) {
         setState(() => isPressed = false);
+        HapticFeedback.lightImpact();
         widget.onPressed();
       },
       onTapCancel: () => setState(() => isPressed = false),
