@@ -332,6 +332,30 @@ class _MessageWidgetState extends State<MessageWidget> {
     );
   }
 
+  String _formatTimestamp(int createdAtMSE) {
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(createdAtMSE);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final time = '$hour:$minute';
+
+    if (messageDate == today) {
+      return time;
+    } else if (messageDate == today.subtract(const Duration(days: 1))) {
+      return 'Yesterday $time';
+    } else if (now.difference(dateTime).inDays < 7) {
+      final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return '${weekdays[dateTime.weekday - 1]} $time';
+    } else {
+      final day = dateTime.day.toString().padLeft(2, '0');
+      final month = dateTime.month.toString().padLeft(2, '0');
+      return '$day/$month/${dateTime.year} $time';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget messageContent(ChatMessage message) {
@@ -362,21 +386,68 @@ class _MessageWidgetState extends State<MessageWidget> {
       }
     }
 
+    Widget messageWithTimestamp(ChatMessage message) {
+      return Column(
+        crossAxisAlignment:
+            message.isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onLongPress: () {
+              _showMessageOptionsBottomSheet(context, message);
+            },
+            child: messageContent(message),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              _formatTimestamp(message.createdAtMSE),
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.color
+                    ?.withAlpha((255 * 0.6).round()),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return message != null
         ? Padding(
             padding: const EdgeInsets.only(top: defaultPadding / 2),
             child: message!.isSystemMessage
                 ? Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withAlpha(
-                              (255 * 0.1).round(),
+                    child: Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor.withAlpha(
+                                  (255 * 0.1).round(),
+                                ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: defaultPadding, vertical: defaultPadding),
+                          child: Text(message!.text!),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            _formatTimestamp(message!.createdAtMSE),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.color
+                                  ?.withAlpha((255 * 0.6).round()),
                             ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: defaultPadding, vertical: defaultPadding),
-                      child: Text(message!.text!),
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 : Row(
@@ -401,12 +472,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                         ),
                         const SizedBox(width: defaultPadding / 3),
                       ],
-                      GestureDetector(
-                        onLongPress: () {
-                          _showMessageOptionsBottomSheet(context, message!);
-                        },
-                        child: messageContent(message!),
-                      ),
+                      messageWithTimestamp(message!),
                       if (message!.isSender) ...[
                         const SizedBox(width: defaultPadding / 4),
                         Column(
