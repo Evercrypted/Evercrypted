@@ -47,6 +47,9 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
   // Store the center X position of the key when long press starts
   double? _keyCenterX;
 
+  // Store the horizontal offset needed to keep popup within screen bounds
+  double _popupHorizontalOffset = 0.0;
+
   // Width of each alternative key in the popup (base value)
   static const _alternativeKeyWidth = 30.0;
 
@@ -120,11 +123,36 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
     final keyPosition = box.localToGlobal(Offset.zero);
     _keyCenterX = keyPosition.dx + box.size.width / 2;
 
+    // Calculate the popup width and offset needed to keep it on screen
+    final screenWidth = MediaQuery.of(context).size.width;
+    final alternativesCount = widget.alternatives!.length;
+    final effectiveKeyWidth = _getEffectiveKeyWidth();
+    const horizontalPadding = 8.0;
+    final popupWidth =
+        alternativesCount * effectiveKeyWidth + horizontalPadding * 2;
+
+    // Calculate where the popup would be if centered on the key
+    final popupLeftEdge = _keyCenterX! - popupWidth / 2;
+    final popupRightEdge = _keyCenterX! + popupWidth / 2;
+
+    // Calculate offset to keep popup within screen bounds (with 10px margin)
+    const screenMargin = 10.0;
+    double offset = 0.0;
+
+    if (popupLeftEdge < screenMargin) {
+      // Popup extends beyond left edge - shift right
+      offset = screenMargin - popupLeftEdge;
+    } else if (popupRightEdge > screenWidth - screenMargin) {
+      // Popup extends beyond right edge - shift left
+      offset = (screenWidth - screenMargin) - popupRightEdge;
+    }
+
     setState(() {
       isLongPressed = true;
       isPressed = false;
       // Start with the first alternative selected
       selectedAlternativeIndex = 0;
+      _popupHorizontalOffset = offset;
     });
     _animationController.forward();
   }
@@ -137,9 +165,9 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
     final effectiveKeyWidth = _getEffectiveKeyWidth();
 
     // Calculate the popup's left edge X position
-    // The popup is centered on the key, so:
+    // The popup is centered on the key, plus any offset to keep it on screen
     final popupWidth = alternativesCount * effectiveKeyWidth;
-    final popupLeftX = _keyCenterX! - popupWidth / 2;
+    final popupLeftX = _keyCenterX! - popupWidth / 2 + _popupHorizontalOffset;
 
     // Calculate which alternative the finger is over
     final fingerOffsetInPopup = fingerX - popupLeftX;
@@ -175,6 +203,7 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
       isLongPressed = false;
       selectedAlternativeIndex = null;
       _keyCenterX = null;
+      _popupHorizontalOffset = 0.0;
     });
   }
 
@@ -206,10 +235,14 @@ class _KeyPopupButtonState extends State<KeyPopupButton>
                 ),
               ),
               child: isLongPressed && _hasAlternatives
-                  ? _AlternativesPopup(
-                      alternatives: widget.alternatives!,
-                      selectedIndex: selectedAlternativeIndex ?? 0,
-                      keyWidth: _alternativeKeyWidth,
+                  ? Transform.translate(
+                      offset: Offset(_popupHorizontalOffset, 0),
+                      child: _AlternativesPopup(
+                        alternatives: widget.alternatives!,
+                        selectedIndex: selectedAlternativeIndex ?? 0,
+                        keyWidth: _alternativeKeyWidth,
+                        tailOffset: -_popupHorizontalOffset,
+                      ),
                     )
                   : _KeyPopup(
                       keyLabel: widget.keyLabel,
@@ -260,11 +293,13 @@ class _AlternativesPopup extends StatelessWidget {
     required this.alternatives,
     required this.selectedIndex,
     required this.keyWidth,
+    this.tailOffset = 0.0,
   });
 
   final List<String> alternatives;
   final int selectedIndex;
   final double keyWidth;
+  final double tailOffset;
 
   static const _popupBackgroundColor = Color(0xFF2A2A2A);
   static const _popupBorderColor = Color(0xFF4A4A4A);
@@ -342,12 +377,15 @@ class _AlternativesPopup extends StatelessWidget {
             }),
           ),
         ),
-        // Bubble tail (pointing down)
-        CustomPaint(
-          size: const Size(42, 8),
-          painter: _BubbleTailPainter(
-            backgroundColor: _popupBackgroundColor,
-            borderColor: _popupBorderColor,
+        // Bubble tail (pointing down) - offset to point at the original key
+        Transform.translate(
+          offset: Offset(tailOffset, 0),
+          child: CustomPaint(
+            size: const Size(42, 8),
+            painter: _BubbleTailPainter(
+              backgroundColor: _popupBackgroundColor,
+              borderColor: _popupBorderColor,
+            ),
           ),
         ),
       ],
