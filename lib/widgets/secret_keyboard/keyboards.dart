@@ -54,6 +54,8 @@ class Keyboards {
             's': ['ß', 'š'],
             'u': ['û', 'ü', 'ù', 'ú'],
             'y': ['ÿ'],
+            // Punctuation alternatives
+            '.': [',', '?', '!', '@'],
           },
         );
       case ('Russian'):
@@ -85,6 +87,8 @@ class Keyboards {
           alternatives: {
             'е': ['ё'],
             'ь': ['ъ'],
+            // Punctuation alternatives
+            '.': [',', '?', '!', '@'],
           },
         );
       case ('Georgian'):
@@ -140,7 +144,11 @@ class Keyboards {
                 }).toList(),
             isShifted: isShifted,
             isSpecial: isSpecial,
-            alternatives: alternatives);
+            alternatives: {
+              ...alternatives,
+              // Punctuation alternatives
+              '.': [',', '?', '!', '@'],
+            });
       case ('Turkish'):
         final firstRow =
             activeKeyboard?.firstRow ?? randomizeList('1234567890'.split(''));
@@ -175,6 +183,8 @@ class Keyboards {
             'i': ['ı', 'î'],
             'o': ['ö', 'ô'],
             'c': ['ç'],
+            // Punctuation alternatives
+            '.': [',', '?', '!', '@'],
           },
         );
       case ('German'):
@@ -210,6 +220,8 @@ class Keyboards {
             'u': ['ü', 'ù', 'ú', 'û'],
             's': ['ß'],
             'e': ['è', 'é', 'ê'],
+            // Punctuation alternatives
+            '.': [',', '?', '!', '@'],
           },
         );
       case ('Spanish'):
@@ -244,7 +256,8 @@ class Keyboards {
             'i': ['í'],
             'o': ['ó'],
             'u': ['ú', 'ü'],
-            // Removed 'n': ['ñ']
+            // Punctuation alternatives
+            '.': [',', '?', '!', '@'],
           },
         );
       case ('French'):
@@ -291,6 +304,8 @@ class Keyboards {
             'o': ['ô', 'œ'],
             'u': ['ù', 'û', 'ü'],
             'c': ['ç'],
+            // Punctuation alternatives
+            '.': [',', '?', '!', '@'],
           },
         );
       case ('Italian'):
@@ -325,6 +340,8 @@ class Keyboards {
             'i': ['ì'],
             'o': ['ò'],
             'u': ['ù'],
+            // Punctuation alternatives
+            '.': [',', '?', '!', '@'],
           },
         );
       case ('Greek'):
@@ -361,6 +378,8 @@ class Keyboards {
             'ο': ['ό'],
             'υ': ['ύ'],
             'ω': ['ώ'],
+            // Punctuation alternatives
+            '.': [',', '?', '!', '@'],
           },
         );
       default:

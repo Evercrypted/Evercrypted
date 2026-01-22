@@ -519,22 +519,28 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                     ),
                   ),
 
-                  // Hide Keyboard Button (Always visible now)
-                  Container(
-                    width: 42,
-                    height: 45,
-                    margin: EdgeInsets.symmetric(horizontal: 2),
-                    child: HighlightedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Colors.transparent, // Ghost
+                  // Hide Keyboard Button (shown on left when onDone is set)
+                  Consumer(builder: (context, ref, child) {
+                    final keyboardState = ref.watch(keyboardProvider);
+                    if (keyboardState.onDone == null) {
+                      return SizedBox.shrink();
+                    }
+                    return Container(
+                      width: 42,
+                      height: 45,
+                      margin: EdgeInsets.symmetric(horizontal: 2),
+                      child: HighlightedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          backgroundColor: Colors.transparent,
+                        ),
+                        onPressed: () {
+                          ref.read(keyboardProvider.notifier).close();
+                        },
+                        child: Icon(Icons.keyboard_hide, color: Colors.white),
                       ),
-                      onPressed: () {
-                        ref.read(keyboardProvider.notifier).close();
-                      },
-                      child: Icon(Icons.keyboard_hide, color: Colors.white),
-                    ),
-                  ),
+                    );
+                  }),
 
                   // Shuffle
                   Container(
@@ -657,10 +663,53 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
 
                   // Enter
                   // Enter / Go Split
-                  // If multiline, show a separate Return button
+                  // If multiline, show a separate Return button with long-press alternatives
                   Consumer(builder: (context, ref, child) {
                     final keyboardState = ref.watch(keyboardProvider);
                     if (keyboardState.isMultiLine) {
+                      return Container(
+                        width: 42,
+                        height: 45,
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        child: KeyPopupButton(
+                          keyLabel: '⏎',
+                          width: 42,
+                          height: 45,
+                          textStyle: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
+                          alternatives: const ['.', ',', '?', '!', '@'],
+                          onPressed: () {
+                            setState(() {
+                              final newText = "${controller.text}\n";
+                              controller
+                                ..text = newText
+                                ..selection = TextSelection.collapsed(
+                                    offset: newText.length);
+                            });
+                          },
+                          onAlternativeSelected: (selected) {
+                            deleteSelection();
+                            setState(() {
+                              final newText = controller.text + selected;
+                              controller
+                                ..text = newText
+                                ..selection = TextSelection.collapsed(
+                                    offset: newText.length);
+                            });
+                          },
+                        ),
+                      );
+                    }
+                    return SizedBox.shrink();
+                  }),
+
+                  // Send Button OR Hide Keyboard Button
+                  Consumer(builder: (context, ref, child) {
+                    final keyboardState = ref.watch(keyboardProvider);
+                    if (keyboardState.onDone != null) {
+                      // Show Send button when onDone is set
                       return Container(
                         width: 42,
                         height: 45,
@@ -670,47 +719,32 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
                                 padding: EdgeInsets.zero,
                                 backgroundColor: Colors.blue),
                             onPressed: () {
-                              setState(() {
-                                final newText = "${controller.text}\n";
-                                controller
-                                  ..text = newText
-                                  ..selection = TextSelection.collapsed(
-                                      offset: newText.length);
-                              });
+                              // Call the onDone callback with the text
+                              keyboardState.onDone?.call();
+                              // Close the keyboard
+                              ref.read(keyboardProvider.notifier).close();
                             },
-                            child: Icon(Icons.keyboard_return,
-                                color: Colors.white)),
+                            child: Icon(Icons.send, color: Colors.white)),
+                      );
+                    } else {
+                      // Show Hide Keyboard button when no onDone
+                      return Container(
+                        width: 42,
+                        height: 45,
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        child: HighlightedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Colors.white.withAlpha(20),
+                          ),
+                          onPressed: () {
+                            ref.read(keyboardProvider.notifier).close();
+                          },
+                          child: Icon(Icons.keyboard_hide, color: Colors.white),
+                        ),
                       );
                     }
-                    return SizedBox.shrink();
-                  }),
-
-                  // Go / Submit Button (Always acts as specific action or close)
-                  Container(
-                    width: 42,
-                    height: 45,
-                    margin: EdgeInsets.symmetric(horizontal: 2),
-                    child: Consumer(builder: (context, ref, child) {
-                      final keyboardState = ref.watch(keyboardProvider);
-                      // This button is now strictly for Done/Close
-                      return HighlightedButton(
-                          style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              backgroundColor: Colors.blue),
-                          onPressed: () {
-                            if (keyboardState.onDone != null) {
-                              Navigator.of(context)
-                                  .pop((text: controller.text, done: true));
-                            } else {
-                              ref.read(keyboardProvider.notifier).close();
-                            }
-                          },
-                          child: Text("Go",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold)));
-                    }),
-                  )
+                  })
                 ],
               ),
             )

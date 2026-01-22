@@ -743,6 +743,9 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                                 child: EvercryptedTextField(
                                   controller: _messageField,
                                   hintText: "Type message",
+                                  onDone: () {
+                                    sendMessage(_messageField.text);
+                                  },
                                   isMultiLine: true,
                                   suffixIcon: SizedBox(
                                     width: 96,
