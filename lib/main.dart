@@ -41,20 +41,8 @@ import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'firebase_options.dart';
 import 'services/biometric_service.dart';
-// import 'package:sentry_flutter/sentry_flutter.dart';
-
-// ObjectBox is now accessed via ObxInit.obx for safe initialization
 
 ValueNotifier shouldShowKeyboard = ValueNotifier(false);
-
-// @pragma('vm:entry-point')
-// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-//   // If you're going to use other Firebase services in the background, such as Firestore,
-//   // make sure you call `initializeApp` before using other Firebase services.
-//   await Firebase.initializeApp();
-
-//   print("Handling a background message: ${message.messageId}");
-// }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,21 +70,6 @@ void main() async {
   // Initialize ChatSocket connection listener for queue processing
   ChatSocket.initializeConnectionListener();
 
-  // await SentryFlutter.init(
-  //   (options) {
-  //     options.dsn =
-  //         'https://e8035b86b950aadbfb29164b99cc0a2e@o4508054021210112.ingest.de.sentry.io/4508077446529104';
-  //     // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
-  //     // We recommend adjusting this value in production.
-  //     options.tracesSampleRate = 1.0;
-  //     // The sampling rate for profiling is relative to tracesSampleRate
-  //     // Setting to 1.0 will profile 100% of sampled transactions:
-  //     options.profilesSampleRate = 1.0;
-  //     options.debug = true;
-  //     options.diagnosticLevel = SentryLevel.error;
-  //   },
-  //   appRunner: () => runApp(const ProviderScope(child: MyApp())),
-  // );
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -115,9 +88,12 @@ class MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    _preventScreenshotOn();
-    _protectDataLeakageWithBlur();
     super.initState();
+    // Move platform channel calls to postFrameCallback to ensure UI matches state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preventScreenshotOn();
+      _protectDataLeakageWithBlur();
+    });
     BackButtonInterceptor.add(myInterceptor);
   }
 

@@ -388,8 +388,9 @@ class _MessageWidgetState extends State<MessageWidget> {
 
     Widget messageWithTimestamp(ChatMessage message) {
       return Column(
-        crossAxisAlignment:
-            message.isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: message.isSender
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           GestureDetector(
             onLongPress: () {
@@ -403,11 +404,9 @@ class _MessageWidgetState extends State<MessageWidget> {
               _formatTimestamp(message.createdAtMSE),
               style: TextStyle(
                 fontSize: 11,
-                color: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.color
-                    ?.withAlpha((255 * 0.6).round()),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withAlpha((255 * 0.6).round())
+                    : Colors.black.withAlpha((255 * 0.6).round()),
               ),
             ),
           ),
@@ -430,7 +429,8 @@ class _MessageWidgetState extends State<MessageWidget> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: defaultPadding, vertical: defaultPadding),
+                              horizontal: defaultPadding,
+                              vertical: defaultPadding),
                           child: Text(message!.text!),
                         ),
                         Padding(
@@ -439,11 +439,10 @@ class _MessageWidgetState extends State<MessageWidget> {
                             _formatTimestamp(message!.createdAtMSE),
                             style: TextStyle(
                               fontSize: 11,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.color
-                                  ?.withAlpha((255 * 0.6).round()),
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white.withAlpha((255 * 0.6).round())
+                                  : Colors.black.withAlpha((255 * 0.6).round()),
                             ),
                           ),
                         ),
