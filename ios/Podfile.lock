@@ -1,4 +1,6 @@
 PODS:
+  - app_badge_plus (1.2.6):
+    - Flutter
   - AppAuth (2.0.0):
     - AppAuth/Core (= 2.0.0)
     - AppAuth/ExternalUserAgent (= 2.0.0)
@@ -197,6 +199,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - app_badge_plus (from `.symlinks/plugins/app_badge_plus/ios`)
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
@@ -250,6 +253,8 @@ SPEC REPOS:
     - SwiftyGif
 
 EXTERNAL SOURCES:
+  app_badge_plus:
+    :path: ".symlinks/plugins/app_badge_plus/ios"
   audio_session:
     :path: ".symlinks/plugins/audio_session/ios"
   camera_avfoundation:
@@ -296,6 +301,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
+  app_badge_plus: 32b6022e2a8585454d6c2a99aa65f8f31f06752a
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
