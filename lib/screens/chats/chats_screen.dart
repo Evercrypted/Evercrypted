@@ -93,6 +93,9 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
                 ),
               ),
             ).then((val) {
+              if (val == null) {
+                return; // User pressed back without creating group
+              }
               newGroupChatDTO = NewGroupChatDTO(
                 participants: val['participants'],
                 name: val['groupName'],

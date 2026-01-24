@@ -237,6 +237,8 @@ class ChatService {
       NewOneToOneChatDTO newChat =
           NewOneToOneChatDTO(contact: contact.contactPersonUid!);
       createNewChat(newChat).then((Chat returnedChat) {
+        // Add to ChatState so it's immediately available for future lookups
+        ChatState.addChat(returnedChat);
         navigator.pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (context) => MessagesScreen(chat: returnedChat),
