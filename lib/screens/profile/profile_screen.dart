@@ -811,22 +811,38 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
             // Sign Out Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ElevatedButton(
+              child: OutlinedButton(
                 onPressed: () => _signOut(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor:
+                      isDarkMode ? Colors.grey[400] : Colors.grey[700],
                   minimumSize: const Size(double.infinity, 50),
+                  side: BorderSide(
+                    color: isDarkMode ? Colors.grey[600]! : Colors.grey[400]!,
+                    width: 1,
+                  ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Sign Out',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.logout,
+                      size: 20,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Sign Out',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -856,13 +872,24 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                   foregroundColor: Colors.red,
                   minimumSize: const Size(double.infinity, 50),
                 ),
-                child: Text(
-                  'Delete Account',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Delete Account',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
