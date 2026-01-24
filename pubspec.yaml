@@ -77,6 +77,7 @@ dependencies:
   in_app_purchase: ^3.2.3
   local_auth: ^3.0.0
   gal: ^2.3.2
+  app_badge_plus: ^1.2.6
 
 dev_dependencies:
   flutter_test:

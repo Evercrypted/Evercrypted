@@ -41,6 +41,7 @@ import 'core/entities/profile/profile_service.dart';
 import 'core/http.dart';
 import 'firebase_options.dart';
 import 'services/biometric_service.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
 
 ValueNotifier shouldShowKeyboard = ValueNotifier(false);
 
@@ -180,7 +181,8 @@ class AuthGate extends ConsumerStatefulWidget {
   AuthGateState createState() => AuthGateState();
 }
 
-class AuthGateState extends ConsumerState<AuthGate> {
+class AuthGateState extends ConsumerState<AuthGate>
+    with WidgetsBindingObserver {
   AuthUser? user;
   Timer? userReloadTimer;
   Timer? ioConnectionTimer;
@@ -207,6 +209,9 @@ class AuthGateState extends ConsumerState<AuthGate> {
   @override
   void initState() {
     super.initState();
+
+    // Register lifecycle observer for badge management
+    WidgetsBinding.instance.addObserver(this);
 
     _checkNotifications();
 
@@ -238,6 +243,9 @@ class AuthGateState extends ConsumerState<AuthGate> {
 
   @override
   void dispose() {
+    // Remove lifecycle observer
+    WidgetsBinding.instance.removeObserver(this);
+
     userReloadTimer?.cancel();
     ioConnectionTimer?.cancel();
     _resetDebounceTimer?.cancel();
@@ -247,6 +255,14 @@ class AuthGateState extends ConsumerState<AuthGate> {
     ChatSocket.disconnectWS();
     admin?.close();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Clear badge when app comes to foreground
+      AppBadgePlus.updateBadge(0);
+    }
   }
 
   @override
