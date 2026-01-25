@@ -81,38 +81,14 @@ class MyApp extends StatefulWidget {
   MyAppState createState() => MyAppState();
 }
 
-class MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  bool _screenProtectionInitialized = false;
-
-  void _initScreenProtection() async {
-    if (_screenProtectionInitialized) return;
-    _screenProtectionInitialized = true;
-    // Delay screen protection to ensure iOS scene lifecycle is fully established
-    // This prevents stack overflow from safe area recursion on cold start
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
-    await ScreenProtector.preventScreenshotOn();
-    await ScreenProtector.protectDataLeakageWithBlur();
-  }
-
+class MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     BackButtonInterceptor.add(myInterceptor);
-    // Initialize screen protection after app is fully ready
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initScreenProtection();
-    });
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Re-apply screen protection when returning to foreground (iOS 18+ fix)
-    if (state == AppLifecycleState.resumed && _screenProtectionInitialized) {
-      ScreenProtector.preventScreenshotOn();
-      ScreenProtector.protectDataLeakageWithBlur();
-    }
+    // Initialize screen protection
+    ScreenProtector.preventScreenshotOn();
+    ScreenProtector.protectDataLeakageWithBlur();
   }
 
   bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
@@ -126,7 +102,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     BackButtonInterceptor.remove(myInterceptor);
     super.dispose();
   }
