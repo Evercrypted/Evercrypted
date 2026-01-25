@@ -51,6 +51,9 @@ app.*.map.json
 # Sensitive Keys & Configuration
 google-services.json
 GoogleService-Info.plist
+./google-services.json
+./GoogleService-Info.plist
+./firebase.json
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
