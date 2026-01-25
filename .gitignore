@@ -47,3 +47,16 @@ app.*.map.json
 
 #md files
 *.md
+
+# Sensitive Keys & Configuration
+google-services.json
+GoogleService-Info.plist
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+firebase.json
+**/firebase_app_id_file.json
+*.p8
+*.jks
+key.properties
+*.keystore
