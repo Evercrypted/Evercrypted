@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:evercrypted/widgets/terms_and_privacy_links.dart';
 
 import '../../ui_constants.dart';
 
@@ -895,6 +896,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
 
             const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 20),
+              child: TermsAndPrivacyLinks(),
+            ),
           ],
         ),
       ),
