@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/widgets/terms_and_privacy_links.dart';
 import 'package:evercrypted/core/services/apple_iap_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
@@ -322,7 +323,7 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                                           ),
                                         )
                                       : const Text(
-                                          'Subscribe with Apple Pay',
+                                          'Subscribe',
                                           style: TextStyle(color: Colors.white),
                                         ),
                                 ),
@@ -347,6 +348,8 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: defaultPadding),
+              const TermsAndPrivacyLinks(),
             ],
           ),
         ),
