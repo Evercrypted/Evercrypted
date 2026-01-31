@@ -6,6 +6,7 @@ import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/services/biometric_service.dart';
+import 'package:evercrypted/services/profanity_filter_service.dart';
 import 'package:evercrypted/screens/auth/components/reset_password.dart';
 import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
 import 'package:evercrypted/screens/profile/delete_account_screen.dart';
@@ -34,6 +35,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   late Color dialogPickerColor;
   bool isActivated = Auth.getUser?.activated ?? false;
   bool _biometricEnabled = false;
+  bool _profanityFilterEnabled = true;
   StreamSubscription? authListener;
 
   @override
@@ -41,6 +43,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.initState();
     dialogPickerColor = errorColor;
     _loadBiometricState();
+    _loadProfanityFilterState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(navigationProvider.notifier).navigateToProfile();
     });
@@ -57,6 +60,12 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     final enabled =
         await ref.read(biometricServiceProvider).isBiometricEnabled();
     if (mounted) setState(() => _biometricEnabled = enabled);
+  }
+
+  Future<void> _loadProfanityFilterState() async {
+    final enabled =
+        await ref.read(profanityFilterServiceProvider).isEnabled();
+    if (mounted) setState(() => _profanityFilterEnabled = enabled);
   }
 
   Future<void> _clearAllLocalData() async {
@@ -677,6 +686,45 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                               _biometricEnabled = value;
                             });
                           }
+                        }
+                      },
+                    ),
+                  );
+                }),
+                Consumer(builder: (context, ref, child) {
+                  final profanityService = ref.read(profanityFilterServiceProvider);
+                  return ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withAlpha((255 * 0.1).round()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.block,
+                        color: primaryColor,
+                        size: 24,
+                      ),
+                    ),
+                    title: const Text(
+                      'Profanity Filter',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    subtitle: Text(
+                      _profanityFilterEnabled
+                          ? 'Block inappropriate words'
+                          : 'Disabled',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    trailing: Switch(
+                      value: _profanityFilterEnabled,
+                      activeTrackColor: primaryColor,
+                      onChanged: (value) async {
+                        await profanityService.setEnabled(value);
+                        if (mounted) {
+                          setState(() {
+                            _profanityFilterEnabled = value;
+                          });
                         }
                       },
                     ),

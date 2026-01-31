@@ -21,6 +21,7 @@ import 'package:flutter_sound/flutter_sound.dart';
 
 import '../../../core/entities/message/message_service.dart';
 import '../../../ui_constants.dart';
+import 'package:evercrypted/services/profanity_filter_service.dart';
 import 'audio_waveform_bars.dart';
 import 'voice_recorder_button.dart';
 
@@ -103,6 +104,29 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
   void sendMessage(String message) async {
     if (message.isEmpty) {
       return;
+    }
+
+    // Check profanity filter
+    final profanityService = ref.read(profanityFilterServiceProvider);
+    final isFilterEnabled = await profanityService.isEnabled();
+    if (isFilterEnabled) {
+      final detectedWord = profanityService.containsProfanity(message);
+      if (detectedWord != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Message contains inappropriate content and cannot be sent.',
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: errorColor,
+              dismissDirection: DismissDirection.horizontal,
+              showCloseIcon: true,
+            ),
+          );
+        }
+        return;
+      }
     }
 
     // Check if user has premium access - if not, send unencrypted
