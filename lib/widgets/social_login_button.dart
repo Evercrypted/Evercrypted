@@ -96,12 +96,14 @@ class SocialLoginIconButton extends StatelessWidget {
   final SocialProvider provider;
   final VoidCallback onPressed;
   final bool isLoading;
+  final bool disabled;
 
   const SocialLoginIconButton({
     super.key,
     required this.provider,
     required this.onPressed,
     this.isLoading = false,
+    this.disabled = false,
   });
 
   @override
@@ -111,8 +113,10 @@ class SocialLoginIconButton extends StatelessWidget {
     return SizedBox(
       width: 56,
       height: 56,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
+      child: Opacity(
+        opacity: disabled ? 0.5 : 1.0,
+        child: OutlinedButton(
+          onPressed: (isLoading || disabled) ? null : onPressed,
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
           side: BorderSide(
@@ -136,6 +140,7 @@ class SocialLoginIconButton extends StatelessWidget {
                 ),
               )
             : _buildIcon(isDark),
+        ),
       ),
     );
   }

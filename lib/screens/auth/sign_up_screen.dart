@@ -16,6 +16,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:evercrypted/widgets/terms_and_privacy_links.dart';
+import 'package:evercrypted/widgets/terms_checkbox.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   static const routeName = '/sign-up';
@@ -34,6 +35,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
   bool _shouldShowLoading = false;
   bool _googleLoading = false;
   bool _appleLoading = false;
+  bool _agreedToTerms = false;
   final EvercryptedTextController _emailController =
       EvercryptedTextController();
   final EvercryptedTextController _confirmController =
@@ -328,10 +330,19 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                   ),
                 ),
                 const SizedBox(height: defaultPadding * 2),
+                TermsCheckbox(
+                  value: _agreedToTerms,
+                  onChanged: (value) {
+                    setState(() {
+                      _agreedToTerms = value ?? false;
+                    });
+                  },
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: defaultPadding),
                   child: PrimaryButton(
                       press: () => submitForm(context),
+                      disabled: !_agreedToTerms,
                       child: _shouldShowLoading
                           ? const SpinKitThreeBounce(
                               color: Colors.white,
@@ -355,6 +366,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                       provider: SocialProvider.google,
                       onPressed: _handleGoogleSignIn,
                       isLoading: _googleLoading,
+                      disabled: !_agreedToTerms,
                     ),
                     if (Platform.isIOS) ...[
                       const SizedBox(width: defaultPadding * 1.5),
@@ -368,6 +380,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                         provider: SocialProvider.apple,
                         onPressed: _handleAppleSignIn,
                         isLoading: _appleLoading,
+                        disabled: !_agreedToTerms,
                       ),
                     ],
                   ],

@@ -13,6 +13,7 @@ import 'dart:io' show Platform;
 import '../../widgets/primary_button.dart';
 import '../../ui_constants.dart';
 import '../../widgets/terms_and_privacy_links.dart';
+import '../../widgets/terms_checkbox.dart';
 import './sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -32,6 +33,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   bool _shouldShowLoading = false;
   bool _googleLoading = false;
   bool _appleLoading = false;
+  bool _agreedToTerms = false;
   AuthForm formValues = AuthForm();
   final EvercryptedTextController _emailField = EvercryptedTextController();
   final EvercryptedTextController _passController = EvercryptedTextController();
@@ -292,6 +294,15 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                         ),
                 ),
                 const OrDivider(),
+                TermsCheckbox(
+                  value: _agreedToTerms,
+                  onChanged: (value) {
+                    setState(() {
+                      _agreedToTerms = value ?? false;
+                    });
+                  },
+                ),
+                const SizedBox(height: defaultPadding * 1.5),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -326,6 +337,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                       provider: SocialProvider.google,
                       onPressed: _handleGoogleSignIn,
                       isLoading: _googleLoading,
+                      disabled: !_agreedToTerms,
                     ),
                     if (Platform.isIOS) ...[
                       const SizedBox(width: defaultPadding * 1.5),
@@ -339,6 +351,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                         provider: SocialProvider.apple,
                         onPressed: _handleAppleSignIn,
                         isLoading: _appleLoading,
+                        disabled: !_agreedToTerms,
                       ),
                     ],
                   ],
