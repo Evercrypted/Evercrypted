@@ -289,7 +289,7 @@ class _MessageWidgetState extends State<MessageWidget> {
                               content: Text(
                                 success
                                     ? 'Thank you for reporting. We will review this within 24 hours.'
-                                    : 'Failed to submit report. Please try again.',
+                                    : 'Failed to submit report. Or you have already reported this message.',
                               ),
                               backgroundColor:
                                   success ? Colors.green : Colors.red,
