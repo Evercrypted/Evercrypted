@@ -13,6 +13,10 @@ class Auth {
 
   static BehaviorSubject<bool> authSubject = BehaviorSubject<bool>();
 
+  /// Subject that emits when the user's account is blocked
+  /// The string contains the block message to show the user
+  static BehaviorSubject<String?> blockedSubject = BehaviorSubject<String?>();
+
   static ProfileService profileService = ProfileService();
 
   static AuthUser? user;
@@ -48,9 +52,37 @@ class Auth {
     return appKey!;
   }
 
+  /// Check if account is blocked and handle logout if needed
+  /// Returns true if account is blocked
+  static bool checkAccountBlocked(Profile profile) {
+    if (profile.settings?.isBlocked == true) {
+      String message = 'Your account has been blocked.';
+      if (profile.settings!.blockedUntil != null) {
+        final until = DateTime.tryParse(profile.settings!.blockedUntil!);
+        if (until != null) {
+          final formatted = '${until.day}/${until.month}/${until.year}';
+          message =
+              'Your account has been temporarily blocked until $formatted.';
+        }
+      } else if (profile.settings!.blocked == true) {
+        message = 'Your account has been permanently blocked.';
+      }
+      blockedSubject.add(message);
+      return true;
+    }
+    return false;
+  }
+
   static setAuth(
       {Profile? profile, String? newToken, bool? newIsOtpActive}) async {
     if (profile != null) {
+      // Check if account is blocked before setting auth
+      if (checkAccountBlocked(profile)) {
+        // Don't set auth for blocked accounts, trigger logout
+        await clearAuth();
+        return;
+      }
+
       profileService.syncProfile(profile);
       Auth.user = AuthUser(
           email: profile.email!,

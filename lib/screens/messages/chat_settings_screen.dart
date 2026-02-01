@@ -8,6 +8,7 @@ import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/core/services/block_service.dart';
 import 'package:evercrypted/core/services/hidden_chat_service.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
@@ -353,6 +354,63 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                   ),
                   label: const Text(
                     'Delete Chat',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(height: defaultPadding / 2),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                  ),
+                  onPressed: () {
+                    // Get the other participant for 1-on-1 chat
+                    final otherParticipant = chat.participants.firstWhere((p) =>
+                        p.email?.toLowerCase() !=
+                        Auth.getUser!.email.toLowerCase());
+                    _showConfirmationDialog(
+                      title: 'Block User',
+                      content:
+                          'Are you sure you want to block ${otherParticipant.email}? They won\'t be able to send you messages or contact requests. This will also delete the chat.',
+                      confirmText: 'Block',
+                    ).then((confirmed) async {
+                      if (confirmed) {
+                        if (otherParticipant.uid == null) return;
+                        final success =
+                            await BlockService.blockUser(otherParticipant.uid!);
+                        if (success) {
+                          if (context.mounted) {
+                            Navigator.popUntil(
+                                context, (route) => route.isFirst);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('User blocked successfully'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Failed to block user. Please try again.'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      }
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.block,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'Block User',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

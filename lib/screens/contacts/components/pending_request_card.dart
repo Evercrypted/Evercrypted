@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
+import 'package:evercrypted/core/services/block_service.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -16,6 +17,60 @@ class PendingRequestCard extends StatelessWidget {
   final bool isReceived;
 
   final ContactRequestService contactRequestService = ContactRequestService();
+
+  void _showBlockDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Block User'),
+          content: Text(
+            'Are you sure you want to block ${contactRequest!.authorEmail}? They won\'t be able to send you messages or contact requests.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                final authorId = contactRequest!.authorId;
+                if (authorId == null) return;
+
+                final success = await BlockService.blockUser(authorId);
+
+                if (success) {
+                  // Also decline the contact request
+                  contactRequestService.declineContactRequest(contactRequest!);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('User blocked successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('Failed to block user. Please try again.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Block'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +157,18 @@ class PendingRequestCard extends StatelessWidget {
                   child: const Icon(
                     Icons.check,
                     color: primaryColor,
+                  ),
+                ),
+              if (isReceived)
+                RawMaterialButton(
+                  onPressed: () => _showBlockDialog(context),
+                  elevation: 2.0,
+                  fillColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(30))),
+                  child: const Icon(
+                    Icons.block,
+                    color: Colors.orange,
                   ),
                 ),
               RawMaterialButton(

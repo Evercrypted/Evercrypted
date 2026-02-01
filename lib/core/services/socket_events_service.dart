@@ -15,6 +15,7 @@ import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/socket/event_types/error_event_types.dart';
+import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/message_event_types.dart';
 import 'package:evercrypted/core/socket/event_types/payment_event_types.dart';
 import 'package:evercrypted/core/socket/socket.dart';
@@ -62,6 +63,9 @@ class SocketEventsService {
       case SocketChannelTypes.payment:
         handlePaymentEvent(type, payload);
         break;
+      case SocketChannelTypes.settings:
+        handleSettingsEvent(type, payload);
+        break;
       default:
         return;
     }
@@ -77,6 +81,36 @@ class SocketEventsService {
             json.encode({
               'type': null,
             }));
+        break;
+      default:
+        return;
+    }
+  }
+
+  handleSettingsEvent(String type, dynamic payload) {
+    switch (type) {
+      case SettingsEventTypes.userBlocked:
+        // Someone blocked us - clean up local contact and chat
+        final blockerUserId = payload['blockerUserId'] as String?;
+        if (blockerUserId != null) {
+          // Delete contact with blocker (contactPersonUid is the user's UID)
+          final contactQuery = ObxInit.obx.contacts
+              .query(Contact_.contactPersonUid.equals(blockerUserId))
+              .build();
+          final contact = contactQuery.findFirst();
+          contactQuery.close();
+
+          if (contact != null) {
+            // Directly remove from ObjectBox to trigger stream update
+            ObxInit.obx.contacts.remove(contact.id);
+          }
+
+          // Delete 1-on-1 chat with blocker
+          chatService.findContactChatAndDelete(
+            contactUid: blockerUserId,
+            skipNotify: true,
+          );
+        }
         break;
       default:
         return;
@@ -245,8 +279,9 @@ class SocketEventsService {
         );
         break;
       case ChatEventTypes.chatDeleted:
-        final query =
-            ObxInit.obx.chats.query(Chat_.uid.equals(payload['chatUid'])).build();
+        final query = ObxInit.obx.chats
+            .query(Chat_.uid.equals(payload['chatUid']))
+            .build();
         final Chat? chat = query.findFirst();
         query.close();
         if (chat != null) {

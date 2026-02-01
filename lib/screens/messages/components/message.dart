@@ -6,6 +6,8 @@ import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
+import 'package:evercrypted/core/services/block_service.dart';
+import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:evercrypted/screens/messages/components/file_message.dart';
 import 'package:evercrypted/screens/messages/components/image_message.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
@@ -214,6 +216,96 @@ class _MessageWidgetState extends State<MessageWidget> {
     );
   }
 
+  void _showReportDialog(BuildContext context, ChatMessage message) {
+    String? selectedReason;
+    final descriptionController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Report Message'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Why are you reporting this message?'),
+                    const SizedBox(height: 16),
+                    ...ReportReasons.options
+                        .map((option) => RadioListTile<String>(
+                              title: Text(option['label']!),
+                              value: option['value']!,
+                              groupValue: selectedReason,
+                              contentPadding: EdgeInsets.zero,
+                              dense: true,
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedReason = value;
+                                });
+                              },
+                            )),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Additional details (optional)',
+                        hintText: 'Provide more context...',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: selectedReason == null
+                      ? null
+                      : () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          Navigator.pop(dialogContext);
+                          final senderId = widget.sender?.uid;
+                          if (senderId == null) return;
+
+                          final success = await BlockService.reportContent(
+                            reportedUserId: senderId,
+                            messageId: message.uid,
+                            messageContent: message.text,
+                            reason: selectedReason!,
+                            description: descriptionController.text.isEmpty
+                                ? null
+                                : descriptionController.text,
+                          );
+
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                success
+                                    ? 'Thank you for reporting. We will review this within 24 hours.'
+                                    : 'Failed to submit report. Please try again.',
+                              ),
+                              backgroundColor:
+                                  success ? Colors.green : Colors.red,
+                            ),
+                          );
+                        },
+                  child: const Text('Report'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showMessageOptionsBottomSheet(
       BuildContext context, ChatMessage message) {
     showModalBottomSheet(
@@ -324,6 +416,33 @@ class _MessageWidgetState extends State<MessageWidget> {
                     _showDeleteConfirmationDialog(context, message);
                   },
                 ),
+                // Report message option (only for received messages)
+                if (!message.isSender)
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withAlpha((255 * 0.1).toInt()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.flag,
+                          color: Colors.orange, size: 20),
+                    ),
+                    title: Text(
+                      'Report message',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: contentColorLightThemeSecondary),
+                    ),
+                    subtitle: const Text(
+                      'Report this message as inappropriate',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showReportDialog(context, message);
+                    },
+                  ),
               ],
             ),
           ),

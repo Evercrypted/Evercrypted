@@ -73,6 +73,17 @@ class Profile {
             .toList();
   }
 
+  @Transient()
+  ProfileSettings? settings;
+
+  String? get dbSettings =>
+      settings == null ? null : jsonEncode(settings?.toJson());
+
+  set dbSettings(String? value) {
+    settings =
+        value == null ? null : ProfileSettings.fromJson(jsonDecode(value));
+  }
+
   String? get dbEmail {
     final String? appKey = Auth.appKey;
     if (appKey == null) {
@@ -121,7 +132,8 @@ class Profile {
       this.activationTokenQuantity = 0,
       this.subscription,
       this.accountSettings,
-      this.blockedUsers});
+      this.blockedUsers,
+      this.settings});
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
         uid: json['uid'] as String,
@@ -137,10 +149,14 @@ class Profile {
         accountSettings: json['accountSettings'] != null
             ? AccountSettings.fromJson(json['accountSettings'])
             : null,
-        blockedUsers: json['blockedUsers'] != null
-            ? (json['blockedUsers'] as List)
+        // Server sends blocked_users (snake_case), local storage uses blockedUsers (camelCase)
+        blockedUsers: (json['blocked_users'] ?? json['blockedUsers']) != null
+            ? ((json['blocked_users'] ?? json['blockedUsers']) as List)
                 .map((e) => BlockedUser.fromJson(e))
                 .toList()
+            : null,
+        settings: json['settings'] != null
+            ? ProfileSettings.fromJson(json['settings'])
             : null,
       );
 
@@ -155,6 +171,7 @@ class Profile {
         'activationTokenQuantity': activationTokenQuantity,
         'accountSettings': accountSettings?.toJson(),
         'blockedUsers': blockedUsers?.map((e) => e.toJson()).toList(),
+        'settings': settings?.toJson(),
       };
 
   Profile copyWith({
@@ -168,6 +185,7 @@ class Profile {
     bool? activatedForLife,
     int? activationTokenQuantity,
     List<BlockedUser>? blockedUsers,
+    ProfileSettings? settings,
   }) {
     return Profile(
       uid: uid ?? this.uid,
@@ -181,8 +199,37 @@ class Profile {
       activationTokenQuantity:
           activationTokenQuantity ?? this.activationTokenQuantity,
       blockedUsers: blockedUsers ?? this.blockedUsers,
+      settings: settings ?? this.settings,
     );
   }
+}
+
+class ProfileSettings {
+  final bool? blocked;
+  final String? blockedUntil; // ISO date string
+
+  ProfileSettings({this.blocked, this.blockedUntil});
+
+  /// Check if the account is currently blocked
+  bool get isBlocked {
+    if (blocked == true) return true;
+    if (blockedUntil != null) {
+      final until = DateTime.tryParse(blockedUntil!);
+      if (until != null && until.isAfter(DateTime.now())) return true;
+    }
+    return false;
+  }
+
+  factory ProfileSettings.fromJson(Map<String, dynamic> json) =>
+      ProfileSettings(
+        blocked: json['blocked'] as bool?,
+        blockedUntil: json['blocked_until'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'blocked': blocked,
+        'blocked_until': blockedUntil,
+      };
 }
 
 class Avatar {

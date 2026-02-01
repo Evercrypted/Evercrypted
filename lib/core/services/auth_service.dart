@@ -111,6 +111,26 @@ class AuthService {
             'message': payload['message'],
           };
         } else {
+          // Check if account is blocked before proceeding
+          if (payload['settings'] != null) {
+            final settings = ProfileSettings.fromJson(payload['settings']);
+            if (settings.isBlocked) {
+              String message = 'Your account has been blocked.';
+              if (settings.blockedUntil != null) {
+                final until = DateTime.tryParse(settings.blockedUntil!);
+                if (until != null) {
+                  final formatted = '${until.day}/${until.month}/${until.year}';
+                  message =
+                      'Your account has been temporarily blocked until $formatted.';
+                }
+              }
+              return {
+                'success': false,
+                'message': message,
+                'blocked': true,
+              };
+            }
+          }
           Auth.setAuth(
               profile: Profile(
                   uid: payload['uid'],
@@ -157,6 +177,26 @@ class AuthService {
             'error': payload['error'],
           };
         } else {
+          // Check if account is blocked before proceeding
+          if (payload['settings'] != null) {
+            final settings = ProfileSettings.fromJson(payload['settings']);
+            if (settings.isBlocked) {
+              String message = 'Your account has been blocked.';
+              if (settings.blockedUntil != null) {
+                final until = DateTime.tryParse(settings.blockedUntil!);
+                if (until != null) {
+                  final formatted = '${until.day}/${until.month}/${until.year}';
+                  message =
+                      'Your account has been temporarily blocked until $formatted.';
+                }
+              }
+              return {
+                'success': false,
+                'error': message,
+                'blocked': true,
+              };
+            }
+          }
           Auth.setAuth(
               profile: Profile(
                   uid: payload['uid'],

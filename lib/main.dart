@@ -174,6 +174,7 @@ class AuthGateState extends ConsumerState<AuthGate>
   late StreamSubscription authListener;
   late StreamSubscription resetConnectionListener;
   late StreamSubscription fcmTokenListener;
+  late StreamSubscription<String?> blockedListener;
   StreamSubscription? profileListener;
   StreamSubscription? contactRequestsListener;
   StreamSubscription? contactsListener;
@@ -208,6 +209,31 @@ class AuthGateState extends ConsumerState<AuthGate>
       },
     );
 
+    // Listen for account blocking events
+    blockedListener = Auth.blockedSubject.stream.listen((message) {
+      if (message != null && mounted) {
+        // Show dialog informing user they've been blocked
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              title: const Text('Account Blocked'),
+              content: Text(message),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        });
+      }
+    });
+
     _authFlow();
 
     if (Admin.isAvailable()) {
@@ -226,6 +252,7 @@ class AuthGateState extends ConsumerState<AuthGate>
     _resetDebounceTimer?.cancel();
     authListener.cancel();
     resetConnectionListener.cancel();
+    blockedListener.cancel();
     cancelListeners();
     ChatSocket.disconnectWS();
     admin?.close();

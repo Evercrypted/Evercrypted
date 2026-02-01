@@ -3,6 +3,7 @@ import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/core/services/block_service.dart';
 import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/core/services/hidden_contact_service.dart';
 import 'package:evercrypted/screens/profile/components/profile_pic.dart';
@@ -301,6 +302,50 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                   label: const Text(
                     'Delete Contact',
                     style: TextStyle(fontSize: 16, color: errorColor),
+                  )),
+              const SizedBox(height: 5),
+              TextButton.icon(
+                  onPressed: () {
+                    _showConfirmationDialog(
+                      title: 'Block Contact',
+                      content:
+                          'Are you sure you want to block ${widget.contact.email}? They won\'t be able to send you messages or contact requests. This will also delete the contact.',
+                      confirmText: 'Block',
+                    ).then((confirmed) async {
+                      if (confirmed) {
+                        final success = await BlockService.blockUser(
+                            widget.contact.contactPersonUid!);
+                        if (success) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('User blocked successfully'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            Navigator.pop(context);
+                          }
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Failed to block user. Please try again.'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      }
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.block,
+                    color: Colors.orange,
+                  ),
+                  label: const Text(
+                    'Block Contact',
+                    style: TextStyle(fontSize: 16, color: Colors.orange),
                   )),
             ],
           )

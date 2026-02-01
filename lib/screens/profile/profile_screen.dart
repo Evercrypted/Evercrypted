@@ -12,6 +12,7 @@ import 'package:evercrypted/screens/profile/components/keyboard_settings.dart';
 import 'package:evercrypted/screens/profile/delete_account_screen.dart';
 import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
+import 'package:evercrypted/screens/blocked_users/blocked_users_screen.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -63,8 +64,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _loadProfanityFilterState() async {
-    final enabled =
-        await ref.read(profanityFilterServiceProvider).isEnabled();
+    final enabled = await ref.read(profanityFilterServiceProvider).isEnabled();
     if (mounted) setState(() => _profanityFilterEnabled = enabled);
   }
 
@@ -692,7 +692,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                   );
                 }),
                 Consumer(builder: (context, ref, child) {
-                  final profanityService = ref.read(profanityFilterServiceProvider);
+                  final profanityService =
+                      ref.read(profanityFilterServiceProvider);
                   return ListTile(
                     leading: Container(
                       padding: const EdgeInsets.all(8),
@@ -730,6 +731,36 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   );
                 }),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withAlpha((255 * 0.1).round()),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.person_off,
+                      color: Colors.red,
+                      size: 24,
+                    ),
+                  ),
+                  title: const Text(
+                    'Blocked Users',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  subtitle: const Text(
+                    'Manage blocked users',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BlockedUsersScreen(),
+                      ),
+                    );
+                  },
+                ),
                 ListTile(
                   leading: Opacity(
                     opacity: isActivated ? 1.0 : 0.5,
