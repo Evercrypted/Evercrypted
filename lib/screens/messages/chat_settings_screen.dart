@@ -359,6 +359,8 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                 ),
               ),
               const SizedBox(height: defaultPadding / 2),
+            ],
+            if (chat.isOneToOne) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
                 child: ElevatedButton.icon(

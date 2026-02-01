@@ -1,4 +1,5 @@
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
+import 'package:evercrypted/core/services/block_service.dart';
 import 'package:evercrypted/core/entities/contact/contact_model.dart';
 import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
@@ -68,25 +69,16 @@ class ParticipantCard extends ConsumerWidget {
               ],
             ),
           ),
-          if (_hasAnyOptions(contact))
-            IconButton(
-              onPressed: () {
-                _showOptionsBottomSheet(
-                    context, contact, profile, contactService);
-              },
-              icon: const Icon(Icons.more_vert),
-            )
+          IconButton(
+            onPressed: () {
+              _showOptionsBottomSheet(
+                  context, contact, profile, contactService);
+            },
+            icon: const Icon(Icons.more_vert),
+          )
         ],
       ),
     );
-  }
-
-  bool _hasAnyOptions(Contact? contact) {
-    // Check if "Remove from chat" option should be shown
-    final hasRemoveOption =
-        participantsLenght > 2 && (user.isAdmin || user.isCreator);
-
-    return hasRemoveOption;
   }
 
   void _showOptionsBottomSheet(BuildContext context, Contact? contact,
@@ -142,32 +134,69 @@ class ParticipantCard extends ConsumerWidget {
                       remove();
                     },
                   ),
-                // ListTile(
-                //   leading: Container(
-                //     padding: const EdgeInsets.all(8),
-                //     decoration: BoxDecoration(
-                //       color: Colors.orange.withAlpha((255 * 0.1).toInt()),
-                //       borderRadius: BorderRadius.circular(8),
-                //     ),
-                //     child:
-                //         const Icon(Icons.block, color: Colors.orange, size: 20),
-                //   ),
-                //   title: Text(
-                //     'Block user',
-                //     style: TextStyle(
-                //         fontWeight: FontWeight.w500,
-                //         color: contentColorLightThemeSecondary),
-                //   ),
-                //   subtitle: const Text(
-                //     'Block this user from contacting you',
-                //     style: TextStyle(fontSize: 12, color: Colors.grey),
-                //   ),
-                //   onTap: () {
-                //     Navigator.pop(context);
-                //     // TODO: Implement block functionality
-                //   },
-                // ),
-                // const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withAlpha((255 * 0.1).toInt()),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child:
+                        const Icon(Icons.block, color: Colors.orange, size: 20),
+                  ),
+                  title: Text(
+                    'Block user',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: contentColorLightThemeSecondary),
+                  ),
+                  subtitle: const Text(
+                    'Block this user from contacting you',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Block User'),
+                          content: Text(
+                              'Are you sure you want to block ${participant.name ?? participant.email}?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                if (participant.uid == null) return;
+                                final success = await BlockService.blockUser(
+                                    participant.uid!);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(success
+                                          ? 'User blocked successfully'
+                                          : 'Failed to block user'),
+                                      backgroundColor:
+                                          success ? Colors.green : Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                  foregroundColor: Colors.orange),
+                              child: const Text('Block'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),

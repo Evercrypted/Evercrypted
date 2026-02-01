@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:evercrypted/core/services/block_service.dart';
 
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/cryptography/base_key.dart';
@@ -478,6 +479,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         query.watch(triggerImmediately: true).map((query) => query.find());
     _isarSubscription?.cancel();
     _isarSubscription = queryChanged.listen((messages) {
+      // Filter out messages from blocked users
+      messages.removeWhere((msg) => BlockService.isUserBlocked(msg.authorId));
+
       messages.retainWhere((element) =>
           obxAddedMessages
                   .firstWhereOrNull((el) => el.message.id == element.id) ==
@@ -501,6 +505,12 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     try {
       final newItems = await _messageService.getMessagesFromDB(
           widget.chat.id, pageKey, _pageSize);
+
+      final isLastPage = newItems.length < _pageSize;
+
+      // Filter out messages from blocked users
+      newItems.removeWhere((msg) => BlockService.isUserBlocked(msg.authorId));
+
       final newItemsObjects = newItems
           .map((e) => MessageObject(message: e, chatMessage: prepareMessage(e)))
           .toList();
@@ -508,7 +518,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           _pagingState.items
               ?.firstWhereOrNull((el) => el.message.id == element.message.id) ==
           null);
-      final isLastPage = newItems.length < _pageSize;
+
       if (isLastPage) {
         setState(() {
           _pagingState = _pagingState.copyWith(pages: [
@@ -545,8 +555,9 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
     try {
       if (chatMessage.uid != null) {
         // Find the message in ObjectBox and delete it
-        final query =
-            ObxInit.obx.messages.query(Message_.uid.equals(chatMessage.uid!)).build();
+        final query = ObxInit.obx.messages
+            .query(Message_.uid.equals(chatMessage.uid!))
+            .build();
         final message = query.findFirst();
         query.close();
 
