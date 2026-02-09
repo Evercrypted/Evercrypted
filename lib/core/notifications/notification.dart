@@ -30,6 +30,12 @@ class LocalNotification {
       notificationDetails =
           const NotificationDetails(iOS: iosNotificationDetails);
     }
-    await plugin.show(0, title, body, notificationDetails, payload: payload);
+    await plugin.show(
+      id: 0,
+      title: title,
+      body: body,
+      notificationDetails: notificationDetails,
+      payload: payload,
+    );
   }
 }

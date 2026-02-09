@@ -564,7 +564,8 @@ class AuthGateState extends ConsumerState<AuthGate>
       iOS: initializationSettingsDarwin,
     );
 
-    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+    flutterLocalNotificationsPlugin.initialize(
+        settings: initializationSettings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
 
     final NotificationAppLaunchDetails? notificationAppLaunchDetails =

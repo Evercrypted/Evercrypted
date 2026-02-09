@@ -233,22 +233,23 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
         controller: listViewController,
         padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
         children: [
-          SizedBox(height: defaultPadding * 8),
+          SizedBox(height: defaultPadding * 5),
           SvgPicture.asset(
             logoTheme,
             width: 150,
           ),
-          SizedBox(height: defaultPadding * 2),
           Center(
-            child: Text(
-              "Sign Up",
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall!
-                  .copyWith(fontWeight: FontWeight.bold),
-            ),
+            child: Text('More Than E2E Encryption'),
           ),
-          SizedBox(height: defaultPadding * 2),
+          SizedBox(height: defaultPadding * 3),
+          Text(
+            "Sign-Up",
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge!
+                .copyWith(fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: defaultPadding / 1.5),
           Form(
             key: _form,
             child: Column(
@@ -409,6 +410,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                   ),
                 ),
                 const TermsAndPrivacyLinks(),
+                SizedBox(height: defaultPadding * 2),
               ],
             ),
           ),
