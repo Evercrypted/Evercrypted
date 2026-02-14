@@ -42,6 +42,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
       EvercryptedTextController();
   final EvercryptedTextController _passController = EvercryptedTextController();
   final listViewController = ScrollController();
+  final _emailFieldKey = GlobalKey();
 
   final AuthService _authService = AuthService();
   final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
@@ -49,11 +50,28 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
   scrollToBottom() {
     if (shouldShowKeyboard.value) {
       Future.delayed(const Duration(milliseconds: 100), () {
-        listViewController.animateTo(
-          listViewController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeInOut,
-        );
+        final context = _emailFieldKey.currentContext;
+        if (context != null) {
+          Scrollable.ensureVisible(
+            context,
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.easeInOut,
+            alignment: 0.0,
+            alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+          );
+          // Add 50px offset above the field
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (listViewController.hasClients) {
+              final currentOffset = listViewController.offset;
+              listViewController.animateTo(
+                (currentOffset - 80)
+                    .clamp(0.0, listViewController.position.maxScrollExtent),
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeInOut,
+              );
+            }
+          });
+        }
       });
     }
   }
@@ -261,12 +279,13 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                 .bodyLarge!
                 .copyWith(fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: defaultPadding / 1.5),
+          SizedBox(height: defaultPadding),
           Form(
             key: _form,
             child: Column(
               children: [
                 EvercryptedTextField(
+                  key: _emailFieldKey,
                   controller: _emailController,
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
@@ -400,17 +419,20 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ],
                   ],
                 ),
+                SizedBox(height: defaultPadding),
                 TextButton(
                   onPressed: () => Navigator.pushReplacementNamed(
                       context, SignInScreen.routeName),
                   child: Text.rich(
                     TextSpan(
-                      text: "Already have an account? ",
+                      text: "Already have an account?   ",
                       children: [
                         TextSpan(
                           text: "Sign in",
-                          style:
-                              TextStyle(color: Theme.of(context).primaryColor),
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -423,6 +445,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                         ),
                   ),
                 ),
+                SizedBox(height: defaultPadding),
                 const TermsAndPrivacyLinks(),
                 SizedBox(height: defaultPadding * 2),
               ],

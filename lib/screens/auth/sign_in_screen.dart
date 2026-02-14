@@ -40,6 +40,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   final AuthService _authService = AuthService();
   final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
   final listViewController = ScrollController();
+  final _emailFieldKey = GlobalKey();
 
   @override
   void initState() {
@@ -59,11 +60,28 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   scrollToBottom() {
     if (shouldShowKeyboard.value) {
       Future.delayed(const Duration(milliseconds: 100), () {
-        listViewController.animateTo(
-          listViewController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeInOut,
-        );
+        final context = _emailFieldKey.currentContext;
+        if (context != null) {
+          Scrollable.ensureVisible(
+            context,
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.easeInOut,
+            alignment: 0.0,
+            alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+          );
+          // Add 80px offset above the field
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (listViewController.hasClients) {
+              final currentOffset = listViewController.offset;
+              listViewController.animateTo(
+                (currentOffset - 80)
+                    .clamp(0.0, listViewController.position.maxScrollExtent),
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeInOut,
+              );
+            }
+          });
+        }
       });
     }
   }
@@ -218,12 +236,13 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
                 .bodyLarge!
                 .copyWith(fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: defaultPadding / 1.5),
+          SizedBox(height: defaultPadding),
           Form(
             key: _form,
             child: Column(
               children: [
                 EvercryptedTextField(
+                  key: _emailFieldKey,
                   controller: _emailField,
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(

@@ -1,6 +1,8 @@
 PODS:
   - app_badge_plus (1.2.6):
     - Flutter
+  - app_links (7.0.0):
+    - Flutter
   - AppAuth (2.0.0):
     - AppAuth/Core (= 2.0.0)
     - AppAuth/ExternalUserAgent (= 2.0.0)
@@ -192,6 +194,8 @@ PODS:
   - SDWebImage (5.21.6):
     - SDWebImage/Core (= 5.21.6)
   - SDWebImage/Core (5.21.6)
+  - share_plus (0.0.1):
+    - Flutter
   - sign_in_with_apple (0.0.1):
     - Flutter
   - SwiftyGif (5.4.5)
@@ -200,6 +204,7 @@ PODS:
 
 DEPENDENCIES:
   - app_badge_plus (from `.symlinks/plugins/app_badge_plus/ios`)
+  - app_links (from `.symlinks/plugins/app_links/ios`)
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
@@ -220,6 +225,7 @@ DEPENDENCIES:
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - rhttp (from `.symlinks/plugins/rhttp/ios`)
   - screen_protector (from `.symlinks/plugins/screen_protector/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
@@ -255,6 +261,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   app_badge_plus:
     :path: ".symlinks/plugins/app_badge_plus/ios"
+  app_links:
+    :path: ".symlinks/plugins/app_links/ios"
   audio_session:
     :path: ".symlinks/plugins/audio_session/ios"
   camera_avfoundation:
@@ -295,6 +303,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/rhttp/ios"
   screen_protector:
     :path: ".symlinks/plugins/screen_protector/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   sign_in_with_apple:
     :path: ".symlinks/plugins/sign_in_with_apple/ios"
   url_launcher_ios:
@@ -302,6 +312,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_badge_plus: 32b6022e2a8585454d6c2a99aa65f8f31f06752a
+  app_links: a754cbec3c255bd4bbb4d236ecc06f28cd9a7ce8
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
@@ -347,6 +358,7 @@ SPEC CHECKSUMS:
   screen_protector: 18c6aca2dc5d2a832f6787a5318f97f03e9d3150
   ScreenProtectorKit: 6ceb3e0808341a9bc15d175bff40dfdd4b32da71
   SDWebImage: 1bb6a1b84b6fe87b972a102bdc77dd589df33477
+  share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b

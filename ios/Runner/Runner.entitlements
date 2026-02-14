@@ -9,5 +9,10 @@
 		<string>Default</string>
 	</array>
 
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:evercrypted.com</string>
+	</array>
+
 </dict>
 </plist>

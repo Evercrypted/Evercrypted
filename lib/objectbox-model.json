@@ -344,7 +344,7 @@
     },
     {
       "id": "6:7619996462336598562",
-      "lastPropertyId": "11:8448089022275733924",
+      "lastPropertyId": "12:4024747495201492548",
       "name": "Profile",
       "properties": [
         {
@@ -401,6 +401,11 @@
         {
           "id": "11:8448089022275733924",
           "name": "dbBlockedUsers",
+          "type": 9
+        },
+        {
+          "id": "12:4024747495201492548",
+          "name": "dbSettings",
           "type": 9
         }
       ],

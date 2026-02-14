@@ -3,7 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/deep_link/app_link_service.dart';
+import 'package:evercrypted/core/deep_link/pending_contact_link.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
+import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/core/helpers/navigator_observer.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
@@ -175,6 +178,7 @@ class AuthGateState extends ConsumerState<AuthGate>
   late StreamSubscription resetConnectionListener;
   late StreamSubscription fcmTokenListener;
   late StreamSubscription<String?> blockedListener;
+  StreamSubscription<Uri>? _deepLinkSubscription;
   StreamSubscription? profileListener;
   StreamSubscription? contactRequestsListener;
   StreamSubscription? contactsListener;
@@ -236,6 +240,9 @@ class AuthGateState extends ConsumerState<AuthGate>
 
     _authFlow();
 
+    // Initialize deep link handling
+    _initDeepLinks();
+
     if (Admin.isAvailable()) {
       // Keep a reference until no longer needed or manually closed.
       admin = Admin(ObxInit.obx.store);
@@ -250,6 +257,7 @@ class AuthGateState extends ConsumerState<AuthGate>
     userReloadTimer?.cancel();
     ioConnectionTimer?.cancel();
     _resetDebounceTimer?.cancel();
+    _deepLinkSubscription?.cancel();
     authListener.cancel();
     resetConnectionListener.cancel();
     blockedListener.cancel();
@@ -678,5 +686,49 @@ class AuthGateState extends ConsumerState<AuthGate>
         }
       },
     );
+  }
+
+  /// Initialize deep link handling for both cold and warm starts
+  void _initDeepLinks() async {
+    // Handle cold start — app was launched from a deep link
+    try {
+      final initialUri = await AppLinkService.getInitialLink();
+      if (initialUri != null) {
+        _handleDeepLink(initialUri);
+      }
+    } catch (e) {
+      debugPrint('Deep link: Error getting initial link: $e');
+    }
+
+    // Handle warm start — app is already running and receives a deep link
+    _deepLinkSubscription = AppLinkService.onLinkStream.listen(
+      (uri) => _handleDeepLink(uri),
+      onError: (e) => debugPrint('Deep link: Stream error: $e'),
+    );
+  }
+
+  /// Process an incoming deep link URI
+  void _handleDeepLink(Uri uri) {
+    final contactEmail = AppLinkService.parseContactEmail(uri);
+    if (contactEmail == null) return;
+
+    debugPrint('Deep link: Received add-contact for $contactEmail');
+
+    final senderEmail = contactEmail;
+    final currentUserEmail = Auth.getUser?.email ?? 'someone';
+    final message =
+        "Hi! It's $currentUserEmail. I'd like to add you as a contact on EverCrypted.";
+
+    // Store the pending link — it will be consumed by AddContactButton
+    // when the contacts tab is visible (handles deferred cases:
+    // not logged in yet, biometric lock, etc.)
+    ref
+        .read(pendingContactLinkProvider.notifier)
+        .set(PendingContactLink(email: senderEmail, message: message));
+
+    // Navigate to contacts tab if user is already authenticated
+    if (user != null && !isBiometricLocked) {
+      ref.read(navigationProvider.notifier).navigateToContacts();
+    }
   }
 }

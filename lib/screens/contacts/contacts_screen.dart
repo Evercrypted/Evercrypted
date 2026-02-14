@@ -1,4 +1,6 @@
 import 'package:collection/collection.dart';
+import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/deep_link/app_link_service.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
@@ -9,6 +11,7 @@ import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controlle
 import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/core/services/hidden_contact_service.dart';
+import 'package:evercrypted/core/deep_link/pending_contact_link.dart';
 import 'package:evercrypted/screens/contacts/components/add_contact_button.dart';
 import 'package:evercrypted/screens/contacts/components/check_requests_icon.dart';
 import 'package:evercrypted/screens/contacts/contact_screen.dart';
@@ -20,6 +23,7 @@ import 'package:evercrypted/widgets/search_header.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'components/contact_card.dart';
 import 'add_new_contact_screen.dart';
@@ -45,13 +49,34 @@ class ContactsScreen extends ConsumerStatefulWidget {
   ContactsScreenState createState() => ContactsScreenState();
 }
 
-class ContactsScreenState extends ConsumerState<ContactsScreen> {
+class ContactsScreenState extends ConsumerState<ContactsScreen>
+    with SingleTickerProviderStateMixin {
   final EvercryptedTextController _searchController =
       EvercryptedTextController();
   String searchValue = '';
   List<Participant>? participants;
   final EvercryptedTextController newGroupName = EvercryptedTextController();
   final HiddenContactService hiddenContactService = HiddenContactService();
+
+  late AnimationController _animationController;
+  late Animation<double> _expandAnimation;
+  bool _isFabOpen = false;
+  bool _hasCheckedPendingLink = false;
+
+  void _openBottomSheetWithPrefill(String email, String message) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight:
+            MediaQuery.of(context).size.height * 0.8, // 80% of screen height
+      ),
+      builder: (context) => AddContactSheet(
+        initialEmail: email,
+        initialMessage: message,
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -62,6 +87,13 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
     }
     super.initState();
     _searchController.addListener(setSearchValue);
+
+    _animationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 250));
+    _expandAnimation = CurvedAnimation(
+      curve: Curves.fastOutSlowIn,
+      parent: _animationController,
+    );
 
     // Set navigation state to contacts when this screen is active
     // Only do this for the main contacts screen, not participant selection
@@ -83,11 +115,39 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
     _searchController.removeListener(setSearchValue);
     _searchController.dispose();
     newGroupName.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch for pending deep link contact data (must be in build, not initState)
+    ref.listen<PendingContactLink?>(pendingContactLinkProvider,
+        (previous, next) {
+      if (next != null && mounted) {
+        ref.read(pendingContactLinkProvider.notifier).clear();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _openBottomSheetWithPrefill(next.email, next.message);
+          }
+        });
+      }
+    });
+
+    // Check on first build if there's a pending link
+    if (!_hasCheckedPendingLink) {
+      _hasCheckedPendingLink = true;
+      final pending = ref.read(pendingContactLinkProvider);
+      if (pending != null) {
+        ref.read(pendingContactLinkProvider.notifier).clear();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _openBottomSheetWithPrefill(pending.email, pending.message);
+          }
+        });
+      }
+    }
+
     final List<Contact> contacts = ref.watch(contactsProvider);
     final List<ContactRequest> receivedRequests =
         ref.watch(receivedContactRequestsProvider);
@@ -284,23 +344,94 @@ class ContactsScreenState extends ConsumerState<ContactsScreen> {
                   contactTree: contactTree)),
         ],
       ),
-      floatingActionButton: widget.isParticipantSelect
-          ? null
-          : Tooltip(
-              message: 'Add new contact',
-              preferBelow: false,
-              child: AddContactButton(
-                afterCallback: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) {
-                      return const AddNewContactScreen(
-                        initialTab: 'sent',
-                      );
-                    }),
+      floatingActionButton:
+          widget.isParticipantSelect ? null : _buildExpandableFab(),
+    );
+  }
+
+  Widget _buildExpandableFab() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        ScaleTransition(
+          scale: _expandAnimation,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: FloatingActionButton.extended(
+              heroTag: 'add_contact_fab',
+              onPressed: () {
+                setState(() {
+                  _isFabOpen = false;
+                  _animationController.reverse();
+                });
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height *
+                        0.8, // 80% of screen height
+                  ),
+                  builder: (context) => const AddContactSheet(),
+                );
+              },
+              backgroundColor: primaryColor,
+              icon: const Icon(Icons.person_add, color: Colors.white),
+              label: const Text('Add new Contact',
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ),
+        ScaleTransition(
+          scale: _expandAnimation,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: FloatingActionButton.extended(
+              heroTag: 'share_invite_fab',
+              onPressed: () {
+                final email = Auth.getUser?.email ?? '';
+                if (email.isNotEmpty) {
+                  final shareUrl = AppLinkService.buildShareLink(email);
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text: 'Add me on EverCrypted! $shareUrl',
+                    ),
                   );
-                },
-              )),
+                }
+                setState(() {
+                  _isFabOpen = false;
+                  _animationController.reverse();
+                });
+              },
+              backgroundColor: primaryColor,
+              icon: const Icon(Icons.share, color: Colors.white),
+              label: const Text('Share Contact',
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ),
+        FloatingActionButton(
+          heroTag: 'toggle_fab',
+          onPressed: () {
+            setState(() {
+              _isFabOpen = !_isFabOpen;
+              if (_isFabOpen) {
+                _animationController.forward();
+              } else {
+                _animationController.reverse();
+              }
+            });
+          },
+          backgroundColor: primaryColor,
+          child: RotationTransition(
+            turns: Tween(begin: 0.0, end: 0.125).animate(_expandAnimation),
+            child: const Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
+import 'package:evercrypted/core/deep_link/app_link_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/core/obx_init.dart';
@@ -20,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:evercrypted/widgets/terms_and_privacy_links.dart';
 
 import '../../ui_constants.dart';
@@ -352,89 +354,123 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                   color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                 ),
               ),
-              trailing: Icon(
-                Icons.qr_code,
-                color: primaryColor,
-                size: 28,
-              ),
-              onTap: () {
-                showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height *
-                          0.8, // 80% of screen height
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.share,
+                      color: primaryColor,
+                      size: 28,
                     ),
-                    builder: (context) => SingleChildScrollView(
-                        child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(defaultPadding * 2),
-                                topRight: Radius.circular(defaultPadding * 2),
-                              ),
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                            ),
-                            padding: EdgeInsets.only(
-                                bottom:
-                                    MediaQuery.of(context).viewInsets.bottom),
-                            child: Container(
-                              margin: const EdgeInsets.all(defaultPadding),
-                              padding: const EdgeInsets.fromLTRB(
-                                defaultPadding,
-                                0,
-                                defaultPadding,
-                                defaultPadding,
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Scan this QR code to add me as a contact',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                    onPressed: () {
+                      final email = profile?.email ?? '';
+                      if (email.isNotEmpty) {
+                        final shareUrl = AppLinkService.buildShareLink(email);
+                        SharePlus.instance.share(
+                          ShareParams(
+                            text: 'Add me on EverCrypted! $shareUrl',
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    icon: Icon(
+                      Icons.qr_code,
+                      color: primaryColor,
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height *
+                                0.8, // 80% of screen height
+                          ),
+                          builder: (context) => SingleChildScrollView(
+                              child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft:
+                                          Radius.circular(defaultPadding * 2),
+                                      topRight:
+                                          Radius.circular(defaultPadding * 2),
                                     ),
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor,
                                   ),
-                                  const SizedBox(height: defaultPadding),
-                                  Container(
-                                    margin: const EdgeInsets.only(
-                                        top: 10,
-                                        left: 20,
-                                        right: 20,
-                                        bottom: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: QrImageView(
-                                      data: profile!.email!,
-                                      version: QrVersions.auto,
-                                      embeddedImage:
-                                          AssetImage('assets/icons/logo.png'),
-                                      size: MediaQuery.of(context).size.width *
-                                          0.7,
-                                    ),
-                                  ),
-                                  Text(
-                                    profile.email!,
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: defaultPadding),
-                                  Padding(
-                                    padding:
+                                  padding: EdgeInsets.only(
+                                      bottom: MediaQuery.of(context)
+                                          .viewInsets
+                                          .bottom),
+                                  child: Container(
+                                    margin:
                                         const EdgeInsets.all(defaultPadding),
-                                    child: PrimaryButton(
-                                        text: 'Close',
-                                        press: () {
-                                          Navigator.pop(context);
-                                        }),
-                                  ),
-                                ],
-                              ),
-                            ))));
-              },
+                                    padding: const EdgeInsets.fromLTRB(
+                                      defaultPadding,
+                                      0,
+                                      defaultPadding,
+                                      defaultPadding,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          'Scan this QR code to add me as a contact',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: defaultPadding),
+                                        Container(
+                                          margin: const EdgeInsets.only(
+                                              top: 10,
+                                              left: 20,
+                                              right: 20,
+                                              bottom: 10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: QrImageView(
+                                            data: profile!.email!,
+                                            version: QrVersions.auto,
+                                            embeddedImage: AssetImage(
+                                                'assets/icons/logo.png'),
+                                            size: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.7,
+                                          ),
+                                        ),
+                                        Text(
+                                          profile.email!,
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: defaultPadding),
+                                        Padding(
+                                          padding: const EdgeInsets.all(
+                                              defaultPadding),
+                                          child: PrimaryButton(
+                                              text: 'Close',
+                                              press: () {
+                                                Navigator.pop(context);
+                                              }),
+                                        ),
+                                      ],
+                                    ),
+                                  ))));
+                    },
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 10),
             // Account Section

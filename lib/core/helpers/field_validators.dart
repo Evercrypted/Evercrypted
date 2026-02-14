@@ -1,7 +1,7 @@
 const requiredField = "This field is required.";
 const invalidEmail = "Enter a valid email address.";
 const badPass =
-    'Passwords must have at least one uppercase letter, one lowercase letter, one number and one special character.';
+    'Passwords must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.';
 
 String? validateEmail(String? email) {
   RegExp regex = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
@@ -17,13 +17,31 @@ String? validateEmail(String? email) {
 String? validatePassword(String? pass) {
   if (pass == null) {
     return null;
-  } else if (!RegExp(
-          r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
-      .hasMatch(pass)) {
-    return badPass;
-  } else {
-    return null;
   }
+
+  final missing = <String>[];
+
+  if (pass.length < 8) {
+    missing.add('at least 8 characters');
+  }
+  if (!RegExp(r'[A-Z]').hasMatch(pass)) {
+    missing.add('an uppercase letter');
+  }
+  if (!RegExp(r'[a-z]').hasMatch(pass)) {
+    missing.add('a lowercase letter');
+  }
+  if (!RegExp(r'\d').hasMatch(pass)) {
+    missing.add('a number');
+  }
+  if (!RegExp(r'[@$!%*?&]').hasMatch(pass)) {
+    missing.add('a special character (@\$!%*?&)');
+  }
+
+  if (missing.isNotEmpty) {
+    return 'Password must include: ${missing.join(', ')}.';
+  }
+
+  return null;
 }
 
 String? requiredValidator(String? val) {

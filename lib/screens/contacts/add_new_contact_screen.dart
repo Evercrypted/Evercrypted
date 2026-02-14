@@ -1,6 +1,5 @@
 import 'package:evercrypted/core/entities/contact-request/contact_request_model.dart';
 import 'package:evercrypted/core/entities/contact-request/contact_request_riverpod.dart';
-import 'package:evercrypted/screens/contacts/components/add_contact_button.dart';
 import 'package:evercrypted/screens/contacts/components/received_requests_list.dart';
 import 'package:evercrypted/screens/contacts/components/sent_requests_list.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +57,8 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
           builder: (BuildContext context, WidgetRef ref, Widget? child) {
         List<ContactRequest> receivedRequests =
             ref.watch(receivedContactRequestsProvider);
-        List<ContactRequest> sentRequests = ref.watch(sentContactRequestsProvider);
+        List<ContactRequest> sentRequests =
+            ref.watch(sentContactRequestsProvider);
         return _selectedIndex == 0
             ? ReceivedRequestsList(
                 receivedRequests: receivedRequests,
@@ -67,11 +67,6 @@ class AddNewContactScreenState extends ConsumerState<AddNewContactScreen> {
                 sentRequests: sentRequests,
               );
       }),
-      floatingActionButton: AddContactButton(
-        afterCallback: () => setState(() {
-          _selectedIndex = 1;
-        }),
-      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
