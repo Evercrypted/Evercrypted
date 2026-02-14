@@ -97,6 +97,7 @@ class SocialLoginIconButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isLoading;
   final bool disabled;
+  final VoidCallback? onDisabledTap;
 
   const SocialLoginIconButton({
     super.key,
@@ -104,42 +105,46 @@ class SocialLoginIconButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.disabled = false,
+    this.onDisabledTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return SizedBox(
-      width: 56,
-      height: 56,
-      child: Opacity(
-        opacity: disabled ? 0.5 : 1.0,
-        child: OutlinedButton(
-          onPressed: (isLoading || disabled) ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: BorderSide(
-            color: isDark ? Colors.white30 : Colors.grey.shade300,
-            width: 1,
+    return GestureDetector(
+      onTap: disabled ? onDisabledTap : null,
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: Opacity(
+          opacity: disabled ? 0.5 : 1.0,
+          child: OutlinedButton(
+            onPressed: (isLoading || disabled) ? null : onPressed,
+            style: OutlinedButton.styleFrom(
+              backgroundColor: Colors.white,
+              side: BorderSide(
+                color: isDark ? Colors.white30 : Colors.grey.shade300,
+                width: 1,
+              ),
+              shape: const CircleBorder(),
+              padding: EdgeInsets.zero,
+            ),
+            child: isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        provider == SocialProvider.apple && isDark
+                            ? Colors.black
+                            : (isDark ? Colors.white : Colors.black87),
+                      ),
+                    ),
+                  )
+                : _buildIcon(isDark),
           ),
-          shape: const CircleBorder(),
-          padding: EdgeInsets.zero,
-        ),
-        child: isLoading
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    provider == SocialProvider.apple && isDark
-                        ? Colors.black
-                        : (isDark ? Colors.white : Colors.black87),
-                  ),
-                ),
-              )
-            : _buildIcon(isDark),
         ),
       ),
     );

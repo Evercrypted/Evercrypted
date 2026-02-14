@@ -32,26 +32,27 @@ class TermsCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
-          height: 24,
-          width: 24,
-          child: Checkbox(
-            value: value,
-            onChanged: onChanged,
-            activeColor: primaryColor,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          height: 36,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: Switch.adaptive(
+              value: value,
+              onChanged: (val) => onChanged(val),
+              activeTrackColor: primaryColor,
+            ),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 3),
+          child: GestureDetector(
+            onTap: () => onChanged(!value),
             child: RichText(
               text: TextSpan(
                 text: 'I agree to the ',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                       color: Theme.of(context)
                           .textTheme
                           .bodyLarge!
@@ -61,7 +62,7 @@ class TermsCheckbox extends StatelessWidget {
                 children: [
                   TextSpan(
                     text: 'Terms of Service',
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           color: primaryColor,
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,

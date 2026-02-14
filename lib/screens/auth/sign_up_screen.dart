@@ -162,6 +162,18 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
     }
   }
 
+  void _showTermsWarning() {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text(
+        'Please agree to the Terms of Service to continue',
+        style: TextStyle(color: Colors.white),
+      ),
+      backgroundColor: errorColor,
+      dismissDirection: DismissDirection.horizontal,
+      showCloseIcon: true,
+    ));
+  }
+
   void _handleGoogleSignIn() async {
     setState(() {
       _googleLoading = true;
@@ -368,6 +380,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                       onPressed: _handleGoogleSignIn,
                       isLoading: _googleLoading,
                       disabled: !_agreedToTerms,
+                      onDisabledTap: _showTermsWarning,
                     ),
                     if (Platform.isIOS) ...[
                       const SizedBox(width: defaultPadding * 1.5),
@@ -382,6 +395,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
                         onPressed: _handleAppleSignIn,
                         isLoading: _appleLoading,
                         disabled: !_agreedToTerms,
+                        onDisabledTap: _showTermsWarning,
                       ),
                     ],
                   ],
