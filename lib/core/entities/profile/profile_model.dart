@@ -19,10 +19,6 @@ class Profile {
 
   bool emailVerified;
 
-  bool activatedForLife;
-
-  int activationTokenQuantity;
-
   @Transient()
   AccountSettings? accountSettings;
 
@@ -128,8 +124,6 @@ class Profile {
       this.email,
       this.avatar,
       this.emailVerified = false,
-      this.activatedForLife = false,
-      this.activationTokenQuantity = 0,
       this.subscription,
       this.accountSettings,
       this.blockedUsers,
@@ -144,8 +138,7 @@ class Profile {
         subscription: json['subscription'] != null
             ? ProfileSubscription.fromJson(json['subscription'])
             : null,
-        activatedForLife: json['activatedForLife'] as bool,
-        activationTokenQuantity: json['activationTokenQuantity'] as int,
+
         accountSettings: json['accountSettings'] != null
             ? AccountSettings.fromJson(json['accountSettings'])
             : null,
@@ -167,8 +160,6 @@ class Profile {
         'email_verified': emailVerified,
         'avatar': avatar?.toJson(),
         'subscription': subscription?.toJson(),
-        'activatedForLife': activatedForLife,
-        'activationTokenQuantity': activationTokenQuantity,
         'accountSettings': accountSettings?.toJson(),
         'blockedUsers': blockedUsers?.map((e) => e.toJson()).toList(),
         'settings': settings?.toJson(),
@@ -182,8 +173,6 @@ class Profile {
     Avatar? avatar,
     ProfileSubscription? subscription,
     AccountSettings? accountSettings,
-    bool? activatedForLife,
-    int? activationTokenQuantity,
     List<BlockedUser>? blockedUsers,
     ProfileSettings? settings,
   }) {
@@ -195,9 +184,6 @@ class Profile {
       avatar: avatar ?? this.avatar,
       subscription: subscription ?? this.subscription,
       accountSettings: accountSettings ?? this.accountSettings,
-      activatedForLife: activatedForLife ?? this.activatedForLife,
-      activationTokenQuantity:
-          activationTokenQuantity ?? this.activationTokenQuantity,
       blockedUsers: blockedUsers ?? this.blockedUsers,
       settings: settings ?? this.settings,
     );

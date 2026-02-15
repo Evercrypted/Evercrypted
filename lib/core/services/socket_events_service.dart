@@ -246,15 +246,6 @@ class SocketEventsService {
           }
         });
         break;
-      case ContactEventTypes.premiumLicenseActivated:
-        LocalNotification.instance.displayNotification(
-          'Premium License Activated',
-          'Your premium license has been activated by ${payload['activatedByName'] ?? payload['activatedBy']}',
-          json.encode({
-            'type': null,
-          }),
-        );
-        break;
       default:
         return;
     }
