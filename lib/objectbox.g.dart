@@ -184,12 +184,6 @@ final _entities = <obx_int.ModelEntity>[
         type: 9,
         flags: 0,
       ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 6110466623170020597),
-        name: 'hasActivated',
-        type: 1,
-        flags: 0,
-      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
@@ -440,18 +434,6 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 7108303160409819387),
-        name: 'activatedForLife',
-        type: 1,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 7973920404034155552),
-        name: 'activationTokenQuantity',
-        type: 6,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
         id: const obx_int.IdUid(6, 301217857765955246),
         name: 'dbAccountSettings',
         type: 9,
@@ -584,6 +566,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
       2880708045028242042,
       7693812029148769164,
       3799472876624534893,
+      6110466623170020597,
+      7108303160409819387,
+      7973920404034155552,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -762,7 +747,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(4, dbAvatarOffset);
         fbb.addOffset(5, dbEmailOffset);
         fbb.addOffset(6, dbNameOffset);
-        fbb.addBool(7, object.hasActivated);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -781,18 +765,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
           10,
           false,
         );
-        final hasActivatedParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          18,
-          false,
-        );
         final object =
             Contact(
                 uid: uidParam,
                 contactPersonUid: contactPersonUidParam,
                 isFavorite: isFavoriteParam,
-                hasActivated: hasActivatedParam,
               )
               ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
               ..dbAvatar = const fb.StringReader(
@@ -1118,8 +1095,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, uidOffset);
         fbb.addBool(2, object.emailVerified);
-        fbb.addBool(3, object.activatedForLife);
-        fbb.addInt64(4, object.activationTokenQuantity);
         fbb.addOffset(5, dbAccountSettingsOffset);
         fbb.addOffset(6, dbSubscriptionOffset);
         fbb.addOffset(7, dbAvatarOffset);
@@ -1142,47 +1117,29 @@ obx_int.ModelDefinition getObjectBoxModel() {
           8,
           false,
         );
-        final activatedForLifeParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          10,
-          false,
-        );
-        final activationTokenQuantityParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          12,
-          0,
-        );
-        final object =
-            Profile(
-                uid: uidParam,
-                emailVerified: emailVerifiedParam,
-                activatedForLife: activatedForLifeParam,
-                activationTokenQuantity: activationTokenQuantityParam,
-              )
-              ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
-              ..dbAccountSettings = const fb.StringReader(
-                asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 14)
-              ..dbSubscription = const fb.StringReader(
-                asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 16)
-              ..dbAvatar = const fb.StringReader(
-                asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 18)
-              ..dbEmail = const fb.StringReader(
-                asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 20)
-              ..dbName = const fb.StringReader(
-                asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 22)
-              ..dbBlockedUsers = const fb.StringReader(
-                asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 24)
-              ..dbSettings = const fb.StringReader(
-                asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 26);
+        final object = Profile(uid: uidParam, emailVerified: emailVerifiedParam)
+          ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+          ..dbAccountSettings = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 14)
+          ..dbSubscription = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 16)
+          ..dbAvatar = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 18)
+          ..dbEmail = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 20)
+          ..dbName = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 22)
+          ..dbBlockedUsers = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 24)
+          ..dbSettings = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 26);
 
         return object;
       },
@@ -1333,11 +1290,6 @@ class Contact_ {
   /// See [Contact.dbName].
   static final dbName = obx.QueryStringProperty<Contact>(
     _entities[2].properties[6],
-  );
-
-  /// See [Contact.hasActivated].
-  static final hasActivated = obx.QueryBooleanProperty<Contact>(
-    _entities[2].properties[7],
   );
 }
 
@@ -1524,49 +1476,39 @@ class Profile_ {
     _entities[5].properties[2],
   );
 
-  /// See [Profile.activatedForLife].
-  static final activatedForLife = obx.QueryBooleanProperty<Profile>(
-    _entities[5].properties[3],
-  );
-
-  /// See [Profile.activationTokenQuantity].
-  static final activationTokenQuantity = obx.QueryIntegerProperty<Profile>(
-    _entities[5].properties[4],
-  );
-
   /// See [Profile.dbAccountSettings].
   static final dbAccountSettings = obx.QueryStringProperty<Profile>(
-    _entities[5].properties[5],
+    _entities[5].properties[3],
   );
 
   /// See [Profile.dbSubscription].
   static final dbSubscription = obx.QueryStringProperty<Profile>(
-    _entities[5].properties[6],
+    _entities[5].properties[4],
   );
 
   /// See [Profile.dbAvatar].
   static final dbAvatar = obx.QueryStringProperty<Profile>(
-    _entities[5].properties[7],
+    _entities[5].properties[5],
   );
 
   /// See [Profile.dbEmail].
   static final dbEmail = obx.QueryStringProperty<Profile>(
-    _entities[5].properties[8],
+    _entities[5].properties[6],
   );
 
   /// See [Profile.dbName].
   static final dbName = obx.QueryStringProperty<Profile>(
-    _entities[5].properties[9],
+    _entities[5].properties[7],
   );
 
   /// See [Profile.dbBlockedUsers].
   static final dbBlockedUsers = obx.QueryStringProperty<Profile>(
-    _entities[5].properties[10],
+    _entities[5].properties[8],
   );
 
   /// See [Profile.dbSettings].
   static final dbSettings = obx.QueryStringProperty<Profile>(
-    _entities[5].properties[11],
+    _entities[5].properties[9],
   );
 }
 
