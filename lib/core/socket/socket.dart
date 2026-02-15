@@ -313,58 +313,7 @@ class ChatSocket {
     });
   }
 
-  static Future<dynamic> emitWAck(String channel, String type, dynamic payload,
-      {bool isFromQueue = false}) async {
-    Future<int> saveActionForLater() async {
-      final writingToQueueCompleter = Completer<int>();
-      final action = ActionQueue(
-          channel: channel,
-          type: type,
-          payload: json.encode(payload),
-          createdAtMSE: DateTime.now().millisecondsSinceEpoch);
-      final int id = ObxInit.obx.actionQueues.put(action);
-      writingToQueueCompleter.complete(id);
-      return writingToQueueCompleter.future;
-    }
-
-    final respCompleter = Completer<dynamic>();
-    if (socket?.connected != true || isConnected == null || !isConnected!) {
-      if (!isFromQueue && allowedForQueue.contains('$channel/$type')) {
-        final int queuedItemId = await saveActionForLater();
-        respCompleter
-            .complete({'status': 'queued', 'queuedItemId': queuedItemId});
-      } else {
-        respCompleter.completeError(
-            'Could not connect to server, please check your internet connection.');
-      }
-    } else {
-      final crypted =
-          await encodePayload({'type': type, 'payload': payload}, key, true);
-      socket?.emitWithAck(channel, crypted, ack: (resp) async {
-        payload = await decodePayload(
-          resp['crypted'],
-          resp['iv'],
-          key,
-          true,
-        );
-        debugPrint(payload.toString());
-        if (payload['error'] != null) {
-          respCompleter.completeError(payload['error']);
-        } else if (payload['status'] == 'ok') {
-          respCompleter.complete(payload['payload']);
-        }
-      });
-    }
-    return respCompleter.future;
-  }
-
-  static void emit(String channel, String type, dynamic payload) async {
-    final crypted =
-        await encodePayload({'type': type, 'payload': payload}, key, true);
-    socket?.emit(channel, crypted);
-  }
-
-  static disconnectWS() {
+  static void disconnectWS() {
     socket?.clearListeners();
     socket?.destroy();
     socket?.dispose();

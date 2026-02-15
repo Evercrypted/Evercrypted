@@ -1,4 +1,6 @@
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
+import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/widgets/terms_and_privacy_links.dart';
 import 'package:evercrypted/core/services/apple_iap_service.dart';
 import 'package:evercrypted/ui_constants.dart';
@@ -98,6 +100,29 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showActivationCodeSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
+      ),
+      builder: (BuildContext context) {
+        return _ActivationCodeBottomSheet(
+          onSuccess: (ProfileSubscription subscription) {
+            // Update local profile with new subscription
+            final profile = ref.read(profileProvider);
+            if (profile != null) {
+              ref.read(profileProvider.notifier).setProfile(
+                    profile.copyWith(subscription: subscription),
+                  );
+            }
+          },
+        );
+      },
+    );
   }
 
   String _formatDate(String? dateStr) {
@@ -340,6 +365,17 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                                   ),
                                 ),
                               ),
+                              TextButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : () => _showActivationCodeSheet(),
+                                child: Text(
+                                  'Use Activation Code',
+                                  style: TextStyle(
+                                    color: primaryColor,
+                                  ),
+                                ),
+                              ),
                             ],
                           );
                         }
@@ -428,6 +464,175 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                 fontWeight: FontWeight.w600,
                 color: primaryColor,
               ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActivationCodeBottomSheet extends StatefulWidget {
+  final Function(ProfileSubscription subscription) onSuccess;
+
+  const _ActivationCodeBottomSheet({required this.onSuccess});
+
+  @override
+  State<_ActivationCodeBottomSheet> createState() =>
+      _ActivationCodeBottomSheetState();
+}
+
+class _ActivationCodeBottomSheetState
+    extends State<_ActivationCodeBottomSheet> {
+  final TextEditingController _codeController = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final code = _codeController.text.trim();
+    if (code.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter an activation code'),
+          backgroundColor: errorColor,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final result = await AppHttpClient.message(
+        channel: 'settings',
+        type: 'redeemActivationCode',
+        payload: {'activationCode': code},
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Subscription activated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        if (result != null && result['subscription'] != null) {
+          widget.onSuccess(
+            ProfileSubscription.fromJson(
+              Map<String, dynamic>.from(result['subscription']),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: errorColor,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      children: [
+        Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(defaultPadding * 2),
+              topRight: Radius.circular(defaultPadding * 2),
+            ),
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
+          child: Container(
+            margin: const EdgeInsets.all(defaultPadding),
+            padding: const EdgeInsets.fromLTRB(
+              defaultPadding,
+              0,
+              defaultPadding,
+              defaultPadding,
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.card_giftcard,
+                  size: 60,
+                  color: Theme.of(context).textTheme.titleMedium!.color,
+                ),
+                const SizedBox(height: defaultPadding / 2),
+                Text(
+                  'Activation Code',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: defaultPadding / 2),
+                Text(
+                  'Enter your activation code to activate your premium subscription.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: defaultPadding),
+                TextField(
+                  controller: _codeController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.vpn_key),
+                    hintText: 'Enter activation code',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: primaryColor,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: defaultPadding),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      padding: const EdgeInsets.all(defaultPadding),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: _isSubmitting ? null : _submit,
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Submit',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
