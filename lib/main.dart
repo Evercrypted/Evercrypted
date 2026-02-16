@@ -5,6 +5,8 @@ import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/deep_link/app_link_service.dart';
 import 'package:evercrypted/core/deep_link/pending_contact_link.dart';
+import 'package:evercrypted/core/deep_link/pending_invite_token.dart';
+import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/core/obx_init.dart';
@@ -16,7 +18,6 @@ import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
-// import 'package:evercrypted/screens/auth/change_password_screen.dart';
 import 'package:evercrypted/screens/auth/sign_in_screen.dart';
 import 'package:evercrypted/screens/auth/sign_up_screen.dart';
 import 'package:evercrypted/screens/auth/signin_or_signup_screen.dart';
@@ -503,6 +504,12 @@ class AuthGateState extends ConsumerState<AuthGate>
           Future.delayed(Duration.zero, () {
             _syncIsarToRiverpod();
             _setWatchers();
+            // Process any pending invite token stored before login
+            final pendingToken = ref.read(pendingInviteTokenProvider);
+            if (pendingToken != null) {
+              ref.read(pendingInviteTokenProvider.notifier).clear();
+              _handleJoinChat(pendingToken);
+            }
           });
         } else {
           setState(() {
@@ -740,11 +747,10 @@ class AuthGateState extends ConsumerState<AuthGate>
   }
 
   Future<void> _handleJoinChat(String token) async {
-    // Requires authentication
+    // Requires authentication — store token for after login
     if (user == null || isBiometricLocked) {
-      // TODO: Store pending invite token to handle after login?
-      // For now just show a message if we can, or do nothing until logged in
-      debugPrint('Deep link: User not logged in, cannot join chat yet');
+      ref.read(pendingInviteTokenProvider.notifier).set(token);
+      debugPrint('Deep link: User not logged in, stored pending invite token');
       return;
     }
 
@@ -782,13 +788,14 @@ class AuthGateState extends ConsumerState<AuthGate>
             backgroundColor: primaryColor,
           ),
         );
-        // Navigate to the chat
-        // We need to implement navigation to specific chat from main
-        // For now, let's navigate to main screen then push chat
-        // This part depends on navigation structure, assuming we can push chat screen
-        // But since we are in main.dart, we might need to use a global key or similar
-        // Or just let the user find it in the list.
-        // Ideally: ref.read(navigationProvider.notifier).navigateToChat(chat);
+        // Navigate to the chats tab and open the chat
+        ref.read(navigationProvider.notifier).navigateToChats();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MessagesScreen(chat: chat),
+          ),
+        );
       }
     } catch (e) {
       // Dismiss loading
