@@ -198,19 +198,25 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
               ),
             )
           else
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           const SizedBox(height: 10),
-          Text(
-            widget.contact.email!,
-            style: const TextStyle(
-              fontSize: 16,
-              color: lightGrey,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              widget.contact.email!,
+              style: const TextStyle(
+                fontSize: 16,
+                color: lightGrey,
+              ),
             ),
           ),
           const SizedBox(height: 40),

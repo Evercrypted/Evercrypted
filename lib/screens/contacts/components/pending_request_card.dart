@@ -140,55 +140,74 @@ class PendingRequestCard extends StatelessWidget {
           ),
         Container(
           margin: const EdgeInsets.only(left: 30, right: 30, bottom: 10),
-          child: Row(
-            mainAxisAlignment: isReceived
-                ? MainAxisAlignment.spaceBetween
-                : MainAxisAlignment.end,
-            children: [
-              if (isReceived)
-                RawMaterialButton(
-                  onPressed: () {
-                    contactRequestService.acceptContactRequest(contactRequest!);
-                  },
-                  elevation: 2.0,
-                  fillColor: Colors.white,
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(30))),
-                  child: const Icon(
-                    Icons.check,
-                    color: primaryColor,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                if (isReceived) ...[
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: () => _showBlockDialog(context),
+                      icon: const Icon(Icons.block, size: 18),
+                      label: const Text('Block'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: const RoundedRectangleBorder(),
+                      ),
+                    ),
+                  ),
+                  VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: Colors.white.withAlpha((255 * 0.3).round()),
+                  ),
+                ],
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      isReceived
+                          ? contactRequestService
+                              .declineContactRequest(contactRequest!)
+                          : contactRequestService
+                              .cancelContactReqeuest(contactRequest!);
+                    },
+                    icon: const Icon(Icons.close, size: 18),
+                    label: Text(isReceived ? 'Decline' : 'Cancel'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: const RoundedRectangleBorder(),
+                    ),
                   ),
                 ),
-              if (isReceived)
-                RawMaterialButton(
-                  onPressed: () => _showBlockDialog(context),
-                  elevation: 2.0,
-                  fillColor: Colors.white,
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(30))),
-                  child: const Icon(
-                    Icons.block,
-                    color: Colors.orange,
+                if (isReceived) ...[
+                  VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: Colors.white.withAlpha((255 * 0.3).round()),
                   ),
-                ),
-              RawMaterialButton(
-                onPressed: () {
-                  isReceived
-                      ? contactRequestService
-                          .declineContactRequest(contactRequest!)
-                      : contactRequestService
-                          .cancelContactReqeuest(contactRequest!);
-                },
-                elevation: 2.0,
-                fillColor: Colors.white,
-                shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(30))),
-                child: const Icon(
-                  Icons.delete,
-                  color: errorColor,
-                ),
-              )
-            ],
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: () {
+                        contactRequestService
+                            .acceptContactRequest(contactRequest!);
+                      },
+                      icon: const Icon(Icons.check, size: 18),
+                      label: const Text('Accept'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: const RoundedRectangleBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ],

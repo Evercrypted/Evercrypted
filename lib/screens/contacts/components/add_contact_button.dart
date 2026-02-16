@@ -262,7 +262,6 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
                         ],
                       ),
                       press: () {
-                        Navigator.pop(context);
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -277,7 +276,6 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
                                 _messageController.text =
                                     'Hello, it\'s ${Auth.getUser?.email ?? 'me'}! I just scanned your QR code and want to add you as a contact.';
                                 submitForm();
-                                Navigator.pop(context);
                               }
                             },
                           ),
