@@ -151,7 +151,8 @@ class PendingRequestCard extends StatelessWidget {
                   Expanded(
                     child: TextButton.icon(
                       onPressed: () => _showBlockDialog(context),
-                      icon: const Icon(Icons.block, size: 18),
+                      icon:
+                          const Icon(Icons.block, size: 18, color: errorColor),
                       label: const Text('Block'),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.white,
@@ -175,7 +176,8 @@ class PendingRequestCard extends StatelessWidget {
                           : contactRequestService
                               .cancelContactReqeuest(contactRequest!);
                     },
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: const Icon(Icons.close,
+                        size: 18, color: secondaryColor),
                     label: Text(isReceived ? 'Decline' : 'Cancel'),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.white,

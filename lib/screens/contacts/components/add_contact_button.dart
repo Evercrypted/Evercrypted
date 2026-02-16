@@ -10,7 +10,7 @@ import 'package:evercrypted/core/offline/action_queue/allowed_for_queue.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
-import 'package:evercrypted/widgets/secret_keyboard/qr_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -38,14 +38,17 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
 
   late final EvercryptedTextController _emailController;
   late final EvercryptedTextController _messageController;
+  bool _showScanner = false;
 
   @override
   void initState() {
     super.initState();
-    _emailController =
-        EvercryptedTextController(initialText: widget.initialEmail);
-    _messageController =
-        EvercryptedTextController(initialText: widget.initialMessage);
+    _emailController = EvercryptedTextController(
+      initialText: widget.initialEmail,
+    );
+    _messageController = EvercryptedTextController(
+      initialText: widget.initialMessage,
+    );
   }
 
   @override
@@ -57,8 +60,9 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
 
   submitForm() {
     final List<Contact> contacts = ref.read(contactsProvider);
-    final List<ContactRequest> sentRequests =
-        ref.read(sentContactRequestsProvider);
+    final List<ContactRequest> sentRequests = ref.read(
+      sentContactRequestsProvider,
+    );
     final email = _emailController.text;
     final message = _messageController.text;
 
@@ -66,53 +70,59 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
     String? emailError = validateEmail(email);
     if (emailError != null) {
       showSimpleNotification(
-          Text(emailError, style: TextStyle(color: Colors.white)),
-          background: errorColor);
+        Text(emailError, style: TextStyle(color: Colors.white)),
+        background: errorColor,
+      );
       return;
     }
 
     // Check if email is user's own email
     if (email.toLowerCase() == Auth.getUser?.email.toLowerCase()) {
       showSimpleNotification(
-          const Text(
-            "You can't send a contact request to yourself",
-            style: TextStyle(color: Colors.white),
-          ),
-          background: errorColor);
+        const Text(
+          "You can't send a contact request to yourself",
+          style: TextStyle(color: Colors.white),
+        ),
+        background: errorColor,
+      );
       return;
     }
 
     // Check if already have contact
-    if (contacts.any((Contact element) =>
-        element.email?.toLowerCase() == email.toLowerCase())) {
+    if (contacts.any(
+      (Contact element) => element.email?.toLowerCase() == email.toLowerCase(),
+    )) {
       showSimpleNotification(
-          const Text(
-            "You already have a contact with this email",
-            style: TextStyle(color: Colors.white),
-          ),
-          background: errorColor);
+        const Text(
+          "You already have a contact with this email",
+          style: TextStyle(color: Colors.white),
+        ),
+        background: errorColor,
+      );
       return;
     }
 
     // Check if already sent request
     if (sentRequests.map((e) => e.recipientEmail).contains(email)) {
       showSimpleNotification(
-          const Text(
-            "You have already sent a contact request to this email",
-            style: TextStyle(color: Colors.white),
-          ),
-          background: errorColor);
+        const Text(
+          "You have already sent a contact request to this email",
+          style: TextStyle(color: Colors.white),
+        ),
+        background: errorColor,
+      );
       return;
     }
 
     // Validate message length
     if (message.length > 100) {
       showSimpleNotification(
-          const Text(
-            "Message must be 100 characters or less",
-            style: TextStyle(color: Colors.white),
-          ),
-          background: errorColor);
+        const Text(
+          "Message must be 100 characters or less",
+          style: TextStyle(color: Colors.white),
+        ),
+        background: errorColor,
+      );
       return;
     }
 
@@ -123,7 +133,8 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
       builder: (BuildContext context) => AlertDialog(
         title: const Text('Confirm Contact Request'),
         content: Text(
-            'Are you sure that you want to send a contact request to ${_emailController.text}?'),
+          'Are you sure that you want to send a contact request to ${_emailController.text}?',
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -139,8 +150,9 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
       if (value == null) return;
       if (value) {
         final cRequest = ContactRequest(
-            recipientEmail: _emailController.text,
-            message: _messageController.text);
+          recipientEmail: _emailController.text,
+          message: _messageController.text,
+        );
         form.currentState?.reset();
         _contactRequestService.createContactRequest(cRequest).then((resp) {
           widget.afterCallback?.call();
@@ -159,11 +171,12 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
             showQueuedNotification();
           } else {
             showSimpleNotification(
-                Text(
-                  error.toString(),
-                  style: const TextStyle(color: Colors.white),
-                ),
-                background: errorColor);
+              Text(
+                error.toString(),
+                style: const TextStyle(color: Colors.white),
+              ),
+              background: errorColor,
+            );
           }
         });
       }
@@ -181,109 +194,149 @@ class AddContactSheetState extends ConsumerState<AddContactSheet> {
           ),
           color: Theme.of(context).scaffoldBackgroundColor,
         ),
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: Container(
-            margin: const EdgeInsets.all(defaultPadding),
-            padding: const EdgeInsets.fromLTRB(
-              defaultPadding,
-              0,
-              defaultPadding,
-              defaultPadding,
+          margin: const EdgeInsets.all(defaultPadding),
+          padding: const EdgeInsets.fromLTRB(
+            defaultPadding,
+            0,
+            defaultPadding,
+            defaultPadding,
+          ),
+          child: _showScanner ? _buildScannerView() : _buildFormView(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScannerView() {
+    return Column(
+      children: [
+        Icon(
+          Icons.qr_code_scanner,
+          size: 60,
+          color: Theme.of(context).textTheme.titleMedium!.color,
+        ),
+        const SizedBox(height: defaultPadding / 2),
+        Text(
+          "Scan QR Code",
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: defaultPadding),
+        SizedBox(
+          height: 300,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: MobileScanner(
+              onDetect: (BarcodeCapture result) {
+                final value = result.barcodes.first.rawValue;
+                if (value != null) {
+                  setState(() {
+                    _showScanner = false;
+                  });
+                  _emailController.text = value;
+                  _messageController.text =
+                      'Hello, it\'s ${Auth.getUser?.email ?? 'me'}! I just scanned your QR code and want to add you as a contact.';
+                  submitForm();
+                }
+              },
             ),
-            child: Form(
-              key: form,
-              child: Column(
-                children: [
-                  Icon(Icons.forward_to_inbox,
-                      size: 60,
-                      color: Theme.of(context).textTheme.titleMedium!.color),
-                  const SizedBox(height: defaultPadding / 2),
-                  Text(
-                    "Send a contact request",
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: defaultPadding / 2),
-                  Text(
-                    "The person will receive a request to add you as a contact. You can add a message to the request.",
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: defaultPadding),
-                  EvercryptedTextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      prefixIcon: Icon(
-                        Icons.email,
-                      ),
-                      hintText: "Email",
-                    ),
-                  ),
-                  const SizedBox(height: defaultPadding),
-                  EvercryptedTextField(
-                    controller: _messageController,
-                    maxLength: 100,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      prefixIcon: Icon(
-                        Icons.message,
-                      ),
-                      hintText: "Message",
-                    ),
-                  ),
-                  const SizedBox(height: defaultPadding),
-                  PrimaryButton(
-                    text: 'SEND REQUEST',
-                    press: submitForm,
-                    color: primaryColor,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: defaultPadding / 2),
-                    child: Text(
-                      '- or -',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                  PrimaryButton(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.qr_code_scanner, color: Colors.white),
-                          const SizedBox(width: defaultPadding / 2),
-                          Text('SCAN QR CODE',
-                              style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                      press: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          constraints: BoxConstraints(
-                            maxHeight: MediaQuery.of(context).size.height *
-                                0.8, // 80% of screen height
-                          ),
-                          builder: (context) => QrScanner(
-                            whenScanned: (value) {
-                              if (value != null) {
-                                _emailController.text = value;
-                                _messageController.text =
-                                    'Hello, it\'s ${Auth.getUser?.email ?? 'me'}! I just scanned your QR code and want to add you as a contact.';
-                                submitForm();
-                              }
-                            },
-                          ),
-                        );
-                      }),
-                ],
+          ),
+        ),
+        const SizedBox(height: defaultPadding),
+        PrimaryButton(
+          text: 'CLOSE SCANNER',
+          press: () {
+            setState(() {
+              _showScanner = false;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormView() {
+    return Form(
+      key: form,
+      child: Column(
+        children: [
+          Icon(
+            Icons.forward_to_inbox,
+            size: 60,
+            color: Theme.of(context).textTheme.titleMedium!.color,
+          ),
+          const SizedBox(height: defaultPadding / 2),
+          Text(
+            "Send a contact request",
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: defaultPadding / 2),
+          Text(
+            "The person will receive a request to add you as a contact. You can add a message to the request.",
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: defaultPadding),
+          EvercryptedTextField(
+            controller: _emailController,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
-            )),
+              prefixIcon: Icon(Icons.email),
+              hintText: "Email",
+            ),
+          ),
+          const SizedBox(height: defaultPadding),
+          EvercryptedTextField(
+            controller: _messageController,
+            maxLength: 100,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+              prefixIcon: Icon(Icons.message),
+              hintText: "Message",
+            ),
+          ),
+          const SizedBox(height: defaultPadding),
+          PrimaryButton(
+            text: 'SEND REQUEST',
+            press: submitForm,
+            color: primaryColor,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: defaultPadding / 2,
+            ),
+            child: Text(
+              '- or -',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          PrimaryButton(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.qr_code_scanner, color: Colors.white),
+                const SizedBox(width: defaultPadding / 2),
+                Text(
+                  'SCAN QR CODE',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+            press: () {
+              setState(() {
+                _showScanner = true;
+              });
+            },
+          ),
+        ],
       ),
     );
   }

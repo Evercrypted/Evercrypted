@@ -3,9 +3,16 @@ import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-class QrScanner extends StatelessWidget {
+class QrScanner extends StatefulWidget {
   const QrScanner({super.key, required this.whenScanned});
   final Function whenScanned;
+
+  @override
+  State<QrScanner> createState() => _QrScannerState();
+}
+
+class _QrScannerState extends State<QrScanner> {
+  bool _hasScanned = false;
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +33,10 @@ class QrScanner extends StatelessWidget {
               height: 300,
               child: MobileScanner(
                 onDetect: (BarcodeCapture result) {
-                  whenScanned(result.barcodes.first.rawValue);
+                  if (_hasScanned) return;
+                  _hasScanned = true;
                   Navigator.pop(context);
+                  widget.whenScanned(result.barcodes.first.rawValue);
                 },
               ),
             ),
