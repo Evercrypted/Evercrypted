@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class CameraWidget extends StatefulWidget {
   const CameraWidget({super.key});
@@ -17,6 +18,7 @@ class _CameraWidgetState extends State<CameraWidget> {
   bool _isInitialized = false;
   bool _isTakingPicture = false;
   String? _errorMessage;
+  bool _permissionPermanentlyDenied = false;
   Uint8List? jpgBytes;
   bool _showPreview = false;
 
@@ -36,6 +38,26 @@ class _CameraWidgetState extends State<CameraWidget> {
 
   Future<void> _initializeCamera() async {
     try {
+      final status = await Permission.camera.request();
+      if (status.isPermanentlyDenied) {
+        if (mounted) {
+          setState(() {
+            _permissionPermanentlyDenied = true;
+            _errorMessage =
+                'Camera permission was denied. Please enable it in Settings.';
+          });
+        }
+        return;
+      }
+      if (!status.isGranted) {
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Camera permission is required to take photos.';
+          });
+        }
+        return;
+      }
+
       cameras = await availableCameras();
       if (cameras.isEmpty) {
         debugPrint('No cameras found');
@@ -251,17 +273,23 @@ class _CameraWidgetState extends State<CameraWidget> {
                       ),
                       const SizedBox(height: defaultPadding * 2),
                       ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _errorMessage = null;
-                          });
-                          _initializeCamera();
-                        },
+                        onPressed: _permissionPermanentlyDenied
+                            ? () => openAppSettings()
+                            : () {
+                                setState(() {
+                                  _errorMessage = null;
+                                  _permissionPermanentlyDenied = false;
+                                });
+                                _initializeCamera();
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
                         ),
-                        child: const Text('Try Again',
-                            style: TextStyle(color: Colors.white)),
+                        child: Text(
+                            _permissionPermanentlyDenied
+                                ? 'Open Settings'
+                                : 'Try Again',
+                            style: const TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
