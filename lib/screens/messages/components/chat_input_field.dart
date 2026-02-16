@@ -51,6 +51,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
   int? recordingMicroSeconds;
   Uint8List? recordingData;
   bool sendingFile = false;
+  bool _isSendingMessage = false;
   PlatformFile? file;
   bool withBaseKey = false;
   List<double> recordingDecibels = [];
@@ -106,76 +107,85 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       return;
     }
 
-    // Check profanity filter
-    final profanityService = ref.read(profanityFilterServiceProvider);
-    final isFilterEnabled = await profanityService.isEnabled();
-    if (isFilterEnabled) {
-      final detectedWord = profanityService.containsProfanity(message);
-      if (detectedWord != null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Message contains inappropriate content and cannot be sent.',
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: errorColor,
-              dismissDirection: DismissDirection.horizontal,
-              showCloseIcon: true,
-            ),
-          );
-        }
-        return;
-      }
-    }
-
-    // Check if user has premium access - if not, send unencrypted
-    final bool hasPremium = Auth.getUser?.activated == true;
-    debugPrint(
-        'userLog: sendMessage called for chat ${widget.chat.uid}. hasPremium: $hasPremium, fullKey: ${fullKey != null ? "present" : "null"}, baseKey: ${widget.baseKey != null ? "present" : "null"}, pass: ${widget.pass != null ? "present" : "null"}. User: ${Auth.user?.uid}');
-
-    if (!hasPremium) {
-      debugPrint(
-          'userLog: Sending unencrypted message (non-premium user) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
-      _messageService.sendMessage(message, widget.chat.uid, false);
-      _messageField.clear();
+    // Guard against concurrent sends (e.g. rapid taps, onDone + onTap firing together)
+    if (_isSendingMessage) {
       return;
     }
+    _isSendingMessage = true;
 
-    // Check if we have a key for encryption
-    if (fullKey != null) {
-      // We have the key - encrypt and send normally
-      debugPrint(
-          'userLog: Sending encrypted message with fullKey for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
-      dynamic encr = message;
-      try {
-        encr = await encodePayload(message, fullKey, true);
-      } catch (e) {
-        rethrow;
+    // Clear the text field immediately to prevent duplicate sends
+    _messageField.clear();
+
+    try {
+      // Check profanity filter
+      final profanityService = ref.read(profanityFilterServiceProvider);
+      final isFilterEnabled = await profanityService.isEnabled();
+      if (isFilterEnabled) {
+        final detectedWord = profanityService.containsProfanity(message);
+        if (detectedWord != null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Message contains inappropriate content and cannot be sent.',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                backgroundColor: errorColor,
+                dismissDirection: DismissDirection.horizontal,
+                showCloseIcon: true,
+              ),
+            );
+          }
+          return;
+        }
       }
-      _messageService.sendMessage(encr, widget.chat.uid, withBaseKey);
-      _messageField.clear();
-    } else {
-      // No encryption key available - queue message regardless of chat type
+
+      // Check if user has premium access - if not, send unencrypted
+      final bool hasPremium = Auth.getUser?.activated == true;
       debugPrint(
-          'userLog: No fullKey available for chat ${widget.chat.uid}. Checking if should queue... User: ${Auth.user?.uid}');
-      if (widget.baseKey == null) {
+          'userLog: sendMessage called for chat ${widget.chat.uid}. hasPremium: $hasPremium, fullKey: ${fullKey != null ? "present" : "null"}, baseKey: ${widget.baseKey != null ? "present" : "null"}, pass: ${widget.pass != null ? "present" : "null"}. User: ${Auth.user?.uid}');
+
+      if (!hasPremium) {
         debugPrint(
-            'userLog: baseKey is null, queueing message for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
-        // Queue message until key is available (works for both one-to-one and group chats)
-        await _queueMessageUntilKeyExchange(
-          widget.chat.uid,
-          text: message,
-          messageType: MessageTypes.text,
-        );
-        _messageField.clear();
+            'userLog: Sending unencrypted message (non-premium user) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
+        _messageService.sendMessage(message, widget.chat.uid, false);
+        return;
+      }
+
+      // Check if we have a key for encryption
+      if (fullKey != null) {
+        // We have the key - encrypt and send normally
+        debugPrint(
+            'userLog: Sending encrypted message with fullKey for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
+        dynamic encr = message;
+        try {
+          encr = await encodePayload(message, fullKey, true);
+        } catch (e) {
+          rethrow;
+        }
+        _messageService.sendMessage(encr, widget.chat.uid, withBaseKey);
       } else {
-        // Send normally (fallback case)
+        // No encryption key available - queue message regardless of chat type
         debugPrint(
-            'userLog: baseKey is present but fullKey is null - sending unencrypted (fallback) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
-        _messageService.sendMessage(message, widget.chat.uid, withBaseKey);
-        _messageField.clear();
+            'userLog: No fullKey available for chat ${widget.chat.uid}. Checking if should queue... User: ${Auth.user?.uid}');
+        if (widget.baseKey == null) {
+          debugPrint(
+              'userLog: baseKey is null, queueing message for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
+          // Queue message until key is available (works for both one-to-one and group chats)
+          await _queueMessageUntilKeyExchange(
+            widget.chat.uid,
+            text: message,
+            messageType: MessageTypes.text,
+          );
+        } else {
+          // Send normally (fallback case)
+          debugPrint(
+              'userLog: baseKey is present but fullKey is null - sending unencrypted (fallback) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
+          _messageService.sendMessage(message, widget.chat.uid, withBaseKey);
+        }
       }
+    } finally {
+      _isSendingMessage = false;
     }
   }
 

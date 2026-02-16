@@ -219,9 +219,12 @@ class ChatSocket {
       socket?.connect();
     }
 
+    _registerSocketListeners();
+  }
+
+  static void _registerSocketListeners() {
     socket?.onConnect((_) async {
       debugPrint('connected');
-      socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
 
       // Set connection status before processing queue
@@ -234,7 +237,6 @@ class ChatSocket {
 
     socket?.onReconnect((data) async {
       debugPrint('reconnected');
-      socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
 
       // Set connection status before processing queue
