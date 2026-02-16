@@ -88,8 +88,11 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
                     ),
                   );
                 },
-                icon: const Icon(Icons.qr_code_scanner,
-                    color: secondaryColor, size: 32),
+                icon: Icon(Icons.qr_code_scanner,
+                    color: Auth.user?.activated == true
+                        ? primaryColor
+                        : secondaryColor,
+                    size: 32),
               ),
             ],
           ),
