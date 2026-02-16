@@ -323,7 +323,7 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                     });
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text('Add Participant'),
+                  label: const Text('Add Participant from Contacts'),
                 ),
               )
             ],

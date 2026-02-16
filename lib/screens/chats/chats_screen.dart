@@ -4,7 +4,10 @@ import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controlle
 import 'package:evercrypted/core/helpers/show_snackbar.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/screens/contacts/contacts_screen.dart';
+import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
+import 'package:evercrypted/screens/messages/invite_qr_scanner_screen.dart';
 import 'package:evercrypted/screens/messages/messages_screen.dart';
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/search_header.dart';
 import 'package:flutter/material.dart';
@@ -57,19 +60,39 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
     return Scaffold(
       body: Column(
         children: [
-          SearchHeader(
-              label: Text('Chats', style: TextStyle(fontSize: 24)),
-              searching: false,
-              searchController: _searchController,
-              hintText: 'Search chats...',
-              onCloseIconPressed: () {
-                setState(() {
-                  searchValue = '';
-                  _searchController.clear();
-                });
-                // Unfocus the search field to close the keyboard
-                _searchController.unfocus();
-              }),
+          Row(
+            children: [
+              Flexible(
+                child: SearchHeader(
+                    label: Text('Chats', style: TextStyle(fontSize: 24)),
+                    searching: false,
+                    searchController: _searchController,
+                    hintText: 'Search chats...',
+                    onCloseIconPressed: () {
+                      setState(() {
+                        searchValue = '';
+                        _searchController.clear();
+                      });
+                      // Unfocus the search field to close the keyboard
+                      _searchController.unfocus();
+                    }),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Auth.user?.activated == true
+                          ? const InviteQRScannerScreen()
+                          : const ActivationMainScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.qr_code_scanner,
+                    color: secondaryColor, size: 32),
+              ),
+            ],
+          ),
           Expanded(
               child: ChatList(
             searchValue: searchValue,

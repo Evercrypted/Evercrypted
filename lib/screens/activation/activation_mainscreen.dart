@@ -1,4 +1,7 @@
+import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_service.dart';
+import 'package:evercrypted/widgets/secret_keyboard/keyboards.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/widgets/terms_and_privacy_links.dart';
@@ -102,6 +105,46 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
     }
   }
 
+  void _showLanguagesBottomSheet() {
+    final languages = Keyboards.availableKeyboards;
+    final abbreviations = Keyboards.abbreviations;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              const SizedBox(height: defaultPadding),
+              Center(
+                child: Text(
+                  'Available Languages',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(height: defaultPadding / 2),
+              ...languages.map(
+                (lang) => ListTile(
+                  leading: Text(
+                    abbreviations[lang] ?? '',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                      fontSize: 16,
+                    ),
+                  ),
+                  title: Text(lang),
+                ),
+              ),
+              const SizedBox(height: defaultPadding),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showActivationCodeSheet() {
     showModalBottomSheet(
       context: context,
@@ -112,12 +155,12 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
       builder: (BuildContext context) {
         return _ActivationCodeBottomSheet(
           onSuccess: (ProfileSubscription subscription) {
-            // Update local profile with new subscription
-            final profile = ref.read(profileProvider);
+            // Update profile through Auth.setAuth to sync ObjectBox, Auth.user, and listeners
+            final profileService = ProfileService();
+            final profile = profileService.getProfile();
             if (profile != null) {
-              ref.read(profileProvider.notifier).setProfile(
-                    profile.copyWith(subscription: subscription),
-                  );
+              final updatedProfile = profile.copyWith(subscription: subscription);
+              Auth.setAuth(profile: updatedProfile);
             }
           },
         );
@@ -163,20 +206,13 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
               ),
               const SizedBox(height: defaultPadding / 2),
               Text(
-                "Subscribe to send end-to-end encrypted messages and access all premium features.",
+                "Subscribe to password encrypted messages and access all premium features.",
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: defaultPadding * 1.5),
 
               // Features list
-              _buildFeatureItem(
-                icon: Icons.enhanced_encryption,
-                title: 'Quantum-Safe End-to-End Encryption',
-                description: 'XChaCha20-Poly1305 with Kyber1024 key exchange',
-              ),
-              const SizedBox(height: defaultPadding),
-
               _buildFeatureItem(
                 icon: Icons.message,
                 title: 'Password Encrypted Messages',
@@ -187,9 +223,9 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
 
               _buildFeatureItem(
                 icon: Icons.file_present,
-                title: 'Encrypted File & Voice Messages',
+                title: 'Password Encrypted File, Photo & Voice Messages',
                 description:
-                    'Share files and voice messages with full encryption',
+                    'Share files, photos and voice messages with full encryption',
               ),
               const SizedBox(height: defaultPadding),
 
@@ -197,6 +233,47 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                 icon: Icons.security,
                 title: 'Two-Factor Authentication',
                 description: 'Extra security layer for your account',
+              ),
+              const SizedBox(height: defaultPadding),
+
+              _buildFeatureItem(
+                icon: Icons.keyboard,
+                title: 'Additional Language Keyboards',
+                descriptionWidget: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Type in multiple languages with built-in encrypted keyboards',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.color
+                                ?.withAlpha((255 * 0.7).round()),
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: _showLanguagesBottomSheet,
+                      child: Text(
+                        'Check which languages',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: defaultPadding),
+
+              _buildFeatureItem(
+                icon: Icons.share,
+                title: 'Chat Sharing',
+                description:
+                    'Share chats with one-time invite links or QR codes',
               ),
 
               const SizedBox(height: defaultPadding * 1.5),
@@ -365,11 +442,16 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                                   ),
                                 ),
                               ),
-                              TextButton(
+                              TextButton.icon(
                                 onPressed: _isLoading
                                     ? null
                                     : () => _showActivationCodeSheet(),
-                                child: Text(
+                                icon: Icon(
+                                  Icons.card_giftcard,
+                                  color: primaryColor,
+                                  size: 18,
+                                ),
+                                label: Text(
                                   'Use Activation Code',
                                   style: TextStyle(
                                     color: primaryColor,
@@ -396,7 +478,8 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
   Widget _buildFeatureItem({
     required IconData icon,
     required String title,
-    required String description,
+    String? description,
+    Widget? descriptionWidget,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,16 +510,19 @@ class _ActivationMainScreenState extends ConsumerState<ActivationMainScreen> {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                description,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color
-                          ?.withAlpha((255 * 0.7).round()),
-                    ),
-              ),
+              if (descriptionWidget != null)
+                descriptionWidget
+              else if (description != null)
+                Text(
+                  description,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withAlpha((255 * 0.7).round()),
+                      ),
+                ),
             ],
           ),
         ),
@@ -531,7 +617,9 @@ class _ActivationCodeBottomSheetState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        Navigator.pop(context);
+        messenger.showSnackBar(
           SnackBar(
             content: Text(e.toString()),
             backgroundColor: errorColor,

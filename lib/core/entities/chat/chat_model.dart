@@ -24,6 +24,9 @@ class Chat {
   @Transient()
   List<Participant> participants;
 
+  @Transient()
+  List<InviteLink> inviteLinks;
+
   @Backlink('chat')
   final ToMany<Message> messages = ToMany<Message>();
 
@@ -36,6 +39,20 @@ class Chat {
 
   @Transient()
   Avatar? avatar;
+
+  String? get dbInviteLinks => inviteLinks.isEmpty
+      ? null
+      : jsonEncode(inviteLinks.map((e) => e.toJson()).toList());
+
+  set dbInviteLinks(String? value) {
+    if (value == null) {
+      inviteLinks = [];
+    } else {
+      inviteLinks = (jsonDecode(value) as List<dynamic>)
+          .map((e) => InviteLink.fromJson(e))
+          .toList();
+    }
+  }
 
   String? get dbAvatar => avatar == null ? null : jsonEncode(avatar?.toJson());
 
@@ -90,6 +107,7 @@ class Chat {
     this.participants = const [],
     this.messagesList = const [],
     this.avatar,
+    this.inviteLinks = const [],
   });
 
   factory Chat.fromJson(Map<String, dynamic> json) => Chat(
@@ -99,12 +117,15 @@ class Chat {
         participants: (json['participants'] as List<dynamic>)
             .map((e) => Participant.fromJson(e))
             .toList(),
-        messagesList: (json['messages'] as List<dynamic>)
+        messagesList: (json['messages'] as List<dynamic>? ?? [])
             .map((e) => Message.fromJson(e))
             .toList(),
         lastMessageTime: DateTime.parse(json['lastMessageTime']),
         avatar: json['avatar'] != null ? Avatar.fromJson(json['avatar']) : null,
         isOneToOne: json['isOneToOne'] as bool,
+        inviteLinks: (json['inviteLinks'] as List<dynamic>? ?? [])
+            .map((e) => InviteLink.fromJson(e))
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -148,4 +169,31 @@ class NewGroupChatDTO {
         participants: participants ?? this.participants,
         avatar: avatar ?? this.avatar,
       );
+}
+
+class InviteLink {
+  final String token;
+  final String type; // 'permanent' or 'one_time'
+  final DateTime createdAt;
+
+  InviteLink({
+    required this.token,
+    required this.type,
+    required this.createdAt,
+  });
+
+  bool get isPermanent => type == 'permanent';
+  bool get isOneTime => type == 'one_time';
+
+  factory InviteLink.fromJson(Map<String, dynamic> json) => InviteLink(
+        token: json['token'] as String,
+        type: json['type'] as String,
+        createdAt: DateTime.parse(json['created_at'] as String),
+      );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'token': token,
+        'type': type,
+        'created_at': createdAt.toIso8601String(),
+      };
 }

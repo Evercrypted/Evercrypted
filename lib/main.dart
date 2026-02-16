@@ -10,6 +10,8 @@ import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/core/helpers/navigator_observer.dart';
 import 'package:evercrypted/core/notifications/notification_events_service.dart';
+import 'package:evercrypted/core/entities/chat/chat_model.dart';
+import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/objectbox.g.dart';
@@ -709,26 +711,106 @@ class AuthGateState extends ConsumerState<AuthGate>
 
   /// Process an incoming deep link URI
   void _handleDeepLink(Uri uri) {
+    // 1. Check for Contact Add Link
     final contactEmail = AppLinkService.parseContactEmail(uri);
-    if (contactEmail == null) return;
+    if (contactEmail != null) {
+      debugPrint('Deep link: Received add-contact for $contactEmail');
+      final senderEmail = contactEmail;
+      final currentUserEmail = Auth.getUser?.email ?? 'someone';
+      final message =
+          "Hi! It's $currentUserEmail. I'd like to add you as a contact on EverCrypted.";
 
-    debugPrint('Deep link: Received add-contact for $contactEmail');
+      ref
+          .read(pendingContactLinkProvider.notifier)
+          .set(PendingContactLink(email: senderEmail, message: message));
 
-    final senderEmail = contactEmail;
-    final currentUserEmail = Auth.getUser?.email ?? 'someone';
-    final message =
-        "Hi! It's $currentUserEmail. I'd like to add you as a contact on EverCrypted.";
+      if (user != null && !isBiometricLocked) {
+        ref.read(navigationProvider.notifier).navigateToContacts();
+      }
+      return;
+    }
 
-    // Store the pending link — it will be consumed by AddContactButton
-    // when the contacts tab is visible (handles deferred cases:
-    // not logged in yet, biometric lock, etc.)
-    ref
-        .read(pendingContactLinkProvider.notifier)
-        .set(PendingContactLink(email: senderEmail, message: message));
+    // 2. Check for Chat Join Link
+    final inviteToken = AppLinkService.parseInviteToken(uri);
+    if (inviteToken != null) {
+      debugPrint('Deep link: Received join-chat token');
+      _handleJoinChat(inviteToken);
+      return;
+    }
+  }
 
-    // Navigate to contacts tab if user is already authenticated
-    if (user != null && !isBiometricLocked) {
-      ref.read(navigationProvider.notifier).navigateToContacts();
+  Future<void> _handleJoinChat(String token) async {
+    // Requires authentication
+    if (user == null || isBiometricLocked) {
+      // TODO: Store pending invite token to handle after login?
+      // For now just show a message if we can, or do nothing until logged in
+      debugPrint('Deep link: User not logged in, cannot join chat yet');
+      return;
+    }
+
+    // Check subscription
+    if (Auth.user?.activated != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Active subscription required to join via invite link'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (c) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final ChatService chatService = ChatService();
+      final Chat chat = await chatService.joinChatViaInvite(token: token);
+
+      // Dismiss loading
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Joined "${chat.name ?? "Group Chat"}"'),
+            backgroundColor: primaryColor,
+          ),
+        );
+        // Navigate to the chat
+        // We need to implement navigation to specific chat from main
+        // For now, let's navigate to main screen then push chat
+        // This part depends on navigation structure, assuming we can push chat screen
+        // But since we are in main.dart, we might need to use a global key or similar
+        // Or just let the user find it in the list.
+        // Ideally: ref.read(navigationProvider.notifier).navigateToChat(chat);
+      }
+    } catch (e) {
+      // Dismiss loading
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      if (mounted) {
+        String errorMessage = 'Failed to join chat';
+        if (e.toString().contains('already a member')) {
+          errorMessage = 'You are already a member of this chat';
+        } else if (e.toString().contains('subscription')) {
+          errorMessage = 'Active subscription required';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

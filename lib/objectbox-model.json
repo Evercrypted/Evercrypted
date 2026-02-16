@@ -45,7 +45,7 @@
     },
     {
       "id": "2:4071928734061836324",
-      "lastPropertyId": "8:7065308256223186545",
+      "lastPropertyId": "9:664293654861085079",
       "name": "Chat",
       "properties": [
         {
@@ -91,6 +91,11 @@
         {
           "id": "8:7065308256223186545",
           "name": "dbParticipants",
+          "type": 9
+        },
+        {
+          "id": "9:664293654861085079",
+          "name": "dbInviteLinks",
           "type": 9
         }
       ],

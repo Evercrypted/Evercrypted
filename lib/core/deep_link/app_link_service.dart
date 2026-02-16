@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class AppLinkService {
   static const String host = 'evercrypted.com';
   static const String addContactPath = '/add-contact';
+  static const String joinChatPath = '/join-chat';
 
   static final AppLinks _appLinks = AppLinks();
 
@@ -12,10 +13,23 @@ class AppLinkService {
     return Uri.https(host, addContactPath, {'email': email});
   }
 
+  /// Build a share URL for joining a chat via invite token
+  static Uri buildJoinChatLink(String token) {
+    return Uri.https(host, joinChatPath, {'token': token});
+  }
+
   /// Parse an incoming URI and extract the contact email if valid
   static String? parseContactEmail(Uri uri) {
     if (uri.host == host && uri.path == addContactPath) {
       return uri.queryParameters['email'];
+    }
+    return null;
+  }
+
+  /// Parse an incoming URI and extract the invite token if valid
+  static String? parseInviteToken(Uri uri) {
+    if (uri.host == host && uri.path == joinChatPath) {
+      return uri.queryParameters['token'];
     }
     return null;
   }

@@ -5,6 +5,7 @@ import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
 import 'package:evercrypted/core/entities/contact/contact_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/screens/contacts/components/add_contact_button.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:flutter/material.dart';
@@ -132,6 +133,51 @@ class ParticipantCard extends ConsumerWidget {
                     onTap: () {
                       Navigator.pop(context);
                       remove();
+                    },
+                  ),
+                if (contact == null && participant.uid != profile?.uid)
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withAlpha((255 * 0.1).toInt()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.person_add,
+                          color: primaryColor, size: 20),
+                    ),
+                    title: Text('Add to Contacts',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: contentColorLightThemeSecondary)),
+                    subtitle: const Text(
+                      'Send a contact request to this user',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        constraints: BoxConstraints(
+                          maxHeight:
+                              MediaQuery.of(context).size.height * 0.8,
+                        ),
+                        builder: (context) => AddContactSheet(
+                          initialEmail: participant.email,
+                          afterCallback: () {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Contact request sent successfully'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      );
                     },
                   ),
                 ListTile(

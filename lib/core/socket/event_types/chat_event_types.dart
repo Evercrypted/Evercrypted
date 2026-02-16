@@ -17,4 +17,8 @@ class ChatEventTypes {
   static const updatePubKey = 'updatePubKey';
   static const chatUpdated = 'chatUpdated';
   static const keyExchange = 'keyExchange';
+  static const generateInviteLink = 'generateInviteLink';
+  static const revokeInviteLink = 'revokeInviteLink';
+  static const joinViaInvite = 'joinViaInvite';
+  static const joinedViaInvite = 'joinedViaInvite';
 }

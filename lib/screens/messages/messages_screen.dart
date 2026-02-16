@@ -23,6 +23,8 @@ import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
+import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
+import 'package:evercrypted/screens/messages/invite_link_screen.dart';
 import 'package:evercrypted/screens/messages/components/password_icon.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
@@ -87,6 +89,14 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   bool settingsDialogOpen = false;
   StreamSubscription<List<Chat>>? chatsSubscription;
+
+  bool _isCreatorOrAdmin(Chat chat) {
+    if (userId == null) return false;
+    final participant =
+        chat.participants.where((p) => p.uid == userId).firstOrNull;
+    return participant != null &&
+        (participant.isCreator == true || participant.isAdmin == true);
+  }
 
   @override
   void initState() {
@@ -723,6 +733,27 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           isConnected: isConnected,
           title: _buildChatTitle(contacts, profile),
           actions: [
+            if (!chat.isOneToOne && _isCreatorOrAdmin(chat))
+              IconButton(
+                style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    padding: WidgetStateProperty.all<EdgeInsets>(
+                        const EdgeInsets.all(0))),
+                icon: const Icon(Icons.share),
+                color: Auth.user?.activated == true
+                    ? primaryColor
+                    : secondaryColor,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Auth.user?.activated == true
+                          ? InviteLinkScreen(chat: chat)
+                          : const ActivationMainScreen(),
+                    ),
+                  );
+                },
+              ),
             IconButton(
               style: ButtonStyle(
                   visualDensity: VisualDensity.compact,

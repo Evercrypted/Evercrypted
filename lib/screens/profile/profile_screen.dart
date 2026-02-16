@@ -50,7 +50,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(navigationProvider.notifier).navigateToProfile();
     });
-    authListener = Auth.authSubject.distinct().listen((shouldFire) {
+    authListener = Auth.authSubject.listen((shouldFire) {
       if (mounted) {
         setState(() {
           isActivated = Auth.getUser?.activated ?? false;

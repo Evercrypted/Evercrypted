@@ -30,6 +30,17 @@ class ChatService {
   Chat addChat(Chat chat, {bool isNewlyCreated = false}) {
     checkKeys(chat);
 
+    // Preserve existing ObjectBox ID to avoid unique constraint violation
+    if (chat.id == 0) {
+      final query =
+          ObxInit.obx.chats.query(Chat_.uid.equals(chat.uid)).build();
+      final existing = query.findFirst();
+      query.close();
+      if (existing != null) {
+        chat.id = existing.id;
+      }
+    }
+
     final int id = ObxInit.obx.chats.put(chat);
     chat.id = id;
 
@@ -397,5 +408,48 @@ class ChatService {
     } else {
       return null;
     }
+  }
+
+  // ====== Invite Link Methods ======
+
+  Future<InviteLink> generateInviteLink({
+    required String chatUid,
+    required String type, // 'permanent' or 'one_time'
+  }) async {
+    final resp = await AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.generateInviteLink,
+      payload: {'chatUid': chatUid, 'type': type},
+    );
+    // Update local chat with new invite links
+    if (resp['chat'] != null) {
+      addChat(Chat.fromJson(resp['chat']));
+    }
+    return InviteLink.fromJson(resp['inviteLink']);
+  }
+
+  Future<void> revokeInviteLink({
+    required String chatUid,
+    required String token,
+  }) async {
+    final resp = await AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.revokeInviteLink,
+      payload: {'chatUid': chatUid, 'token': token},
+    );
+    if (resp['chat'] != null) {
+      addChat(Chat.fromJson(resp['chat']));
+    }
+  }
+
+  Future<Chat> joinChatViaInvite({required String token}) async {
+    final resp = await AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.joinViaInvite,
+      payload: {'token': token},
+    );
+    final Chat chat =
+        addChat(Chat.fromJson(resp['chat']), isNewlyCreated: true);
+    return chat;
   }
 }

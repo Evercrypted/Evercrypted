@@ -7,7 +7,6 @@ import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 
-import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_service.dart';
 import 'package:evercrypted/core/services/auth_service.dart';
 import 'package:evercrypted/core/services/socket_events_service.dart';
@@ -21,7 +20,6 @@ import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 import '../cryptography/payload.dart';
-import '../offline/action_queue/allowed_for_queue.dart';
 
 class ChatSocket {
   ChatSocket._();

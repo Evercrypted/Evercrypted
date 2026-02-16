@@ -230,9 +230,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
                       IconButton(
                           onPressed: () {
                             if (widget.isGroupCreate) {
-                              if (participants != null &&
-                                  participants!.isNotEmpty &&
-                                  newGroupName.text.isNotEmpty) {
+                              if (newGroupName.text.isNotEmpty) {
                                 Navigator.pop(context, {
                                   'participants': participants,
                                   'groupName': newGroupName.text
@@ -242,8 +240,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: Text('Missing information'),
-                                    content: Text(
-                                        'Please enter a group name and select participants'),
+                                    content: Text('Please enter a group name'),
                                   ),
                                 );
                               }
@@ -265,10 +262,14 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
                           },
                           icon: Icon(
                             Icons.check_circle,
-                            color:
-                                participants != null && participants!.isNotEmpty
+                            color: widget.isGroupCreate
+                                ? (newGroupName.text.isNotEmpty
                                     ? primaryColor
-                                    : Colors.grey,
+                                    : Colors.grey)
+                                : (participants != null &&
+                                        participants!.isNotEmpty
+                                    ? primaryColor
+                                    : Colors.grey),
                             size: 30,
                           ))
                     ]
@@ -284,6 +285,31 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
                 controller: newGroupName,
                 hintText: 'Enter group name',
                 prefixIcon: const Icon(Icons.group),
+              ),
+            ),
+          if (widget.isParticipantSelect && widget.isGroupCreate)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: defaultPadding, vertical: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Participants Can be added later',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           Row(
@@ -332,7 +358,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
                       ],
                     ),
                   ),
-                )
+                ),
             ],
           ),
           Expanded(

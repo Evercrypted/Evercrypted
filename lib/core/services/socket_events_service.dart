@@ -308,6 +308,27 @@ class SocketEventsService {
           }),
         );
         break;
+      case ChatEventTypes.joinedViaInvite:
+        final chat = Chat.fromJson(payload['chat']);
+        chatService.addChat(chat, isNewlyCreated: false);
+
+        // Ensure group key is present (important if I am the joiner)
+        if (!chat.isOneToOne) {
+          await GroupKeyExchange.ensureGroupKey(chat.uid, chat.isOneToOne);
+        }
+
+        final sysMessage = Message.fromJson(payload['sysMessage']);
+        messageService.writeNewMessageToObx(sysMessage);
+
+        LocalNotification.instance.displayNotification(
+          'Group Chat Update',
+          'New participant joined via invite link',
+          json.encode({
+            'type': NotificationEventTypes.goToChatPage,
+            'chatId': chat.id,
+          }),
+        );
+        break;
       case ChatEventTypes.addedToChat:
         final chat = Chat.fromJson(payload['chat']);
         chatService.addChat(chat,
