@@ -8,6 +8,10 @@ import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:flutter/foundation.dart';
 
 class GroupKeyExchange {
+  /// Buffer for key requests that arrive before the group key is stored locally.
+  /// Maps chatUid -> list of pending request messages.
+  static final Map<String, List<Message>> _pendingKeyRequests = {};
+
   /// Generate a secure group key in the same format as Kyber1024 baseKeys
   static String generateSecureGroupKey() {
     // Generate 32 random bytes (256 bits) for security - same as AES-256
@@ -40,6 +44,21 @@ class GroupKeyExchange {
 
     debugPrint(
         'GroupKeyExchange: [CREATOR] Created and stored group key for chat $groupChatId: ${groupKey.substring(0, 8)}... (userId: ${Auth.user?.uid})');
+
+    // Process any key requests that arrived before the key was stored
+    await _processPendingKeyRequests(groupChatId);
+  }
+
+  /// Process any buffered key requests for a chat after the group key is stored
+  static Future<void> _processPendingKeyRequests(String groupChatId) async {
+    final pending = _pendingKeyRequests.remove(groupChatId);
+    if (pending == null || pending.isEmpty) return;
+
+    debugPrint(
+        'GroupKeyExchange: Processing ${pending.length} buffered key request(s) for chat $groupChatId');
+    for (final request in pending) {
+      await handleGroupKeyRequest(request);
+    }
   }
 
   /// Check if key exists, if not request it (called when chat opens)
@@ -107,9 +126,13 @@ class GroupKeyExchange {
     // Check if I have the group key to share
     final myKeys = await BaseKey.getKeys(groupChatId);
     if (myKeys?.baseKey == null) {
-      // I don't have the group key either - can't help
+      // Don't have the key yet - buffer the request for later processing.
+      // This handles the race condition where a key request arrives before
+      // createAndDistributeGroupKey has finished storing the key.
+      _pendingKeyRequests.putIfAbsent(groupChatId, () => []);
+      _pendingKeyRequests[groupChatId]!.add(requestMessage);
       debugPrint(
-          'GroupKeyExchange: Cannot respond to request - no group key for chat $groupChatId');
+          'GroupKeyExchange: No group key yet for chat $groupChatId - buffering request from $requesterId');
       return;
     }
 
