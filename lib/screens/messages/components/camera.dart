@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class CameraWidget extends StatefulWidget {
   const CameraWidget({super.key});
@@ -16,6 +17,8 @@ class _CameraWidgetState extends State<CameraWidget> {
   List<CameraDescription> cameras = [];
   bool _isInitialized = false;
   bool _isTakingPicture = false;
+  String? _errorMessage;
+  bool _permissionPermanentlyDenied = false;
   Uint8List? jpgBytes;
   bool _showPreview = false;
 
@@ -35,9 +38,34 @@ class _CameraWidgetState extends State<CameraWidget> {
 
   Future<void> _initializeCamera() async {
     try {
+      final status = await Permission.camera.request();
+      if (status.isPermanentlyDenied) {
+        if (mounted) {
+          setState(() {
+            _permissionPermanentlyDenied = true;
+            _errorMessage =
+                'Camera permission was denied. Please enable it in Settings.';
+          });
+        }
+        return;
+      }
+      if (!status.isGranted) {
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Camera permission is required to take photos.';
+          });
+        }
+        return;
+      }
+
       cameras = await availableCameras();
       if (cameras.isEmpty) {
         debugPrint('No cameras found');
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'No cameras found on this device.';
+          });
+        }
         return;
       }
 
@@ -49,6 +77,12 @@ class _CameraWidgetState extends State<CameraWidget> {
       await _initController(cameras[_currentCameraIndex]);
     } catch (e) {
       debugPrint('Error initializing camera: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage =
+              'Could not access camera. Please check camera permissions in Settings.';
+        });
+      }
     }
   }
 
@@ -86,6 +120,12 @@ class _CameraWidgetState extends State<CameraWidget> {
       }
     } catch (e) {
       debugPrint('Error initializing camera controller: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage =
+              'Could not start camera. Please check camera permissions in Settings.';
+        });
+      }
     }
   }
 
@@ -206,10 +246,55 @@ class _CameraWidgetState extends State<CameraWidget> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         body: Center(
-          child: CircularProgressIndicator(),
+          child: _errorMessage != null
+              ? Padding(
+                  padding: const EdgeInsets.all(defaultPadding * 2),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.camera_alt,
+                          color: Colors.white54, size: 64),
+                      const SizedBox(height: defaultPadding),
+                      Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 16),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: defaultPadding * 2),
+                      ElevatedButton(
+                        onPressed: _permissionPermanentlyDenied
+                            ? () => openAppSettings()
+                            : () {
+                                setState(() {
+                                  _errorMessage = null;
+                                  _permissionPermanentlyDenied = false;
+                                });
+                                _initializeCamera();
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                        ),
+                        child: Text(
+                            _permissionPermanentlyDenied
+                                ? 'Open Settings'
+                                : 'Try Again',
+                            style: const TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                )
+              : const CircularProgressIndicator(),
         ),
       );
     }
