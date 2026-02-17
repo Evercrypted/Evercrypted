@@ -51,6 +51,7 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
   int? recordingMicroSeconds;
   Uint8List? recordingData;
   bool sendingFile = false;
+  bool sendingMessage = false;
   PlatformFile? file;
   bool withBaseKey = false;
   List<double> recordingDecibels = [];
@@ -105,6 +106,9 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
     if (message.isEmpty) {
       return;
     }
+    if (sendingMessage) {
+      return;
+    }
 
     // Check profanity filter
     final profanityService = ref.read(profanityFilterServiceProvider);
@@ -129,52 +133,65 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
       }
     }
 
-    // Check if user has premium access - if not, send unencrypted
-    final bool hasPremium = Auth.getUser?.activated == true;
-    debugPrint(
-        'userLog: sendMessage called for chat ${widget.chat.uid}. hasPremium: $hasPremium, fullKey: ${fullKey != null ? "present" : "null"}, baseKey: ${widget.baseKey != null ? "present" : "null"}, pass: ${widget.pass != null ? "present" : "null"}. User: ${Auth.user?.uid}');
+    setState(() {
+      sendingMessage = true;
+    });
 
-    if (!hasPremium) {
+    try {
+      // Check if user has premium access - if not, send unencrypted
+      final bool hasPremium = Auth.getUser?.activated == true;
       debugPrint(
-          'userLog: Sending unencrypted message (non-premium user) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
-      _messageService.sendMessage(message, widget.chat.uid, false);
-      _messageField.clear();
-      return;
-    }
+          'userLog: sendMessage called for chat ${widget.chat.uid}. hasPremium: $hasPremium, fullKey: ${fullKey != null ? "present" : "null"}, baseKey: ${widget.baseKey != null ? "present" : "null"}, pass: ${widget.pass != null ? "present" : "null"}. User: ${Auth.user?.uid}');
 
-    // Check if we have a key for encryption
-    if (fullKey != null) {
-      // We have the key - encrypt and send normally
-      debugPrint(
-          'userLog: Sending encrypted message with fullKey for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
-      dynamic encr = message;
-      try {
-        encr = await encodePayload(message, fullKey, true);
-      } catch (e) {
-        rethrow;
-      }
-      _messageService.sendMessage(encr, widget.chat.uid, withBaseKey);
-      _messageField.clear();
-    } else {
-      // No encryption key available - queue message regardless of chat type
-      debugPrint(
-          'userLog: No fullKey available for chat ${widget.chat.uid}. Checking if should queue... User: ${Auth.user?.uid}');
-      if (widget.baseKey == null) {
+      if (!hasPremium) {
         debugPrint(
-            'userLog: baseKey is null, queueing message for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
-        // Queue message until key is available (works for both one-to-one and group chats)
-        await _queueMessageUntilKeyExchange(
-          widget.chat.uid,
-          text: message,
-          messageType: MessageTypes.text,
-        );
+            'userLog: Sending unencrypted message (non-premium user) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
+        await _messageService.sendMessage(message, widget.chat.uid, false);
+        _messageField.clear();
+        return;
+      }
+
+      // Check if we have a key for encryption
+      if (fullKey != null) {
+        // We have the key - encrypt and send normally
+        debugPrint(
+            'userLog: Sending encrypted message with fullKey for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
+        dynamic encr = message;
+        try {
+          encr = await encodePayload(message, fullKey, true);
+        } catch (e) {
+          rethrow;
+        }
+        await _messageService.sendMessage(encr, widget.chat.uid, withBaseKey);
         _messageField.clear();
       } else {
-        // Send normally (fallback case)
+        // No encryption key available - queue message regardless of chat type
         debugPrint(
-            'userLog: baseKey is present but fullKey is null - sending unencrypted (fallback) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
-        _messageService.sendMessage(message, widget.chat.uid, withBaseKey);
-        _messageField.clear();
+            'userLog: No fullKey available for chat ${widget.chat.uid}. Checking if should queue... User: ${Auth.user?.uid}');
+        if (widget.baseKey == null) {
+          debugPrint(
+              'userLog: baseKey is null, queueing message for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
+          // Queue message until key is available (works for both one-to-one and group chats)
+          await _queueMessageUntilKeyExchange(
+            widget.chat.uid,
+            text: message,
+            messageType: MessageTypes.text,
+          );
+          _messageField.clear();
+        } else {
+          // Send normally (fallback case)
+          debugPrint(
+              'userLog: baseKey is present but fullKey is null - sending unencrypted (fallback) for chat ${widget.chat.uid}. User: ${Auth.user?.uid}');
+          await _messageService.sendMessage(
+              message, widget.chat.uid, withBaseKey);
+          _messageField.clear();
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          sendingMessage = false;
+        });
       }
     }
   }
@@ -746,14 +763,33 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                                 ),
                               ),
                             ),
-                            IconButton(
-                              onPressed: () {
-                                sendAudio(context);
-                              },
-                              icon: const Icon(
-                                Icons.send,
-                                color: primaryColor,
-                              ),
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: sendingFile
+                                  ? Center(
+                                      child: SizedBox(
+                                        width: 30,
+                                        height: 30,
+                                        child: FadeIcon(
+                                          position: Position(top: 6, left: 8),
+                                          icon: const Icon(
+                                            Icons.send,
+                                            color: primaryColor,
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : IconButton(
+                                      onPressed: () {
+                                        sendAudio(context);
+                                      },
+                                      icon: const Icon(
+                                        Icons.send,
+                                        color: primaryColor,
+                                      ),
+                                    ),
                             ),
                           ],
                         ),
@@ -818,16 +854,30 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                                                         (0.64 * 255).round()),
                                           ),
                                         ),
-                                        InkWell(
-                                          onTap: () {
-                                            sendMessage(_messageField.text);
-                                          },
-                                          onLongPress: () {},
+                                        GestureDetector(
+                                          onTap: sendingMessage || sendingFile
+                                              ? null
+                                              : () {
+                                                  sendMessage(
+                                                      _messageField.text);
+                                                },
                                           child: Container(
+                                            width: 30,
+                                            height: 30,
                                             margin: const EdgeInsets.only(
                                                 right: defaultPadding / 2),
-                                            child: const Icon(Icons.send,
-                                                color: primaryColor),
+                                            child: sendingMessage || sendingFile
+                                                ? FadeIcon(
+                                                    position: Position(
+                                                        top: 6, left: 8),
+                                                    icon: const Icon(
+                                                      Icons.send,
+                                                      color: primaryColor,
+                                                      size: 18,
+                                                    ),
+                                                  )
+                                                : const Icon(Icons.send,
+                                                    color: primaryColor),
                                           ),
                                         ),
                                       ],
@@ -887,14 +937,36 @@ class ChatInputFieldState extends ConsumerState<ChatInputField> {
                                                   ],
                                                 ),
                                               ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  sendFile(context);
-                                                },
-                                                icon: const Icon(
-                                                  Icons.send,
-                                                  color: primaryColor,
-                                                ),
+                                              SizedBox(
+                                                width: 48,
+                                                height: 48,
+                                                child: sendingFile
+                                                    ? Center(
+                                                        child: SizedBox(
+                                                          width: 30,
+                                                          height: 30,
+                                                          child: FadeIcon(
+                                                            position: Position(
+                                                                top: 6,
+                                                                left: 8),
+                                                            icon: const Icon(
+                                                              Icons.send,
+                                                              color:
+                                                                  primaryColor,
+                                                              size: 18,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : IconButton(
+                                                        onPressed: () {
+                                                          sendFile(context);
+                                                        },
+                                                        icon: const Icon(
+                                                          Icons.send,
+                                                          color: primaryColor,
+                                                        ),
+                                                      ),
                                               ),
                                             ],
                                           ),
