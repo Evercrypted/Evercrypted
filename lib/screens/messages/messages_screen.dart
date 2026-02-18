@@ -663,7 +663,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         children: [
           CircleAvatarWithActiveIndicator(
             image: displayAvatar?.pic,
-            radius: isConnected ? 28 : 14,
+            radius: isConnected ? 24 : 14,
             name: (chat.name ?? participantNames),
             avatarColor: displayAvatar?.color != null
                 ? Color(int.parse(displayAvatar!.color!))
@@ -696,7 +696,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         children: [
           CircleAvatarWithActiveIndicator(
             image: chat.avatar?.pic,
-            radius: isConnected ? 28 : 14,
+            radius: isConnected ? 24 : 14,
             name: (chat.name ?? participantNames),
             avatarColor: chat.avatar?.color != null
                 ? Color(int.parse(chat.avatar!.color!))

@@ -201,7 +201,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
       final updatedProfile = await profileService.updateProfileOnServer(
         name: result.name?.isNotEmpty ?? false
             ? result.name
-            : profile?.name.isNotEmpty ?? false
+            : profile?.name?.isNotEmpty ?? false
                 ? profile?.name
                 : profile?.email.split('@')[0],
         avatar: avatarMap,
