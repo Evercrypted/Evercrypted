@@ -99,7 +99,11 @@ class Contact {
   }
 
   /// Display name: returns customName if set, otherwise returns the contact's actual name
-  String? get displayName => customName ?? name;
+  String get displayName => customName?.isNotEmpty ?? false
+      ? customName!
+      : name?.isNotEmpty ?? false
+          ? name!
+          : email!.split('@')[0];
 
   Contact(
       {this.uid,

@@ -119,6 +119,7 @@ class MyAppState extends State<MyApp> {
         children: [
           Expanded(
             child: MaterialApp(
+              debugShowCheckedModeBanner: false,
               navigatorObservers: [
                 NavObserver(onChange: () {
                   shouldShowKeyboard.value = false;
@@ -186,6 +187,7 @@ class AuthGateState extends ConsumerState<AuthGate>
   StreamSubscription? contactRequestsListener;
   StreamSubscription? contactsListener;
   StreamSubscription? chatsListener;
+  StreamSubscription? foregroundMessageListener;
   Admin? admin;
   Timer? _resetDebounceTimer;
 
@@ -200,6 +202,7 @@ class AuthGateState extends ConsumerState<AuthGate>
 
     initializeFcmToken();
     _setupFcmTokenListener();
+    _setupForegroundMessageListener();
     _checkBiometric();
 
     authListener = Auth.authSubject.stream.listen((shouldFire) async {
@@ -264,6 +267,7 @@ class AuthGateState extends ConsumerState<AuthGate>
     authListener.cancel();
     resetConnectionListener.cancel();
     blockedListener.cancel();
+    foregroundMessageListener?.cancel();
     cancelListeners();
     ChatSocket.disconnectWS();
     admin?.close();
@@ -377,40 +381,28 @@ class AuthGateState extends ConsumerState<AuthGate>
 
     try {
       if (Platform.isIOS) {
-        debugPrint('FCM: iOS detected, checking APNS token first...');
-
         // For iOS SDK 10.4.0+, wait for APNS token before making FCM API calls
         String? apnsToken;
         for (int attempt = 1; attempt <= 5 && apnsToken == null; attempt++) {
           apnsToken = await messaging.getAPNSToken();
           if (apnsToken != null) {
-            debugPrint('FCM: APNS token obtained on attempt $attempt');
             break;
           }
-          debugPrint('FCM: APNS token not ready, waiting ${attempt * 2}s...');
           await Future.delayed(Duration(seconds: attempt * 2));
         }
 
         if (apnsToken != null) {
           // APNS token is available, safe to make FCM API calls
           fcmToken = await messaging.getToken();
-          debugPrint('FCM: Token obtained: ${fcmToken?.substring(0, 20)}...');
-        } else {
-          debugPrint(
-              'FCM: WARNING - APNS token unavailable, push notifications will not work');
-        }
+        } else {}
       } else {
         // Android - get FCM token directly
-        debugPrint('FCM: Android detected, fetching token directly...');
         fcmToken = await messaging.getToken();
-        debugPrint(
-            'FCM: Token obtained: ${fcmToken != null ? "${fcmToken.substring(0, 20)}..." : "null"}');
       }
 
       // Store FCM token in Auth for later use
       if (fcmToken != null) {
         await Auth.setFcmToken(newFcmToken: fcmToken);
-        debugPrint('FCM: Token stored in Auth');
       }
 
       // Send token to server if we have one and are connected
@@ -424,21 +416,13 @@ class AuthGateState extends ConsumerState<AuthGate>
             'fcmToken': fcmToken,
           },
         );
-        debugPrint('FCM: Token sent to server');
-      } else if (fcmToken != null) {
-        debugPrint(
-            'FCM: Token obtained but not connected yet, will be sent on token refresh or connection');
       }
-    } catch (e) {
-      debugPrint('FCM: Error initializing token: $e');
-    }
+    } catch (e) {}
   }
 
   void _setupFcmTokenListener() {
     fcmTokenListener =
         FirebaseMessaging.instance.onTokenRefresh.listen((newFcmToken) async {
-      debugPrint('FCM: Token refreshed');
-
       // Store in Auth
       await Auth.setFcmToken(newFcmToken: newFcmToken);
 
@@ -451,8 +435,16 @@ class AuthGateState extends ConsumerState<AuthGate>
             'fcmToken': newFcmToken,
           },
         );
-        debugPrint('FCM: Updated token sent to server');
       }
+    });
+  }
+
+  void _setupForegroundMessageListener() {
+    // Listen for messages when app is in foreground
+    foregroundMessageListener =
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // Clear badge immediately since user is already using the app
+      AppBadgePlus.updateBadge(0);
     });
   }
 
@@ -532,8 +524,6 @@ class AuthGateState extends ConsumerState<AuthGate>
         });
       }
     } catch (e) {
-      // Handle any errors during auth check
-      debugPrint('Authentication check error: $e');
       setState(() {
         user = null;
         isAuthCheckComplete = true;
@@ -587,9 +577,6 @@ class AuthGateState extends ConsumerState<AuthGate>
 
     final NotificationAppLaunchDetails? notificationAppLaunchDetails =
         await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
-
-    debugPrint(
-        'afterlaunch payload: ${notificationAppLaunchDetails.toString()}');
   }
 
   void _syncIsarToRiverpod() async {
@@ -644,6 +631,8 @@ class AuthGateState extends ConsumerState<AuthGate>
         .map((query) => query.find())
         .listen((profiles) {
       if (profiles.isNotEmpty) {
+        debugPrint(
+            'Main: ObjectBox watcher fired - updating provider with avatar color: ${profiles.first.avatar?.color}, icon: ${profiles.first.avatar?.icon}');
         ref.read(profileProvider.notifier).setProfile(profiles.first);
       }
     });

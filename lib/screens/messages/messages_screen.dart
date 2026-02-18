@@ -662,18 +662,26 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   Widget _buildChatTitle(List<Contact> contacts, profile) {
     if (chat.isOneToOne) {
+      final otherParticipant = chat.participants
+          .firstWhereOrNull((p) => p.uid != Auth.user?.uid);
+      final contact = otherParticipant != null
+          ? contacts.firstWhereOrNull(
+              (c) => c.contactPersonUid == otherParticipant.uid)
+          : null;
+      final displayAvatar = contact?.avatar ?? chat.avatar;
+
       // For one-to-one chats, show premium status indicator
       return Row(
         children: [
           CircleAvatarWithActiveIndicator(
-            image: chat.avatar?.pic,
+            image: displayAvatar?.pic,
             radius: isConnected ? 28 : 14,
             name: (chat.name ?? participantNames),
-            avatarColor: chat.avatar?.color != null
-                ? Color(int.parse(chat.avatar!.color!))
+            avatarColor: displayAvatar?.color != null
+                ? Color(int.parse(displayAvatar!.color!))
                 : null,
-            avatarIcon: chat.avatar?.icon != null
-                ? IconData(int.parse(chat.avatar!.icon!),
+            avatarIcon: displayAvatar?.icon != null
+                ? IconData(int.parse(displayAvatar!.icon!),
                     fontFamily: 'MaterialIcons')
                 : null,
           ),

@@ -195,8 +195,16 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
           .contains(e.contactPersonUid));
     }
 
-    final alphabetFromContacts =
-        contactsToUse.map((e) => (e.name ?? e.email)![0]).toSet();
+    String? contactLabel(Contact e) {
+      final label = e.name?.isNotEmpty == true ? e.name : e.email;
+      return label?.isNotEmpty == true ? label : null;
+    }
+
+    final alphabetFromContacts = contactsToUse
+        .map((e) => contactLabel(e))
+        .where((label) => label != null)
+        .map((label) => label![0])
+        .toSet();
 
     Map<String, List<dynamic>> contactTree = {
       'participants': participants ?? [],
@@ -209,7 +217,7 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
       for (var e1 in alphabetFromContacts)
         e1: contactsToUse
             .where((e) =>
-                (e.name ?? e.email)![0] == e1 &&
+                contactLabel(e)?[0] == e1 &&
                 participants!
                         .firstWhereOrNull((p) => p.uid == e.contactPersonUid) ==
                     null)
@@ -498,6 +506,13 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
                                       radius: 24,
                                       name: participant.name ??
                                           participant.email!.split('@')[0],
+                                      avatarColor: participant.avatar?.color != null
+                                          ? Color(int.parse(participant.avatar!.color!))
+                                          : null,
+                                      avatarIcon: participant.avatar?.icon != null
+                                          ? IconData(int.parse(participant.avatar!.icon!),
+                                              fontFamily: 'MaterialIcons')
+                                          : null,
                                       icon: Icons.close,
                                       onIconTap: () {
                                         setState(() {

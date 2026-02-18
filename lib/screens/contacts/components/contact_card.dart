@@ -29,6 +29,13 @@ class ContactCard extends ConsumerWidget {
         isActive: isActive,
         radius: 28,
         name: contact.displayName ?? contact.email!.split('@')[0],
+        avatarColor: contact.avatar?.color != null
+            ? Color(int.parse(contact.avatar!.color!))
+            : null,
+        avatarIcon: contact.avatar?.icon != null
+            ? IconData(int.parse(contact.avatar!.icon!),
+                fontFamily: 'MaterialIcons')
+            : null,
       ),
       title: contact.displayName != null
           ? Text(

@@ -203,16 +203,24 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (result != null) {
       final avatarMap = <String, dynamic>{
-        'color': result.color?.value.toString(),
+        'color': result.color?.toARGB32().toString(),
         if (result.iconCodePoint != null)
           'icon': result.iconCodePoint.toString(),
       };
 
       final profileService = ProfileService();
-      await profileService.updateProfileOnServer(
-        name: result.name,
+      final updatedProfile = await profileService.updateProfileOnServer(
+        name: result.name?.isNotEmpty ?? false
+            ? result.name
+            : profile?.name.isNotEmpty ?? false
+                ? profile?.name
+                : profile?.email.split('@')[0],
         avatar: avatarMap,
       );
+
+      if (updatedProfile != null) {
+        ref.read(profileProvider.notifier).setProfile(updatedProfile);
+      }
     }
   }
 
@@ -367,21 +375,45 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               leading: GestureDetector(
                 onTap: () => _openProfileAvatarEditor(profile),
-                child: CircleAvatarWithActiveIndicator(
-                  image: profile?.avatar?.pic,
-                  name: profile?.name ?? profile?.email?.split('@')[0],
-                  isActive: false,
-                  avatarColor: profile?.avatar?.color != null
-                      ? Color(int.parse(profile!.avatar!.color!))
-                      : null,
-                  avatarIcon: profile?.avatar?.icon != null
-                      ? IconData(int.parse(profile!.avatar!.icon!),
-                          fontFamily: 'MaterialIcons')
-                      : null,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CircleAvatarWithActiveIndicator(
+                      image: profile?.avatar?.pic,
+                      name: profile?.name ?? profile?.email?.split('@')[0],
+                      isActive: false,
+                      avatarColor: profile?.avatar?.color != null
+                          ? Color(int.parse(profile!.avatar!.color!))
+                          : null,
+                      avatarIcon: profile?.avatar?.icon != null
+                          ? IconData(int.parse(profile!.avatar!.icon!),
+                              fontFamily: 'MaterialIcons')
+                          : null,
+                    ),
+                    const Positioned(
+                      right: -7,
+                      bottom: -7,
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 12,
+                        child: CircleAvatar(
+                          radius: 10,
+                          backgroundColor: primaryColor,
+                          child: Icon(
+                            Icons.edit_sharp,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               title: Text(
-                profile?.name ?? profile?.email?.split('@')[0] ?? '',
+                profile!.name!.isNotEmpty
+                    ? profile.name!
+                    : (profile.email?.split('@')[0] ?? ''),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,

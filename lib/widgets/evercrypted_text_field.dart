@@ -25,7 +25,7 @@ class _EvercryptedFocusManager {
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _closeScheduled = false;
-      if (!hasAnyFocus) {
+      if (!hasAnyFocus && ref.context.mounted) {
         ref.read(keyboardProvider.notifier).close();
       }
     });

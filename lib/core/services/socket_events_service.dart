@@ -276,6 +276,10 @@ class SocketEventsService {
 
             if (updated) {
               chat.participants = updatedParticipants;
+              // For 1:1 chats, the chat avatar IS the other participant's avatar
+              if (chat.isOneToOne) {
+                chat.avatar = updatedContact.avatar;
+              }
               ObxInit.obx.chats.put(chat);
             }
           }

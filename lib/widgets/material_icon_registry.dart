@@ -653,6 +653,7 @@ class MaterialIconRegistry {
     'iron': Icons.iron,
     'backpack': Icons.backpack,
     'luggage': Icons.luggage,
+    'goggles': Icons.sports_motorsports,
 
     // ── Signs & Indicators ───────────────────────────────────────────
     'check circle': Icons.check_circle,
@@ -1962,6 +1963,8 @@ class MaterialIconRegistry {
     ],
 
     // Clothing synonyms
+    'glasses': ['goggles'],
+    'goggles': ['goggles', 'sports motorsports'],
     'clothes': ['checkroom', 'dry cleaning', 'iron', 'backpack'],
     'fashion': ['checkroom', 'dry cleaning', 'diamond', 'style'],
     'bag': ['backpack', 'luggage', 'shopping bag'],

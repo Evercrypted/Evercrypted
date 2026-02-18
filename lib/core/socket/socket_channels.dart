@@ -9,4 +9,5 @@ class SocketChannelTypes {
   static const error = 'error';
   static const auth = 'auth';
   static const payment = 'payment';
+  static const profile = 'profile';
 }

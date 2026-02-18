@@ -1,6 +1,6 @@
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/http.dart';
-import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
+import 'package:evercrypted/core/socket/event_types/profile_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/core/obx_init.dart';
 import 'package:flutter/widgets.dart';
@@ -9,7 +9,11 @@ import 'profile_model.dart';
 
 class ProfileService {
   void syncProfile(Profile profile) {
-    ObxInit.obx.profiles.removeAll();
+    // Preserve the existing ObjectBox ID to ensure reactivity
+    final existingProfile = ObxInit.obx.profiles.getAll().firstOrNull;
+    if (existingProfile != null) {
+      profile.id = existingProfile.id;
+    }
     ObxInit.obx.profiles.put(profile);
   }
 
@@ -42,7 +46,7 @@ class ProfileService {
     try {
       await AppHttpClient.message(
         channel: SocketChannelTypes.general,
-        type: GeneralEventTypes.updateAccountSettings,
+        type: 'updateAccountSettings',
         payload: {
           'accountSettings': accountSettings.toJson(),
         },
@@ -53,7 +57,7 @@ class ProfileService {
     }
   }
 
-  Future<void> updateProfileOnServer({
+  Future<Profile?> updateProfileOnServer({
     String? name,
     Map<String, dynamic>? avatar,
   }) async {
@@ -63,17 +67,19 @@ class ProfileService {
       if (avatar != null) payload['avatar'] = avatar;
 
       final resp = await AppHttpClient.message(
-        channel: SocketChannelTypes.general,
-        type: GeneralEventTypes.updateProfile,
+        channel: SocketChannelTypes.profile,
+        type: ProfileEventTypes.updateProfile,
         payload: payload,
       );
 
       if (resp['profile'] != null) {
         final profile = Profile.fromJson(resp['profile']);
         Auth.setAuth(profile: profile);
+        return profile;
       }
     } catch (e) {
       debugPrint('Failed to update profile on server: $e');
     }
+    return null;
   }
 }

@@ -9,6 +9,8 @@ class ProfilePic extends StatelessWidget {
       this.name,
       this.image,
       this.color,
+      this.avatarColor,
+      this.avatarIcon,
       this.isShowPhotoUpload = false,
       this.btnPress,
       this.icon = Icons.edit,
@@ -22,6 +24,8 @@ class ProfilePic extends StatelessWidget {
 
   final String? image;
   final Color? color;
+  final Color? avatarColor;
+  final IconData? avatarIcon;
   final String? name;
   final bool isShowPhotoUpload;
   final VoidCallback? btnPress;
@@ -54,6 +58,8 @@ class ProfilePic extends StatelessWidget {
             image: image,
             radius: radius,
             name: name,
+            avatarColor: avatarColor,
+            avatarIcon: avatarIcon,
           ),
           if (btnPress != null)
             InkWell(

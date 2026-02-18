@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/entities/chat/chat_model.dart';
+import '../../../core/entities/profile/profile_model.dart';
 import '../../../widgets/circle_avatar_with_active_indicator.dart';
 import '../../../ui_constants.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -20,8 +21,8 @@ List<String> chatParticipantNames({chat, widgetRef}) {
       .map<String>((Participant e) {
     final Contact? contactFound = contacts
         .firstWhereOrNull((element) => element.contactPersonUid == e.uid);
-    if (contactFound != null && contactFound.name != null) {
-      return contactFound.name!;
+    if (contactFound != null) {
+      return contactFound.displayName!;
     } else {
       return e.name ?? e.email!.split('@')[0];
     }
@@ -45,6 +46,20 @@ class ChatCard extends ConsumerWidget {
     final participantNames =
         chatParticipantNames(chat: chat, widgetRef: ref).join(', ');
 
+    Avatar? displayAvatar = chat.avatar;
+    if (chat.isOneToOne) {
+      final List<Contact> contacts = ref.watch(contactsProvider);
+      final otherParticipant =
+          chat.participants.firstWhereOrNull((p) => p.uid != Auth.user?.uid);
+      if (otherParticipant != null) {
+        final contact = contacts.firstWhereOrNull(
+            (c) => c.contactPersonUid == otherParticipant.uid);
+        if (contact != null) {
+          displayAvatar = contact.avatar;
+        }
+      }
+    }
+
     return InkWell(
       onTap: press,
       child: Padding(
@@ -53,14 +68,14 @@ class ChatCard extends ConsumerWidget {
         child: Row(
           children: [
             CircleAvatarWithActiveIndicator(
-              image: chat.avatar?.pic,
+              image: displayAvatar?.pic,
               radius: 28,
               name: chat.name ?? participantNames,
-              avatarColor: chat.avatar?.color != null
-                  ? Color(int.parse(chat.avatar!.color!))
+              avatarColor: displayAvatar?.color != null
+                  ? Color(int.parse(displayAvatar!.color!))
                   : null,
-              avatarIcon: chat.avatar?.icon != null
-                  ? IconData(int.parse(chat.avatar!.icon!),
+              avatarIcon: displayAvatar?.icon != null
+                  ? IconData(int.parse(displayAvatar!.icon!),
                       fontFamily: 'MaterialIcons')
                   : null,
             ),

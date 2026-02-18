@@ -10,6 +10,7 @@ import 'package:evercrypted/screens/profile/components/profile_pic.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/connection_status_appbar.dart';
 import 'package:evercrypted/widgets/password_dialog.dart';
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -40,6 +41,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
   void initState() {
     super.initState();
     _renamingController.text = name;
+    _renamingController.addListener(() => setState(() {}));
   }
 
   @override
@@ -49,6 +51,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
   }
 
   _rename() {
+    ref.read(keyboardProvider.notifier).close();
     contactService.renameContact(widget.contact.uid!, _renamingController.text);
     setState(() {
       renaming = false;
@@ -133,6 +136,13 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
             image: widget.contact.avatar?.pic,
             radius: 64,
             name: name,
+            avatarColor: widget.contact.avatar?.color != null
+                ? Color(int.parse(widget.contact.avatar!.color!))
+                : null,
+            avatarIcon: widget.contact.avatar?.icon != null
+                ? IconData(int.parse(widget.contact.avatar!.icon!),
+                    fontFamily: 'MaterialIcons')
+                : null,
             icon: widget.contact.isFavorite ? Icons.star : Icons.star_border,
             circleRadius: 20,
             iconsSize: 30,
@@ -181,14 +191,19 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.check),
-                    color: primaryColor,
-                    onPressed: () {
-                      _rename();
-                    },
+                    color: _renamingController.text.trim().isEmpty
+                        ? Colors.grey
+                        : primaryColor,
+                    onPressed: _renamingController.text.trim().isEmpty
+                        ? null
+                        : () {
+                            _rename();
+                          },
                   ),
                   IconButton(
                       color: errorColor,
                       onPressed: () {
+                        ref.read(keyboardProvider.notifier).close();
                         setState(() {
                           renaming = false;
                         });
@@ -239,6 +254,10 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                   setState(() {
                     renaming = true;
                   });
+                  _renamingController.selection = TextSelection.collapsed(
+                    offset: _renamingController.text.length,
+                  );
+                  _renamingController.focus();
                 },
                 icon: const Icon(Icons.edit),
                 label: const Text(

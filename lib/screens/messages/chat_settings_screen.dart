@@ -7,6 +7,9 @@ import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:evercrypted/core/entities/chat/chat_state.dart';
 import 'package:evercrypted/core/entities/chat/participant_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
+import 'package:evercrypted/core/entities/contact/contact_model.dart';
+import 'package:evercrypted/core/entities/contact/contact_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
 import 'package:evercrypted/core/services/block_service.dart';
 import 'package:evercrypted/core/services/hidden_chat_service.dart';
@@ -127,6 +130,20 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
     user = chat.participants.firstWhere(
         (p) => p.email?.toLowerCase() == Auth.getUser!.email.toLowerCase());
 
+    Avatar? displayAvatar = chat.avatar;
+    if (chat.isOneToOne) {
+      final List<Contact> contacts = ref.watch(contactsProvider);
+      final otherParticipant = chat.participants
+          .firstWhereOrNull((p) => p.uid != Auth.user?.uid);
+      if (otherParticipant != null) {
+        final contact = contacts.firstWhereOrNull(
+            (c) => c.contactPersonUid == otherParticipant.uid);
+        if (contact != null) {
+          displayAvatar = contact.avatar;
+        }
+      }
+    }
+
     return Scaffold(
         appBar: AppBar(
           title: const Text('Chat Settings'),
@@ -139,16 +156,16 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
               alignment: Alignment.bottomRight,
               children: [
                 CircleAvatarWithActiveIndicator(
-                  image: chat.avatar?.pic,
+                  image: displayAvatar?.pic,
                   radius: 50,
                   name: chat.name ??
                       chatParticipantNames(chat: chat, widgetRef: ref)
                           .join(', '),
-                  avatarColor: chat.avatar?.color != null
-                      ? Color(int.parse(chat.avatar!.color!))
+                  avatarColor: displayAvatar?.color != null
+                      ? Color(int.parse(displayAvatar!.color!))
                       : null,
-                  avatarIcon: chat.avatar?.icon != null
-                      ? IconData(int.parse(chat.avatar!.icon!),
+                  avatarIcon: displayAvatar?.icon != null
+                      ? IconData(int.parse(displayAvatar!.icon!),
                           fontFamily: 'MaterialIcons')
                       : null,
                 ),
