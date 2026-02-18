@@ -115,7 +115,6 @@ class OtpScreenState extends ConsumerState<OtpScreen> {
         errorMessage = e.toString();
         hasError = true;
       });
-      debugPrint('afterActivate2FA: $errorMessage');
     });
   }
 

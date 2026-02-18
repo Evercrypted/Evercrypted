@@ -145,7 +145,6 @@ class VoiceRecorderButtonState extends State<VoiceRecorderButton>
       );
     } catch (e) {
       // Recorder might have been closed during startup
-      debugPrint('startRecorder error: $e');
     } finally {
       // Signal that recording setup is complete (success or failure)
       _recordingStartCompleter?.complete();

@@ -631,8 +631,6 @@ class AuthGateState extends ConsumerState<AuthGate>
         .map((query) => query.find())
         .listen((profiles) {
       if (profiles.isNotEmpty) {
-        debugPrint(
-            'Main: ObjectBox watcher fired - updating provider with avatar color: ${profiles.first.avatar?.color}, icon: ${profiles.first.avatar?.icon}');
         ref.read(profileProvider.notifier).setProfile(profiles.first);
       }
     });
@@ -689,19 +687,15 @@ class AuthGateState extends ConsumerState<AuthGate>
   /// Initialize deep link handling for both cold and warm starts
   void _initDeepLinks() async {
     // Handle cold start — app was launched from a deep link
-    try {
-      final initialUri = await AppLinkService.getInitialLink();
-      if (initialUri != null) {
-        _handleDeepLink(initialUri);
-      }
-    } catch (e) {
-      debugPrint('Deep link: Error getting initial link: $e');
+
+    final initialUri = await AppLinkService.getInitialLink();
+    if (initialUri != null) {
+      _handleDeepLink(initialUri);
     }
 
     // Handle warm start — app is already running and receives a deep link
     _deepLinkSubscription = AppLinkService.onLinkStream.listen(
       (uri) => _handleDeepLink(uri),
-      onError: (e) => debugPrint('Deep link: Stream error: $e'),
     );
   }
 
@@ -710,7 +704,6 @@ class AuthGateState extends ConsumerState<AuthGate>
     // 1. Check for Contact Add Link
     final contactEmail = AppLinkService.parseContactEmail(uri);
     if (contactEmail != null) {
-      debugPrint('Deep link: Received add-contact for $contactEmail');
       final senderEmail = contactEmail;
       final currentUserEmail = Auth.getUser?.email ?? 'someone';
       final message =
@@ -729,7 +722,6 @@ class AuthGateState extends ConsumerState<AuthGate>
     // 2. Check for Chat Join Link
     final inviteToken = AppLinkService.parseInviteToken(uri);
     if (inviteToken != null) {
-      debugPrint('Deep link: Received join-chat token');
       _handleJoinChat(inviteToken);
       return;
     }
@@ -739,7 +731,7 @@ class AuthGateState extends ConsumerState<AuthGate>
     // Requires authentication — store token for after login
     if (user == null || isBiometricLocked) {
       ref.read(pendingInviteTokenProvider.notifier).set(token);
-      debugPrint('Deep link: User not logged in, stored pending invite token');
+
       return;
     }
 

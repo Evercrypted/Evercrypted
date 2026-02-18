@@ -126,15 +126,15 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
-    debugPrint(Auth.getUser!.email);
+
     user = chat.participants.firstWhere(
         (p) => p.email?.toLowerCase() == Auth.getUser!.email.toLowerCase());
 
     Avatar? displayAvatar = chat.avatar;
     if (chat.isOneToOne) {
       final List<Contact> contacts = ref.watch(contactsProvider);
-      final otherParticipant = chat.participants
-          .firstWhereOrNull((p) => p.uid != Auth.user?.uid);
+      final otherParticipant =
+          chat.participants.firstWhereOrNull((p) => p.uid != Auth.user?.uid);
       if (otherParticipant != null) {
         final contact = contacts.firstWhereOrNull(
             (c) => c.contactPersonUid == otherParticipant.uid);

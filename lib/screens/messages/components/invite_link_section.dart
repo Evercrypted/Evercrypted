@@ -75,13 +75,13 @@ class _InviteLinkSectionState extends State<InviteLinkSection> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to generate invite link: $e')),
       );
-      debugPrint('Failed to generate invite link: $e');
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isGenerating = false;
           _isOneTime = true;
         });
+      }
     }
   }
 

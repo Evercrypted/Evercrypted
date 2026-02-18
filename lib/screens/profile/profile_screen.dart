@@ -89,17 +89,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (await directory.exists()) {
       await directory.list(recursive: true).forEach((entity) async {
         if (entity is File) {
-          try {
-            await entity.delete();
-          } catch (e) {
-            debugPrint('Error deleting file: $e');
-          }
+          await entity.delete();
         } else if (entity is Directory && entity.path != directory.path) {
-          try {
-            await entity.delete(recursive: true);
-          } catch (e) {
-            debugPrint('Error deleting directory: $e');
-          }
+          await entity.delete(recursive: true);
         }
       });
     }
@@ -110,15 +102,11 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (entity is File) {
           try {
             await entity.delete();
-          } catch (e) {
-            debugPrint('Error deleting cache file: $e');
-          }
+          } catch (e) {}
         } else if (entity is Directory && entity.path != cacheDirectory.path) {
           try {
             await entity.delete(recursive: true);
-          } catch (e) {
-            debugPrint('Error deleting cache directory: $e');
-          }
+          } catch (e) {}
         }
       });
     }

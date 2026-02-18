@@ -48,15 +48,9 @@ class ChatService {
       final userId = Auth.user?.uid;
       final isCreator =
           chat.participants.any((p) => p.uid == userId && p.isCreator == true);
-      debugPrint(
-          'ChatService.addChat: Group chat ${chat.uid}, isNewlyCreated: $isNewlyCreated, userId: $userId, isCreator: $isCreator');
+
       if (isCreator) {
-        debugPrint(
-            'ChatService.addChat: Calling createAndDistributeGroupKey for chat ${chat.uid}');
         GroupKeyExchange.createAndDistributeGroupKey(chat.uid);
-      } else {
-        debugPrint(
-            'ChatService.addChat: Not creator - will request group key later');
       }
     }
 
@@ -97,8 +91,6 @@ class ChatService {
       query.close();
       if (dbChat != null) {
         // Only add messages that don't already exist to prevent uniqueId conflicts
-        debugPrint(
-            'ChatService: Syncing ${chat.messagesList.length} messages for chat ${chat.uid}');
 
         for (var newMessage in chat.messagesList) {
           // Process group key exchange messages in background (don't store in DB)
@@ -135,14 +127,12 @@ class ChatService {
           ObxInit.obx.messages.removeMany(messageIds);
           ObxInit.obx.chats.remove(chat.id);
         } catch (error) {
-          debugPrint('Failed to delete chat ${chat.uid}: $error');
           // Continue with other chat deletions even if one fails
         }
       }).toList();
 
       // Wait for all chat deletions to complete
       await Future.wait(deletionFutures);
-      debugPrint('Completed deletion of ${chatsToDelete.length} chats');
     }
 
     completer.complete();

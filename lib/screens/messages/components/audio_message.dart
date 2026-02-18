@@ -107,7 +107,6 @@ class _AudioMessageState extends State<AudioMessage> {
       }
     } catch (e) {
       // Metadata extraction failed - will show basic waveform
-      debugPrint('Failed to extract audio metadata: $e');
     }
   }
 

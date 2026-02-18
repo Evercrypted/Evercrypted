@@ -4,7 +4,7 @@ import 'package:evercrypted/core/helpers/get_random_string.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/obx_init.dart';
-import 'package:flutter/material.dart';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rxdart/subjects.dart';
 
@@ -157,11 +157,9 @@ class Auth {
 
   static clearToken({skipNotify = false}) async {
     Auth.token = null;
-    try {
-      await storage.delete(key: 'token');
-    } catch (e) {
-      debugPrint('Error clearing token');
-    }
+
+    await storage.delete(key: 'token');
+
     if (skipNotify) {
       return;
     }
@@ -191,11 +189,9 @@ class Auth {
 
   static clearOtpToken({skipNotify = false}) async {
     Auth.otpToken = null;
-    try {
-      await storage.delete(key: 'otpToken');
-    } catch (e) {
-      debugPrint('Error clearing otp token');
-    }
+
+    await storage.delete(key: 'otpToken');
+
     if (skipNotify) {
       return;
     }

@@ -34,8 +34,6 @@ class NotificationEventsService {
       case null:
         break;
       default:
-        debugPrint('Unknown notification event');
-        debugPrint(payload);
     }
   }
 }

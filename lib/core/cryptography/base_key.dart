@@ -9,7 +9,7 @@ import 'package:evercrypted/core/entities/message/message_service.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_ever_crypto/flutter_ever_crypto.dart';
 import 'package:rxdart/rxdart.dart';
@@ -143,217 +143,170 @@ class BaseKey {
   /// Process pending messages for all chats that have baseKeys
   /// Call this on app startup or socket reconnect to handle messages queued before key exchange
   static Future<void> processAllPendingMessages() async {
-    try {
-      // Find all queued messages waiting for key exchange
-      final query = ObxInit.obx.actionQueues
-          .query(ActionQueue_.type.equals('sendMessagePendingKey'))
-          .build();
-      final queuedActions = query.find();
-      query.close();
+    // Find all queued messages waiting for key exchange
+    final query = ObxInit.obx.actionQueues
+        .query(ActionQueue_.type.equals('sendMessagePendingKey'))
+        .build();
+    final queuedActions = query.find();
+    query.close();
 
-      if (queuedActions.isEmpty) {
-        return;
+    if (queuedActions.isEmpty) {
+      return;
+    }
+
+    // Group by chatUid
+    final Map<String, List<ActionQueue>> messagesByChat = {};
+    for (final action in queuedActions) {
+      final payload = jsonDecode(action.payload);
+      final chatUid = payload['chatUid'] as String?;
+      if (chatUid != null) {
+        messagesByChat.putIfAbsent(chatUid, () => []).add(action);
       }
+    }
 
-      debugPrint(
-          'BaseKey.processAllPendingMessages: Found ${queuedActions.length} pending messages');
-
-      // Group by chatUid
-      final Map<String, List<ActionQueue>> messagesByChat = {};
-      for (final action in queuedActions) {
-        try {
-          final payload = jsonDecode(action.payload);
-          final chatUid = payload['chatUid'] as String?;
-          if (chatUid != null) {
-            messagesByChat.putIfAbsent(chatUid, () => []).add(action);
-          }
-        } catch (e) {
-          debugPrint(
-              'BaseKey.processAllPendingMessages: Error parsing action ${action.id}: $e');
-        }
-      }
-
-      // Process each chat's pending messages (pass actions to avoid re-querying)
-      for (final entry in messagesByChat.entries) {
-        await _processQueuedMessagesForChat(entry.key, entry.value);
-      }
-
-      debugPrint(
-          'BaseKey.processAllPendingMessages: Processed pending messages for ${messagesByChat.length} chats');
-    } catch (e) {
-      debugPrint('BaseKey.processAllPendingMessages: Error: $e');
+    // Process each chat's pending messages (pass actions to avoid re-querying)
+    for (final entry in messagesByChat.entries) {
+      await _processQueuedMessagesForChat(entry.key, entry.value);
     }
   }
 
   /// Process pending messages for a specific chat (internal helper with pre-filtered actions)
   static Future<void> _processQueuedMessagesForChat(
       String chatUid, List<ActionQueue> actions) async {
-    try {
-      final messageService = MessageService();
-      int processedCount = 0;
+    final messageService = MessageService();
+    int processedCount = 0;
 
-      for (final action in actions) {
-        try {
-          final payload = jsonDecode(action.payload);
-          // Double-check chatUid matches
-          if (payload['chatUid'] == chatUid) {
-            // Get the base key that's now available
-            final keys = await getKeys(chatUid);
-            if (keys?.baseKey != null) {
-              // Create the encryption key (same logic as ChatInputField)
-              final hash = sha256.convert(utf8.encode(keys!.baseKey!));
-              final encryptionKey = base64Encode(hash.bytes);
+    for (final action in actions) {
+      final payload = jsonDecode(action.payload);
+      // Double-check chatUid matches
+      if (payload['chatUid'] == chatUid) {
+        // Get the base key that's now available
+        final keys = await getKeys(chatUid);
+        if (keys?.baseKey != null) {
+          // Create the encryption key (same logic as ChatInputField)
+          final hash = sha256.convert(utf8.encode(keys!.baseKey!));
+          final encryptionKey = base64Encode(hash.bytes);
 
-              final messageType = payload['messageType'] ?? MessageTypes.text;
-              debugPrint(
-                  'userLog: Processing queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
+          final messageType = payload['messageType'] ?? MessageTypes.text;
 
-              if (messageType == MessageTypes.text) {
-                // Handle text message
-                final encryptedMessage =
-                    await encodePayload(payload['text'], encryptionKey, true);
+          if (messageType == MessageTypes.text) {
+            // Handle text message
+            final encryptedMessage =
+                await encodePayload(payload['text'], encryptionKey, true);
 
-                // Send the encrypted message, updating the existing optimistic message
-                await messageService.sendMessage(
-                  encryptedMessage,
-                  chatUid,
-                  true, // withBaseKey = true
-                  queueId: action
-                      .id, // Update optimistic message instead of creating new one
-                );
-                debugPrint(
-                    'userLog: Successfully sent queued text message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
-              } else if (messageType == MessageTypes.audio) {
-                // Handle audio message with combined format (recording + duration + decibels)
-                if (payload['fileData'] == null) {
-                  debugPrint(
-                      'BaseKey._processQueuedMessagesForChat: Skipping audio message with null fileData');
-                  ObxInit.obx.actionQueues.remove(action.id);
-                  continue;
-                }
-
-                final fileData = base64Decode(payload['fileData']);
-                final duration = payload['duration'];
-                final waveData = payload['waveData'] != null
-                    ? List<double>.from(payload['waveData'])
-                    : <double>[];
-
-                // Create combined payload using the new format
-                final recordingPayload = createRecordingPayload(
-                  fileData,
-                  duration,
-                  waveData,
-                );
-
-                // Encrypt the combined payload
-                final encrypted =
-                    await encodePayload(recordingPayload, encryptionKey, true);
-
-                if (encrypted != null) {
-                  final messageToSend = Message(
-                    authorId: Auth.user?.uid ?? '',
-                    messageType: MessageTypes.audio,
-                    iv: encrypted['iv'],
-                    isEncrypted: true,
-                    createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-                    chatUid: chatUid,
-                    withBaseKey: true,
-                  );
-
-                  await messageService.sendFile(
-                      message: messageToSend,
-                      file: encrypted['crypted'],
-                      optimisticMessageQueueId:
-                          action.id); // Update optimistic message
-                  debugPrint(
-                      'userLog: Successfully sent queued audio message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
-                }
-              } else if (messageType == MessageTypes.file ||
-                  messageType == MessageTypes.image) {
-                // Handle file/image message
-                if (payload['fileData'] == null ||
-                    payload['fileName'] == null) {
-                  debugPrint(
-                      'BaseKey._processQueuedMessagesForChat: Skipping file/image message with null data');
-                  ObxInit.obx.actionQueues.remove(action.id);
-                  continue;
-                }
-
-                final fileData = base64Decode(payload['fileData']);
-                final fileName = payload['fileName'];
-
-                final encryptedFile = await encodePayload({
-                  'name': fileName,
-                  'bytes': fileData,
-                }, encryptionKey, true);
-
-                final messageToSend = Message(
-                  authorId: Auth.user?.uid ?? '',
-                  messageType: messageType,
-                  iv: encryptedFile['iv'],
-                  mac: encryptedFile['mac'],
-                  isEncrypted: true,
-                  createdAtMSE: DateTime.now().millisecondsSinceEpoch,
-                  chatUid: chatUid,
-                  withBaseKey: true,
-                );
-
-                await messageService.sendFile(
-                    message: messageToSend,
-                    file: encryptedFile['crypted'],
-                    optimisticMessageQueueId:
-                        action.id); // Update optimistic message
-                debugPrint(
-                    'userLog: Successfully sent queued $messageType message (actionId: ${action.id}) for chat $chatUid. User: ${Auth.user?.uid}');
-              }
-
-              // Remove from queue
+            // Send the encrypted message, updating the existing optimistic message
+            await messageService.sendMessage(
+              encryptedMessage,
+              chatUid,
+              true, // withBaseKey = true
+              queueId: action
+                  .id, // Update optimistic message instead of creating new one
+            );
+          } else if (messageType == MessageTypes.audio) {
+            // Handle audio message with combined format (recording + duration + decibels)
+            if (payload['fileData'] == null) {
               ObxInit.obx.actionQueues.remove(action.id);
-              processedCount++;
+              continue;
             }
+
+            final fileData = base64Decode(payload['fileData']);
+            final duration = payload['duration'];
+            final waveData = payload['waveData'] != null
+                ? List<double>.from(payload['waveData'])
+                : <double>[];
+
+            // Create combined payload using the new format
+            final recordingPayload = createRecordingPayload(
+              fileData,
+              duration,
+              waveData,
+            );
+
+            // Encrypt the combined payload
+            final encrypted =
+                await encodePayload(recordingPayload, encryptionKey, true);
+
+            if (encrypted != null) {
+              final messageToSend = Message(
+                authorId: Auth.user?.uid ?? '',
+                messageType: MessageTypes.audio,
+                iv: encrypted['iv'],
+                isEncrypted: true,
+                createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+                chatUid: chatUid,
+                withBaseKey: true,
+              );
+
+              await messageService.sendFile(
+                  message: messageToSend,
+                  file: encrypted['crypted'],
+                  optimisticMessageQueueId:
+                      action.id); // Update optimistic message
+            }
+          } else if (messageType == MessageTypes.file ||
+              messageType == MessageTypes.image) {
+            // Handle file/image message
+            if (payload['fileData'] == null || payload['fileName'] == null) {
+              ObxInit.obx.actionQueues.remove(action.id);
+              continue;
+            }
+
+            final fileData = base64Decode(payload['fileData']);
+            final fileName = payload['fileName'];
+
+            final encryptedFile = await encodePayload({
+              'name': fileName,
+              'bytes': fileData,
+            }, encryptionKey, true);
+
+            final messageToSend = Message(
+              authorId: Auth.user?.uid ?? '',
+              messageType: messageType,
+              iv: encryptedFile['iv'],
+              mac: encryptedFile['mac'],
+              isEncrypted: true,
+              createdAtMSE: DateTime.now().millisecondsSinceEpoch,
+              chatUid: chatUid,
+              withBaseKey: true,
+            );
+
+            await messageService.sendFile(
+                message: messageToSend,
+                file: encryptedFile['crypted'],
+                optimisticMessageQueueId:
+                    action.id); // Update optimistic message
           }
-        } catch (e) {
-          debugPrint(
-              'BaseKey: Error processing queued message ${action.id}: $e');
+
+          // Remove from queue
+          ObxInit.obx.actionQueues.remove(action.id);
+          processedCount++;
         }
       }
-
-      if (processedCount > 0) {
-        debugPrint(
-            'userLog: Completed processing $processedCount queued messages for chat $chatUid. User: ${Auth.user?.uid}');
-      }
-    } catch (e) {
-      debugPrint(
-          'BaseKey._processQueuedMessagesForChat: Error processing queued messages for chat $chatUid: $e');
     }
   }
 
   /// Process pending messages when a specific chat's key becomes available
   /// This is the original method called from setKeys
   static Future<void> _processQueuedMessages(String chatUid) async {
-    try {
-      // Find all queued messages for this chat
-      final query = ObxInit.obx.actionQueues
-          .query(ActionQueue_.type.equals('sendMessagePendingKey'))
-          .build();
-      final queuedActions = query.find();
-      query.close();
+    // Find all queued messages for this chat
+    final query = ObxInit.obx.actionQueues
+        .query(ActionQueue_.type.equals('sendMessagePendingKey'))
+        .build();
+    final queuedActions = query.find();
+    query.close();
 
-      // Filter to this chat and process
-      final chatActions = queuedActions.where((action) {
-        try {
-          final payload = jsonDecode(action.payload);
-          return payload['chatUid'] == chatUid;
-        } catch (e) {
-          return false;
-        }
-      }).toList();
-
-      if (chatActions.isNotEmpty) {
-        await _processQueuedMessagesForChat(chatUid, chatActions);
+    // Filter to this chat and process
+    final chatActions = queuedActions.where((action) {
+      try {
+        final payload = jsonDecode(action.payload);
+        return payload['chatUid'] == chatUid;
+      } catch (e) {
+        return false;
       }
-    } catch (e) {
-      debugPrint('BaseKey._processQueuedMessages: Error: $e');
+    }).toList();
+
+    if (chatActions.isNotEmpty) {
+      await _processQueuedMessagesForChat(chatUid, chatActions);
     }
   }
 }

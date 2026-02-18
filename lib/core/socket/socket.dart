@@ -14,7 +14,6 @@ import 'package:evercrypted/core/socket/event_types/general_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/core/obx_init.dart';
 
-import 'package:flutter/foundation.dart';
 import 'package:rhttp/rhttp.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -69,19 +68,13 @@ class ChatSocket {
     // Listen to connection status changes
     isConnectedSubject.distinct().listen((connected) async {
       if (connected) {
-        debugPrint('ChatSocket: Connection established, processing queue');
         // Wait for connection to stabilize and ensure key is available
         await Future.delayed(Duration(seconds: 3));
 
         // Double-check we're still connected and have a key
         if (isConnected == true && key != null) {
-          debugPrint(
-              'ChatSocket: Connection verified, starting queue processing');
           // Process queue (includes handling messages pending key exchange)
           await actionQueueService.processQueue();
-        } else {
-          debugPrint(
-              'ChatSocket: Connection lost or no key after delay, skipping queue processing');
         }
       }
     });
@@ -95,7 +88,6 @@ class ChatSocket {
     try {
       keys = await authService.loginHandshake(identifier);
     } catch (e) {
-      debugPrint(e.toString());
       isConnected = false;
       isConnectedSubject.add(isConnected!);
       return null;
@@ -182,8 +174,6 @@ class ChatSocket {
         await _checkPendingKeyExchanges();
       }
     }).catchError((error) {
-      debugPrint('Error during getGeneralInfoAndExchangeKey: $error');
-      debugPrint(error.toString());
       if (error.toString().contains('Status code: 401')) {
         Auth.clearAuth();
       }
@@ -211,16 +201,14 @@ class ChatSocket {
 
     io.cache.clear();
     final socketUrl = _getSocketUrl();
-    debugPrint('ChatSocket: Connecting to $socketUrl');
+
     socket = io.io(socketUrl, options.build());
 
     if (socket?.connected != true) {
-      debugPrint('connecting');
       socket?.connect();
     }
 
     socket?.onConnect((_) async {
-      debugPrint('connected');
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
 
@@ -233,7 +221,6 @@ class ChatSocket {
     });
 
     socket?.onReconnect((data) async {
-      debugPrint('reconnected');
       socket?.clearListeners();
       await getGeneralInfoAndExchangeKey();
 
@@ -246,7 +233,6 @@ class ChatSocket {
     });
 
     socket?.on('disconnect', (data) {
-      debugPrint('disconnected');
       isConnected = false;
       isConnectedSubject.add(isConnected!);
       disconnectWS();
@@ -257,7 +243,6 @@ class ChatSocket {
         isConnected = false;
         isConnectedSubject.add(isConnected!);
       } else {
-        debugPrint('onError: ${data is String ? data : data.toString()}');
         disconnectWS();
         isConnected = false;
         isConnectedSubject.add(isConnected!);
@@ -265,16 +250,12 @@ class ChatSocket {
     });
 
     socket?.onAny((channel, data) async {
-      debugPrint('event $channel');
-      debugPrint('data $data');
       if (channel == SocketChannelTypes.error) {
-        debugPrint('error event');
         socketEventsService.handleErrorEvent(data['type'], data['payload']);
       } else {
         if (channelsToListen.contains(channel)) {
           if (channel == SocketChannelTypes.error &&
               data['message'] == 'Invalid Credentials') {
-            debugPrint('Could not connect to socket server');
             disconnectWS();
             isConnected = false;
             isConnectedSubject.add(isConnected!);
@@ -291,20 +272,14 @@ class ChatSocket {
               payload = data;
             }
 
-            debugPrint(
-              'got emit to $channel - ${payload.toString()}',
-            );
             socketEventsService.handleEvent(
                 channel, payload['type'], payload['payload']);
           }
-        } else {
-          debugPrint('Unknown event: $channel with data: $data');
         }
       }
     });
 
     socket?.onDisconnect((_) {
-      debugPrint('disconnected');
       isConnected = false;
       isConnectedSubject.add(isConnected!);
       disconnectWS();
@@ -324,7 +299,6 @@ class ChatSocket {
   static resetConnection() async {
     // Prevent concurrent resets
     if (_isResettingConnection) {
-      debugPrint('ChatSocket: Reset already in progress, skipping');
       return;
     }
     _isResettingConnection = true;
@@ -337,19 +311,12 @@ class ChatSocket {
   }
 
   static Future<void> _checkPendingKeyExchanges() async {
-    try {
-      // Get all chats and trigger unified key exchange checks
-      final chats = ObxInit.obx.chats.getAll();
+    // Get all chats and trigger unified key exchange checks
+    final chats = ObxInit.obx.chats.getAll();
 
-      // Check each chat for pending key exchanges (unified approach)
-      for (final chat in chats) {
-        await GroupKeyExchange.ensureGroupKey(chat.uid, chat.isOneToOne);
-      }
-
-      debugPrint(
-          'ChatSocket: Completed pending key exchange checks for ${chats.length} chats');
-    } catch (e) {
-      debugPrint('ChatSocket: Error checking pending key exchanges: $e');
+    // Check each chat for pending key exchanges (unified approach)
+    for (final chat in chats) {
+      await GroupKeyExchange.ensureGroupKey(chat.uid, chat.isOneToOne);
     }
   }
 }

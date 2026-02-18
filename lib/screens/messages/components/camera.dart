@@ -60,7 +60,6 @@ class _CameraWidgetState extends State<CameraWidget> {
 
       cameras = await availableCameras();
       if (cameras.isEmpty) {
-        debugPrint('No cameras found');
         if (mounted) {
           setState(() {
             _errorMessage = 'No cameras found on this device.';
@@ -76,7 +75,6 @@ class _CameraWidgetState extends State<CameraWidget> {
 
       await _initController(cameras[_currentCameraIndex]);
     } catch (e) {
-      debugPrint('Error initializing camera: $e');
       if (mounted) {
         setState(() {
           _errorMessage =
@@ -119,7 +117,6 @@ class _CameraWidgetState extends State<CameraWidget> {
         });
       }
     } catch (e) {
-      debugPrint('Error initializing camera controller: $e');
       if (mounted) {
         setState(() {
           _errorMessage =
@@ -152,14 +149,10 @@ class _CameraWidgetState extends State<CameraWidget> {
       newMode = FlashMode.off;
     }
 
-    try {
-      await _controller!.setFlashMode(newMode);
-      setState(() {
-        _flashMode = newMode;
-      });
-    } catch (e) {
-      debugPrint('Error switching flash mode: $e');
-    }
+    await _controller!.setFlashMode(newMode);
+    setState(() {
+      _flashMode = newMode;
+    });
   }
 
   IconData _getFlashIcon() {
@@ -195,7 +188,6 @@ class _CameraWidgetState extends State<CameraWidget> {
         });
       }
     } catch (e) {
-      debugPrint('Error taking photo: $e');
       if (mounted) {
         setState(() {
           _isTakingPicture = false;

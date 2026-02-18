@@ -6,7 +6,7 @@ import 'package:evercrypted/core/entities/profile/profile_model.dart';
 import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
@@ -38,7 +38,6 @@ class AppleIAPService {
   Future<void> initialize() async {
     _available = await _iap.isAvailable();
     if (!_available) {
-      debugPrint('AppleIAPService: Store not available');
       return;
     }
 
@@ -46,8 +45,6 @@ class AppleIAPService {
     _subscription = _iap.purchaseStream.listen(
       _handlePurchaseUpdates,
       onDone: () => _subscription?.cancel(),
-      onError: (error) =>
-          debugPrint('AppleIAPService: Purchase stream error: $error'),
     );
 
     // Load products
@@ -68,19 +65,12 @@ class AppleIAPService {
     if (!_available) return;
 
     final response = await _iap.queryProductDetails(_productIds);
-    if (response.notFoundIDs.isNotEmpty) {
-      debugPrint(
-          'AppleIAPService: Products not found: ${response.notFoundIDs}');
-    }
     _products = response.productDetails;
-    debugPrint('AppleIAPService: Loaded ${_products.length} products');
   }
 
   /// Purchase the monthly subscription
   Future<bool> purchaseSubscription() async {
     if (!_available || _products.isEmpty) {
-      debugPrint(
-          'AppleIAPService: Cannot purchase - store not available or no products');
       return false;
     }
 
@@ -97,8 +87,6 @@ class AppleIAPService {
         if (product is AppStoreProductDetails) {
           purchaseParam = AppStorePurchaseParam(productDetails: product);
         } else {
-          debugPrint(
-              'AppleIAPService: Product is not AppStoreProductDetails on iOS');
           purchaseParam = PurchaseParam(productDetails: product);
         }
       } else {
@@ -107,7 +95,6 @@ class AppleIAPService {
 
       return await _iap.buyNonConsumable(purchaseParam: purchaseParam);
     } catch (e) {
-      debugPrint('AppleIAPService: Purchase error: $e');
       return false;
     }
   }
@@ -127,7 +114,6 @@ class AppleIAPService {
       final result = await _restoreCompleter!.future.timeout(
         const Duration(seconds: 5),
         onTimeout: () {
-          debugPrint('AppleIAPService: Restore timed out, no purchases found');
           return false;
         },
       );
@@ -144,9 +130,6 @@ class AppleIAPService {
     bool foundRestored = false;
 
     for (final purchase in purchases) {
-      debugPrint(
-          'AppleIAPService: Purchase update - ${purchase.productID}: ${purchase.status}');
-
       switch (purchase.status) {
         case PurchaseStatus.pending:
           // Show pending UI if needed
@@ -162,11 +145,9 @@ class AppleIAPService {
           break;
 
         case PurchaseStatus.error:
-          debugPrint('AppleIAPService: Purchase error: ${purchase.error}');
           break;
 
         case PurchaseStatus.canceled:
-          debugPrint('AppleIAPService: Purchase canceled');
           break;
       }
 
@@ -193,45 +174,36 @@ class AppleIAPService {
 
   /// Verify purchase with server and activate subscription
   Future<void> _verifyAndActivatePurchase(PurchaseDetails purchase) async {
-    try {
-      // Get the original transaction ID for iOS
-      String? originalTransactionId;
-      if (Platform.isIOS && purchase is AppStorePurchaseDetails) {
-        originalTransactionId = purchase.skPaymentTransaction
-                .originalTransaction?.transactionIdentifier ??
-            purchase.skPaymentTransaction.transactionIdentifier;
-      }
+    // Get the original transaction ID for iOS
+    String? originalTransactionId;
+    if (Platform.isIOS && purchase is AppStorePurchaseDetails) {
+      originalTransactionId = purchase.skPaymentTransaction.originalTransaction
+              ?.transactionIdentifier ??
+          purchase.skPaymentTransaction.transactionIdentifier;
+    }
 
-      // Send verification request to server
-      final response = await AppHttpClient.message(
-        channel: SocketChannelTypes.payment,
-        type: 'verifyApplePurchase',
-        payload: {
-          'productId': purchase.productID,
-          'transactionId': purchase.purchaseID,
-          'originalTransactionId': originalTransactionId,
-          'verificationData': purchase.verificationData.serverVerificationData,
-        },
-      );
+    // Send verification request to server
+    final response = await AppHttpClient.message(
+      channel: SocketChannelTypes.payment,
+      type: 'verifyApplePurchase',
+      payload: {
+        'productId': purchase.productID,
+        'transactionId': purchase.purchaseID,
+        'originalTransactionId': originalTransactionId,
+        'verificationData': purchase.verificationData.serverVerificationData,
+      },
+    );
 
-      if (response['success'] == true && response['subscription'] != null) {
-        // Update local profile with subscription
-        final profileService = ProfileService();
-        final profile = profileService.getProfile();
-        if (profile != null) {
-          final updatedProfile = profile.copyWith(
-            subscription:
-                ProfileSubscription.fromJson(response['subscription']),
-          );
-          Auth.setAuth(profile: updatedProfile);
-        }
-        debugPrint('AppleIAPService: Subscription activated successfully');
-      } else {
-        debugPrint(
-            'AppleIAPService: Server verification failed: ${response['error']}');
+    if (response['success'] == true && response['subscription'] != null) {
+      // Update local profile with subscription
+      final profileService = ProfileService();
+      final profile = profileService.getProfile();
+      if (profile != null) {
+        final updatedProfile = profile.copyWith(
+          subscription: ProfileSubscription.fromJson(response['subscription']),
+        );
+        Auth.setAuth(profile: updatedProfile);
       }
-    } catch (e) {
-      debugPrint('AppleIAPService: Verification error: $e');
     }
   }
 

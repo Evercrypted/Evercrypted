@@ -7,7 +7,6 @@ import 'package:evercrypted/core/socket/event_types/settings_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
-import 'package:flutter/material.dart';
 
 /// Service for handling user blocking and content reporting
 class BlockService {
@@ -40,7 +39,6 @@ class BlockService {
       // Server returns { success: true, message: '...' } on success
       return response is Map && response['success'] == true;
     } catch (e) {
-      debugPrint('Error reporting content: $e');
       return false;
     }
   }
@@ -56,8 +54,6 @@ class BlockService {
         },
       );
 
-      debugPrint('BlockService.blockUser response: $response');
-
       if (response != null) {
         // Delete local contact with this user
         _deleteLocalContact(targetUserId);
@@ -70,17 +66,15 @@ class BlockService {
 
         // Update local profile with new blocked users list
         final blockedUsersData = response['blockedUsers'];
-        debugPrint(
-            'BlockService.blockUser blockedUsersData: $blockedUsersData');
+
         if (blockedUsersData != null) {
           _updateLocalBlockedUsers(blockedUsersData);
         }
-        debugPrint('User blocked successfully');
+
         return true;
       }
       return false;
     } catch (e) {
-      debugPrint('Error blocking user: $e');
       return false;
     }
   }
@@ -96,22 +90,18 @@ class BlockService {
         },
       );
 
-      debugPrint('BlockService.unblockUser response: $response');
-
       if (response != null) {
         // Update local profile with new blocked users list
         final blockedUsersData = response['blockedUsers'];
-        debugPrint(
-            'BlockService.unblockUser blockedUsersData: $blockedUsersData');
+
         if (blockedUsersData != null) {
           _updateLocalBlockedUsers(blockedUsersData);
         }
-        debugPrint('User unblocked successfully');
+
         return true;
       }
       return false;
     } catch (e) {
-      debugPrint('Error unblocking user: $e');
       return false;
     }
   }
@@ -127,52 +117,36 @@ class BlockService {
   /// Get the list of blocked users
   static List<BlockedUser> getBlockedUsers() {
     final profile = _profileService.getProfile();
-    debugPrint(
-        'BlockService.getBlockedUsers: profile=$profile, blockedUsers=${profile?.blockedUsers}');
+
     return profile?.blockedUsers ?? [];
   }
 
   /// Delete local contact by user ID
   static void _deleteLocalContact(String targetUserId) {
-    try {
-      final query = ObxInit.obx.contacts
-          .query(Contact_.contactPersonUid.equals(targetUserId))
-          .build();
-      final contact = query.findFirst();
-      query.close();
+    final query = ObxInit.obx.contacts
+        .query(Contact_.contactPersonUid.equals(targetUserId))
+        .build();
+    final contact = query.findFirst();
+    query.close();
 
-      if (contact != null) {
-        ObxInit.obx.contacts.remove(contact.id);
-        debugPrint(
-            'BlockService: Deleted local contact for user $targetUserId');
-      }
-    } catch (e) {
-      debugPrint('Error deleting local contact: $e');
+    if (contact != null) {
+      ObxInit.obx.contacts.remove(contact.id);
     }
   }
 
   /// Update local blocked users list from server response
   static void _updateLocalBlockedUsers(List<dynamic> blockedUsersData) {
-    try {
-      final blockedUsers = blockedUsersData
-          .map((e) => BlockedUser.fromJson(e as Map<String, dynamic>))
-          .toList();
+    final blockedUsers = blockedUsersData
+        .map((e) => BlockedUser.fromJson(e as Map<String, dynamic>))
+        .toList();
 
-      debugPrint(
-          'BlockService._updateLocalBlockedUsers: parsed ${blockedUsers.length} blocked users');
-
-      final profile = _profileService.getProfile();
-      if (profile != null) {
-        final updatedProfile = profile.copyWith(blockedUsers: blockedUsers);
-        // Sync to local storage and update in-memory state
-        _profileService.syncProfile(updatedProfile);
-        // Also update Auth to reflect changes immediately
-        Auth.setAuth(profile: updatedProfile);
-        debugPrint(
-            'BlockService: Updated profile with ${blockedUsers.length} blocked users');
-      }
-    } catch (e) {
-      debugPrint('Error updating local blocked users: $e');
+    final profile = _profileService.getProfile();
+    if (profile != null) {
+      final updatedProfile = profile.copyWith(blockedUsers: blockedUsers);
+      // Sync to local storage and update in-memory state
+      _profileService.syncProfile(updatedProfile);
+      // Also update Auth to reflect changes immediately
+      Auth.setAuth(profile: updatedProfile);
     }
   }
 }

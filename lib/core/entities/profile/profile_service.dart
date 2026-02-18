@@ -3,7 +3,6 @@ import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/socket/event_types/profile_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/core/obx_init.dart';
-import 'package:flutter/widgets.dart';
 
 import 'profile_model.dart';
 
@@ -53,7 +52,6 @@ class ProfileService {
       );
     } catch (e) {
       // Handle error if needed - could add logging or retry logic
-      debugPrint('Failed to update account settings on server: $e');
     }
   }
 
@@ -61,25 +59,22 @@ class ProfileService {
     String? name,
     Map<String, dynamic>? avatar,
   }) async {
-    try {
-      final payload = <String, dynamic>{};
-      if (name != null) payload['name'] = name;
-      if (avatar != null) payload['avatar'] = avatar;
+    final payload = <String, dynamic>{};
+    if (name != null) payload['name'] = name;
+    if (avatar != null) payload['avatar'] = avatar;
 
-      final resp = await AppHttpClient.message(
-        channel: SocketChannelTypes.profile,
-        type: ProfileEventTypes.updateProfile,
-        payload: payload,
-      );
+    final resp = await AppHttpClient.message(
+      channel: SocketChannelTypes.profile,
+      type: ProfileEventTypes.updateProfile,
+      payload: payload,
+    );
 
-      if (resp['profile'] != null) {
-        final profile = Profile.fromJson(resp['profile']);
-        Auth.setAuth(profile: profile);
-        return profile;
-      }
-    } catch (e) {
-      debugPrint('Failed to update profile on server: $e');
+    if (resp['profile'] != null) {
+      final profile = Profile.fromJson(resp['profile']);
+      Auth.setAuth(profile: profile);
+      return profile;
     }
+
     return null;
   }
 }

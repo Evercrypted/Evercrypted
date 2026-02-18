@@ -5,7 +5,6 @@ import 'package:evercrypted/core/cryptography/base_key.dart';
 import 'package:evercrypted/core/cryptography/payload.dart';
 import 'package:evercrypted/core/entities/message/message_model.dart';
 import 'package:evercrypted/core/entities/message/message_service.dart';
-import 'package:flutter/foundation.dart';
 
 class GroupKeyExchange {
   /// Buffer for key requests that arrive before the group key is stored locally.
@@ -27,8 +26,6 @@ class GroupKeyExchange {
     // Check if we already have a group key to avoid creating duplicates
     final existingKeys = await BaseKey.getKeys(groupChatId);
     if (existingKeys?.baseKey != null) {
-      debugPrint(
-          'GroupKeyExchange: [CREATOR] Already have group key for chat $groupChatId: ${existingKeys!.baseKey!.substring(0, 8)}... - skipping creation');
       return;
     }
 
@@ -42,9 +39,6 @@ class GroupKeyExchange {
       isInitiator: true,
     );
 
-    debugPrint(
-        'GroupKeyExchange: [CREATOR] Created and stored group key for chat $groupChatId: ${groupKey.substring(0, 8)}... (userId: ${Auth.user?.uid})');
-
     // Process any key requests that arrived before the key was stored
     await _processPendingKeyRequests(groupChatId);
   }
@@ -54,8 +48,6 @@ class GroupKeyExchange {
     final pending = _pendingKeyRequests.remove(groupChatId);
     if (pending == null || pending.isEmpty) return;
 
-    debugPrint(
-        'GroupKeyExchange: Processing ${pending.length} buffered key request(s) for chat $groupChatId');
     for (final request in pending) {
       await handleGroupKeyRequest(request);
     }
@@ -68,18 +60,14 @@ class GroupKeyExchange {
     final existingKeys = await BaseKey.getKeys(chatId);
     if (existingKeys?.baseKey != null) {
       // Already have key
-      debugPrint(
-          'GroupKeyExchange.ensureGroupKey: Already have key for chat $chatId: ${existingKeys!.baseKey!.substring(0, 8)}... (userId: ${Auth.user?.uid})');
+
       return;
     }
 
     // Don't have key - request it from other members
-    debugPrint(
-        'GroupKeyExchange.ensureGroupKey: No key found for chat $chatId - requesting from other members (userId: ${Auth.user?.uid})');
+
     final existingRequestKey = await BaseKey.getKeys('${chatId}_key_request');
     if (existingRequestKey?.private != null) {
-      debugPrint(
-          'GroupKeyExchange.ensureGroupKey: Already have request key for chat $chatId - skipping request');
       return;
     }
     requestGroupKey(chatId);
@@ -108,7 +96,6 @@ class GroupKeyExchange {
     );
 
     await MessageService().sendGroupKeyRequest(requestMessage);
-    debugPrint('GroupKeyExchange: Requested group key for chat $groupChatId');
   }
 
   /// Handle incoming group key request - respond if we have the group key
@@ -131,15 +118,13 @@ class GroupKeyExchange {
       // createAndDistributeGroupKey has finished storing the key.
       _pendingKeyRequests.putIfAbsent(groupChatId, () => []);
       _pendingKeyRequests[groupChatId]!.add(requestMessage);
-      debugPrint(
-          'GroupKeyExchange: No group key yet for chat $groupChatId - buffering request from $requesterId');
+
       return;
     }
 
     // I can help! Use Alice's public key to encrypt group key
     final encapResult = await BaseKey.encapsulate(requesterPublicKey!);
     if (encapResult == null) {
-      debugPrint('GroupKeyExchange: Failed to encapsulate group key');
       return;
     }
 
@@ -165,76 +150,49 @@ class GroupKeyExchange {
     );
 
     await MessageService().sendGroupKeyRequest(responseMessage);
-    debugPrint(
-        'GroupKeyExchange: [RESPONDER] Sent group key response to $requesterId for chat $groupChatId: ${myKeys.baseKey!.substring(0, 8)}...');
   }
 
   /// Process group key response - extract and store group key if we requested it
   static Future<void> processGroupKeyResponse(Message responseMessage) async {
-    try {
-      debugPrint(
-          'GroupKeyExchange: [RECEIVER] Processing group key response for chat ${responseMessage.text}');
-      final responseData = json.decode(responseMessage.text ?? '');
-      final bobCiphertext = responseData['ciphertext'];
-      final encryptedGroupKey = responseData['encryptedGroupKey'];
-      final responderId = responseData['responderId'];
-      final groupChatId = responseMessage.chatUid;
+    final responseData = json.decode(responseMessage.text ?? '');
+    final bobCiphertext = responseData['ciphertext'];
+    final encryptedGroupKey = responseData['encryptedGroupKey'];
 
-      debugPrint(
-          'GroupKeyExchange: [RECEIVER] Processing group key response for chat $groupChatId');
-      debugPrint(
-          'GroupKeyExchange: [RECEIVER] Response ciphertext: $bobCiphertext');
-      debugPrint(
-          'GroupKeyExchange: [RECEIVER] Response encrypted group key: $encryptedGroupKey');
-      debugPrint(
-          'GroupKeyExchange: [RECEIVER] Response responder id: $responderId');
-      debugPrint(
-          'GroupKeyExchange: [RECEIVER] Response group chat id: $groupChatId');
+    final groupChatId = responseMessage.chatUid;
 
-      // Check if we already have the group key (avoid duplicate processing)
-      final existingKeys = await BaseKey.getKeys(groupChatId);
-      if (existingKeys?.baseKey != null) {
-        debugPrint(
-            'GroupKeyExchange: Already have group key for chat $groupChatId - ignoring response from $responderId');
-        return;
-      }
+    // Check if we already have the group key (avoid duplicate processing)
+    final existingKeys = await BaseKey.getKeys(groupChatId);
+    if (existingKeys?.baseKey != null) {
+      return;
+    }
 
-      // Check if this response is for my request
-      final myPrivateKey = await BaseKey.getKeys('${groupChatId}_key_request');
-      if (myPrivateKey?.private == null) {
-        // This response is not for me (I didn't request a key for this group)
-        return;
-      }
+    // Check if this response is for my request
+    final myPrivateKey = await BaseKey.getKeys('${groupChatId}_key_request');
+    if (myPrivateKey?.private == null) {
+      // This response is not for me (I didn't request a key for this group)
+      return;
+    }
 
-      // Decapsulate using my private key and Bob's ciphertext
-      final sharedSecret =
-          await BaseKey.decapsulate(myPrivateKey!.private!, bobCiphertext);
+    // Decapsulate using my private key and Bob's ciphertext
+    final sharedSecret =
+        await BaseKey.decapsulate(myPrivateKey!.private!, bobCiphertext);
 
-      if (sharedSecret != null) {
-        // Decrypt the group key
-        final groupKey = await decodePayload(encryptedGroupKey['crypted'],
-            encryptedGroupKey['iv'], sharedSecret, true);
+    if (sharedSecret != null) {
+      // Decrypt the group key
+      final groupKey = await decodePayload(encryptedGroupKey['crypted'],
+          encryptedGroupKey['iv'], sharedSecret, true);
 
-        // Store the group key!
-        await BaseKey.setKeys(
-          chatUid: groupChatId,
-          baseKey: groupKey,
-          isInitiator: false,
-        );
+      // Store the group key!
+      await BaseKey.setKeys(
+        chatUid: groupChatId,
+        baseKey: groupKey,
+        isInitiator: false,
+      );
 
-        // Clean up request key
-        await BaseKey.storage.delete(key: 'keys-${groupChatId}_key_request');
+      // Clean up request key
+      await BaseKey.storage.delete(key: 'keys-${groupChatId}_key_request');
 
-        debugPrint(
-            'GroupKeyExchange: [RECEIVER] Successfully received group key from $responderId for chat $groupChatId: ${groupKey.substring(0, 8)}... (userId: ${Auth.user?.uid})');
-
-        // Process any queued messages will be handled automatically by BaseKey.setKeys
-      } else {
-        debugPrint(
-            'GroupKeyExchange: Failed to decapsulate group key from $responderId');
-      }
-    } catch (e) {
-      debugPrint('GroupKeyExchange: Error processing response: $e');
+      // Process any queued messages will be handled automatically by BaseKey.setKeys
     }
   }
 }

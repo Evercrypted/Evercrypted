@@ -7,7 +7,7 @@ import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
 import 'package:evercrypted/core/offline/action_queue/allowed_for_queue.dart';
 import 'package:evercrypted/core/socket/socket.dart';
 import 'package:evercrypted/core/obx_init.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:rhttp/rhttp.dart';
 
 class AppHttpClient {
@@ -34,7 +34,6 @@ class AppHttpClient {
 
   static initialize() async {
     final baseUrl = _getBaseUrl();
-    debugPrint('AppHttpClient: Initializing with baseUrl: $baseUrl');
 
     client = await RhttpClient.create(
         settings: ClientSettings(
@@ -93,19 +92,11 @@ class AppHttpClient {
         interceptors: interceptorsList,
       );
 
-      debugPrint('AppHttpClient: Successfully initialized with auth headers');
-
       // Dispose old client after delay to allow in-flight requests to complete
       Future.delayed(const Duration(seconds: 3), () {
-        try {
-          oldClient.dispose();
-          debugPrint('AppHttpClient: Old client disposed successfully');
-        } catch (e) {
-          debugPrint('AppHttpClient: Error disposing old client: $e');
-        }
+        oldClient.dispose();
       });
     } catch (e) {
-      debugPrint('AppHttpClient: Error creating client with auth: $e');
       throw Exception('Failed to create HTTP client: $e');
     }
   }
@@ -181,8 +172,6 @@ class AppHttpClient {
           ChatSocket.key,
           true,
         );
-
-        debugPrint(decodedPayload.toString());
 
         if (decodedPayload['error'] != null) {
           respCompleter.completeError(decodedPayload['error']);

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:evercrypted/core/auth.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:evercrypted/core/entities/chat/chat_model.dart';
 import 'package:evercrypted/core/http.dart';
 import 'package:evercrypted/core/offline/action_queue/action_queue_model.dart';
@@ -59,15 +59,14 @@ class MessageService {
     return result;
   }
 
-  Future<Message> sendMessage(
-      dynamic message, String chatUid, bool withBaseKey, {int? queueId}) async {
+  Future<Message> sendMessage(dynamic message, String chatUid, bool withBaseKey,
+      {int? queueId}) async {
     Message messageToSend;
 
     // Check if we're updating an existing optimistic message
     if (queueId != null) {
-      final optimisticQuery = ObxInit.obx.messages
-          .query(Message_.queueId.equals(queueId))
-          .build();
+      final optimisticQuery =
+          ObxInit.obx.messages.query(Message_.queueId.equals(queueId)).build();
       final existingMessage = optimisticQuery.findFirst();
       optimisticQuery.close();
 
@@ -256,24 +255,12 @@ class MessageService {
             results[filePath] = true; // File doesn't exist = success
           }
         } catch (error) {
-          debugPrint('Failed to delete file $filePath: $error');
           results[filePath] = false;
         }
       }).toList();
 
       // Wait for current batch to complete before processing next batch
       await Future.wait(deletionFutures);
-    }
-
-    final successCount = results.values.where((success) => success).length;
-    final failCount = results.length - successCount;
-
-    if (failCount > 0) {
-      debugPrint(
-          'Batch file deletion completed: $successCount succeeded, $failCount failed');
-    } else {
-      debugPrint(
-          'Batch file deletion completed: all $successCount files deleted successfully');
     }
 
     return results;
@@ -365,8 +352,9 @@ class MessageService {
               payload: decoded)
           .then((resp) async {
         // Check if a message with this messageUid already exists
-        final existingQuery =
-            ObxInit.obx.messages.query(Message_.uid.equals(resp['messageUid'])).build();
+        final existingQuery = ObxInit.obx.messages
+            .query(Message_.uid.equals(resp['messageUid']))
+            .build();
         final existingMessage = existingQuery.findFirst();
         existingQuery.close();
 
@@ -375,8 +363,6 @@ class MessageService {
           final msgIdToRemove = msg.id;
           ObxInit.obx.messages.remove(msgIdToRemove);
           deleteFile(queueId: queueId!);
-          debugPrint(
-              'MessageService: Message with uid ${resp['messageUid']} already exists, removed queued duplicate');
         } else {
           // Update the queued message with server response
           msg.uid = resp['messageUid'];
@@ -405,9 +391,6 @@ class MessageService {
         });
       });
     } else {
-      debugPrint('DEBUG: Sending file: $file');
-      debugPrint('DEBUG: message: ${message?.toJson()}');
-
       if (message == null) {
         complete.completeError('Message is null');
         return complete.future;
@@ -434,20 +417,22 @@ class MessageService {
           final existingMessage = existingQuery.findFirst();
           existingQuery.close();
 
-          if (existingMessage != null && existingMessage.id != messageToSend.id) {
+          if (existingMessage != null &&
+              existingMessage.id != messageToSend.id) {
             // A message with this UID already exists, remove this duplicate
             final msgIdToRemove = messageToSend.id;
             ObxInit.obx.messages.remove(msgIdToRemove);
-            debugPrint(
-                'MessageService: Message with uid ${resp['messageUid']} already exists, removed duplicate');
           } else {
             // Update the message with server response
             messageToSend.uid = resp['messageUid'];
             messageToSend.uniqueId = messageToSend.chatUid + resp['messageUid'];
             messageToSend.successfullySent = true;
-            messageToSend.queueId = null; // Clear queueId when successfully sent
+            messageToSend.queueId =
+                null; // Clear queueId when successfully sent
             messageToSend.filepath = await saveFile(
-                file: file, chatUid: messageToSend.chatUid, msgUid: messageToSend.uid);
+                file: file,
+                chatUid: messageToSend.chatUid,
+                msgUid: messageToSend.uid);
 
             // If updating optimistic message, use put; otherwise use writeNewMessageToObx
             if (optimisticMessageQueueId != null && messageToSend.id > 0) {
@@ -458,7 +443,8 @@ class MessageService {
             } else {
               writeNewMessageToObx(messageToSend).then((value) {
                 // Emit status update for UI to react
-                ActionQueueService.messageStatusUpdatesSubject.add(messageToSend);
+                ActionQueueService.messageStatusUpdatesSubject
+                    .add(messageToSend);
                 complete.complete(messageToSend);
               });
             }
@@ -486,9 +472,10 @@ class MessageService {
         messageToSend.queueId = saveToQueueIfNeeded['queuedItemId'];
         messageToSend.uid = DateTime.now().millisecondsSinceEpoch.toString() +
             saveToQueueIfNeeded['queuedItemId'].toString();
-        messageToSend.uniqueId = DateTime.now().millisecondsSinceEpoch.toString() +
-            messageToSend.chatUid +
-            saveToQueueIfNeeded['queuedItemId'].toString();
+        messageToSend.uniqueId =
+            DateTime.now().millisecondsSinceEpoch.toString() +
+                messageToSend.chatUid +
+                saveToQueueIfNeeded['queuedItemId'].toString();
         writeNewMessageToObx(messageToSend).then((value) {
           complete.complete(messageToSend);
         });
@@ -548,12 +535,11 @@ class MessageService {
     existingByUniqueIdQuery?.close();
 
     if (existingByUid != null || existingByUniqueId != null) {
-      debugPrint(
-          'MessageService: Message with uid ${message.uid} or uniqueId ${message.uniqueId} already exists, skipping duplicate');
       return;
     }
 
-    final query = ObxInit.obx.chats.query(Chat_.uid.equals(message.chatUid)).build();
+    final query =
+        ObxInit.obx.chats.query(Chat_.uid.equals(message.chatUid)).build();
     final Chat? chat = query.findFirst();
     query.close();
 
@@ -565,7 +551,8 @@ class MessageService {
   }
 
   Future<void> deleteAllMessages(String chatUid) async {
-    final query = ObxInit.obx.messages.query(Message_.chatUid.equals(chatUid)).build();
+    final query =
+        ObxInit.obx.messages.query(Message_.chatUid.equals(chatUid)).build();
     final messages = query.find();
 
     if (messages.isEmpty) {
@@ -579,7 +566,6 @@ class MessageService {
     // Fire-and-forget file deletion - don't wait for completion
     if (filePaths.isNotEmpty) {
       deleteFiles(filePaths).catchError((error) {
-        debugPrint('Background file deletion failed for chat $chatUid: $error');
         return <String, bool>{}; // Return empty map on error
       });
     }

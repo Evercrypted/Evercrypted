@@ -1,5 +1,4 @@
 import 'package:app_links/app_links.dart';
-import 'package:flutter/material.dart';
 
 class AppLinkService {
   static const String host = 'evercrypted.com';
@@ -39,7 +38,6 @@ class AppLinkService {
     try {
       return await _appLinks.getInitialLink();
     } catch (e) {
-      debugPrint('AppLinkService: Error getting initial link: $e');
       return null;
     }
   }

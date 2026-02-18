@@ -119,7 +119,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         final index = obxAddedMessages
             .indexWhere((m) => m.message.id == updatedMessage.id);
         if (index != -1) {
-          debugPrint('found message ${updatedMessage.id} in obxAddedMessages');
           obxAddedMessages[index] = MessageObject(
               message: updatedMessage,
               chatMessage: prepareMessage(updatedMessage));
@@ -139,8 +138,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
           _pagingState = _pagingState.copyWith(pages: updatedPages);
         }
       });
-      debugPrint(
-          'MessagesScreen: Updated message ${updatedMessage.id} status in UI');
     });
 
     chat = widget.chat;
@@ -149,8 +146,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     basekeyListener = BaseKey.baseKeySubject.stream.listen((chatUid) {
       if (chatUid == chat.uid) {
-        debugPrint(
-            'MessagesScreen.basekeyListener: Base key changed for chat ${chat.uid}');
         setBaseKey();
       }
     });
@@ -162,7 +157,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
         setState(() {
           chat = chatOrNull!;
         });
-        debugPrint('MessagesScreen.build: Chat updated: ${chat.uid}');
+
         setBaseKey();
       } else {
         if (mounted) {
@@ -217,14 +212,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
   Future<String?> setBaseKey() async {
     final completer = Completer<String?>();
     BaseKey.getKeys(chat.uid).then((keys) async {
-      debugPrint(
-          'MessagesScreen.setBaseKey: Retrieved keys for chat ${chat.uid} (isOneToOne: ${chat.isOneToOne})');
-      debugPrint(
-          'MessagesScreen.setBaseKey: baseKey: ${keys?.baseKey?.substring(0, 8) ?? 'null'}... (userId: ${Auth.user?.uid})');
-
       if (keys?.baseKey == null) {
-        debugPrint(
-            'MessagesScreen.setBaseKey: No baseKey found, calling ensureGroupKey');
         await GroupKeyExchange.ensureGroupKey(chat.uid, chat.isOneToOne);
       } else {
         setState(() {
@@ -574,7 +562,6 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
               );
             } catch (e) {
               // Log error but continue with local deletion
-              debugPrint('Failed to delete message from server: $e');
             }
           }
 
@@ -662,8 +649,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   Widget _buildChatTitle(List<Contact> contacts, profile) {
     if (chat.isOneToOne) {
-      final otherParticipant = chat.participants
-          .firstWhereOrNull((p) => p.uid != Auth.user?.uid);
+      final otherParticipant =
+          chat.participants.firstWhereOrNull((p) => p.uid != Auth.user?.uid);
       final contact = otherParticipant != null
           ? contacts.firstWhereOrNull(
               (c) => c.contactPersonUid == otherParticipant.uid)
