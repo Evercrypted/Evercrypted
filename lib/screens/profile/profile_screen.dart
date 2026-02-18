@@ -400,7 +400,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
               title: Text(
-                profile!.name!.isNotEmpty
+                profile!.name?.isNotEmpty ?? false
                     ? profile.name!
                     : (profile.email?.split('@')[0] ?? ''),
                 style: TextStyle(

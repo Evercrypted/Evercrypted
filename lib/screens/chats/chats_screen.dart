@@ -10,6 +10,8 @@ import 'package:evercrypted/screens/messages/messages_screen.dart';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/search_header.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'components/chat_list.dart';
@@ -30,6 +32,8 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   NewGroupChatDTO? newGroupChatDTO;
 
+  StreamSubscription<bool>? _authSubscription;
+
   void _onSearchChanged() {
     setState(() {
       searchValue = _searchController.text;
@@ -42,6 +46,10 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
     _searchController.addListener(_onSearchChanged);
 
+    _authSubscription = Auth.authSubject.listen((_) {
+      if (mounted) setState(() {});
+    });
+
     // Set navigation state to chats when this screen is active
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(navigationProvider.notifier).navigateToChats();
@@ -50,6 +58,7 @@ class ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();

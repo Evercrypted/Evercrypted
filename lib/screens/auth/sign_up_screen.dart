@@ -47,7 +47,7 @@ class SignUpScreenState extends ConsumerState<SignUpScreen> {
   final AuthService _authService = AuthService();
   final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
 
-  scrollToBottom() {
+  void scrollToBottom() {
     if (shouldShowKeyboard.value) {
       Future.delayed(const Duration(milliseconds: 100), () {
         final context = _emailFieldKey.currentContext;

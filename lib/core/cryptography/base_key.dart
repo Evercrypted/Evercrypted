@@ -174,7 +174,6 @@ class BaseKey {
   static Future<void> _processQueuedMessagesForChat(
       String chatUid, List<ActionQueue> actions) async {
     final messageService = MessageService();
-    int processedCount = 0;
 
     for (final action in actions) {
       final payload = jsonDecode(action.payload);
@@ -279,7 +278,6 @@ class BaseKey {
 
           // Remove from queue
           ObxInit.obx.actionQueues.remove(action.id);
-          processedCount++;
         }
       }
     }

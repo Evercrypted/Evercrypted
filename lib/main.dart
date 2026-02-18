@@ -379,45 +379,43 @@ class AuthGateState extends ConsumerState<AuthGate>
 
     String? fcmToken;
 
-    try {
-      if (Platform.isIOS) {
-        // For iOS SDK 10.4.0+, wait for APNS token before making FCM API calls
-        String? apnsToken;
-        for (int attempt = 1; attempt <= 5 && apnsToken == null; attempt++) {
-          apnsToken = await messaging.getAPNSToken();
-          if (apnsToken != null) {
-            break;
-          }
-          await Future.delayed(Duration(seconds: attempt * 2));
-        }
-
+    if (Platform.isIOS) {
+      // For iOS SDK 10.4.0+, wait for APNS token before making FCM API calls
+      String? apnsToken;
+      for (int attempt = 1; attempt <= 5 && apnsToken == null; attempt++) {
+        apnsToken = await messaging.getAPNSToken();
         if (apnsToken != null) {
-          // APNS token is available, safe to make FCM API calls
-          fcmToken = await messaging.getToken();
-        } else {}
-      } else {
-        // Android - get FCM token directly
+          break;
+        }
+        await Future.delayed(Duration(seconds: attempt * 2));
+      }
+
+      if (apnsToken != null) {
+        // APNS token is available, safe to make FCM API calls
         fcmToken = await messaging.getToken();
-      }
+      } else {}
+    } else {
+      // Android - get FCM token directly
+      fcmToken = await messaging.getToken();
+    }
 
-      // Store FCM token in Auth for later use
-      if (fcmToken != null) {
-        await Auth.setFcmToken(newFcmToken: fcmToken);
-      }
+    // Store FCM token in Auth for later use
+    if (fcmToken != null) {
+      await Auth.setFcmToken(newFcmToken: fcmToken);
+    }
 
-      // Send token to server if we have one and are connected
-      if (fcmToken != null &&
-          ChatSocket.key != null &&
-          ChatSocket.isConnected == true) {
-        AppHttpClient.message(
-          channel: SocketChannelTypes.general,
-          type: GeneralEventTypes.updateFcmToken,
-          payload: {
-            'fcmToken': fcmToken,
-          },
-        );
-      }
-    } catch (e) {}
+    // Send token to server if we have one and are connected
+    if (fcmToken != null &&
+        ChatSocket.key != null &&
+        ChatSocket.isConnected == true) {
+      AppHttpClient.message(
+        channel: SocketChannelTypes.general,
+        type: GeneralEventTypes.updateFcmToken,
+        payload: {
+          'fcmToken': fcmToken,
+        },
+      );
+    }
   }
 
   void _setupFcmTokenListener() {
@@ -575,8 +573,7 @@ class AuthGateState extends ConsumerState<AuthGate>
         settings: initializationSettings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
 
-    final NotificationAppLaunchDetails? notificationAppLaunchDetails =
-        await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
   }
 
   void _syncIsarToRiverpod() async {
