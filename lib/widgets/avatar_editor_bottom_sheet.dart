@@ -1,6 +1,10 @@
+import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_text_controller.dart';
+import 'package:evercrypted/main.dart';
+import 'package:evercrypted/widgets/evercrypted_text_field.dart';
 import 'package:evercrypted/widgets/material_icon_registry.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Result returned by the avatar editor when the user saves.
 class AvatarEditResult {
@@ -12,7 +16,7 @@ class AvatarEditResult {
 }
 
 /// A reusable bottom sheet for editing avatar (color + icon) and optionally a name.
-class AvatarEditorBottomSheet extends StatefulWidget {
+class AvatarEditorBottomSheet extends ConsumerStatefulWidget {
   /// If true, shows a name text field.
   final bool showNameField;
 
@@ -38,7 +42,7 @@ class AvatarEditorBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<AvatarEditorBottomSheet> createState() =>
+  ConsumerState<AvatarEditorBottomSheet> createState() =>
       _AvatarEditorBottomSheetState();
 
   /// Convenience method to show the bottom sheet and return the result.
@@ -68,24 +72,44 @@ class AvatarEditorBottomSheet extends StatefulWidget {
   }
 }
 
-class _AvatarEditorBottomSheetState extends State<AvatarEditorBottomSheet> {
-  late TextEditingController _nameController;
-  late TextEditingController _iconSearchController;
+class _AvatarEditorBottomSheetState
+    extends ConsumerState<AvatarEditorBottomSheet> {
+  late EvercryptedTextController _nameController;
+  late EvercryptedTextController _iconSearchController;
   late Color _selectedColor;
   int? _selectedIconCodePoint;
   Map<String, IconData> _filteredIcons = MaterialIconRegistry.icons;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialName ?? '');
-    _iconSearchController = TextEditingController();
+    _nameController =
+        EvercryptedTextController(initialText: widget.initialName ?? '');
+    _iconSearchController = EvercryptedTextController();
     _selectedColor = widget.initialColor ?? Colors.blueGrey;
     _selectedIconCodePoint = widget.initialIconCodePoint;
+    shouldShowKeyboard.addListener(_onKeyboardVisibilityChanged);
+  }
+
+  void _onKeyboardVisibilityChanged() {
+    if (shouldShowKeyboard.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
+    shouldShowKeyboard.removeListener(_onKeyboardVisibilityChanged);
+    _scrollController.dispose();
     _nameController.dispose();
     _iconSearchController.dispose();
     super.dispose();
@@ -153,15 +177,15 @@ class _AvatarEditorBottomSheetState extends State<AvatarEditorBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final iconEntries = _filteredIcons.entries.toList();
 
-    return Padding(
-      padding: EdgeInsets.only(
+    return SingleChildScrollView(
+      controller: _scrollController,
+      padding: const EdgeInsets.only(
         left: 20,
         right: 20,
         top: 16,
-        bottom: 16 + bottomInset,
+        bottom: 16,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -219,7 +243,7 @@ class _AvatarEditorBottomSheetState extends State<AvatarEditorBottomSheet> {
 
           // Name field (optional)
           if (widget.showNameField) ...[
-            TextField(
+            EvercryptedTextField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: widget.nameLabel,
@@ -233,7 +257,7 @@ class _AvatarEditorBottomSheetState extends State<AvatarEditorBottomSheet> {
           ],
 
           // Icon search field
-          TextField(
+          EvercryptedTextField(
             controller: _iconSearchController,
             decoration: InputDecoration(
               hintText: 'Search icons...',
@@ -368,7 +392,10 @@ class _AvatarEditorBottomSheetState extends State<AvatarEditorBottomSheet> {
                       ),
                     );
                   },
-                  child: const Text('Save'),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],

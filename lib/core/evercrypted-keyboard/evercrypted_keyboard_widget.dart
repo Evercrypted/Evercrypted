@@ -40,6 +40,8 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
 
   bool keyboardSelectOpen = false;
 
+  Offset? _panStartPosition;
+
   void loadAvailableKeyboards() async {
     final settings = SettingsService.getSettings();
     setState(() {
@@ -857,7 +859,31 @@ class EvercryptedKeyboardState extends ConsumerState<EvercryptedKeyboard> {
 
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: keyboardSelectOpen ? _keyboardSelect() : _keyboard(),
+      child: GestureDetector(
+        onPanStart: (details) {
+          _panStartPosition = details.globalPosition;
+        },
+        onPanEnd: (details) {
+          final start = _panStartPosition;
+          _panStartPosition = null;
+          if (start == null) return;
+
+          final screenWidth = MediaQuery.of(context).size.width;
+          final velocity = details.velocity.pixelsPerSecond;
+
+          final isSwipeDown =
+              velocity.dy > 300 && velocity.dy.abs() > velocity.dx.abs();
+          final edgeThreshold = screenWidth * 0.15;
+          final isFromLeftEdge = start.dx < edgeThreshold && velocity.dx > 300;
+          final isFromRightEdge =
+              start.dx > screenWidth - edgeThreshold && velocity.dx < -300;
+
+          if (isSwipeDown || isFromLeftEdge || isFromRightEdge) {
+            ref.read(keyboardProvider.notifier).close();
+          }
+        },
+        child: keyboardSelectOpen ? _keyboardSelect() : _keyboard(),
+      ),
     );
   }
 }
