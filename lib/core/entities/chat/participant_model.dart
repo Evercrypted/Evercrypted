@@ -26,7 +26,7 @@ class Participant {
   factory Participant.fromContact(Contact contact) => Participant(
         uid: contact.contactPersonUid,
         email: contact.email,
-        name: contact.name,
+        name: contact.displayName,
         avatar: contact.avatar,
       );
 

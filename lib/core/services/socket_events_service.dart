@@ -246,6 +246,41 @@ class SocketEventsService {
           }
         });
         break;
+      case ContactEventTypes.contactUpdated:
+        final updatedContact = Contact.fromJson(payload['contact']);
+        final existingContact = contactService.findContactByUid(updatedContact.uid!);
+        if (existingContact != null) {
+          // Update the existing contact with new data from server
+          // Note: We preserve customName - only update the actual profile data
+          existingContact.name = updatedContact.name;
+          existingContact.email = updatedContact.email;
+          existingContact.avatar = updatedContact.avatar;
+          // customName is NOT updated - it's a local preference
+          ObxInit.obx.contacts.put(existingContact);
+
+          // Also update participant info in all chats with this contact
+          final chats = ObxInit.obx.chats.getAll();
+          for (final chat in chats) {
+            bool updated = false;
+            final updatedParticipants = chat.participants.map((p) {
+              if (p.uid == updatedContact.contactPersonUid) {
+                updated = true;
+                return p.copyWith(
+                  name: updatedContact.name,
+                  email: updatedContact.email,
+                  avatar: updatedContact.avatar,
+                );
+              }
+              return p;
+            }).toList();
+
+            if (updated) {
+              chat.participants = updatedParticipants;
+              ObxInit.obx.chats.put(chat);
+            }
+          }
+        }
+        break;
       default:
         return;
     }

@@ -4,6 +4,7 @@ import 'package:evercrypted/core/socket/event_types/contact_event_types.dart';
 import 'package:evercrypted/core/socket/socket_channels.dart';
 import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
+import 'package:collection/collection.dart';
 
 import 'contact_model.dart';
 
@@ -53,27 +54,66 @@ class ContactService {
     if (contact == null) {
       return;
     } else {
-      contact.name = newName;
+      contact.customName = newName;
       ObxInit.obx.contacts.put(contact);
+
+      // Update participant name in all chats with this contact
+      final chats = ObxInit.obx.chats.getAll();
+      for (final chat in chats) {
+        bool updated = false;
+        final updatedParticipants = chat.participants.map((p) {
+          if (p.uid == contact.contactPersonUid) {
+            updated = true;
+            return p.copyWith(name: contact.displayName);
+          }
+          return p;
+        }).toList();
+
+        if (updated) {
+          chat.participants = updatedParticipants;
+          ObxInit.obx.chats.put(chat);
+        }
+      }
     }
   }
 
   void syncContacts(List<Contact> contacts) async {
     final List<Contact> contactsInDb = ObxInit.obx.contacts.getAll();
 
-    final List<Contact> contactsToPut = contacts
+    // Contacts to add (new contacts not in DB)
+    final List<Contact> contactsToAdd = contacts
         .where((element) =>
             contactsInDb.where((dbEl) => dbEl.uid == element.uid).isEmpty)
         .toList();
 
+    // Contacts to update (existing contacts with potentially new data)
+    final List<Contact> contactsToUpdate = [];
+    for (final serverContact in contacts) {
+      final existingContact = contactsInDb.firstWhereOrNull(
+        (dbContact) => dbContact.uid == serverContact.uid,
+      );
+      if (existingContact != null) {
+        // Update existing contact with fresh data from server
+        // Note: We preserve customName - only update the actual profile data
+        existingContact.name = serverContact.name;
+        existingContact.email = serverContact.email;
+        existingContact.avatar = serverContact.avatar;
+        existingContact.isFavorite = serverContact.isFavorite;
+        // customName is NOT updated - it's a local preference
+        contactsToUpdate.add(existingContact);
+      }
+    }
+
+    // Contacts to delete (in DB but not on server)
     final List<int> contactsToDelete = contactsInDb
         .where(
             (element) => contacts.where((el) => el.uid == element.uid).isEmpty)
         .map((e) => e.id)
         .toList();
 
+    // Apply all changes
     ObxInit.obx.contacts.removeMany(contactsToDelete);
-    ObxInit.obx.contacts.putMany(contactsToPut);
+    ObxInit.obx.contacts.putMany([...contactsToAdd, ...contactsToUpdate]);
   }
 
   toggleFavorite(String contactUid) async {

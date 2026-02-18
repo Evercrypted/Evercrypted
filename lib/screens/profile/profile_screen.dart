@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:evercrypted/core/auth.dart';
 import 'package:evercrypted/core/deep_link/app_link_service.dart';
 import 'package:evercrypted/core/entities/profile/profile_riverpod.dart';
+import 'package:evercrypted/core/entities/profile/profile_service.dart';
 import 'package:evercrypted/core/navigation/navigation_state.dart';
 import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/services/biometric_service.dart';
@@ -15,6 +16,7 @@ import 'package:evercrypted/screens/profile/otp_screen.dart';
 import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
 import 'package:evercrypted/screens/blocked_users/blocked_users_screen.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
+import 'package:evercrypted/widgets/avatar_editor_bottom_sheet.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
@@ -185,6 +187,35 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     return 'View your subscription status';
   }
 
+  void _openProfileAvatarEditor(dynamic profile) async {
+    final result = await AvatarEditorBottomSheet.show(
+      context,
+      showNameField: true,
+      nameLabel: 'Display Name',
+      initialName: profile?.name ?? '',
+      initialColor: profile?.avatar?.color != null
+          ? Color(int.parse(profile!.avatar!.color!))
+          : Colors.blueGrey,
+      initialIconCodePoint: profile?.avatar?.icon != null
+          ? int.tryParse(profile!.avatar!.icon!)
+          : null,
+    );
+
+    if (result != null) {
+      final avatarMap = <String, dynamic>{
+        'color': result.color?.value.toString(),
+        if (result.iconCodePoint != null)
+          'icon': result.iconCodePoint.toString(),
+      };
+
+      final profileService = ProfileService();
+      await profileService.updateProfileOnServer(
+        name: result.name,
+        avatar: avatarMap,
+      );
+    }
+  }
+
   Future<bool> colorPickerDialog() async {
     return ColorPicker(
       // Use the dialogPickerColor as start color.
@@ -334,10 +365,20 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 horizontal: 16,
                 vertical: 12,
               ),
-              leading: CircleAvatarWithActiveIndicator(
-                image: profile?.avatar?.pic,
-                name: profile?.name ?? profile?.email?.split('@')[0],
-                isActive: false,
+              leading: GestureDetector(
+                onTap: () => _openProfileAvatarEditor(profile),
+                child: CircleAvatarWithActiveIndicator(
+                  image: profile?.avatar?.pic,
+                  name: profile?.name ?? profile?.email?.split('@')[0],
+                  isActive: false,
+                  avatarColor: profile?.avatar?.color != null
+                      ? Color(int.parse(profile!.avatar!.color!))
+                      : null,
+                  avatarIcon: profile?.avatar?.icon != null
+                      ? IconData(int.parse(profile!.avatar!.icon!),
+                          fontFamily: 'MaterialIcons')
+                      : null,
+                ),
               ),
               title: Text(
                 profile?.name ?? profile?.email?.split('@')[0] ?? '',

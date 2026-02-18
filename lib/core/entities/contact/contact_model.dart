@@ -20,6 +20,9 @@ class Contact {
   @Transient()
   String? name;
 
+  @Transient()
+  String? customName;
+
   @Unique()
   final String? contactPersonUid;
 
@@ -76,11 +79,34 @@ class Contact {
     }
   }
 
+  String? get dbCustomName {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      return customName;
+    } else {
+      return encryptForDb(customName, appKey);
+    }
+  }
+
+  set dbCustomName(String? value) {
+    final String? appKey = Auth.appKey;
+    if (appKey == null) {
+      customName = value;
+      return;
+    } else {
+      customName = decryptForDb(value, appKey);
+    }
+  }
+
+  /// Display name: returns customName if set, otherwise returns the contact's actual name
+  String? get displayName => customName ?? name;
+
   Contact(
       {this.uid,
       this.email,
       this.avatar,
       this.name,
+      this.customName,
       this.contactPersonUid,
       this.isFavorite = false});
 
@@ -110,6 +136,7 @@ class Contact {
     String? uid,
     String? email,
     String? name,
+    String? customName,
     String? contactPersonUid,
     bool? isFavorite,
     Avatar? avatar,
@@ -119,6 +146,7 @@ class Contact {
       email: email ?? this.email,
       avatar: avatar ?? this.avatar,
       name: name ?? this.name,
+      customName: customName ?? this.customName,
       contactPersonUid: contactPersonUid ?? this.contactPersonUid,
       isFavorite: isFavorite ?? this.isFavorite,
     );

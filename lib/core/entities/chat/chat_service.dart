@@ -32,8 +32,7 @@ class ChatService {
 
     // Preserve existing ObjectBox ID to avoid unique constraint violation
     if (chat.id == 0) {
-      final query =
-          ObxInit.obx.chats.query(Chat_.uid.equals(chat.uid)).build();
+      final query = ObxInit.obx.chats.query(Chat_.uid.equals(chat.uid)).build();
       final existing = query.findFirst();
       query.close();
       if (existing != null) {
@@ -408,6 +407,29 @@ class ChatService {
     } else {
       return null;
     }
+  }
+
+  // ====== Update Chat (name/avatar) ======
+
+  Future<Chat> updateChat({
+    required String chatUid,
+    String? name,
+    Map<String, dynamic>? avatar,
+  }) async {
+    final payload = <String, dynamic>{'chatUid': chatUid};
+    if (name != null) payload['name'] = name;
+    if (avatar != null) {
+      payload['avatar'] = avatar;
+    }
+
+    final resp = await AppHttpClient.message(
+      channel: SocketChannelTypes.chat,
+      type: ChatEventTypes.updateChat,
+      payload: payload,
+    );
+    final Chat chat = Chat.fromJson(resp['chat']);
+    await updateChatFromResp(chat);
+    return chat;
   }
 
   // ====== Invite Link Methods ======

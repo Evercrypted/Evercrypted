@@ -56,6 +56,13 @@ class ChatCard extends ConsumerWidget {
               image: chat.avatar?.pic,
               radius: 28,
               name: chat.name ?? participantNames,
+              avatarColor: chat.avatar?.color != null
+                  ? Color(int.parse(chat.avatar!.color!))
+                  : null,
+              avatarIcon: chat.avatar?.icon != null
+                  ? IconData(int.parse(chat.avatar!.icon!),
+                      fontFamily: 'MaterialIcons')
+                  : null,
             ),
             Expanded(
               child: Padding(

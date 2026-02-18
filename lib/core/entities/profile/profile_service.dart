@@ -52,4 +52,28 @@ class ProfileService {
       debugPrint('Failed to update account settings on server: $e');
     }
   }
+
+  Future<void> updateProfileOnServer({
+    String? name,
+    Map<String, dynamic>? avatar,
+  }) async {
+    try {
+      final payload = <String, dynamic>{};
+      if (name != null) payload['name'] = name;
+      if (avatar != null) payload['avatar'] = avatar;
+
+      final resp = await AppHttpClient.message(
+        channel: SocketChannelTypes.general,
+        type: GeneralEventTypes.updateProfile,
+        payload: payload,
+      );
+
+      if (resp['profile'] != null) {
+        final profile = Profile.fromJson(resp['profile']);
+        Auth.setAuth(profile: profile);
+      }
+    } catch (e) {
+      debugPrint('Failed to update profile on server: $e');
+    }
+  }
 }

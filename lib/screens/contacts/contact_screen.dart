@@ -34,7 +34,7 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
 
   bool renaming = false;
 
-  late String name = widget.contact.name ?? widget.contact.email!;
+  late String name = widget.contact.displayName ?? widget.contact.email!;
 
   @override
   void initState() {

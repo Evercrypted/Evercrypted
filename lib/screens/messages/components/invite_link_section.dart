@@ -77,7 +77,11 @@ class _InviteLinkSectionState extends State<InviteLinkSection> {
       );
       debugPrint('Failed to generate invite link: $e');
     } finally {
-      if (mounted) setState(() => _isGenerating = false);
+      if (mounted)
+        setState(() {
+          _isGenerating = false;
+          _isOneTime = true;
+        });
     }
   }
 
@@ -191,15 +195,13 @@ class _InviteLinkSectionState extends State<InviteLinkSection> {
                   style: ButtonStyle(
                     visualDensity: VisualDensity.compact,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor:
-                        WidgetStateProperty.resolveWith((states) {
+                    backgroundColor: WidgetStateProperty.resolveWith((states) {
                       if (states.contains(WidgetState.selected)) {
                         return primaryColor.withAlpha((255 * 0.15).round());
                       }
                       return Colors.transparent;
                     }),
-                    foregroundColor:
-                        WidgetStateProperty.resolveWith((states) {
+                    foregroundColor: WidgetStateProperty.resolveWith((states) {
                       if (states.contains(WidgetState.selected)) {
                         return primaryColor;
                       }

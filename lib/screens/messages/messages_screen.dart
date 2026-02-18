@@ -296,47 +296,33 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                         Brightness.light
                                     ? Colors.white
                                     : null),
-                            if (chat.isOneToOne)
-                              Container(
-                                margin: const EdgeInsets.symmetric(
-                                    vertical: defaultPadding / 2),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      baseKey == null
-                                          ? Icons.warning
-                                          : Icons.check_circle,
-                                      color: baseKey == null
-                                          ? secondaryColor
-                                          : Theme.of(context).brightness ==
-                                                  Brightness.light
-                                              ? Colors.white
-                                              : primaryColor,
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: defaultPadding),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    baseKey == null
+                                        ? Icons.warning
+                                        : Icons.check_circle,
+                                    color: baseKey == null
+                                        ? secondaryColor
+                                        : Theme.of(context).brightness ==
+                                                Brightness.light
+                                            ? Colors.white
+                                            : primaryColor,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'Passwords as long as they are set modify base encryption key of the chat. They can be used to encrypt and decrypt messages. They are not stored anywhere, so you need to remember them.',
+                                      style:
+                                          const TextStyle(color: Colors.white),
                                     ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        baseKey == null
-                                            ? 'Chat End-to-End key is not synchronized yet. The other party needs to open Evercrypted at least once after the chat is created to generate Base-Encryption-Key, until then all sent messages will only be encrypted with entered password and make sure it is hard to guess.'
-                                            : 'Base-Encryption-Key has successfully been synchronized. Entered passwords modify the Base-Encryption-Key.',
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            if (!chat.isOneToOne)
-                              Container(
-                                margin: const EdgeInsets.symmetric(
-                                    vertical: defaultPadding / 2),
-                                child: const Text(
-                                  'All the encryption in group chats is done with only the entered password. Make sure it is hard to guess.',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
+                            ),
                             const SizedBox(height: defaultPadding / 2),
                             EvercryptedTextField(
                               controller: _passController,
@@ -387,7 +373,7 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                                   bottom: defaultPadding / 2),
                               child: Center(
                                 child: const Text(
-                                  'Password can be Maximum 32 characters in Length.\n\nPasswords shorter than that will automatically be reinforced with the synchronized Base-Encryption-Key.',
+                                  'Password can be Maximum 32 characters in Length.',
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 12),
                                 ),
@@ -683,6 +669,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             image: chat.avatar?.pic,
             radius: isConnected ? 28 : 14,
             name: (chat.name ?? participantNames),
+            avatarColor: chat.avatar?.color != null
+                ? Color(int.parse(chat.avatar!.color!))
+                : null,
+            avatarIcon: chat.avatar?.icon != null
+                ? IconData(int.parse(chat.avatar!.icon!),
+                    fontFamily: 'MaterialIcons')
+                : null,
           ),
           const SizedBox(width: defaultPadding * 0.5),
           Expanded(
@@ -709,6 +702,13 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
             image: chat.avatar?.pic,
             radius: isConnected ? 28 : 14,
             name: (chat.name ?? participantNames),
+            avatarColor: chat.avatar?.color != null
+                ? Color(int.parse(chat.avatar!.color!))
+                : null,
+            avatarIcon: chat.avatar?.icon != null
+                ? IconData(int.parse(chat.avatar!.icon!),
+                    fontFamily: 'MaterialIcons')
+                : null,
           ),
           const SizedBox(width: defaultPadding * 0.5),
           Expanded(

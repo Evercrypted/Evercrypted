@@ -15,6 +15,7 @@ import 'package:evercrypted/screens/contacts/contacts_screen.dart';
 import 'package:evercrypted/screens/messages/components/participant_card.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
+import 'package:evercrypted/widgets/avatar_editor_bottom_sheet.dart';
 import 'package:evercrypted/widgets/password_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -91,6 +92,34 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
         false;
   }
 
+  void _openAvatarEditor() async {
+    final result = await AvatarEditorBottomSheet.show(
+      context,
+      showNameField: true,
+      nameLabel: 'Chat Name',
+      initialName: chat.name,
+      initialColor: chat.avatar?.color != null
+          ? Color(int.parse(chat.avatar!.color!))
+          : Colors.blueGrey,
+      initialIconCodePoint:
+          chat.avatar?.icon != null ? int.tryParse(chat.avatar!.icon!) : null,
+    );
+
+    if (result != null) {
+      final avatarMap = <String, dynamic>{
+        'color': result.color?.value.toString(),
+        if (result.iconCodePoint != null)
+          'icon': result.iconCodePoint.toString(),
+      };
+
+      await chatService.updateChat(
+        chatUid: chat.uid,
+        name: result.name,
+        avatar: avatarMap,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
@@ -115,26 +144,35 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                   name: chat.name ??
                       chatParticipantNames(chat: chat, widgetRef: ref)
                           .join(', '),
+                  avatarColor: chat.avatar?.color != null
+                      ? Color(int.parse(chat.avatar!.color!))
+                      : null,
+                  avatarIcon: chat.avatar?.icon != null
+                      ? IconData(int.parse(chat.avatar!.icon!),
+                          fontFamily: 'MaterialIcons')
+                      : null,
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 5, top: 5),
-                  child: InkWell(
-                    onTap: () {},
-                    child: const CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 17,
-                      child: CircleAvatar(
-                        radius: 15,
-                        backgroundColor: primaryColor,
-                        child: Icon(
-                          Icons.edit,
-                          color: Colors.white,
-                          size: 20,
+                if (!chat.isOneToOne &&
+                    (user.isCreator == true || user.isAdmin == true))
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5, top: 5),
+                    child: InkWell(
+                      onTap: () => _openAvatarEditor(),
+                      child: const CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 17,
+                        child: CircleAvatar(
+                          radius: 15,
+                          backgroundColor: primaryColor,
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                )
+                  )
               ],
             ),
             const SizedBox(height: defaultPadding),

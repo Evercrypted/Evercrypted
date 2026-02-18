@@ -14,6 +14,8 @@ class CircleAvatarWithActiveIndicator extends StatelessWidget {
     this.onIconTap,
     this.iconColor = Colors.white,
     this.iconBackgrounColor = Colors.grey,
+    this.avatarColor,
+    this.avatarIcon,
   });
 
   final String? image;
@@ -26,27 +28,41 @@ class CircleAvatarWithActiveIndicator extends StatelessWidget {
   final Color? iconColor;
   final Color? iconBackgrounColor;
 
+  /// Custom background color for the avatar circle (from Avatar.color)
+  final Color? avatarColor;
+
+  /// Material icon to display inside the avatar (from Avatar.icon code point)
+  final IconData? avatarIcon;
+
   @override
   Widget build(BuildContext context) {
+    Widget? avatarChild;
+    if (avatarIcon != null) {
+      avatarChild = Icon(
+        avatarIcon,
+        color: Colors.white,
+        size: radius! * 1.1,
+      );
+    } else if (name != null) {
+      avatarChild = Text(
+        name!.length > 2 ? name!.substring(0, 2).toUpperCase() : name!,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: radius! * initialsSize,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
+
     return Stack(
       children: [
         CircleAvatar(
           radius: radius,
+          backgroundColor: avatarColor,
           backgroundImage: image != null && image!.startsWith('http')
               ? NetworkImage(image!)
               : null,
-          child: name != null
-              ? Text(
-                  name!.length > 2
-                      ? name!.substring(0, 2).toUpperCase()
-                      : name!,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: radius! * initialsSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )
-              : null,
+          child: avatarChild,
         ),
         if (icon != null)
           Positioned(

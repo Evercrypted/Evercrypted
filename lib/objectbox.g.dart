@@ -143,7 +143,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 1371536200008545624),
     name: 'Contact',
-    lastPropertyId: const obx_int.IdUid(8, 6110466623170020597),
+    lastPropertyId: const obx_int.IdUid(9, 3362288272637836072),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -187,6 +187,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(7, 8774225307899609223),
         name: 'dbName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 3362288272637836072),
+        name: 'dbCustomName',
         type: 9,
         flags: 0,
       ),
@@ -752,7 +758,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final dbNameOffset = object.dbName == null
             ? null
             : fbb.writeString(object.dbName!);
-        fbb.startTable(9);
+        final dbCustomNameOffset = object.dbCustomName == null
+            ? null
+            : fbb.writeString(object.dbCustomName!);
+        fbb.startTable(10);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, uidOffset);
         fbb.addOffset(2, contactPersonUidOffset);
@@ -760,6 +769,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(4, dbAvatarOffset);
         fbb.addOffset(5, dbEmailOffset);
         fbb.addOffset(6, dbNameOffset);
+        fbb.addOffset(8, dbCustomNameOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -793,7 +803,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
               ).vTableGetNullable(buffer, rootOffset, 14)
               ..dbName = const fb.StringReader(
                 asciiOptimization: true,
-              ).vTableGetNullable(buffer, rootOffset, 16);
+              ).vTableGetNullable(buffer, rootOffset, 16)
+              ..dbCustomName = const fb.StringReader(
+                asciiOptimization: true,
+              ).vTableGetNullable(buffer, rootOffset, 20);
 
         return object;
       },
@@ -1308,6 +1321,11 @@ class Contact_ {
   /// See [Contact.dbName].
   static final dbName = obx.QueryStringProperty<Contact>(
     _entities[2].properties[6],
+  );
+
+  /// See [Contact.dbCustomName].
+  static final dbCustomName = obx.QueryStringProperty<Contact>(
+    _entities[2].properties[7],
   );
 }
 

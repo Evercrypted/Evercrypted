@@ -28,11 +28,11 @@ class ContactCard extends ConsumerWidget {
         image: contact.avatar?.pic,
         isActive: isActive,
         radius: 28,
-        name: contact.name ?? contact.email!.split('@')[0],
+        name: contact.displayName ?? contact.email!.split('@')[0],
       ),
-      title: contact.name != null
+      title: contact.displayName != null
           ? Text(
-              contact.name!,
+              contact.displayName!,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             )
