@@ -13,6 +13,7 @@ import 'package:evercrypted/widgets/password_dialog.dart';
 import 'package:evercrypted/core/evercrypted-keyboard/evercrypted_keyboard_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:evercrypted/widgets/material_icon_registry.dart';
 
 class ContactScreen extends ConsumerStatefulWidget {
   const ContactScreen({
@@ -140,8 +141,8 @@ class ContactScreenState extends ConsumerState<ContactScreen> {
                 ? Color(int.parse(widget.contact.avatar!.color!))
                 : null,
             avatarIcon: widget.contact.avatar?.icon != null
-                ? IconData(int.parse(widget.contact.avatar!.icon!),
-                    fontFamily: 'MaterialIcons')
+                ? MaterialIconRegistry.iconDataFromCodePoint(
+                    int.parse(widget.contact.avatar!.icon!))
                 : null,
             icon: widget.contact.isFavorite ? Icons.star : Icons.star_border,
             circleRadius: 20,

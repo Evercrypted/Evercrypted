@@ -23,6 +23,7 @@ import 'package:evercrypted/core/obx_init.dart';
 import 'package:evercrypted/objectbox.g.dart';
 import 'package:evercrypted/screens/chats/components/chat_card.dart';
 import 'package:evercrypted/screens/messages/chat_settings_screen.dart';
+import 'package:evercrypted/widgets/material_icon_registry.dart';
 import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
 import 'package:evercrypted/screens/messages/invite_link_screen.dart';
 import 'package:evercrypted/screens/messages/components/password_icon.dart';
@@ -668,8 +669,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                 ? Color(int.parse(displayAvatar!.color!))
                 : null,
             avatarIcon: displayAvatar?.icon != null
-                ? IconData(int.parse(displayAvatar!.icon!),
-                    fontFamily: 'MaterialIcons')
+                ? MaterialIconRegistry.iconDataFromCodePoint(
+                    int.parse(displayAvatar!.icon!))
                 : null,
           ),
           const SizedBox(width: defaultPadding * 0.5),
@@ -701,8 +702,8 @@ class MessagesScreenState extends ConsumerState<MessagesScreen> {
                 ? Color(int.parse(chat.avatar!.color!))
                 : null,
             avatarIcon: chat.avatar?.icon != null
-                ? IconData(int.parse(chat.avatar!.icon!),
-                    fontFamily: 'MaterialIcons')
+                ? MaterialIconRegistry.iconDataFromCodePoint(
+                    int.parse(chat.avatar!.icon!))
                 : null,
           ),
           const SizedBox(width: defaultPadding * 0.5),

@@ -1,6 +1,7 @@
 import 'package:evercrypted/core/entities/chat/chat_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:evercrypted/widgets/material_icon_registry.dart';
 
 import '../../../core/entities/contact/contact_model.dart';
 import '../../../widgets/circle_avatar_with_active_indicator.dart';
@@ -33,8 +34,8 @@ class ContactCard extends ConsumerWidget {
             ? Color(int.parse(contact.avatar!.color!))
             : null,
         avatarIcon: contact.avatar?.icon != null
-            ? IconData(int.parse(contact.avatar!.icon!),
-                fontFamily: 'MaterialIcons')
+            ? MaterialIconRegistry.iconDataFromCodePoint(
+                int.parse(contact.avatar!.icon!))
             : null,
       ),
       title: contact.displayName != null

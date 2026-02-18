@@ -12,6 +12,7 @@ import '../../../core/entities/chat/chat_model.dart';
 import '../../../core/entities/profile/profile_model.dart';
 import '../../../widgets/circle_avatar_with_active_indicator.dart';
 import '../../../ui_constants.dart';
+import 'package:evercrypted/widgets/material_icon_registry.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 List<String> chatParticipantNames({chat, widgetRef}) {
@@ -75,8 +76,8 @@ class ChatCard extends ConsumerWidget {
                   ? Color(int.parse(displayAvatar!.color!))
                   : null,
               avatarIcon: displayAvatar?.icon != null
-                  ? IconData(int.parse(displayAvatar!.icon!),
-                      fontFamily: 'MaterialIcons')
+                  ? MaterialIconRegistry.iconDataFromCodePoint(
+                      int.parse(displayAvatar!.icon!))
                   : null,
             ),
             Expanded(

@@ -23,6 +23,7 @@ import 'package:evercrypted/widgets/search_header.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:evercrypted/widgets/material_icon_registry.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'components/contact_card.dart';
@@ -506,12 +507,16 @@ class ContactsScreenState extends ConsumerState<ContactsScreen>
                                       radius: 24,
                                       name: participant.name ??
                                           participant.email!.split('@')[0],
-                                      avatarColor: participant.avatar?.color != null
-                                          ? Color(int.parse(participant.avatar!.color!))
-                                          : null,
-                                      avatarIcon: participant.avatar?.icon != null
-                                          ? IconData(int.parse(participant.avatar!.icon!),
-                                              fontFamily: 'MaterialIcons')
+                                      avatarColor:
+                                          participant.avatar?.color != null
+                                              ? Color(int.parse(
+                                                  participant.avatar!.color!))
+                                              : null,
+                                      avatarIcon: participant.avatar?.icon !=
+                                              null
+                                          ? MaterialIconRegistry
+                                              .iconDataFromCodePoint(int.parse(
+                                                  participant.avatar!.icon!))
                                           : null,
                                       icon: Icons.close,
                                       onIconTap: () {

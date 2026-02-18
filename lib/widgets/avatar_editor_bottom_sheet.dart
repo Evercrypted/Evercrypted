@@ -185,8 +185,8 @@ class _AvatarEditorBottomSheetState extends State<AvatarEditorBottomSheet> {
               backgroundColor: _selectedColor,
               child: _selectedIconCodePoint != null
                   ? Icon(
-                      IconData(_selectedIconCodePoint!,
-                          fontFamily: 'MaterialIcons'),
+                      MaterialIconRegistry.iconDataFromCodePoint(
+                          _selectedIconCodePoint!),
                       color: Colors.white,
                       size: 44,
                     )

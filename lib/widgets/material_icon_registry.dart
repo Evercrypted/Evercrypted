@@ -2067,4 +2067,12 @@ class MaterialIconRegistry {
       icons.entries.where((e) => matchingNames.contains(e.key)),
     );
   }
+
+  static final Map<int, IconData> _codePointMap = {
+    for (var icon in icons.values) icon.codePoint: icon,
+  };
+
+  static IconData? iconDataFromCodePoint(int codePoint) {
+    return _codePointMap[codePoint];
+  }
 }

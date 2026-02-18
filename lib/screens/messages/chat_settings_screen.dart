@@ -19,6 +19,7 @@ import 'package:evercrypted/screens/messages/components/participant_card.dart';
 import 'package:evercrypted/ui_constants.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/avatar_editor_bottom_sheet.dart';
+import 'package:evercrypted/widgets/material_icon_registry.dart';
 import 'package:evercrypted/widgets/password_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -165,8 +166,8 @@ class ChatSettingsScreenState extends ConsumerState<ChatSettingsScreen> {
                       ? Color(int.parse(displayAvatar!.color!))
                       : null,
                   avatarIcon: displayAvatar?.icon != null
-                      ? IconData(int.parse(displayAvatar!.icon!),
-                          fontFamily: 'MaterialIcons')
+                      ? MaterialIconRegistry.iconDataFromCodePoint(
+                          int.parse(displayAvatar!.icon!))
                       : null,
                 ),
                 if (!chat.isOneToOne &&

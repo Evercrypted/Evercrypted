@@ -17,6 +17,7 @@ import 'package:evercrypted/screens/activation/activation_mainscreen.dart';
 import 'package:evercrypted/screens/blocked_users/blocked_users_screen.dart';
 import 'package:evercrypted/widgets/circle_avatar_with_active_indicator.dart';
 import 'package:evercrypted/widgets/avatar_editor_bottom_sheet.dart';
+import 'package:evercrypted/widgets/material_icon_registry.dart';
 import 'package:evercrypted/widgets/primary_button.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
@@ -374,8 +375,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ? Color(int.parse(profile!.avatar!.color!))
                           : null,
                       avatarIcon: profile?.avatar?.icon != null
-                          ? IconData(int.parse(profile!.avatar!.icon!),
-                              fontFamily: 'MaterialIcons')
+                          ? MaterialIconRegistry.iconDataFromCodePoint(
+                              int.parse(profile!.avatar!.icon!))
                           : null,
                     ),
                     const Positioned(
