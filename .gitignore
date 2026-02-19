@@ -45,9 +45,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-#md files
-*.md
-
 # Sensitive Keys & Configuration
 google-services.json
 GoogleService-Info.plist
