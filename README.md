@@ -1,5 +1,7 @@
 # Evercrypted
 
+**Website:** [https://evercrypted.com](https://evercrypted.com)
+
 Evercrypted is a high-security, privacy-focused messaging application built with Flutter. It provides a seamless and secure communication experience with end-to-end encryption for all messages and calls.
 
 ## Key Features
